@@ -101,12 +101,12 @@ func BatchStatusBadgeClass(status domain.BatchStatus) string {
 	}
 }
 
-// NavLinkUpperClass highlights sidebar links inside the upper 55% Aura Violet diagonal zone.
+// NavLinkUpperClass highlights sidebar links inside the Royal Industrial Faction Banner.
 func NavLinkUpperClass(activeNav, target string) string {
 	if activeNav == target {
-		return "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold tracking-wide bg-white/20 text-white border border-white/25 border-l-4 border-l-white shadow-xs"
+		return "flex items-center gap-3 px-2.5 py-2 rounded-md text-xs font-semibold tracking-wide bg-white/15 text-white border border-amber-300/30 border-l-4 border-l-amber-300 shadow-xs"
 	}
-	return "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium tracking-wide text-violet-100/90 hover:text-white hover:bg-white/12 border border-transparent transition"
+	return "flex items-center gap-3 px-2.5 py-2 rounded-md text-xs font-medium tracking-wide text-violet-100/85 hover:text-white hover:bg-white/10 border border-transparent transition"
 }
 
 // NavLinkClass highlights sidebar links inside the lower 45% neutral zone (Day & Night adaptive).

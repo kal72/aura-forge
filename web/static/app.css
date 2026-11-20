@@ -47,20 +47,56 @@ body {
 }
 
 .af-sidebar {
-  background-color: var(--af-sidebar-bg);
-  border-right: 1px solid var(--af-border);
+  background: linear-gradient(180deg, #0d1021 0%, #171530 62%, #0b0d1a 100%);
+  border-right: 1px solid rgba(139, 92, 246, 0.30);
+}
+
+.af-banner-wrap {
+  filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.68));
+}
+
+html.dark .af-banner-wrap {
+  filter: drop-shadow(0 14px 26px rgba(0, 0, 0, 0.78));
+}
+
+.af-banner-hazard {
+  height: 4px;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(251, 191, 36, 0.78) 0px,
+    rgba(251, 191, 36, 0.78) 5px,
+    rgba(76, 29, 149, 0.95) 5px,
+    rgba(76, 29, 149, 0.95) 11px
+  );
 }
 
 .af-sidebar-upper {
+  position: relative;
   flex: 0 0 auto;
-  min-height: 55%;
-  background: linear-gradient(158deg, #5b21b6 0%, #6d28d9 52%, #7c3aed 100%);
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 36px), 0 100%);
-  padding-bottom: 44px;
+  background-color: #5b21b6;
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(196, 181, 253, 0.28), transparent 58%),
+    linear-gradient(to right, rgba(253, 230, 138, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(253, 230, 138, 0.055) 1px, transparent 1px),
+    linear-gradient(180deg, #4c1d95 0%, #5b21b6 55%, #6d28d9 100%);
+  background-size: 100% 100%, 20px 20px, 20px 20px, 100% 100%;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 30px), 50% 100%, 0 calc(100% - 30px));
+  padding-bottom: 34px;
 }
 
 html.dark .af-sidebar-upper {
-  background: linear-gradient(158deg, #2e1065 0%, #4c1d95 55%, #5b21b6 100%);
+  background-color: #3b1378;
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(167, 139, 250, 0.24), transparent 58%),
+    linear-gradient(to right, rgba(253, 230, 138, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(253, 230, 138, 0.045) 1px, transparent 1px),
+    linear-gradient(180deg, #240c4f 0%, #3b1378 55%, #4c1d95 100%);
+  background-size: 100% 100%, 20px 20px, 20px 20px, 100% 100%;
+}
+
+.af-banner-frame {
+  border-left: 1px solid rgba(253, 230, 138, 0.36);
+  border-right: 1px solid rgba(253, 230, 138, 0.36);
 }
 
 .af-topbar {
