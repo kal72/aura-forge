@@ -1,70 +1,50 @@
-/* aura-forge // Opsi 1: Aura Violet (EVE Canon) + Square Grid Motif (Default: Day Mode) */
+/* aura-forge // Seamless Orbital Shipyard Canvas + Solusi B (Smoked Slate Glass Day / Deep Orbital Glass Night) */
 :root {
-  --af-bg: #f8fafc;
-  --af-surface: #ffffff;
-  --af-surface-muted: #f1f5f9;
-  --af-sidebar-bg: #ffffff;
-  --af-topbar-bg: rgba(255, 255, 255, 0.90);
-  --af-border: #e2e8f0;
-  --af-border-subtle: #e2e8f0;
+  --af-orbital-bg: linear-gradient(180deg, #0d1021 0%, #171530 62%, #0b0d1a 100%);
   --af-accent: #7c3aed;
-  --af-accent-soft: rgba(124, 58, 237, 0.10);
-  --af-text: #0f172a;
-  --af-text-muted: #64748b;
-  --af-grid: rgba(15, 23, 42, 0.048);
-  --af-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 16px rgba(15, 23, 42, 0.04);
-}
-
-html.dark {
-  --af-bg: #090b12;
-  --af-surface: #121624;
-  --af-surface-muted: #0e111b;
-  --af-sidebar-bg: #0e111b;
-  --af-topbar-bg: rgba(14, 17, 27, 0.90);
-  --af-border: rgba(139, 92, 246, 0.22);
-  --af-border-subtle: rgba(148, 163, 184, 0.14);
-  --af-accent: #8b5cf6;
-  --af-accent-soft: rgba(139, 92, 246, 0.16);
   --af-text: #f1f5f9;
   --af-text-muted: #94a3b8;
-  --af-grid: rgba(139, 92, 246, 0.06);
-  --af-shadow: 0 6px 28px rgba(0, 0, 0, 0.45);
 }
 
 body {
-  background-color: var(--af-bg);
+  background-color: #0d1021;
+  background-image: var(--af-orbital-bg);
+  background-attachment: fixed;
   color: var(--af-text);
   font-feature-settings: "tnum" on, "lnum" on;
-  transition: background-color 180ms ease, color 180ms ease;
 }
 
-.tactical-grid-bg {
-  background-color: var(--af-bg);
-  background-image:
-    linear-gradient(to right, var(--af-grid) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--af-grid) 1px, transparent 1px);
-  background-size: 32px 32px;
+.af-orbital-bg {
+  background-color: #0d1021;
+  background-image: var(--af-orbital-bg);
+  background-attachment: fixed;
 }
 
+/* ================================================================
+   Sidebar: Borderless & Transparent on Desktop so Planet/Rings flow seamlessly
+   ================================================================ */
 .af-sidebar {
   background: linear-gradient(180deg, #0d1021 0%, #171530 62%, #0b0d1a 100%);
-  border-right: 1px solid rgba(139, 92, 246, 0.30);
+  border-right: 1px solid rgba(139, 92, 246, 0.24);
+}
+
+@media (min-width: 1024px) {
+  .af-sidebar {
+    background: transparent;
+    border-right: none;
+  }
 }
 
 .af-banner-wrap {
-  filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.68));
-}
-
-html.dark .af-banner-wrap {
-  filter: drop-shadow(0 14px 26px rgba(0, 0, 0, 0.78));
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.72));
 }
 
 .af-banner-hazard {
   height: 4px;
   background: repeating-linear-gradient(
     -45deg,
-    rgba(251, 191, 36, 0.78) 0px,
-    rgba(251, 191, 36, 0.78) 5px,
+    rgba(251, 191, 36, 0.84) 0px,
+    rgba(251, 191, 36, 0.84) 5px,
     rgba(76, 29, 149, 0.95) 5px,
     rgba(76, 29, 149, 0.95) 11px
   );
@@ -84,36 +64,57 @@ html.dark .af-banner-wrap {
   padding-bottom: 34px;
 }
 
-html.dark .af-sidebar-upper {
-  background-color: #3b1378;
-  background-image:
-    radial-gradient(circle at 50% 0%, rgba(167, 139, 250, 0.24), transparent 58%),
-    linear-gradient(to right, rgba(253, 230, 138, 0.045) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(253, 230, 138, 0.045) 1px, transparent 1px),
-    linear-gradient(180deg, #240c4f 0%, #3b1378 55%, #4c1d95 100%);
-  background-size: 100% 100%, 20px 20px, 20px 20px, 100% 100%;
-}
-
 .af-banner-frame {
   border-left: 1px solid rgba(253, 230, 138, 0.36);
   border-right: 1px solid rgba(253, 230, 138, 0.36);
 }
 
+/* Top Bar seamlessly blended over Orbital Canvas */
 .af-topbar {
-  background-color: var(--af-topbar-bg);
-  border-bottom: 1px solid var(--af-border);
+  background-color: rgba(13, 16, 33, 0.45);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.14);
 }
 
+/* ================================================================
+   Cards (.tactical-panel) — Solusi B:
+   Day Mode (Default) = Smoked Slate Glass (Brighter, crisp, luminous rim)
+   Night Mode (.dark) = Deep Orbital Glass (Calm obsidian depth)
+   ================================================================ */
 .tactical-panel {
-  background: var(--af-surface);
-  border: 1px solid var(--af-border);
-  border-top: 2px solid rgba(124, 58, 237, 0.45);
-  box-shadow: var(--af-shadow);
+  position: relative;
+  background: linear-gradient(155deg, rgba(58, 60, 102, 0.72) 0%, rgba(40, 42, 78, 0.68) 100%);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  color: #f8fafc;
+  border: 1px solid rgba(196, 181, 253, 0.32);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 10px 30px rgba(4, 6, 18, 0.42);
+  transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.tactical-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: linear-gradient(90deg, #a78bfa 0%, #fde68a 65%, transparent 100%);
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+  pointer-events: none;
 }
 
 html.dark .tactical-panel {
-  background: linear-gradient(180deg, rgba(18, 22, 36, 0.95) 0%, rgba(13, 16, 27, 0.97) 100%);
-  border-top: 2px solid rgba(139, 92, 246, 0.45);
+  background: rgba(20, 19, 42, 0.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #f1f5f9;
+  border: 1px solid rgba(139, 92, 246, 0.24);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.48);
+}
+
+html.dark .tactical-panel::before {
+  background: linear-gradient(90deg, #8b5cf6 0%, #f59e0b 60%, transparent 100%);
 }
 
 .htmx-indicator {
@@ -125,159 +126,86 @@ html.dark .tactical-panel {
 }
 
 /* ================================================================
-   Aura Violet Accent Unification (Primary CTAs & Highlights)
+   Aura Violet Accent & Surface Harmony (Both Day Smoked & Night Deep)
    ================================================================ */
 main .bg-sky-500 {
-  background-color: #7c3aed !important;
+  background: linear-gradient(90deg, #6d28d9 0%, #8b5cf6 100%) !important;
   color: #ffffff !important;
 }
 main .bg-sky-500:hover {
-  background-color: #6d28d9 !important;
-}
-html.dark main .bg-sky-500 {
-  background-color: #8b5cf6 !important;
-  color: #ffffff !important;
-}
-html.dark main .bg-sky-500:hover {
-  background-color: #a78bfa !important;
+  background: linear-gradient(90deg, #7c3aed 0%, #a78bfa 100%) !important;
 }
 
 main .bg-sky-500\/15,
 main .bg-sky-500\/20 {
-  background-color: rgba(124, 58, 237, 0.11) !important;
+  background-color: rgba(139, 92, 246, 0.20) !important;
 }
 main .hover\:bg-sky-500\/25:hover,
 main .hover\:bg-sky-500\/30:hover {
-  background-color: rgba(124, 58, 237, 0.20) !important;
+  background-color: rgba(139, 92, 246, 0.30) !important;
 }
 main .border-sky-500\/40,
 main .border-sky-400\/40,
 main .border-sky-400\/50,
 main .border-sky-400\/30 {
-  border-color: rgba(124, 58, 237, 0.38) !important;
+  border-color: rgba(167, 139, 250, 0.45) !important;
 }
 main .focus\:border-sky-400:focus {
-  border-color: #7c3aed !important;
+  border-color: #a78bfa !important;
 }
 
-/* Night Mode Violet Harmony */
-html.dark main .text-sky-300,
-html.dark main .text-sky-200,
-html.dark main .text-sky-400 {
-  color: #c4b5fd !important;
-}
-html.dark main .bg-slate-900,
-html.dark main .bg-slate-900\/90,
-html.dark main .bg-slate-900\/70,
-html.dark main .bg-slate-900\/60,
-html.dark main .bg-slate-900\/50 {
-  background-color: rgba(18, 22, 36, 0.88) !important;
-}
-html.dark main .bg-slate-950,
-html.dark main .bg-slate-950\/60 {
-  background-color: rgba(9, 11, 18, 0.88) !important;
-}
-html.dark main .border-slate-800,
-html.dark main .border-slate-800\/80,
-html.dark main .border-slate-800\/70,
-html.dark main .border-slate-700 {
-  border-color: rgba(139, 92, 246, 0.20) !important;
-}
-html.dark main .bg-sky-950\/30 {
-  background-color: rgba(91, 33, 182, 0.22) !important;
+main .text-sky-300,
+main .text-sky-200,
+main .text-sky-400 {
+  color: #ddd6fe !important;
 }
 
-/* ================================================================
-   Day Mode High-Contrast Neutral Slate + Aura Violet (Default)
-   ================================================================ */
-html:not(.dark) main .text-white {
-  color: #0f172a !important;
+/* Day Smoked Slate internal surfaces & inputs */
+html:not(.dark) .tactical-panel .text-slate-400 {
+  color: #cbd5e1 !important;
 }
-html:not(.dark) main .text-slate-200 {
-  color: #1e293b !important;
+html:not(.dark) .tactical-panel .bg-slate-900,
+html:not(.dark) .tactical-panel .bg-slate-900\/90,
+html:not(.dark) .tactical-panel .bg-slate-900\/70,
+html:not(.dark) .tactical-panel .bg-slate-900\/60,
+html:not(.dark) .tactical-panel .bg-slate-900\/50 {
+  background-color: rgba(28, 30, 58, 0.62) !important;
 }
-html:not(.dark) main .text-slate-300 {
-  color: #334155 !important;
+html:not(.dark) .tactical-panel .bg-slate-950,
+html:not(.dark) .tactical-panel .bg-slate-950\/60 {
+  background-color: rgba(20, 22, 46, 0.72) !important;
 }
-html:not(.dark) main .text-slate-400 {
-  color: #475569 !important;
+html:not(.dark) .tactical-panel .border-slate-800,
+html:not(.dark) .tactical-panel .border-slate-800\/80,
+html:not(.dark) .tactical-panel .border-slate-800\/70,
+html:not(.dark) .tactical-panel .border-slate-700 {
+  border-color: rgba(196, 181, 253, 0.24) !important;
 }
-html:not(.dark) main .text-slate-500 {
-  color: #64748b !important;
-}
-html:not(.dark) main .text-sky-300,
-html:not(.dark) main .text-sky-200,
-html:not(.dark) main .text-sky-400 {
-  color: #6d28d9 !important;
-}
-html:not(.dark) main .text-emerald-300,
-html:not(.dark) main .text-emerald-200 {
-  color: #047857 !important;
-}
-html:not(.dark) main .text-amber-300,
-html:not(.dark) main .text-amber-200 {
-  color: #b45309 !important;
-}
-html:not(.dark) main .text-rose-300,
-html:not(.dark) main .text-rose-200,
-html:not(.dark) main .text-rose-400 {
-  color: #be123c !important;
+html:not(.dark) .tactical-panel input,
+html:not(.dark) .tactical-panel select,
+html:not(.dark) .tactical-panel textarea {
+  background-color: rgba(24, 26, 52, 0.75) !important;
+  color: #ffffff !important;
+  border-color: rgba(196, 181, 253, 0.30) !important;
 }
 
-html:not(.dark) main .bg-slate-900,
-html:not(.dark) main .bg-slate-900\/90,
-html:not(.dark) main .bg-slate-900\/70,
-html:not(.dark) main .bg-slate-900\/60,
-html:not(.dark) main .bg-slate-900\/50,
-html:not(.dark) main .bg-slate-950,
-html:not(.dark) main .bg-slate-950\/60 {
-  background-color: #f8fafc !important;
+/* Night Deep Orbital internal surfaces & inputs */
+html.dark .tactical-panel .bg-slate-900,
+html.dark .tactical-panel .bg-slate-900\/90,
+html.dark .tactical-panel .bg-slate-900\/70,
+html.dark .tactical-panel .bg-slate-900\/60,
+html.dark .tactical-panel .bg-slate-900\/50 {
+  background-color: rgba(13, 14, 32, 0.78) !important;
 }
-html:not(.dark) main .bg-slate-800,
-html:not(.dark) main .bg-slate-700\/50,
-html:not(.dark) main .bg-slate-700\/40 {
-  background-color: #e2e8f0 !important;
+html.dark .tactical-panel .bg-slate-950,
+html.dark .tactical-panel .bg-slate-950\/60 {
+  background-color: rgba(9, 10, 22, 0.86) !important;
 }
-html:not(.dark) main .hover\:bg-slate-800\/40:hover,
-html:not(.dark) main .hover\:bg-slate-800\/30:hover {
-  background-color: #f1f5f9 !important;
-}
-
-html:not(.dark) main .border-slate-800,
-html:not(.dark) main .border-slate-800\/80,
-html:not(.dark) main .border-slate-800\/70,
-html:not(.dark) main .border-slate-700 {
-  border-color: #e2e8f0 !important;
-}
-html:not(.dark) main .divide-slate-800\/80 > :not([hidden]) ~ :not([hidden]),
-html:not(.dark) main .divide-slate-800\/70 > :not([hidden]) ~ :not([hidden]) {
-  border-color: #e2e8f0 !important;
-}
-
-html:not(.dark) main .bg-emerald-950\/20,
-html:not(.dark) main .bg-emerald-950\/30,
-html:not(.dark) main .bg-emerald-950\/40 {
-  background-color: #ecfdf5 !important;
-}
-html:not(.dark) main .bg-sky-950\/30 {
-  background-color: #f5f3ff !important;
-}
-html:not(.dark) main .bg-amber-950\/20,
-html:not(.dark) main .bg-amber-950\/30,
-html:not(.dark) main .bg-amber-950\/40 {
-  background-color: #fffbeb !important;
-}
-html:not(.dark) main .bg-rose-950\/40,
-html:not(.dark) main .bg-rose-950\/50 {
-  background-color: #fff1f2 !important;
-}
-
-html:not(.dark) main input,
-html:not(.dark) main select,
-html:not(.dark) main textarea {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
-  border-color: #cbd5e1 !important;
+html.dark .tactical-panel .border-slate-800,
+html.dark .tactical-panel .border-slate-800\/80,
+html.dark .tactical-panel .border-slate-800\/70,
+html.dark .tactical-panel .border-slate-700 {
+  border-color: rgba(139, 92, 246, 0.22) !important;
 }
 
 /* Custom subtle scrollbars */
@@ -286,15 +214,12 @@ html:not(.dark) main textarea {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--af-surface-muted);
+  background: #0b0d1a;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #332e59;
   border-radius: 4px;
 }
-html.dark ::-webkit-scrollbar-thumb {
-  background: #27273a;
-}
-html.dark ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f5c;
+::-webkit-scrollbar-thumb:hover {
+  background: #4b4382;
 }
