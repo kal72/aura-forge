@@ -1,0 +1,151 @@
+package web
+
+import (
+	"fmt"
+
+	"aura-forge/internal/service"
+)
+
+templ DashboardPage(data *service.DashboardSummary) {
+	@Layout("Dashboard", "dashboard", data.Mode) {
+		<div class="space-y-6">
+			<!-- Header & Quick Actions -->
+			<div class="flex flex-wrap items-center justify-between gap-4">
+				<div>
+					<h1 class="text-2xl font-bold tracking-tight text-white">Command Center // Dashboard</h1>
+					<p class="text-xs text-slate-400 mt-0.5">Ringkasan modal, kapasitas slot manufaktur, profit terealisasi, dan instruksi asisten harian.</p>
+				</div>
+				<div class="flex flex-wrap gap-2">
+					<button
+						type="button"
+						hx-post="/catalog/sample"
+						hx-swap="none"
+						class="rounded-md border border-sky-500/40 bg-sky-500/15 px-3 py-1.5 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition cursor-pointer"
+					>
+						Load Sample Data
+					</button>
+					<a href="/allocator" class="rounded-md border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 transition">
+						Smart Allocator
+					</a>
+					<a href="/planner" class="rounded-md border border-amber-500/40 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition">
+						Weekly Planner
+					</a>
+				</div>
+			</div>
+
+			<!-- KPI Grid -->
+			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[11px] font-mono uppercase tracking-wider text-slate-400">Kas Tersedia</div>
+					<div class="mt-2 text-2xl font-bold font-mono text-emerald-300">{ FormatISK(data.AvailableCapital) }</div>
+					<div class="mt-1 text-[11px] text-slate-400">Sumber: { data.CapitalSource }</div>
+				</div>
+
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[11px] font-mono uppercase tracking-wider text-slate-400">Modal Terkunci</div>
+					<div class="mt-2 text-2xl font-bold font-mono text-amber-300">{ FormatISK(data.LockedCapital) }</div>
+					<div class="mt-1 text-[11px] text-slate-400">{ fmt.Sprintf("%d batch aktif (%d undercut)", data.ActiveBatchesCount, data.UndercutBatchesCount) }</div>
+				</div>
+
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[11px] font-mono uppercase tracking-wider text-slate-400">Realized Profit</div>
+					<div class="mt-2 text-2xl font-bold font-mono text-sky-300">{ FormatISK(data.RealizedProfit) }</div>
+					<div class="mt-1 text-[11px] text-slate-400">Akumulasi batch berstatus SOLD</div>
+				</div>
+
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[11px] font-mono uppercase tracking-wider text-slate-400">Kapasitas Slot</div>
+					<div class="mt-2 text-2xl font-bold font-mono text-white">
+						{ fmt.Sprintf("%d / %d", data.MfgSlotsUsed, data.MfgSlotsTotal) }
+						<span class="text-xs font-normal text-slate-400">MFG</span>
+					</div>
+					<div class="mt-1 text-[11px] text-slate-400">
+						{ fmt.Sprintf("Science/Invention: %d / %d • Catalog: %d layak, %d jebakan", data.SciSlotsUsed, data.SciSlotsTotal, data.LayakItemsCount, data.JebakanItemsCount) }
+					</div>
+				</div>
+			</div>
+
+			<!-- Two-Column Workspace: Daily Checklist + Quick HTMX Calculator -->
+			<div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+				<!-- Daily Assistant Checklist -->
+				<div class="tactical-panel rounded-xl p-5 lg:col-span-5 space-y-4">
+					<div class="flex items-center justify-between">
+						<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">Checklist Asisten Harian</h2>
+						<span class="rounded bg-sky-500/15 px-2 py-0.5 font-mono text-[10px] text-sky-300">COPILOT</span>
+					</div>
+					<ul class="space-y-2.5 text-sm">
+						for i, task := range data.DailyChecklist {
+							<li class="flex items-start gap-2.5 rounded-lg border border-slate-800 bg-slate-900/60 p-3">
+								<span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sky-500/20 font-mono text-[11px] font-bold text-sky-300">
+									{ fmt.Sprintf("%d", i+1) }
+								</span>
+								<span class="text-slate-200 leading-relaxed">{ task }</span>
+							</li>
+						}
+					</ul>
+
+					if data.ActivePlan != nil {
+						<div class="rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-3.5">
+							<div class="text-[11px] font-mono uppercase text-emerald-400">Rencana Mingguan Aktif</div>
+							<div class="mt-1 font-semibold text-white">{ data.ActivePlan.Title }</div>
+							<div class="mt-1 text-xs text-slate-300">
+								Est. Profit: <span class="font-mono text-emerald-300">{ FormatISK(data.ActivePlan.TotalEstimatedProfit) }</span>
+								({ FormatPercent(data.ActivePlan.ProjectedROI) } ROI)
+							</div>
+							<a href="/planner" class="mt-2 inline-block text-xs font-semibold text-sky-300 hover:underline">Buka Jadwal Day 1–7 &amp; Shopping List →</a>
+						</div>
+					}
+				</div>
+
+				<!-- Quick HTMX Profit Calculator -->
+				<div class="tactical-panel rounded-xl p-5 lg:col-span-7 space-y-4">
+					<div class="flex items-center justify-between">
+						<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Kalkulator Profit Cepat (HTMX Real-Time)</h2>
+						<a href="/calculator" class="text-xs text-sky-300 hover:underline">Mode Lengkap →</a>
+					</div>
+
+					<form
+						hx-post="/calculator/compute"
+						hx-target="#quick-calc-result"
+						hx-swap="innerHTML"
+						class="grid grid-cols-1 gap-3 sm:grid-cols-2"
+					>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">Nama Item</label>
+							<input type="text" name="item_name" value="Hobgoblin I" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-sky-400 focus:outline-none"/>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">Output Qty / Batch</label>
+							<input type="number" name="output_qty" value="500" min="1" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none"/>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">Harga Jual Jita / Unit (ISK)</label>
+							<input type="number" step="0.01" name="unit_sell_price" value="14500" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none"/>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">Biaya Bahan / Batch (ISK)</label>
+							<input type="number" step="0.01" name="material_cost" value="4900000" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none"/>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">Biaya Ekstra BPC / Decryptor</label>
+							<input type="number" step="0.01" name="extra_setup_cost" value="0" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none"/>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">Target Batches / Week</label>
+							<input type="number" name="batches_per_week" value="4" min="1" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none"/>
+						</div>
+						<div class="sm:col-span-2 flex justify-end">
+							<button type="submit" class="rounded-md bg-sky-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer">
+								Hitung Net Profit &amp; Break-Even
+							</button>
+						</div>
+					</form>
+
+					<div id="quick-calc-result" class="rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-xs text-slate-400">
+						Klik tombol di atas untuk menghitung Net Profit, Pajak Jita, Break-Even Unit Price, dan Proyeksi Mingguan secara real-time.
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+}

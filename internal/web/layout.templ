@@ -1,0 +1,123 @@
+package web
+
+import "aura-forge/internal/service"
+
+templ Layout(title string, activeNav string, mode service.ModeInfo) {
+	<!DOCTYPE html>
+	<html lang="id" class="dark">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ title } — aura-forge // EVE Market &amp; Industry Copilot</title>
+			<script src="https://cdn.tailwindcss.com"></script>
+			<script>
+				tailwind.config = {
+					darkMode: 'class',
+					theme: {
+						extend: {
+							fontFamily: {
+								mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+							}
+						}
+					}
+				}
+			</script>
+			<link rel="stylesheet" href="/static/app.css"/>
+			<script src="https://unpkg.com/htmx.org@2.0.4"></script>
+			<script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
+		</head>
+		<body class="min-h-screen bg-[#090d16] text-slate-200 tactical-grid-bg antialiased">
+			<!-- Top Navigation Bar -->
+			<header class="sticky top-0 z-40 border-b border-sky-500/20 bg-[#0b1120]/95 backdrop-blur">
+				<div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+					<div class="flex items-center gap-3">
+						<a href="/" class="flex items-center gap-2.5 group">
+							<div class="flex h-8 w-8 items-center justify-center rounded border border-sky-400/50 bg-sky-500/15 font-mono text-sm font-bold text-sky-300 shadow-[0_0_12px_rgba(56,189,248,0.25)]">
+								AF
+							</div>
+							<div>
+								<div class="text-sm font-bold tracking-wider text-white uppercase">aura-forge</div>
+								<div class="text-[10px] font-mono tracking-widest text-sky-400/80 uppercase">EVE Industry Copilot</div>
+							</div>
+						</a>
+					</div>
+
+					<nav class="flex flex-wrap items-center gap-1">
+						<a href="/" class={ NavLinkClass(activeNav, "dashboard") }>Dashboard</a>
+						<a href="/catalog" class={ NavLinkClass(activeNav, "catalog") }>Catalog</a>
+						<a href="/calculator" class={ NavLinkClass(activeNav, "calculator") }>Calculator</a>
+						<a href="/allocator" class={ NavLinkClass(activeNav, "allocator") }>Allocator</a>
+						<a href="/planner" class={ NavLinkClass(activeNav, "planner") }>Weekly Planner</a>
+						<a href="/tracker" class={ NavLinkClass(activeNav, "tracker") }>Tracker</a>
+						<a href="/settings" class={ NavLinkClass(activeNav, "settings") }>Settings</a>
+					</nav>
+
+					<div class="flex items-center gap-2">
+						<!-- Mode Indicator Badge -->
+						if mode.SSOConnected {
+							<span title={ mode.StatusHint } class="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-500/15 px-2.5 py-1 text-[11px] font-mono font-medium text-emerald-300">
+								<span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+								EVE SSO: { mode.CharacterName }
+							</span>
+						} else {
+							<span title={ mode.StatusHint } class="inline-flex items-center gap-1.5 rounded-full border border-sky-400/40 bg-sky-500/15 px-2.5 py-1 text-[11px] font-mono font-medium text-sky-300">
+								<span class="h-2 w-2 rounded-full bg-sky-400"></span>
+								Public ESI Active
+							</span>
+						}
+
+						<!-- Global Sync Jita Prices Button -->
+						<button
+							type="button"
+							hx-post="/esi/sync-prices"
+							hx-swap="none"
+							hx-indicator="#global-sync-spinner"
+							class="inline-flex items-center gap-1.5 rounded-md border border-amber-400/40 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer"
+						>
+							<span id="global-sync-spinner" class="htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-amber-300 border-t-transparent"></span>
+							Sync Jita Prices
+						</button>
+					</div>
+				</div>
+			</header>
+
+			<!-- Main Content -->
+			<main class="mx-auto max-w-7xl px-4 py-6">
+				{ children... }
+			</main>
+
+			<!-- Footer -->
+			<footer class="mt-12 border-t border-slate-800/80 py-5 text-center text-xs text-slate-500 font-mono">
+				aura-forge // EVE Market &amp; Industry Copilot (2026) — Public ESI Default + Optional EVE SSO Plug-and-Play
+			</footer>
+
+			<!-- Alpine.js Toast Notification Stack -->
+			<div
+				x-data="{
+					toasts: [],
+					add(detail) {
+						const id = Date.now() + Math.random();
+						this.toasts.push({ id, level: detail.level || 'info', message: detail.message || '' });
+						setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 5000);
+					}
+				}"
+				@showToast.window="add($event.detail)"
+				class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-md"
+			>
+				<template x-for="t in toasts" :key="t.id">
+					<div
+						x-transition
+						class="rounded-lg border px-4 py-3 text-xs font-medium shadow-xl backdrop-blur"
+						:class="{
+							'border-emerald-500/50 bg-emerald-950/90 text-emerald-200': t.level === 'success',
+							'border-rose-500/50 bg-rose-950/90 text-rose-200': t.level === 'error',
+							'border-sky-500/50 bg-slate-900/95 text-sky-200': t.level !== 'success' && t.level !== 'error'
+						}"
+					>
+						<span x-text="t.message"></span>
+					</div>
+				</template>
+			</div>
+		</body>
+	</html>
+}

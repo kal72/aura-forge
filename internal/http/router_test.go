@@ -10,6 +10,7 @@ import (
 	"aura-forge/internal/esi"
 	apphttp "aura-forge/internal/http"
 	"aura-forge/internal/service"
+	"aura-forge/internal/web"
 )
 
 func TestRouter_StandardPublicESIModeEndpoints(t *testing.T) {
@@ -65,5 +66,43 @@ func TestRouter_StandardPublicESIModeEndpoints(t *testing.T) {
 	router.ServeHTTP(recCalc, reqCalc)
 	if recCalc.Code != http.StatusOK || !strings.Contains(recCalc.Body.String(), "net_profit_per_batch") {
 		t.Errorf("POST /calculator/compute failed: %d %s", recCalc.Code, recCalc.Body.String())
+	}
+}
+
+func TestRouter_TemplUIRendering(t *testing.T) {
+	sso := esi.NewSSOClient("", "", "http://localhost:8080/auth/callback", nil)
+	svc := service.NewCopilotService(
+		nil, nil, nil, nil, nil,
+		esi.NewPublicMarketClient(esi.NewClient("", "test", nil, nil)),
+		esi.NewNoOpCharacterSyncProvider(),
+		sso,
+	)
+
+	router := apphttp.NewRouter(svc, web.NewRenderer())
+
+	pages := map[string]string{
+		"/":           "Command Center // Dashboard",
+		"/catalog":    "Catalog &amp; Trap Guard Advisor",
+		"/calculator": "Net Profit, Tax &amp; Break-Even Calculator",
+		"/allocator":  "Smart Capital Allocator",
+		"/planner":    "Weekly Production &amp; Slot Planner",
+		"/tracker":    "Production, Inventory &amp; Market Order Tracker",
+		"/settings":   "Settings &amp; EVE Online ESI Mode",
+	}
+
+	for path, expectedTitle := range pages {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+		if rec.Code != http.StatusOK {
+			t.Errorf("GET %s expected 200, got %d", path, rec.Code)
+		}
+		body := rec.Body.String()
+		if !strings.Contains(body, expectedTitle) {
+			t.Errorf("GET %s missing expected heading %q", path, expectedTitle)
+		}
+		if !strings.Contains(body, "Public ESI Active") {
+			t.Errorf("GET %s missing Public ESI Active mode indicator", path)
+		}
 	}
 }

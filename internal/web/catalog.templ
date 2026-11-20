@@ -1,0 +1,246 @@
+package web
+
+import (
+	"fmt"
+
+	"aura-forge/internal/domain"
+	"aura-forge/internal/service"
+)
+
+templ CatalogPage(mode service.ModeInfo, items []domain.MarketItem, category, status, search string, importRes *domain.ImportResult) {
+	@Layout("Catalog & Trap Guard", "catalog", mode) {
+		<div class="space-y-6" x-data="{ showAdd: false, showImport: false }">
+			<div class="flex flex-wrap items-center justify-between gap-4">
+				<div>
+					<h1 class="text-2xl font-bold tracking-tight text-white">Catalog &amp; Trap Guard Advisor</h1>
+					<p class="text-xs text-slate-400 mt-0.5">Analisis harga Jita live, volume harian Public ESI, serta deteksi otomatis jebakan BPC langka, non-manufaktur, dan slow mover.</p>
+				</div>
+				<div class="flex flex-wrap gap-2">
+					<button type="button" @click="showAdd = !showAdd; showImport = false" class="rounded-md bg-sky-500 px-3 py-1.5 text-xs font-bold text-slate-950 hover:bg-sky-400 transition cursor-pointer">
+						+ Tambah Item
+					</button>
+					<button type="button" @click="showImport = !showImport; showAdd = false" class="rounded-md border border-sky-400/40 bg-sky-500/15 px-3 py-1.5 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition cursor-pointer">
+						Bulk Paste / CSV Importer
+					</button>
+					<button type="button" hx-post="/catalog/sample" hx-swap="none" class="rounded-md border border-emerald-400/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 transition cursor-pointer">
+						Load Sample Data
+					</button>
+				</div>
+			</div>
+
+			<!-- Import Report Banner (if any) -->
+			if importRes != nil {
+				<div class="tactical-panel rounded-xl p-4 border-sky-500/40 space-y-2">
+					<div class="text-sm font-bold text-sky-300">
+						Hasil Bulk Import: { fmt.Sprintf("%d sukses, %d error dari %d baris", importRes.SuccessCount, importRes.ErrorCount, importRes.TotalLines) }
+					</div>
+					if len(importRes.Errors) > 0 {
+						<ul class="space-y-1 text-xs text-rose-300 font-mono">
+							for _, e := range importRes.Errors {
+								<li>Baris #{ fmt.Sprintf("%d", e.LineNumber) }: { e.Reason } — <span class="text-slate-400">{ e.RawLine }</span></li>
+							}
+						</ul>
+					}
+				</div>
+			}
+
+			<!-- Add Item Manual Panel -->
+			<div x-show="showAdd" x-transition class="tactical-panel rounded-xl p-5 space-y-4">
+				<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">Tambah Kandidat Item</h2>
+				<form hx-post="/catalog/items" hx-target="#catalog-table" hx-swap="outerHTML" @htmx:after-request="showAdd = false" class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+					<div>
+						<label class="block text-[11px] font-mono uppercase text-slate-400">Nama Item (Persis EVE)</label>
+						<input type="text" name="name" required placeholder="Hobgoblin I" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"/>
+					</div>
+					<div>
+						<label class="block text-[11px] font-mono uppercase text-slate-400">Kategori</label>
+						<select name="category" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white">
+							<option value="Drones">Drones</option>
+							<option value="Ammunition">Ammunition</option>
+							<option value="Ships">Ships</option>
+							<option value="Modules">Modules</option>
+							<option value="Rigs">Rigs</option>
+							<option value="Components">Components</option>
+							<option value="Commodities">Commodities</option>
+							<option value="Other">Other</option>
+						</select>
+					</div>
+					<div>
+						<label class="block text-[11px] font-mono uppercase text-slate-400">Output Qty / Batch</label>
+						<input type="number" name="batch_output_qty" value="10" min="1" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[11px] font-mono uppercase text-slate-400">Harga Jual Jita / Unit (ISK)</label>
+						<input type="number" step="0.01" name="estimated_jita_sell" value="0" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[11px] font-mono uppercase text-slate-400">Biaya Bahan / Batch (ISK)</label>
+						<input type="number" step="0.01" name="material_cost" value="0" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[11px] font-mono uppercase text-slate-400">Extra Setup Cost (BPC/Decryptor)</label>
+						<input type="number" step="0.01" name="extra_setup_cost" value="0" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[11px] font-mono uppercase text-slate-400">Avg Daily Volume (Unit/Hari)</label>
+						<input type="number" step="1" name="daily_volume" value="100" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div class="flex items-center gap-4 pt-5 sm:col-span-2 text-xs text-slate-300">
+						<label class="inline-flex items-center gap-2">
+							<input type="checkbox" name="is_frequently_destroyed" class="rounded bg-slate-800 border-slate-600"/>
+							Sering Hancur (PvP/FW Demand)
+						</label>
+						<label class="inline-flex items-center gap-2">
+							<input type="checkbox" name="requires_rare_bpc" class="rounded bg-slate-800 border-slate-600"/>
+							Butuh BPC Langka
+						</label>
+					</div>
+					<div class="sm:col-span-3 flex justify-end gap-2">
+						<button type="button" @click="showAdd = false" class="rounded border border-slate-700 px-3 py-1.5 text-xs text-slate-300">Batal</button>
+						<button type="submit" class="rounded bg-sky-500 px-4 py-1.5 text-xs font-bold text-slate-950 hover:bg-sky-400 cursor-pointer">Simpan &amp; Evaluasi Trap Guard</button>
+					</div>
+				</form>
+			</div>
+
+			<!-- Bulk Paste / CSV Importer Panel -->
+			<div x-show="showImport" x-transition class="tactical-panel rounded-xl p-5 space-y-3">
+				<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Bulk Paste / CSV Importer (Mendukung K/M/B &amp; %)</h2>
+				<p class="text-xs text-slate-400">Tempelkan tabel TSV/CSV (kolom: <code class="text-sky-300">Nama Item | Harga Jual | Biaya Bahan | Volume Harian | Batch Qty</code>).</p>
+				<form method="POST" action="/catalog/import" class="space-y-3">
+					<textarea name="bulk_text" rows="5" placeholder="Hobgoblin II&#9;720K&#9;14.2M&#9;12.5K&#9;30&#10;Rifter&#9;680K&#9;4.6M&#9;950&#9;10" class="w-full rounded-lg border border-slate-700 bg-slate-950 p-3 font-mono text-xs text-slate-200 focus:border-sky-400 focus:outline-none"></textarea>
+					<div class="flex flex-wrap items-center justify-between gap-3">
+						<label class="inline-flex items-center gap-2 text-xs text-slate-300">
+							<input type="checkbox" name="enrich_esi" checked class="rounded bg-slate-800 border-slate-600"/>
+							Auto-Enrich harga Jita &amp; volume harian dari Public ESI
+						</label>
+						<div class="flex gap-2">
+							<button type="button" @click="showImport = false" class="rounded border border-slate-700 px-3 py-1.5 text-xs text-slate-300">Tutup</button>
+							<button type="submit" class="rounded bg-amber-500 px-4 py-1.5 text-xs font-bold text-slate-950 hover:bg-amber-400 cursor-pointer">Proses Import</button>
+						</div>
+					</div>
+				</form>
+			</div>
+
+			<!-- Filter Bar (HTMX Live Filtering) -->
+			<form
+				hx-get="/catalog"
+				hx-target="#catalog-table"
+				hx-swap="outerHTML"
+				hx-trigger="change, keyup delay:300ms from:input[name='q']"
+				class="tactical-panel rounded-xl p-4 grid grid-cols-1 gap-3 sm:grid-cols-4"
+			>
+				<input type="text" name="q" value={ search } placeholder="Cari nama item..." class="rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white focus:border-sky-400 focus:outline-none sm:col-span-2"/>
+				<select name="category" class="rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white">
+					<option value="">Semua Kategori</option>
+					<option value="Ammunition" selected?={ category == "Ammunition" }>Ammunition</option>
+					<option value="Drones" selected?={ category == "Drones" }>Drones</option>
+					<option value="Ships" selected?={ category == "Ships" }>Ships</option>
+					<option value="Modules" selected?={ category == "Modules" }>Modules</option>
+					<option value="Rigs" selected?={ category == "Rigs" }>Rigs</option>
+					<option value="Commodities" selected?={ category == "Commodities" }>Commodities</option>
+				</select>
+				<select name="status" class="rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white">
+					<option value="">Semua Status Trap Guard</option>
+					<option value="LAYAK_PRODUKSI" selected?={ status == "LAYAK_PRODUKSI" }>LAYAK_PRODUKSI</option>
+					<option value="WASPADA_MODAL" selected?={ status == "WASPADA_MODAL" }>WASPADA_MODAL</option>
+					<option value="WASPADA_NICHE" selected?={ status == "WASPADA_NICHE" }>WASPADA_NICHE</option>
+					<option value="JEBAKAN" selected?={ status == "JEBAKAN" }>JEBAKAN</option>
+				</select>
+			</form>
+
+			<!-- Catalog Table -->
+			@CatalogTable(items)
+		</div>
+	}
+}
+
+templ CatalogTable(items []domain.MarketItem) {
+	<div id="catalog-table" class="tactical-panel rounded-xl overflow-hidden">
+		if len(items) == 0 {
+			<div class="p-10 text-center space-y-2">
+				<div class="text-sm font-semibold text-slate-300">Belum ada item di Catalog.</div>
+				<div class="text-xs text-slate-400">Klik <strong>Load Sample Data</strong> atau gunakan <strong>Bulk Paste Importer</strong> untuk memulai.</div>
+			</div>
+		} else {
+			<div class="overflow-x-auto">
+				<table class="w-full text-left text-xs">
+					<thead class="border-b border-slate-800 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400">
+						<tr>
+							<th class="px-4 py-3">Item &amp; Badges</th>
+							<th class="px-4 py-3 text-right">Live Jita Sell / Buy</th>
+							<th class="px-4 py-3 text-right">Avg Daily Vol</th>
+							<th class="px-4 py-3 text-right">Biaya Bahan / Batch</th>
+							<th class="px-4 py-3">Status &amp; Copilot Note</th>
+							<th class="px-4 py-3 text-right">Aksi</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-slate-800/80">
+						for _, it := range items {
+							<tr class="hover:bg-slate-800/40 transition align-top">
+								<td class="px-4 py-3">
+									<div class="font-semibold text-white text-sm">{ it.Name }</div>
+									<div class="mt-1 flex flex-wrap gap-1">
+										<span class="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] text-slate-300">{ string(it.Category) }</span>
+										if it.IsManufacturable && it.TrapAnalysis.Status != domain.TrapStatusJebakan {
+											<span class="rounded bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 font-mono text-[10px] text-emerald-300">Usable</span>
+										}
+										if it.IsFrequentlyDestroyed {
+											<span class="rounded bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.5 font-mono text-[10px] text-amber-300">Sering Hancur</span>
+										}
+										if it.TypeID > 0 {
+											<span class="font-mono text-[10px] text-slate-500">ID:{ fmt.Sprintf("%d", it.TypeID) }</span>
+										}
+									</div>
+								</td>
+								<td class="px-4 py-3 text-right font-mono">
+									<div class="text-sky-300 font-semibold">{ FormatISK(it.EstimatedJitaSell) }</div>
+									<div class="text-[11px] text-slate-400">Buy: { FormatISK(it.EstimatedJitaBuy) }</div>
+								</td>
+								<td class="px-4 py-3 text-right font-mono text-slate-200">
+									<div>{ FormatVolume(it.DailyVolume) }</div>
+									<div class="text-[10px] text-slate-500">Batch: { fmt.Sprintf("%d u", it.BatchOutputQty) }</div>
+								</td>
+								<td class="px-4 py-3 text-right font-mono text-slate-200">
+									<div>{ FormatISK(it.MaterialCost) }</div>
+									if it.ExtraSetupCost > 0 {
+										<div class="text-[10px] text-amber-300">+{ FormatISK(it.ExtraSetupCost) } BPC</div>
+									}
+								</td>
+								<td class="px-4 py-3 max-w-sm">
+									<div class="flex items-center gap-2">
+										<span class={ "inline-block rounded px-2 py-0.5 font-mono text-[10px] font-bold " + TrapBadgeClass(it.TrapAnalysis.Status) }>
+											{ string(it.TrapAnalysis.Status) }
+										</span>
+										<span class="font-mono text-[10px] text-slate-400">Risk: { string(it.TrapAnalysis.RiskLevel) }</span>
+									</div>
+									if len(it.TrapAnalysis.Reasons) > 0 {
+										<ul class="mt-1.5 space-y-0.5 text-[11px] text-rose-200/90">
+											for _, reason := range it.TrapAnalysis.Reasons {
+												<li>• { reason }</li>
+											}
+										</ul>
+									}
+									if it.TrapAnalysis.Recommendation != "" {
+										<div class="mt-1 text-[11px] text-slate-300 italic">{ it.TrapAnalysis.Recommendation }</div>
+									}
+								</td>
+								<td class="px-4 py-3 text-right">
+									<button
+										type="button"
+										hx-delete={ fmt.Sprintf("/catalog/items/%d", it.ID) }
+										hx-target="#catalog-table"
+										hx-swap="outerHTML"
+										hx-confirm={ fmt.Sprintf("Hapus %s dari catalog?", it.Name) }
+										class="rounded border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-[11px] text-rose-300 hover:bg-rose-500/25 cursor-pointer"
+									>
+										Hapus
+									</button>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		}
+	</div>
+}

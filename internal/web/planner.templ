@@ -1,0 +1,219 @@
+package web
+
+import (
+	"fmt"
+
+	"aura-forge/internal/service"
+)
+
+templ PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) {
+	@Layout("Weekly Production & Slot Planner", "planner", mode) {
+		<div class="space-y-6">
+			<!-- Header & Plan Switcher -->
+			<div class="flex flex-wrap items-center justify-between gap-4">
+				<div>
+					<h1 class="text-2xl font-bold tracking-tight text-white">Weekly Production &amp; Slot Planner</h1>
+					<p class="text-xs text-slate-400 mt-0.5">Validasi kapasitas slot, jadwal eksekusi Day 1–7, Consolidated Shopping List + EVE Multibuy, dan simulasi pertumbuhan Minggu 1–4.</p>
+				</div>
+				<div class="flex flex-wrap items-center gap-2">
+					if data.ActivePlan != nil && data.ActivePlan.ID > 0 {
+						<form hx-post="/planner/convert-batches" hx-swap="none">
+							<input type="hidden" name="plan_id" value={ fmt.Sprintf("%d", data.ActivePlan.ID) }/>
+							<button type="submit" class="rounded-md bg-emerald-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-emerald-400 transition cursor-pointer">
+								Eksekusi ke Tracker (Draft Batches) →
+							</button>
+						</form>
+					} else {
+						<a href="/allocator" class="rounded-md bg-sky-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-sky-400 transition">
+							Buat Rencana dari Smart Allocator →
+						</a>
+					}
+				</div>
+			</div>
+
+			<!-- Slot & Capacity Validation Panel -->
+			<div class="tactical-panel rounded-xl p-5 space-y-4">
+				<div class="flex flex-wrap items-center justify-between gap-2">
+					<div>
+						<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">
+							if data.ActivePlan != nil {
+								{ data.ActivePlan.Title }
+							} else {
+								Rencana Produksi Mingguan
+							}
+						</h2>
+						<div class="text-xs text-slate-400 mt-0.5">
+							Est. Biaya: <span class="font-mono text-white">{ FormatISK(data.ActivePlan.TotalEstimatedCost) }</span> •
+							Est. Profit: <span class="font-mono text-emerald-300">{ FormatISK(data.ActivePlan.TotalEstimatedProfit) }</span> •
+							Projected ROI: <span class="font-mono text-sky-300">{ FormatPercent(data.ActivePlan.ProjectedROI) }</span>
+						</div>
+					</div>
+					if data.SlotReport.FitsSlotCapacity {
+						<span class="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-3 py-1 font-mono text-[11px] font-bold text-emerald-300">
+							SLOT KAPASITAS AMAN ({ FormatPercent(data.SlotReport.UtilizationPercent) })
+						</span>
+					} else {
+						<span class="rounded-full border border-rose-500/50 bg-rose-500/20 px-3 py-1 font-mono text-[11px] font-bold text-rose-300">
+							OVER CAPACITY — PERLU PENYESUAIAN
+						</span>
+					}
+				</div>
+
+				<div class="grid grid-cols-1 gap-3 sm:grid-cols-4 font-mono text-xs">
+					<div class="rounded-lg border border-slate-800 bg-slate-900/70 p-3">
+						<div class="text-[10px] uppercase text-slate-400">Manufacturing Slots</div>
+						<div class="mt-1 text-base font-bold text-white">{ fmt.Sprintf("%d batch / %d slot", data.SlotReport.ManufacturingSlotsRequired, data.SlotReport.ManufacturingSlotsTotal) }</div>
+					</div>
+					<div class="rounded-lg border border-slate-800 bg-slate-900/70 p-3">
+						<div class="text-[10px] uppercase text-slate-400">Science / Invention Slots</div>
+						<div class="mt-1 text-base font-bold text-white">{ fmt.Sprintf("%d req / %d slot", data.SlotReport.ScienceSlotsRequired, data.SlotReport.ScienceSlotsTotal) }</div>
+					</div>
+					<div class="rounded-lg border border-slate-800 bg-slate-900/70 p-3">
+						<div class="text-[10px] uppercase text-slate-400">Total Jam Produksi</div>
+						<div class="mt-1 text-base font-bold text-sky-300">{ fmt.Sprintf("%.1f / %.0f jam", data.SlotReport.TotalProductionHours, data.SlotReport.WeeklySlotCapacityHours) }</div>
+					</div>
+					<div class="rounded-lg border border-slate-800 bg-slate-900/70 p-3">
+						<div class="text-[10px] uppercase text-slate-400">Total Volume Kargo</div>
+						<div class="mt-1 text-base font-bold text-amber-300">{ fmt.Sprintf("%.1f m³", data.ShoppingList.TotalVolumeM3) }</div>
+					</div>
+				</div>
+
+				if data.SlotReport.Warning != "" {
+					<div class="rounded-lg border border-amber-500/40 bg-amber-950/30 p-3 text-xs text-amber-200">
+						<strong>Peringatan Kapasitas:</strong> { data.SlotReport.Warning }
+					</div>
+				}
+			</div>
+
+			<!-- Day 1 - Day 7 Execution Blueprint -->
+			<div class="space-y-3">
+				<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Jadwal Eksekusi Harian (Day 1 – Day 7 Blueprint)</h2>
+				<div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+					for _, d := range data.ActivePlan.Days {
+						<div class="tactical-panel rounded-xl p-4 space-y-2">
+							<div class="flex items-center justify-between">
+								<span class="rounded bg-sky-500/20 px-2 py-0.5 font-mono text-[10px] font-bold text-sky-300">DAY { fmt.Sprintf("%d", d.DayNumber) }</span>
+								<span class="text-[10px] font-mono text-slate-400 uppercase">{ d.Focus }</span>
+							</div>
+							<h3 class="text-xs font-bold text-white">{ d.Title }</h3>
+							<ul class="space-y-1.5 text-[11px] text-slate-300 leading-relaxed">
+								for _, t := range d.Tasks {
+									<li class="flex gap-1.5"><span class="text-sky-400">▸</span><span>{ t }</span></li>
+								}
+							</ul>
+						</div>
+					}
+				</div>
+			</div>
+
+			<!-- Consolidated Shopping List + EVE Multibuy Exporter -->
+			<div
+				class="tactical-panel rounded-xl p-5 space-y-4"
+				x-data={ fmt.Sprintf(`{
+					copied: false,
+					multibuy: %q,
+					copyMultibuy() {
+						if (!this.multibuy) return;
+						navigator.clipboard.writeText(this.multibuy).then(() => {
+							this.copied = true;
+							window.dispatchEvent(new CustomEvent('showToast', { detail: { level: 'success', message: 'Format EVE Multibuy berhasil disalin ke clipboard!' } }));
+							setTimeout(() => this.copied = false, 2500);
+						});
+					}
+				}`, data.ShoppingList.MultibuyText) }
+			>
+				<div class="flex flex-wrap items-center justify-between gap-3">
+					<div>
+						<h2 class="text-sm font-bold uppercase tracking-wider text-emerald-300">Consolidated Shopping List &amp; EVE Multibuy</h2>
+						<p class="text-xs text-slate-400 mt-0.5">
+							Total Estimasi Belanja: <span class="font-mono text-white">{ FormatISK(data.ShoppingList.TotalEstimatedCost) }</span> •
+							Kargo: <span class="font-mono text-amber-300">{ fmt.Sprintf("%.1f m³", data.ShoppingList.TotalVolumeM3) }</span> •
+							Dipotong Stok Hangar: <span class="font-mono text-emerald-300">{ fmt.Sprintf("%d unit", data.ShoppingList.TotalItemsDeducted) }</span>
+						</p>
+					</div>
+					<button
+						type="button"
+						@click="copyMultibuy()"
+						class="rounded-md border border-emerald-400/50 bg-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-500/30 transition cursor-pointer"
+					>
+						<span x-show="!copied">1-Klik Copy Format EVE Multibuy</span>
+						<span x-show="copied">Tersalin ke Clipboard!</span>
+					</button>
+				</div>
+
+				if len(data.ShoppingList.Items) == 0 {
+					<div class="rounded-lg border border-slate-800 bg-slate-900/50 p-6 text-center text-xs text-slate-400">
+						Belum ada bahan baku pada rencana aktif. Gunakan <strong>Smart Capital Allocator</strong> untuk menghasilkan rencana produksi mingguan.
+					</div>
+				} else {
+					<div class="grid grid-cols-1 gap-4 lg:grid-cols-12">
+						<div class="overflow-x-auto lg:col-span-8">
+							<table class="w-full text-left text-xs">
+								<thead class="border-b border-slate-800 font-mono uppercase text-[10px] text-slate-400">
+									<tr>
+										<th class="py-2 pr-3">Material</th>
+										<th class="py-2 px-3 text-right">Kebutuhan</th>
+										<th class="py-2 px-3 text-right">Stok Hangar</th>
+										<th class="py-2 px-3 text-right">Harus Beli</th>
+										<th class="py-2 px-3 text-right">Est. Biaya</th>
+										<th class="py-2 pl-3 text-right">Volume</th>
+									</tr>
+								</thead>
+								<tbody class="divide-y divide-slate-800/70 font-mono">
+									for _, m := range data.ShoppingList.Items {
+										<tr>
+											<td class="py-2 pr-3 font-sans font-semibold text-white">{ m.TypeName }</td>
+											<td class="py-2 px-3 text-right text-slate-300">{ fmt.Sprintf("%d", m.RequiredQuantity) }</td>
+											<td class="py-2 px-3 text-right text-emerald-300">-{ fmt.Sprintf("%d", m.HangarQuantity) }</td>
+											<td class="py-2 px-3 text-right font-bold text-amber-300">{ fmt.Sprintf("%d", m.ToBuyQuantity) }</td>
+											<td class="py-2 px-3 text-right text-white">{ FormatISK(m.TotalCost) }</td>
+											<td class="py-2 pl-3 text-right text-slate-400">{ fmt.Sprintf("%.1f m³", m.VolumeM3) }</td>
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+						<div class="lg:col-span-4">
+							<label class="block text-[10px] font-mono uppercase text-slate-400 mb-1">Preview EVE Multibuy (Tab-Separated)</label>
+							<textarea readonly rows="6" class="w-full rounded-lg border border-slate-700 bg-slate-950 p-3 font-mono text-xs text-emerald-300">{ data.ShoppingList.MultibuyText }</textarea>
+						</div>
+					</div>
+				}
+			</div>
+
+			<!-- Multi-Week Growth Projection (Minggu 1 -> Minggu 4) -->
+			<div class="tactical-panel rounded-xl p-5 space-y-4">
+				<div>
+					<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">Simulasi Pertumbuhan Modal (Minggu 1 → Minggu 4)</h2>
+					<p class="text-xs text-slate-400 mt-0.5">Proyeksi compounding kas dengan reinvestasi 85% profit mingguan dan rekomendasi kapan naik kelas ke tier produksi berikutnya.</p>
+				</div>
+				<div class="overflow-x-auto">
+					<table class="w-full text-left text-xs">
+						<thead class="border-b border-slate-800 font-mono uppercase text-[10px] text-slate-400">
+							<tr>
+								<th class="py-2.5 pr-3">Minggu</th>
+								<th class="py-2.5 px-3 text-right">Modal Awal</th>
+								<th class="py-2.5 px-3 text-right">Profit Mingguan</th>
+								<th class="py-2.5 px-3 text-right">Modal Akhir</th>
+								<th class="py-2.5 px-3">Rekomendasi Tier</th>
+								<th class="py-2.5 pl-3">Panduan Strategis</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-slate-800/70">
+							for _, g := range data.Growth4Weeks {
+								<tr class="hover:bg-slate-800/30">
+									<td class="py-2.5 pr-3 font-mono font-bold text-sky-300">Minggu #{ fmt.Sprintf("%d", g.Week) }</td>
+									<td class="py-2.5 px-3 text-right font-mono text-slate-300">{ FormatISK(g.StartingCapital) }</td>
+									<td class="py-2.5 px-3 text-right font-mono text-emerald-300">+{ FormatISK(g.WeeklyProfit) }</td>
+									<td class="py-2.5 px-3 text-right font-mono font-bold text-white">{ FormatISK(g.EndingCapital) }</td>
+									<td class="py-2.5 px-3 font-semibold text-amber-300">{ g.RecommendedTier }</td>
+									<td class="py-2.5 pl-3 text-slate-300">{ g.StrategicGuidance }</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	}
+}

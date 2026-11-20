@@ -1,0 +1,70 @@
+package web
+
+import (
+	"net/http"
+
+	"aura-forge/internal/domain"
+	"aura-forge/internal/service"
+)
+
+// TemplRenderer implements internal/http.Renderer using compiled a-h/templ components.
+type TemplRenderer struct{}
+
+func NewRenderer() *TemplRenderer {
+	return &TemplRenderer{}
+}
+
+func (tr *TemplRenderer) RenderDashboard(w http.ResponseWriter, r *http.Request, data *service.DashboardSummary) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return DashboardPage(data).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderCatalog(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, items []domain.MarketItem, category, status, search string, importRes *domain.ImportResult) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return CatalogPage(mode, items, category, status, search, importRes).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderCatalogTable(w http.ResponseWriter, r *http.Request, items []domain.MarketItem) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return CatalogTable(items).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderCalculator(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, input domain.ProfitCalcInput, result *domain.ProfitCalcResult, calcErr string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return CalculatorPage(mode, settings, input, result, calcErr).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderCalculatorResult(w http.ResponseWriter, r *http.Request, input domain.ProfitCalcInput, result *domain.ProfitCalcResult, calcErr string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return CalculatorResultPartial(input, result, calcErr).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderAllocator(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, cfg domain.AllocationConfig, result *domain.AllocationResult, allocErr string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return AllocatorPage(mode, cfg, result, allocErr).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderAllocatorResult(w http.ResponseWriter, r *http.Request, result *domain.AllocationResult, allocErr string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return AllocatorResultPartial(result, allocErr).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderPlanner(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, data *service.PlannerViewData) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return PlannerPage(mode, data).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderTracker(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, batches []domain.BatchRecord, statusFilter string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return TrackerPage(mode, batches, statusFilter).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderRelistResult(w http.ResponseWriter, r *http.Request, res *domain.RelistGuardResult, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return RelistResultPartial(res, errMsg).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderSettings(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, saved bool) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return SettingsPage(mode, settings, saved).Render(r.Context(), w)
+}

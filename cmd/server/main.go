@@ -16,6 +16,7 @@ import (
 	apphttp "aura-forge/internal/http"
 	"aura-forge/internal/service"
 	"aura-forge/internal/store/postgres"
+	"aura-forge/internal/web"
 )
 
 func main() {
@@ -85,7 +86,7 @@ func main() {
 		ssoClient,
 	)
 
-	router := apphttp.NewRouter(copilotSvc, nil)
+	router := apphttp.NewRouter(copilotSvc, web.NewRenderer())
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,

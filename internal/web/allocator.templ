@@ -1,0 +1,158 @@
+package web
+
+import (
+	"fmt"
+
+	"aura-forge/internal/domain"
+	"aura-forge/internal/service"
+)
+
+templ AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *domain.AllocationResult, allocErr string) {
+	@Layout("Smart Capital Allocator", "allocator", mode) {
+		<div class="space-y-6">
+			<div>
+				<h1 class="text-2xl font-bold tracking-tight text-white">Smart Capital Allocator (4 Keranjang Modal)</h1>
+				<p class="text-xs text-slate-400 mt-0.5">Membagi kas tersedia ke 4 keranjang strategi (Fast Cashflow, Mid-Tier, High ROI, dan Cash Buffer minimal 10%–15%) sambil otomatis menyaring item JEBAKAN.</p>
+			</div>
+
+			<!-- Allocation Percentage Controls -->
+			<div class="tactical-panel rounded-xl p-5">
+				<form
+					id="allocator-form"
+					hx-post="/allocator/run"
+					hx-target="#allocator-result"
+					hx-swap="innerHTML"
+					class="grid grid-cols-1 gap-4 sm:grid-cols-5 items-end"
+				>
+					<div>
+						<label class="block text-[11px] font-mono uppercase text-slate-400">Fast Cashflow (%)</label>
+						<input type="number" step="1" name="fast_cashflow_pct" value={ fmt.Sprintf("%.0f", cfg.FastCashflowPct) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[11px] font-mono uppercase text-slate-400">Mid-Tier (%)</label>
+						<input type="number" step="1" name="mid_tier_pct" value={ fmt.Sprintf("%.0f", cfg.MidTierPct) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[11px] font-mono uppercase text-slate-400">High ROI (%)</label>
+						<input type="number" step="1" name="high_roi_pct" value={ fmt.Sprintf("%.0f", cfg.HighROIPct) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[11px] font-mono uppercase text-slate-400">Cash Buffer (Min 10%)</label>
+						<input type="number" step="1" name="cash_buffer_pct" value={ fmt.Sprintf("%.0f", cfg.CashBufferPct) } min="10" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div>
+						<button type="submit" class="w-full rounded-md bg-sky-500 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer">
+							Hitung Alokasi
+						</button>
+					</div>
+				</form>
+
+				<div class="mt-4 flex flex-wrap gap-3 border-t border-slate-800 pt-4">
+					<button
+						type="button"
+						hx-post="/allocator/to-plan"
+						hx-include="#allocator-form"
+						hx-swap="none"
+						class="rounded-md border border-emerald-400/50 bg-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-500/30 transition cursor-pointer"
+					>
+						1-Klik Kirim ke Weekly Production Planner →
+					</button>
+					<button
+						type="button"
+						hx-post="/allocator/to-batches"
+						hx-include="#allocator-form"
+						hx-swap="none"
+						class="rounded-md border border-amber-400/50 bg-amber-500/20 px-4 py-2 text-xs font-bold text-amber-200 hover:bg-amber-500/30 transition cursor-pointer"
+					>
+						1-Klik Buat Draft Batches di Tracker
+					</button>
+				</div>
+			</div>
+
+			<!-- Allocation Results -->
+			<div id="allocator-result">
+				@AllocatorResultPartial(result, allocErr)
+			</div>
+		</div>
+	}
+}
+
+templ AllocatorResultPartial(res *domain.AllocationResult, errMsg string) {
+	if errMsg != "" {
+		<div class="rounded-xl border border-rose-500/40 bg-rose-950/40 p-4 text-xs text-rose-200">
+			<strong>Validasi Alokasi Gagal:</strong> { errMsg }
+		</div>
+	} else if res != nil {
+		<div class="space-y-5">
+			<!-- Summary Banner -->
+			<div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase text-slate-400">Total Kas ({ res.CapitalSource })</div>
+					<div class="mt-1 text-xl font-bold font-mono text-white">{ FormatISK(res.TotalCapital) }</div>
+				</div>
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase text-slate-400">Dana Dialokasikan</div>
+					<div class="mt-1 text-xl font-bold font-mono text-sky-300">{ FormatISK(res.TotalAllocatedISK) }</div>
+				</div>
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase text-slate-400">Cadangan Kas Operasional</div>
+					<div class="mt-1 text-xl font-bold font-mono text-amber-300">{ FormatISK(res.CashBufferISK) }</div>
+				</div>
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase text-slate-400">Est. Profit Siklus</div>
+					<div class="mt-1 text-xl font-bold font-mono text-emerald-300">{ FormatISK(res.TotalEstimatedProfit) }</div>
+				</div>
+			</div>
+
+			<!-- 4 Buckets Grid -->
+			<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+				for _, b := range res.Buckets {
+					<div class="tactical-panel rounded-xl p-5 space-y-3">
+						<div class="flex items-start justify-between gap-2">
+							<div>
+								<h3 class="text-sm font-bold text-white">{ b.Label }</h3>
+								<p class="text-[11px] text-slate-400 mt-0.5">{ b.Description }</p>
+							</div>
+							<span class="rounded bg-sky-500/15 border border-sky-400/30 px-2 py-0.5 font-mono text-xs font-bold text-sky-300">
+								{ fmt.Sprintf("%.0f%%", b.Percent) }
+							</span>
+						</div>
+
+						<div class="flex flex-wrap gap-4 text-xs font-mono border-y border-slate-800/80 py-2">
+							<span>Budget: <strong class="text-white">{ FormatISK(b.BudgetISK) }</strong></span>
+							if b.Type != domain.BucketCashBuffer {
+								<span>Terpakai: <strong class="text-sky-300">{ FormatISK(b.UsedISK) }</strong></span>
+								<span>Est. Profit: <strong class="text-emerald-300">{ FormatISK(b.EstimatedProfit) }</strong></span>
+							}
+						</div>
+
+						if b.Type == domain.BucketCashBuffer {
+							<div class="rounded-lg border border-amber-500/30 bg-amber-950/20 p-3 text-xs text-amber-200">
+								Dana ini dikunci sebagai cadangan operasional untuk Broker Fee, Job Install Cost (SCI), dan biaya Relist jika terjadi undercut di Jita.
+							</div>
+						} else if len(b.Items) == 0 {
+							<div class="text-xs text-slate-500 italic">Belum ada kandidat item layak di Catalog yang cocok untuk budget keranjang ini.</div>
+						} else {
+							<div class="space-y-2">
+								for _, it := range b.Items {
+									<div class="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs">
+										<div>
+											<div class="font-semibold text-white">{ it.Name }</div>
+											<div class="text-[10px] font-mono text-slate-400">
+												{ fmt.Sprintf("%dx batch • ROI %s • Vol %s", it.RecommendedRuns, FormatPercent(it.ROIPercent), FormatVolume(it.DailyVolume)) }
+											</div>
+										</div>
+										<div class="text-right font-mono">
+											<div class="text-slate-200">{ FormatISK(it.TotalCost) }</div>
+											<div class="text-[11px] text-emerald-300">+{ FormatISK(it.EstimatedProfit) }</div>
+										</div>
+									</div>
+								}
+							</div>
+						}
+					</div>
+				}
+			</div>
+		</div>
+	}
+}

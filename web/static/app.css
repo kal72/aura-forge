@@ -1,0 +1,53 @@
+/* aura-forge // Industrial-Tactical Dark Mode Styles */
+:root {
+  --af-bg: #090d16;
+  --af-surface: #0f1624;
+  --af-border: rgba(56, 189, 248, 0.16);
+  --af-accent: #38bdf8;
+  --af-amber: #f59e0b;
+  --af-emerald: #10b981;
+  --af-rose: #f43f5e;
+}
+
+body {
+  background-color: var(--af-bg);
+  color: #e2e8f0;
+  font-feature-settings: "tnum" on, "lnum" on;
+}
+
+.tactical-panel {
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.92) 0%, rgba(11, 16, 28, 0.96) 100%);
+  border: 1px solid var(--af-border);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+.tactical-grid-bg {
+  background-image:
+    linear-gradient(to right, rgba(56, 189, 248, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.htmx-indicator {
+  display: none;
+}
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+  display: inline-flex;
+}
+
+/* Custom subtle scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0b1120;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}

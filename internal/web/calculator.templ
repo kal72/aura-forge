@@ -1,0 +1,170 @@
+package web
+
+import (
+	"fmt"
+
+	"aura-forge/internal/domain"
+	"aura-forge/internal/service"
+)
+
+templ CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input domain.ProfitCalcInput, result *domain.ProfitCalcResult, calcErr string) {
+	@Layout("Profit & Break-Even Calculator", "calculator", mode) {
+		<div
+			class="space-y-6"
+			x-data={ fmt.Sprintf(`{
+				itemName: %q,
+				sellPrice: %g,
+				lookupStatus: '',
+				async lookupESI() {
+					if (!this.itemName) return;
+					this.lookupStatus = 'Mencari di Public ESI...';
+					try {
+						const res = await fetch('/esi/lookup?name=' + encodeURIComponent(this.itemName));
+						const data = await res.json();
+						if (!res.ok) { this.lookupStatus = data.error || 'Tidak ditemukan'; return; }
+						if (data.lowest_sell > 0) this.sellPrice = data.lowest_sell;
+						this.lookupStatus = 'Jita Sell: ' + Number(data.lowest_sell).toLocaleString() + ' ISK | Vol: ' + Number(data.daily_volume).toLocaleString() + '/hari';
+					} catch (e) {
+						this.lookupStatus = 'Gagal terhubung ke Public ESI';
+					}
+				}
+			}`, input.ItemName, input.UnitSellPrice) }
+		>
+			<div>
+				<h1 class="text-2xl font-bold tracking-tight text-white">Net Profit, Tax &amp; Break-Even Calculator</h1>
+				<p class="text-xs text-slate-400 mt-0.5">Hitung margin bersih setelah Broker Fee, Sales Tax, Relist Fee, System Cost Index (SCI), dan Biaya Angkut secara real-time.</p>
+			</div>
+
+			<div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+				<!-- Input Form -->
+				<div class="tactical-panel rounded-xl p-5 lg:col-span-6">
+					<form
+						hx-post="/calculator/compute"
+						hx-target="#calc-result-panel"
+						hx-swap="innerHTML"
+						class="grid grid-cols-1 gap-3 sm:grid-cols-2"
+					>
+						<div class="sm:col-span-2">
+							<label class="block text-[11px] font-mono uppercase text-slate-400">Nama Item (Auto-Fill Harga Jita via Public ESI)</label>
+							<div class="mt-1 flex gap-2">
+								<input type="text" name="item_name" x-model="itemName" class="flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-sky-400 focus:outline-none"/>
+								<button type="button" @click="lookupESI()" class="rounded-md border border-sky-500/40 bg-sky-500/15 px-3 py-2 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 cursor-pointer">
+									Cek Jita ESI
+								</button>
+							</div>
+							<div x-show="lookupStatus" x-text="lookupStatus" class="mt-1 text-[11px] font-mono text-sky-300"></div>
+						</div>
+
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">Output Qty / Batch</label>
+							<input type="number" name="output_qty" value={ fmt.Sprintf("%d", input.OutputQty) } min="1" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">Harga Jual / Unit (ISK)</label>
+							<input type="number" step="0.01" name="unit_sell_price" x-model="sellPrice" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">Biaya Bahan / Batch (ISK)</label>
+							<input type="number" step="0.01" name="material_cost" value={ fmt.Sprintf("%.2f", input.MaterialCost) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">Biaya Ekstra BPC / Decryptor</label>
+							<input type="number" step="0.01" name="extra_setup_cost" value={ fmt.Sprintf("%.2f", input.ExtraSetupCost) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">System Cost Index (Desimal, mis. 0.045)</label>
+							<input type="number" step="0.0001" name="system_cost_index" value={ fmt.Sprintf("%.4f", input.SystemCostIndex) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">Biaya Angkut / Freight (ISK)</label>
+							<input type="number" step="0.01" name="freight_cost" value={ fmt.Sprintf("%.2f", input.FreightCost) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">Broker Fee (%)</label>
+							<input type="number" step="0.01" name="broker_fee_percent" value={ fmt.Sprintf("%.2f", input.BrokerFeePercent) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">Sales Tax (%)</label>
+							<input type="number" step="0.01" name="sales_tax_percent" value={ fmt.Sprintf("%.2f", input.SalesTaxPercent) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">Estimasi Jumlah Relist</label>
+							<input type="number" name="estimated_relists" value={ fmt.Sprintf("%d", input.EstimatedRelists) } min="0" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">Target Batches / Week</label>
+							<input type="number" name="batches_per_week" value={ fmt.Sprintf("%d", input.BatchesPerWeek) } min="1" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+
+						<div class="sm:col-span-2 pt-2">
+							<button type="submit" class="w-full rounded-md bg-sky-500 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer">
+								Hitung Analisis Profit Real-Time
+							</button>
+						</div>
+					</form>
+				</div>
+
+				<!-- Real-Time Result Panel -->
+				<div id="calc-result-panel" class="tactical-panel rounded-xl p-5 lg:col-span-6">
+					@CalculatorResultPartial(input, result, calcErr)
+				</div>
+			</div>
+		</div>
+	}
+}
+
+templ CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCalcResult, errMsg string) {
+	if errMsg != "" {
+		<div class="rounded-lg border border-rose-500/40 bg-rose-950/40 p-4 text-xs text-rose-200">
+			<strong>Error Perhitungan:</strong> { errMsg }
+		</div>
+	} else if res != nil {
+		<div class="space-y-4">
+			<div class="flex items-center justify-between">
+				<h2 class="text-sm font-bold uppercase tracking-wider text-white">Hasil Kalkulasi: { input.ItemName }</h2>
+				if res.IsProfitable {
+					<span class="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-0.5 font-mono text-[11px] font-bold text-emerald-300">PROFITABLE</span>
+				} else {
+					<span class="rounded-full border border-rose-500/40 bg-rose-500/20 px-2.5 py-0.5 font-mono text-[11px] font-bold text-rose-300">RUGI BERSIH</span>
+				}
+			</div>
+
+			<div class="grid grid-cols-2 gap-3">
+				<div class="rounded-lg border border-slate-800 bg-slate-900/70 p-3">
+					<div class="text-[10px] font-mono uppercase text-slate-400">Net Profit / Batch</div>
+					<div class={ "mt-1 text-lg font-bold font-mono " + profitColor(res.NetProfitPerBatch) }>{ FormatISK(res.NetProfitPerBatch) }</div>
+				</div>
+				<div class="rounded-lg border border-slate-800 bg-slate-900/70 p-3">
+					<div class="text-[10px] font-mono uppercase text-slate-400">Proyeksi Profit Mingguan</div>
+					<div class={ "mt-1 text-lg font-bold font-mono " + profitColor(res.WeeklyNetProfit) }>{ FormatISK(res.WeeklyNetProfit) }</div>
+				</div>
+				<div class="rounded-lg border border-slate-800 bg-slate-900/70 p-3">
+					<div class="text-[10px] font-mono uppercase text-slate-400">Net Margin / ROI</div>
+					<div class="mt-1 text-base font-bold font-mono text-sky-300">{ FormatPercent(res.NetMarginPercent) } / { FormatPercent(res.ROIPercent) }</div>
+				</div>
+				<div class="rounded-lg border border-slate-800 bg-slate-900/70 p-3">
+					<div class="text-[10px] font-mono uppercase text-slate-400">Break-Even Unit Price</div>
+					<div class="mt-1 text-base font-bold font-mono text-amber-300">{ FormatISKExact(res.BreakEvenUnitPrice) }</div>
+				</div>
+			</div>
+
+			<div class="rounded-lg border border-slate-800 bg-slate-950/60 p-3.5 text-xs space-y-1.5 font-mono">
+				<div class="flex justify-between"><span class="text-slate-400">Gross Revenue</span><span class="text-white">{ FormatISKExact(res.GrossRevenue) }</span></div>
+				<div class="flex justify-between"><span class="text-slate-400">Total Biaya Langsung (Bahan + BPC + SCI + Freight)</span><span class="text-slate-200">-{ FormatISKExact(res.TotalDirectCost) }</span></div>
+				<div class="flex justify-between"><span class="text-slate-400">Job Install Cost (SCI)</span><span class="text-slate-400">{ FormatISKExact(res.JobInstallCost) }</span></div>
+				<div class="flex justify-between"><span class="text-slate-400">Broker Fee + Sales Tax + Relist</span><span class="text-rose-300">-{ FormatISKExact(res.TotalMarketFees) }</span></div>
+				<div class="border-t border-slate-800 pt-1.5 flex justify-between font-bold">
+					<span class="text-slate-300">Total Biaya Aktual</span>
+					<span class="text-white">{ FormatISKExact(res.TotalActualCost) }</span>
+				</div>
+			</div>
+		</div>
+	}
+}
+
+func profitColor(v float64) string {
+	if v > 0 {
+		return "text-emerald-300"
+	}
+	return "text-rose-400"
+}

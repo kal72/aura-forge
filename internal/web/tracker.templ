@@ -1,0 +1,193 @@
+package web
+
+import (
+	"fmt"
+
+	"aura-forge/internal/domain"
+	"aura-forge/internal/service"
+)
+
+templ TrackerPage(mode service.ModeInfo, batches []domain.BatchRecord, statusFilter string) {
+	@Layout("Production & Market Tracker", "tracker", mode) {
+		<div class="space-y-6" x-data="{ showNewBatch: false }">
+			<div class="flex flex-wrap items-center justify-between gap-4">
+				<div>
+					<h1 class="text-2xl font-bold tracking-tight text-white">Production, Inventory &amp; Market Order Tracker</h1>
+					<p class="text-xs text-slate-400 mt-0.5">Kelola siklus batch (<code class="text-sky-300">DRAFT → IN_PRODUCTION → LISTED → SOLD</code>) serta uji batas aman Relist &amp; Undercut Guard.</p>
+				</div>
+				<button type="button" @click="showNewBatch = !showNewBatch" class="rounded-md bg-sky-500 px-3.5 py-2 text-xs font-bold text-slate-950 hover:bg-sky-400 transition cursor-pointer">
+					+ Catat Batch Manual
+				</button>
+			</div>
+
+			<!-- Manual Batch Form -->
+			<div x-show="showNewBatch" x-transition class="tactical-panel rounded-xl p-5 space-y-4">
+				<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">Catat Batch Produksi Baru</h2>
+				<form hx-post="/tracker/batches" hx-swap="none" class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+					<div>
+						<label class="block text-[11px] font-mono uppercase text-slate-400">Nama Item</label>
+						<input type="text" name="item_name" required placeholder="Hobgoblin I" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"/>
+					</div>
+					<div>
+						<label class="block text-[11px] font-mono uppercase text-slate-400">Jumlah Runs</label>
+						<input type="number" name="runs" value="1" min="1" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[11px] font-mono uppercase text-slate-400">Total Units Output</label>
+						<input type="number" name="units_output" value="500" min="1" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[11px] font-mono uppercase text-slate-400">Total Biaya Produksi (ISK)</label>
+						<input type="number" step="0.01" name="actual_production_cost" value="5000000" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[11px] font-mono uppercase text-slate-400">Harga Jual / Unit (ISK)</label>
+						<input type="number" step="0.01" name="actual_sell_price" value="14500" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[11px] font-mono uppercase text-slate-400">Status Awal</label>
+						<select name="status" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white">
+							<option value="DRAFT">DRAFT</option>
+							<option value="IN_PRODUCTION">IN_PRODUCTION</option>
+							<option value="LISTED">LISTED</option>
+							<option value="SOLD">SOLD</option>
+						</select>
+					</div>
+					<div class="sm:col-span-3 flex justify-end gap-2">
+						<button type="button" @click="showNewBatch = false" class="rounded border border-slate-700 px-3 py-1.5 text-xs text-slate-300">Batal</button>
+						<button type="submit" class="rounded bg-sky-500 px-4 py-1.5 text-xs font-bold text-slate-950 hover:bg-sky-400 cursor-pointer">Simpan Batch</button>
+					</div>
+				</form>
+			</div>
+
+			<!-- Status Filter Tabs -->
+			<div class="flex flex-wrap gap-2">
+				@trackerTab("Semua", "", statusFilter)
+				@trackerTab("DRAFT", "DRAFT", statusFilter)
+				@trackerTab("IN_PRODUCTION", "IN_PRODUCTION", statusFilter)
+				@trackerTab("LISTED", "LISTED", statusFilter)
+				@trackerTab("SOLD", "SOLD", statusFilter)
+				@trackerTab("SLOW_MOVER", "SLOW_MOVER", statusFilter)
+			</div>
+
+			<!-- Batches List -->
+			<div class="tactical-panel rounded-xl overflow-hidden">
+				if len(batches) == 0 {
+					<div class="p-10 text-center text-xs text-slate-400">
+						Belum ada batch pada filter ini. Eksekusi rencana dari <strong>Weekly Planner</strong> atau klik <strong>Catat Batch Manual</strong>.
+					</div>
+				} else {
+					<div class="overflow-x-auto">
+						<table class="w-full text-left text-xs">
+							<thead class="border-b border-slate-800 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400">
+								<tr>
+									<th class="px-4 py-3">Batch &amp; Status</th>
+									<th class="px-4 py-3 text-right">Modal Produksi</th>
+									<th class="px-4 py-3 text-right">Harga Jual / Safe Relist</th>
+									<th class="px-4 py-3 text-right">Net Profit / ROI</th>
+									<th class="px-4 py-3">Relist &amp; Undercut Guard</th>
+									<th class="px-4 py-3 text-right">Siklus &amp; Aksi</th>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-slate-800/80">
+								for _, b := range batches {
+									<tr class="hover:bg-slate-800/40 align-top">
+										<td class="px-4 py-3">
+											<div class="font-semibold text-white text-sm">{ b.ItemName }</div>
+											<div class="mt-1 flex items-center gap-2">
+												<span class={ "inline-block rounded px-2 py-0.5 font-mono text-[10px] font-bold " + BatchStatusBadgeClass(b.Status) }>
+													{ string(b.Status) }
+												</span>
+												<span class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%dx run • %d unit", b.Runs, b.UnitsOutput) }</span>
+											</div>
+										</td>
+										<td class="px-4 py-3 text-right font-mono text-slate-200">
+											{ FormatISK(b.ActualProductionCost) }
+										</td>
+										<td class="px-4 py-3 text-right font-mono">
+											<div class="text-sky-300">{ FormatISK(b.ActualSellPrice) }/u</div>
+											<div class="text-[10px] text-amber-300">Batas Aman: { FormatISK(b.SafeRelistPrice) }/u</div>
+										</td>
+										<td class="px-4 py-3 text-right font-mono">
+											<div class={ "font-bold " + profitColor(b.NetProfit) }>{ FormatISK(b.NetProfit) }</div>
+											<div class="text-[10px] text-slate-400">ROI { FormatPercent(b.ROI) }</div>
+										</td>
+										<td class="px-4 py-3 min-w-[240px]">
+											<form
+												hx-post={ fmt.Sprintf("/tracker/batches/%d/relist-check", b.ID) }
+												hx-target={ fmt.Sprintf("#relist-res-%d", b.ID) }
+												hx-swap="innerHTML"
+												class="flex gap-1.5"
+											>
+												<input
+													type="number"
+													step="0.01"
+													name="proposed_price"
+													placeholder="Harga pesaing..."
+													class="w-32 rounded border border-slate-700 bg-slate-950 px-2 py-1 font-mono text-[11px] text-white"
+												/>
+												<button type="submit" class="rounded border border-amber-500/40 bg-amber-500/15 px-2 py-1 text-[10px] font-bold text-amber-200 hover:bg-amber-500/25 cursor-pointer">
+													Cek Relist
+												</button>
+											</form>
+											<div id={ fmt.Sprintf("relist-res-%d", b.ID) } class="mt-1.5"></div>
+										</td>
+										<td class="px-4 py-3 text-right">
+											<div class="flex flex-col items-end gap-1.5">
+												<form hx-post={ fmt.Sprintf("/tracker/batches/%d/status", b.ID) } hx-swap="none" class="flex gap-1">
+													<select name="status" class="rounded border border-slate-700 bg-slate-900 px-1.5 py-1 text-[11px] text-white">
+														<option value="DRAFT" selected?={ b.Status == domain.BatchStatusDraft }>DRAFT</option>
+														<option value="IN_PRODUCTION" selected?={ b.Status == domain.BatchStatusInProduction }>IN_PRODUCTION</option>
+														<option value="LISTED" selected?={ b.Status == domain.BatchStatusListed }>LISTED</option>
+														<option value="SOLD" selected?={ b.Status == domain.BatchStatusSold }>SOLD</option>
+														<option value="SLOW_MOVER" selected?={ b.Status == domain.BatchStatusSlowMover }>SLOW_MOVER</option>
+													</select>
+													<button type="submit" class="rounded bg-sky-500/20 border border-sky-400/40 px-2 py-1 text-[10px] font-bold text-sky-200 hover:bg-sky-500/30 cursor-pointer">
+														Update
+													</button>
+												</form>
+												<button
+													type="button"
+													hx-delete={ fmt.Sprintf("/tracker/batches/%d", b.ID) }
+													hx-swap="none"
+													hx-confirm="Hapus batch ini?"
+													class="text-[10px] text-rose-400 hover:underline cursor-pointer"
+												>
+													Hapus
+												</button>
+											</div>
+										</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				}
+			</div>
+		</div>
+	}
+}
+
+templ trackerTab(label, val, active string) {
+	if val == active {
+		<a href={ templ.SafeURL("/tracker?status=" + val) } class="rounded-md bg-sky-500/20 border border-sky-400/50 px-3 py-1.5 font-mono text-xs font-bold text-sky-200">{ label }</a>
+	} else {
+		<a href={ templ.SafeURL("/tracker?status=" + val) } class="rounded-md border border-slate-800 bg-slate-900/60 px-3 py-1.5 font-mono text-xs text-slate-400 hover:text-white">{ label }</a>
+	}
+}
+
+templ RelistResultPartial(res *domain.RelistGuardResult, errMsg string) {
+	if errMsg != "" {
+		<div class="rounded border border-rose-500/40 bg-rose-950/40 p-2 text-[11px] text-rose-200">{ errMsg }</div>
+	} else if res != nil {
+		if res.IsSafeToRelist {
+			<div class="rounded border border-emerald-500/40 bg-emerald-950/40 p-2 text-[11px] text-emerald-200">
+				{ res.Advice }
+			</div>
+		} else {
+			<div class="rounded border border-rose-500/50 bg-rose-950/50 p-2 text-[11px] text-rose-200">
+				{ res.Advice }
+			</div>
+		}
+	}
+}
