@@ -34,15 +34,28 @@ Dibangun menggunakan **Go (`go-chi/chi/v5`) + `a-h/templ` + HTMX + Alpine.js + T
 
 Aplikasi langsung berjalan 100% tanpa perlu mendaftar developer CCP:
 
+### Opsi A: Full Docker Compose (PostgreSQL + aura-forge)
+
 ```bash
 # 1. Salin konfigurasi environment (biarkan ESI_CLIENT_ID & ESI_CLIENT_SECRET kosong)
 cp .env.example .env
 
-# 2. Jalankan PostgreSQL 16 (migrasi tabel berjalan otomatis saat server start)
-docker compose up -d
+# 2. Rebuild image & jalankan seluruh stack di background
+make docker-run
+# (atau foreground dengan log langsung: make docker-run)
 
-# 3. Jalankan server aura-forge
-go run ./cmd/server
+# Lihat log aplikasi
+make docker-logs
+```
+
+### Opsi B: Pengembangan Lokal (Go Lokal + PostgreSQL Docker)
+
+```bash
+# 1. Jalankan PostgreSQL 16 saja
+make db-up
+
+# 2. Jalankan server aura-forge lokal
+make run
 ```
 
 Buka browser di **`http://localhost:8080`**, lalu klik **"Load Sample Data"** di Dashboard atau Catalog untuk langsung mencoba contoh item produksi, detektor jebakan BPC/Slow Mover, dan sinkronisasi harga Jita live via **Sync Jita Prices**.
@@ -74,6 +87,28 @@ Jika di kemudian hari Anda ingin menyinkronkan saldo dompet, order pasar aktif, 
 
 ---
 
+## SQL Migrations & Aturan Pembuatan
+
+Migrasi skema PostgreSQL dicatat di tabel `schema_migrations` dan mendukung eksekusi transaksional (`up`/`down`/`status`) serta generator otomatis untuk file migrasi baru.
+
+```bash
+# Jalankan seluruh migrasi yang pending (juga berjalan otomatis saat server start)
+make migrate-up
+
+# Cek status migrasi (APPLIED / PENDING)
+make migrate-status
+
+# Rollback 1 migrasi terakhir
+make migrate-down
+
+# Buat pasangan file migrasi baru: NNN_<name>.up.sql & NNN_<name>.down.sql
+make migrate-new NAME=add_manual_hangar_stock
+```
+
+Panduan & aturan lengkap (penamaan `NNN_<name>.up.sql/.down.sql`, immutability, aturan `NUMERIC(20,2)` untuk ISK, `TIMESTAMPTZ`, dan idempotency) tersedia di [`migrations/README.md`](migrations/README.md).
+
+---
+
 ## Backup & Restore Database PostgreSQL
 
 ```bash
@@ -90,12 +125,15 @@ gunzip -c backup_aura_forge_YYYYMMDD_HHMMSS.sql.gz | docker exec -i aura-forge-p
 
 ```text
 aura-forge/
-├── cmd/server/            # Entrypoint & Dependency Injection wiring
+├── cmd/
+│   ├── server/            # Entrypoint & Dependency Injection wiring
+│   └── migrate/           # CLI SQL Migration (up, down, status, create)
+├── migrations/            # Versioned SQL Migrations (*.up.sql / *.down.sql) & embed.go
 ├── internal/
 │   ├── config/            # Konfigurasi .env & deteksi IsSSOEnabled()
 │   ├── domain/            # Entities, Pure Business Rules & Repository Interfaces
 │   ├── service/           # Application Use Cases (Standard & SSO Mode)
-│   ├── store/postgres/    # PostgreSQL 16 (pgx/v5) Adapter & Embedded Migrations
+│   ├── store/postgres/    # PostgreSQL 16 (pgx/v5) Adapter & Migration Runner
 │   ├── esi/               # Public Market ESI & Optional EVE SSO Adapter
 │   ├── http/              # Go-Chi Router, HTMX Handlers & Conditional Auth
 │   └── web/               # Type-Safe a-h/templ UI Components

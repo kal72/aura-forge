@@ -1,4 +1,4 @@
--- 001_init.sql: Schema initialization for aura-forge
+-- 001_init.up.sql: Initial schema for aura-forge
 
 CREATE TABLE IF NOT EXISTS user_settings (
     id INT PRIMARY KEY DEFAULT 1,
@@ -14,7 +14,6 @@ CREATE TABLE IF NOT EXISTS user_settings (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Seed default settings if not exists
 INSERT INTO user_settings (id, starting_capital, broker_fee_percent, sales_tax_percent, relist_fee_percent, manufacturing_slots, science_slots, system_cost_index, freight_cost_per_m3, facility_tax_percent)
 VALUES (1, 100000000.00, 3.000, 3.600, 0.500, 10, 1, 0.04500, 300.00, 0.250)
 ON CONFLICT (id) DO NOTHING;

@@ -2,23 +2,19 @@ package postgres
 
 import (
 	"context"
-	_ "embed"
 	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-//go:embed migrations/001_init.sql
-var initSQL string
-
-// DB wraps pgxpool.Pool and provides database connectivity and migration execution.
+// DB wraps pgxpool.Pool and provides database connectivity and versioned migration execution.
 type DB struct {
 	Pool *pgxpool.Pool
 }
 
-// NewDB initializes a connection pool to PostgreSQL and runs pending migrations.
-func NewDB(ctx context.Context, databaseURL string) (*DB, error) {
+// NewPoolOnly connects to PostgreSQL and verifies the connection without running auto-migrations.
+func NewPoolOnly(ctx context.Context, databaseURL string) (*DB, error) {
 	config, err := pgxpool.ParseConfig(databaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse database config: %w", err)
@@ -34,7 +30,6 @@ func NewDB(ctx context.Context, databaseURL string) (*DB, error) {
 		return nil, fmt.Errorf("failed to create connection pool: %w", err)
 	}
 
-	// Verify connection
 	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	if err := pool.Ping(pingCtx); err != nil {
@@ -42,25 +37,31 @@ func NewDB(ctx context.Context, databaseURL string) (*DB, error) {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	db := &DB{Pool: pool}
+	return &DB{Pool: pool}, nil
+}
+
+// NewDB initializes a connection pool to PostgreSQL and runs all pending versioned migrations.
+func NewDB(ctx context.Context, databaseURL string) (*DB, error) {
+	db, err := NewPoolOnly(ctx, databaseURL)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := db.Migrate(ctx); err != nil {
-		pool.Close()
+		db.Close()
 		return nil, fmt.Errorf("failed to run migrations: %w", err)
 	}
 
 	return db, nil
 }
 
-// Migrate executes initial schema SQL.
+// Migrate executes all pending versioned *.up.sql migrations recorded in schema_migrations.
 func (d *DB) Migrate(ctx context.Context) error {
-	_, err := d.Pool.Exec(ctx, initSQL)
-	if err != nil {
-		return fmt.Errorf("executing migration 001_init.sql failed: %w", err)
-	}
-	return nil
+	_, err := d.MigrateUp(ctx)
+	return err
 }
 
-// Close closes the pool.
+// Close closes the connection pool.
 func (d *DB) Close() {
 	if d.Pool != nil {
 		d.Pool.Close()

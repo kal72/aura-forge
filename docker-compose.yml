@@ -4,9 +4,9 @@ services:
     container_name: aura-forge-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password}
-      POSTGRES_DB: ${POSTGRES_DB:-aura_forge}
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres_password}"
+      POSTGRES_DB: "${POSTGRES_DB:-aura_forge}"
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
@@ -16,6 +16,26 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  aura-forge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aura-forge-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: "8080"
+      DATABASE_URL: "postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_password}@postgres:5432/${POSTGRES_DB:-aura_forge}?sslmode=disable"
+      SESSION_SECRET: "${SESSION_SECRET:-aura-forge-development-secret-key-32bytes}"
+      ESI_USER_AGENT: "${ESI_USER_AGENT:-aura-forge/1.0 (EVE Market & Industry Copilot; contact: pilot@new-eden.org)}"
+      ESI_CLIENT_ID: "${ESI_CLIENT_ID:-}"
+      ESI_CLIENT_SECRET: "${ESI_CLIENT_SECRET:-}"
+      ESI_CALLBACK_URL: "${ESI_CALLBACK_URL:-http://localhost:8080/auth/callback}"
+    ports:
+      - "${PORT:-8080}:8080"
 
 volumes:
   pgdata:
