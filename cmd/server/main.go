@@ -11,10 +11,11 @@ import (
 	"time"
 
 	"aura-forge/internal/config"
+	"aura-forge/internal/domain"
+	"aura-forge/internal/esi"
+	apphttp "aura-forge/internal/http"
+	"aura-forge/internal/service"
 	"aura-forge/internal/store/postgres"
-
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 )
 
 func main() {
@@ -33,37 +34,64 @@ func main() {
 	}
 	fmt.Println("================================================================")
 
-	// Context for startup
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Initialize DB (optional during dry-run build or connects if running)
+	var (
+		itemRepo     domain.ItemRepository
+		batchRepo    domain.BatchRepository
+		planRepo     domain.PlanRepository
+		charRepo     domain.CharacterRepository
+		settingsRepo domain.SettingsRepository
+		cacheRepo    domain.ESICacheRepository
+	)
+
 	db, err := postgres.NewDB(ctx, cfg.DatabaseURL)
 	if err != nil {
 		log.Printf("[WARN] PostgreSQL not reachable at %s: %v", cfg.DatabaseURL, err)
-		log.Println("[INFO] Proceeding without active database connection for dry-run/bootstrap.")
+		log.Println("[INFO] Run 'make db-up' to start PostgreSQL 16. Proceeding in degraded mode.")
 	} else {
 		defer db.Close()
 		log.Println("[INFO] Connected to PostgreSQL and migrations verified.")
+		itemRepo = postgres.NewItemRepo(db.Pool)
+		batchRepo = postgres.NewBatchRepo(db.Pool)
+		planRepo = postgres.NewPlanRepo(db.Pool)
+		charRepo = postgres.NewCharacterRepo(db.Pool)
+		settingsRepo = postgres.NewSettingsRepo(db.Pool)
+		cacheRepo = postgres.NewCacheRepo(db.Pool)
 	}
 
-	r := chi.NewRouter()
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
+	// Initialize ESI adapters (Public ESI always active; SSO optional)
+	esiClient := esi.NewClient(esi.DefaultESIBaseURL, cfg.ESIUserAgent, cacheRepo, nil)
+	publicMarket := esi.NewPublicMarketClient(esiClient)
+	ssoClient := esi.NewSSOClient(cfg.ESIClientID, cfg.ESIClientSecret, cfg.ESICallbackURL, nil)
 
-	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`{"status":"ok","app":"aura-forge","mode":"copilot"}`))
-	})
+	var charSync domain.CharacterSyncProvider
+	if cfg.IsSSOEnabled() {
+		charSync = esi.NewCharacterSyncClient(esiClient, ssoClient, charRepo)
+	} else {
+		charSync = esi.NewNoOpCharacterSyncProvider()
+	}
+
+	// Wire Clean Architecture service & router
+	copilotSvc := service.NewCopilotService(
+		itemRepo,
+		batchRepo,
+		planRepo,
+		charRepo,
+		settingsRepo,
+		publicMarket,
+		charSync,
+		ssoClient,
+	)
+
+	router := apphttp.NewRouter(copilotSvc, nil)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
-		Handler:      r,
+		Handler:      router,
 		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
+		WriteTimeout: 30 * time.Second,
 		IdleTimeout:  60 * time.Second,
 	}
 
