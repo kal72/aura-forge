@@ -26,6 +26,7 @@ type Renderer interface {
 	RenderTracker(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, batches []domain.BatchRecord, statusFilter string) error
 	RenderRelistResult(w http.ResponseWriter, r *http.Request, res *domain.RelistGuardResult, errMsg string) error
 	RenderSettings(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, saved bool) error
+	RenderMineralTicker(w http.ResponseWriter, r *http.Request, minerals []service.MineralQuote) error
 }
 
 // Handlers exposes all HTTP and HTMX endpoints for aura-forge.
@@ -280,6 +281,44 @@ func (h *Handlers) HandleLookupItemESI(w http.ResponseWriter, r *http.Request) {
 		"highest_buy":  jp.HighestBuy,
 		"daily_volume": dailyVol,
 	})
+}
+
+// HandleLiveMinerals returns live Jita mineral prices from Public ESI (HTMX partial or JSON).
+func (h *Handlers) HandleLiveMinerals(w http.ResponseWriter, r *http.Request) {
+	minerals := h.svc.GetLiveJitaMinerals(r.Context())
+	if h.renderer != nil && IsHTMX(r) {
+		_ = h.renderer.RenderMineralTicker(w, r, minerals)
+		return
+	}
+	h.writeJSON(w, http.StatusOK, minerals)
+}
+
+// HandleCheckUndercuts compares all LISTED/SLOW_MOVER batches against live Jita lowest sell prices via Public ESI.
+func (h *Handlers) HandleCheckUndercuts(w http.ResponseWriter, r *http.Request) {
+	checked, undercuts, err := h.svc.CheckTrackerUndercutsESI(r.Context())
+	if err != nil {
+		if IsHTMX(r) {
+			TriggerToast(w, "error", "Cek Undercut ESI gagal: "+err.Error())
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
+
+	if IsHTMX(r) {
+		level := "success"
+		msg := fmt.Sprintf("Public ESI Undercut Radar: %d batch dicek, aman (0 undercut).", checked)
+		if undercuts > 0 {
+			level = "error"
+			msg = fmt.Sprintf("PERHATIAN: %d dari %d batch LISTED sedang ter-undercut di Jita!", undercuts, checked)
+		}
+		TriggerToast(w, level, msg)
+		w.Header().Set("HX-Refresh", "true")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	h.writeJSON(w, http.StatusOK, map[string]any{"checked": checked, "undercuts": undercuts})
 }
 
 // HandleCalculator renders the Net Profit, Tax & Break-Even Calculator page.

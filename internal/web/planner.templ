@@ -124,7 +124,12 @@ templ PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) {
 			>
 				<div class="flex flex-wrap items-center justify-between gap-3">
 					<div>
-						<h2 class="text-sm font-bold uppercase tracking-wider text-emerald-300">Consolidated Shopping List &amp; EVE Multibuy</h2>
+						<div class="flex flex-wrap items-center gap-2">
+							<h2 class="text-sm font-bold uppercase tracking-wider text-emerald-300">Consolidated Shopping List &amp; EVE Multibuy</h2>
+							<span class="rounded-full border border-emerald-400/40 bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-emerald-200">
+								Live Jita Mineral ESI
+							</span>
+						</div>
 						<p class="text-xs text-slate-400 mt-0.5">
 							Total Estimasi Belanja: <span class="font-mono text-white">{ FormatISK(data.ShoppingList.TotalEstimatedCost) }</span> •
 							Kargo: <span class="font-mono text-amber-300">{ fmt.Sprintf("%.1f m³", data.ShoppingList.TotalVolumeM3) }</span> •

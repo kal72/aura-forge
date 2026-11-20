@@ -24,10 +24,17 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, saved bo
 			<div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
 				<!-- Tax, Capital & Slots Form -->
 				<div class="tactical-panel rounded-xl p-5 lg:col-span-7 space-y-4">
-					<div class="flex items-center justify-between">
+					<div class="flex flex-wrap items-center justify-between gap-2">
 						<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">Parameter Industri &amp; Pajak Jita</h2>
 						<form hx-post="/esi/sync-sci" hx-swap="none" class="flex items-center gap-2">
-							<input type="hidden" name="solar_system_id" value="30000142"/>
+							<select name="solar_system_id" class="rounded border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] font-mono text-white">
+								<option value="30000142">Jita (The Forge)</option>
+								<option value="30000144">Perimeter</option>
+								<option value="30002187">Amarr (Domain)</option>
+								<option value="30002659">Dodixie (Sinq Laison)</option>
+								<option value="30002053">Hek (Metropolis)</option>
+								<option value="30002510">Rens (Heimatar)</option>
+							</select>
 							<button type="submit" class="rounded border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-[11px] font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer">
 								Sync SCI Live (Public ESI)
 							</button>

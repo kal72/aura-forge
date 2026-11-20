@@ -47,6 +47,15 @@ type DashboardSummary struct {
 	DailyChecklist       []string           `json:"daily_checklist"`
 }
 
+// MineralQuote holds a live Jita Public ESI price snapshot for a core industrial mineral.
+type MineralQuote struct {
+	TypeID     int32   `json:"type_id"`
+	Name       string  `json:"name"`
+	LowestSell float64 `json:"lowest_sell"`
+	HighestBuy float64 `json:"highest_buy"`
+	IsLive     bool    `json:"is_live"`
+}
+
 // PlannerViewData bundles all data required to render the Weekly Production & Slot Planner.
 type PlannerViewData struct {
 	ActivePlan   *domain.WeeklyPlan              `json:"active_plan"`
@@ -690,8 +699,9 @@ func (s *CopilotService) GetPlannerView(ctx context.Context, planID int64) (*Pla
 
 	slotReport := domain.ValidateSlotCapacity(*selected)
 
-	// Build consolidated shopping list from plan items (approximating mineral BOM if raw BOM not attached)
-	reqs := buildEstimatedBOMRequirements(selected.Items)
+	// Build consolidated shopping list from plan items using live Jita mineral prices from Public ESI
+	liveMinerals := s.GetLiveJitaMinerals(ctx)
+	reqs := buildEstimatedBOMRequirements(selected.Items, liveMinerals)
 
 	// Deduct hangar assets if SSO connected
 	hangarStock := make(map[int32]int64)
@@ -722,33 +732,170 @@ func (s *CopilotService) GetPlannerView(ctx context.Context, planID int64) (*Pla
 	}, nil
 }
 
-// buildEstimatedBOMRequirements generates a consolidated mineral/component bill of materials for Multibuy export.
-func buildEstimatedBOMRequirements(items []domain.PlanItem) []domain.MaterialRequirement {
+// GetLiveJitaMinerals fetches live Jita 4-4 prices for core EVE industrial minerals via Public ESI (cached).
+func (s *CopilotService) GetLiveJitaMinerals(ctx context.Context) []MineralQuote {
+	defaults := []MineralQuote{
+		{TypeID: 34, Name: "Tritanium", LowestSell: 4.50, HighestBuy: 4.10},
+		{TypeID: 35, Name: "Pyerite", LowestSell: 12.00, HighestBuy: 11.20},
+		{TypeID: 36, Name: "Mexallon", LowestSell: 55.00, HighestBuy: 51.00},
+		{TypeID: 37, Name: "Isogen", LowestSell: 180.00, HighestBuy: 168.00},
+		{TypeID: 38, Name: "Nocxium", LowestSell: 1450.00, HighestBuy: 1380.00},
+		{TypeID: 39, Name: "Zydrine", LowestSell: 1950.00, HighestBuy: 1860.00},
+	}
+
+	if s.market == nil {
+		return defaults
+	}
+
+	tids := make([]int32, 0, len(defaults))
+	for _, m := range defaults {
+		tids = append(tids, m.TypeID)
+	}
+
+	esiCtx, cancel := context.WithTimeout(ctx, 4*time.Second)
+	defer cancel()
+
+	prices, err := s.market.GetJitaPrices(esiCtx, tids)
+	if err != nil {
+		return defaults
+	}
+
+	for i := range defaults {
+		if jp, ok := prices[defaults[i].TypeID]; ok && jp.LowestSell > 0 {
+			defaults[i].LowestSell = jp.LowestSell
+			defaults[i].HighestBuy = jp.HighestBuy
+			defaults[i].IsLive = true
+		}
+	}
+	return defaults
+}
+
+// CheckTrackerUndercutsESI checks live Jita lowest sell prices for all LISTED/SLOW_MOVER batches via Public ESI.
+func (s *CopilotService) CheckTrackerUndercutsESI(ctx context.Context) (int, int, error) {
+	if s.batches == nil || s.market == nil {
+		return 0, 0, fmt.Errorf("batch repository atau Public ESI market provider tidak tersedia")
+	}
+
+	all, err := s.batches.ListBatches(ctx, nil)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	var active []domain.BatchRecord
+	var missingNames []string
+	for _, b := range all {
+		if b.Status == domain.BatchStatusListed || b.Status == domain.BatchStatusSlowMover {
+			active = append(active, b)
+			if b.TypeID <= 0 && strings.TrimSpace(b.ItemName) != "" {
+				missingNames = append(missingNames, b.ItemName)
+			}
+		}
+	}
+	if len(active) == 0 {
+		return 0, 0, nil
+	}
+
+	// Resolve missing TypeIDs via Public ESI
+	if len(missingNames) > 0 {
+		if resolved, err := s.market.ResolveTypeIDs(ctx, missingNames); err == nil {
+			for i := range active {
+				if active[i].TypeID <= 0 {
+					if tid, ok := resolved[active[i].ItemName]; ok {
+						active[i].TypeID = tid
+					}
+				}
+			}
+		}
+	}
+
+	typeIDSet := make(map[int32]struct{})
+	var typeIDs []int32
+	for _, b := range active {
+		if b.TypeID > 0 {
+			if _, seen := typeIDSet[b.TypeID]; !seen {
+				typeIDSet[b.TypeID] = struct{}{}
+				typeIDs = append(typeIDs, b.TypeID)
+			}
+		}
+	}
+	if len(typeIDs) == 0 {
+		return 0, 0, nil
+	}
+
+	prices, err := s.market.GetJitaPrices(ctx, typeIDs)
+	if err != nil {
+		return 0, 0, fmt.Errorf("gagal mengambil harga Jita live: %w", err)
+	}
+
+	settings, _ := s.GetSettings(ctx)
+	checked := 0
+	undercuts := 0
+
+	for i := range active {
+		b := active[i]
+		jp, ok := prices[b.TypeID]
+		if !ok || jp.LowestSell <= 0 {
+			continue
+		}
+		checked++
+		b.CurrentMarketPrice = jp.LowestSell
+		b.IsUndercut = b.ActualSellPrice > 0 && jp.LowestSell < b.ActualSellPrice
+		if b.IsUndercut {
+			undercuts++
+		}
+		b.SafeRelistPrice = domain.CalculateSafeRelistPrice(b.ActualProductionCost, b.UnitsOutput, settings.SalesTaxPercent, settings.RelistFeePercent)
+		b.RemainingSafeMargin = domain.RoundISK((jp.LowestSell - b.SafeRelistPrice) * float64(b.UnitsOutput))
+		_ = s.batches.SaveBatch(ctx, &b)
+	}
+
+	return checked, undercuts, nil
+}
+
+// buildEstimatedBOMRequirements generates a consolidated mineral bill of materials priced with live Jita ESI quotes.
+func buildEstimatedBOMRequirements(items []domain.PlanItem, minerals []MineralQuote) []domain.MaterialRequirement {
 	if len(items) == 0 {
 		return nil
 	}
+
+	priceByID := map[int32]float64{
+		34: 4.5,
+		35: 12.0,
+		36: 55.0,
+		37: 180.0,
+	}
+	for _, m := range minerals {
+		if m.LowestSell > 0 {
+			priceByID[m.TypeID] = m.LowestSell
+		}
+	}
+
+	tritPrice := priceByID[34]
+	pyerPrice := priceByID[35]
+	mexPrice := priceByID[36]
+	isoPrice := priceByID[37]
+
 	var reqs []domain.MaterialRequirement
 	for _, it := range items {
 		if it.TotalMaterialCost <= 0 {
 			continue
 		}
 		// Standard industrial mineral breakdown (Tritanium 45%, Pyerite 25%, Mexallon 20%, Isogen 10%)
-		tritQty := int64((it.TotalMaterialCost * 0.45) / 4.5)
-		pyerQty := int64((it.TotalMaterialCost * 0.25) / 12.0)
-		mexQty := int64((it.TotalMaterialCost * 0.20) / 55.0)
-		isoQty := int64((it.TotalMaterialCost * 0.10) / 180.0)
+		tritQty := int64((it.TotalMaterialCost * 0.45) / tritPrice)
+		pyerQty := int64((it.TotalMaterialCost * 0.25) / pyerPrice)
+		mexQty := int64((it.TotalMaterialCost * 0.20) / mexPrice)
+		isoQty := int64((it.TotalMaterialCost * 0.10) / isoPrice)
 
 		if tritQty > 0 {
-			reqs = append(reqs, domain.MaterialRequirement{TypeID: 34, TypeName: "Tritanium", Quantity: tritQty, UnitPrice: 4.5, UnitVolumeM3: 0.01})
+			reqs = append(reqs, domain.MaterialRequirement{TypeID: 34, TypeName: "Tritanium", Quantity: tritQty, UnitPrice: tritPrice, UnitVolumeM3: 0.01})
 		}
 		if pyerQty > 0 {
-			reqs = append(reqs, domain.MaterialRequirement{TypeID: 35, TypeName: "Pyerite", Quantity: pyerQty, UnitPrice: 12.0, UnitVolumeM3: 0.01})
+			reqs = append(reqs, domain.MaterialRequirement{TypeID: 35, TypeName: "Pyerite", Quantity: pyerQty, UnitPrice: pyerPrice, UnitVolumeM3: 0.01})
 		}
 		if mexQty > 0 {
-			reqs = append(reqs, domain.MaterialRequirement{TypeID: 36, TypeName: "Mexallon", Quantity: mexQty, UnitPrice: 55.0, UnitVolumeM3: 0.01})
+			reqs = append(reqs, domain.MaterialRequirement{TypeID: 36, TypeName: "Mexallon", Quantity: mexQty, UnitPrice: mexPrice, UnitVolumeM3: 0.01})
 		}
 		if isoQty > 0 {
-			reqs = append(reqs, domain.MaterialRequirement{TypeID: 37, TypeName: "Isogen", Quantity: isoQty, UnitPrice: 180.0, UnitVolumeM3: 0.01})
+			reqs = append(reqs, domain.MaterialRequirement{TypeID: 37, TypeName: "Isogen", Quantity: isoQty, UnitPrice: isoPrice, UnitVolumeM3: 0.01})
 		}
 	}
 	return reqs

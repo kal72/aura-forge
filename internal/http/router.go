@@ -52,6 +52,8 @@ func NewRouter(svc *service.CopilotService, renderer Renderer) http.Handler {
 		r.Post("/sync-prices", h.HandleSyncJitaPrices)
 		r.Post("/sync-sci", h.HandleSyncSCI)
 		r.Get("/lookup", h.HandleLookupItemESI)
+		r.Get("/minerals", h.HandleLiveMinerals)
+		r.Post("/check-undercuts", h.HandleCheckUndercuts)
 	})
 
 	// Net Profit, Tax & Break-Even Calculator

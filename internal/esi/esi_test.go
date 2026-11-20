@@ -312,3 +312,102 @@ func TestSSO_EnabledOAuthAndCharacterSync(t *testing.T) {
 		t.Errorf("SyncAssets failed: assets=%+v err=%v", assets, err)
 	}
 }
+
+func TestESIClient_ErrorLimitAutoResetAndRetryAfter(t *testing.T) {
+	// 1. Test X-ESI-Error-Limit-Reset auto-recovery
+	srvReset := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-ESI-Error-Limit-Remain", "5")
+		w.Header().Set("X-ESI-Error-Limit-Reset", "1")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer srvReset.Close()
+
+	client := esi.NewClient(srvReset.URL, "aura-forge-test/1.0", nil, srvReset.Client())
+	ctx := context.Background()
+
+	if _, err := client.DoGet(ctx, "/ping", "", false); err != nil {
+		t.Fatalf("initial call failed: %v", err)
+	}
+	if _, err := client.DoGet(ctx, "/ping", "", false); !errors.Is(err, esi.ErrErrorLimitReached) {
+		t.Fatalf("expected ErrErrorLimitReached immediately after drop, got %v", err)
+	}
+
+	// Wait for 1s reset window
+	time.Sleep(1100 * time.Millisecond)
+	if client.ErrorLimitRemain() != 100 {
+		t.Errorf("expected error limit to auto-reset to 100, got %d", client.ErrorLimitRemain())
+	}
+
+	// 2. Test 429 Retry-After cooldown
+	srv429 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Retry-After", "5")
+		w.WriteHeader(http.StatusTooManyRequests)
+		_, _ = w.Write([]byte(`{"error":"rate limited"}`))
+	}))
+	defer srv429.Close()
+
+	client429 := esi.NewClient(srv429.URL, "aura-forge-test/1.0", nil, srv429.Client())
+	_, _ = client429.DoGet(ctx, "/orders", "", false)
+	if _, err := client429.DoGet(ctx, "/orders", "", false); !errors.Is(err, esi.ErrRateLimitCooldown) {
+		t.Fatalf("expected ErrRateLimitCooldown after 429 Retry-After, got %v", err)
+	}
+}
+
+func TestESIClient_InFlightDeduplication(t *testing.T) {
+	var mu sync.Mutex
+	hits := 0
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		hits++
+		mu.Unlock()
+		time.Sleep(60 * time.Millisecond)
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"dedup":true}`))
+	}))
+	defer srv.Close()
+
+	client := esi.NewClient(srv.URL, "aura-forge-test/1.0", nil, srv.Client())
+	ctx := context.Background()
+
+	var wg sync.WaitGroup
+	for i := 0; i < 5; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			body, err := client.DoGet(ctx, "/same-resource", "", false)
+			if err != nil || !strings.Contains(string(body), "dedup") {
+				t.Errorf("concurrent DoGet failed: %v %s", err, string(body))
+			}
+		}()
+	}
+	wg.Wait()
+
+	if hits != 1 {
+		t.Errorf("expected singleflight deduplication (1 upstream hit), got %d", hits)
+	}
+}
+
+func TestPublicMarketESI_MultiPageOrders(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Pages", "2")
+		w.Header().Set("X-ESI-Error-Limit-Remain", "100")
+		page := r.URL.Query().Get("page")
+		if page == "2" {
+			_, _ = w.Write([]byte(`[{"order_id":20,"type_id":34,"location_id":60003760,"system_id":30000142,"price":3.95,"volume_remain":1000,"is_buy_order":false}]`))
+			return
+		}
+		_, _ = w.Write([]byte(`[{"order_id":10,"type_id":34,"location_id":60003760,"system_id":30000142,"price":4.50,"volume_remain":1000,"is_buy_order":false}]`))
+	}))
+	defer srv.Close()
+
+	pub := esi.NewPublicMarketClient(esi.NewClient(srv.URL, "aura-forge-test/1.0", nil, srv.Client()))
+	prices, err := pub.GetJitaPrices(context.Background(), []int32{34})
+	if err != nil {
+		t.Fatalf("GetJitaPrices multi-page failed: %v", err)
+	}
+	if prices[34].LowestSell != 3.95 || prices[34].SellOrdersCount != 2 {
+		t.Errorf("expected lowest sell 3.95 across 2 orders from 2 pages, got %+v", prices[34])
+	}
+}

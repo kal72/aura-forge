@@ -68,3 +68,8 @@ func (tr *TemplRenderer) RenderSettings(w http.ResponseWriter, r *http.Request, 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	return SettingsPage(mode, settings, saved).Render(r.Context(), w)
 }
+
+func (tr *TemplRenderer) RenderMineralTicker(w http.ResponseWriter, r *http.Request, minerals []service.MineralQuote) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return MineralTickerPartial(minerals).Render(r.Context(), w)
+}

@@ -22,6 +22,9 @@ templ CatalogPage(mode service.ModeInfo, items []domain.MarketItem, category, st
 					<button type="button" @click="showImport = !showImport; showAdd = false" class="rounded-md border border-sky-400/40 bg-sky-500/15 px-3 py-1.5 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition cursor-pointer">
 						Bulk Paste / CSV Importer
 					</button>
+					<button type="button" hx-post="/esi/sync-prices" hx-swap="none" class="rounded-md border border-amber-400/40 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer">
+						Sync Jita ESI
+					</button>
 					<button type="button" hx-post="/catalog/sample" hx-swap="none" class="rounded-md border border-emerald-400/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 transition cursor-pointer">
 						Load Sample Data
 					</button>
@@ -45,12 +48,43 @@ templ CatalogPage(mode service.ModeInfo, items []domain.MarketItem, category, st
 			}
 
 			<!-- Add Item Manual Panel -->
-			<div x-show="showAdd" x-transition class="tactical-panel rounded-xl p-5 space-y-4">
-				<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">Tambah Kandidat Item</h2>
+			<div
+				x-cloak
+				x-show="showAdd"
+				x-transition
+				class="tactical-panel rounded-xl p-5 space-y-4"
+				x-data="{
+					newName: '',
+					jitaSell: 0,
+					jitaBuy: 0,
+					dailyVol: 100,
+					lookupMsg: '',
+					async autoFillESI() {
+						if (!this.newName) return;
+						this.lookupMsg = 'Mengambil harga Jita dari Public ESI...';
+						try {
+							const r = await fetch('/esi/lookup?name=' + encodeURIComponent(this.newName));
+							const d = await r.json();
+							if (!r.ok) { this.lookupMsg = d.error || 'Item tidak ditemukan'; return; }
+							if (d.lowest_sell > 0) this.jitaSell = d.lowest_sell;
+							if (d.highest_buy > 0) this.jitaBuy = d.highest_buy;
+							if (d.daily_volume > 0) this.dailyVol = Math.round(d.daily_volume);
+							this.lookupMsg = 'TypeID #' + d.type_id + ' • Jita Sell: ' + Number(d.lowest_sell).toLocaleString() + ' ISK • Vol: ' + Number(d.daily_volume).toLocaleString() + '/hari';
+						} catch (e) { this.lookupMsg = 'Gagal terhubung ke Public ESI'; }
+					}
+				}"
+			>
+				<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">Tambah Kandidat Item (Auto-Fill Public ESI)</h2>
 				<form hx-post="/catalog/items" hx-target="#catalog-table" hx-swap="outerHTML" @htmx:after-request="showAdd = false" class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-					<div>
-						<label class="block text-[11px] font-mono uppercase text-slate-400">Nama Item (Persis EVE)</label>
-						<input type="text" name="name" required placeholder="Hobgoblin I" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"/>
+					<div class="sm:col-span-2">
+						<label class="block text-[11px] font-mono uppercase text-slate-400">Nama Item (Persis EVE Online)</label>
+						<div class="mt-1 flex gap-2">
+							<input type="text" name="name" x-model="newName" required placeholder="Hobgoblin I" class="flex-1 rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"/>
+							<button type="button" @click="autoFillESI()" class="rounded border border-amber-400/40 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer">
+								Cek Jita ESI
+							</button>
+						</div>
+						<div x-show="lookupMsg" x-text="lookupMsg" class="mt-1 text-[11px] font-mono text-emerald-300"></div>
 					</div>
 					<div>
 						<label class="block text-[11px] font-mono uppercase text-slate-400">Kategori</label>
@@ -71,7 +105,8 @@ templ CatalogPage(mode service.ModeInfo, items []domain.MarketItem, category, st
 					</div>
 					<div>
 						<label class="block text-[11px] font-mono uppercase text-slate-400">Harga Jual Jita / Unit (ISK)</label>
-						<input type="number" step="0.01" name="estimated_jita_sell" value="0" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						<input type="number" step="0.01" name="estimated_jita_sell" x-model="jitaSell" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						<input type="hidden" name="estimated_jita_buy" :value="jitaBuy"/>
 					</div>
 					<div>
 						<label class="block text-[11px] font-mono uppercase text-slate-400">Biaya Bahan / Batch (ISK)</label>
@@ -83,7 +118,7 @@ templ CatalogPage(mode service.ModeInfo, items []domain.MarketItem, category, st
 					</div>
 					<div>
 						<label class="block text-[11px] font-mono uppercase text-slate-400">Avg Daily Volume (Unit/Hari)</label>
-						<input type="number" step="1" name="daily_volume" value="100" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						<input type="number" step="1" name="daily_volume" x-model="dailyVol" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 					</div>
 					<div class="flex items-center gap-4 pt-5 sm:col-span-2 text-xs text-slate-300">
 						<label class="inline-flex items-center gap-2">
@@ -103,7 +138,7 @@ templ CatalogPage(mode service.ModeInfo, items []domain.MarketItem, category, st
 			</div>
 
 			<!-- Bulk Paste / CSV Importer Panel -->
-			<div x-show="showImport" x-transition class="tactical-panel rounded-xl p-5 space-y-3">
+			<div x-cloak x-show="showImport" x-transition class="tactical-panel rounded-xl p-5 space-y-3">
 				<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Bulk Paste / CSV Importer (Mendukung K/M/B &amp; %)</h2>
 				<p class="text-xs text-slate-400">Tempelkan tabel TSV/CSV (kolom: <code class="text-sky-300">Nama Item | Harga Jual | Biaya Bahan | Volume Harian | Batch Qty</code>).</p>
 				<form method="POST" action="/catalog/import" class="space-y-3">

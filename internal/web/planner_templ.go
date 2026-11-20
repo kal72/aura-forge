@@ -333,14 +333,14 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\"><div class=\"flex flex-wrap items-center justify-between gap-3\"><div><h2 class=\"text-sm font-bold uppercase tracking-wider text-emerald-300\">Consolidated Shopping List &amp; EVE Multibuy</h2><p class=\"text-xs text-slate-400 mt-0.5\">Total Estimasi Belanja: <span class=\"font-mono text-white\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\"><div class=\"flex flex-wrap items-center justify-between gap-3\"><div><div class=\"flex flex-wrap items-center gap-2\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-emerald-300\">Consolidated Shopping List &amp; EVE Multibuy</h2><span class=\"rounded-full border border-emerald-400/40 bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-emerald-200\">Live Jita Mineral ESI</span></div><p class=\"text-xs text-slate-400 mt-0.5\">Total Estimasi Belanja: <span class=\"font-mono text-white\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(data.ShoppingList.TotalEstimatedCost))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 129, Col: 115}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 134, Col: 115}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -353,7 +353,7 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 			var templ_7745c5c3_Var20 string
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.1f m³", data.ShoppingList.TotalVolumeM3))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 130, Col: 111}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 135, Col: 111}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 			if templ_7745c5c3_Err != nil {
@@ -366,7 +366,7 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 			var templ_7745c5c3_Var21 string
 			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d unit", data.ShoppingList.TotalItemsDeducted))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 131, Col: 132}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 136, Col: 132}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 			if templ_7745c5c3_Err != nil {
@@ -394,7 +394,7 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 					var templ_7745c5c3_Var22 string
 					templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(m.TypeName)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 165, Col: 80}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 170, Col: 80}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 					if templ_7745c5c3_Err != nil {
@@ -407,7 +407,7 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 					var templ_7745c5c3_Var23 string
 					templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", m.RequiredQuantity))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 166, Col: 98}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 171, Col: 98}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 					if templ_7745c5c3_Err != nil {
@@ -420,7 +420,7 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 					var templ_7745c5c3_Var24 string
 					templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", m.HangarQuantity))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 167, Col: 99}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 172, Col: 99}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 					if templ_7745c5c3_Err != nil {
@@ -433,7 +433,7 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 					var templ_7745c5c3_Var25 string
 					templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", m.ToBuyQuantity))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 168, Col: 105}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 173, Col: 105}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 					if templ_7745c5c3_Err != nil {
@@ -446,7 +446,7 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 					var templ_7745c5c3_Var26 string
 					templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(m.TotalCost))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 169, Col: 79}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 174, Col: 79}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 					if templ_7745c5c3_Err != nil {
@@ -459,7 +459,7 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 					var templ_7745c5c3_Var27 string
 					templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.1f m³", m.VolumeM3))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 170, Col: 96}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 175, Col: 96}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 					if templ_7745c5c3_Err != nil {
@@ -477,7 +477,7 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 				var templ_7745c5c3_Var28 string
 				templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(data.ShoppingList.MultibuyText)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 178, Col: 169}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 183, Col: 169}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 				if templ_7745c5c3_Err != nil {
@@ -500,7 +500,7 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 				var templ_7745c5c3_Var29 string
 				templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", g.Week))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 205, Col: 101}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 210, Col: 101}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 				if templ_7745c5c3_Err != nil {
@@ -513,7 +513,7 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 				var templ_7745c5c3_Var30 string
 				templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(g.StartingCapital))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 206, Col: 99}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 211, Col: 99}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 				if templ_7745c5c3_Err != nil {
@@ -526,7 +526,7 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 				var templ_7745c5c3_Var31 string
 				templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(g.WeeklyProfit))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 207, Col: 99}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 212, Col: 99}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 				if templ_7745c5c3_Err != nil {
@@ -539,7 +539,7 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 				var templ_7745c5c3_Var32 string
 				templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(g.EndingCapital))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 208, Col: 103}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 213, Col: 103}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 				if templ_7745c5c3_Err != nil {
@@ -552,7 +552,7 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 				var templ_7745c5c3_Var33 string
 				templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(g.RecommendedTier)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 209, Col: 81}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 214, Col: 81}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 				if templ_7745c5c3_Err != nil {
@@ -565,7 +565,7 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 				var templ_7745c5c3_Var34 string
 				templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(g.StrategicGuidance)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 210, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 215, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 				if templ_7745c5c3_Err != nil {

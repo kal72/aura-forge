@@ -138,7 +138,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div></div></div><!-- Two-Column Workspace: Daily Checklist + Quick HTMX Calculator --><div class=\"grid grid-cols-1 gap-6 lg:grid-cols-12\"><!-- Daily Assistant Checklist --><div class=\"tactical-panel rounded-xl p-5 lg:col-span-5 space-y-4\"><div class=\"flex items-center justify-between\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-sky-300\">Checklist Asisten Harian</h2><span class=\"rounded bg-sky-500/15 px-2 py-0.5 font-mono text-[10px] text-sky-300\">COPILOT</span></div><ul class=\"space-y-2.5 text-sm\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div></div></div><!-- Live Jita Mineral Index (Public ESI) --><div class=\"tactical-panel rounded-xl p-4 space-y-3\"><div class=\"flex flex-wrap items-center justify-between gap-2\"><div class=\"flex items-center gap-2\"><span class=\"h-2 w-2 rounded-full bg-emerald-400 animate-pulse\"></span><h2 class=\"text-xs font-bold uppercase tracking-wider text-amber-200\">Live Jita 4-4 Mineral Index (Public ESI)</h2></div><button type=\"button\" hx-get=\"/esi/minerals\" hx-target=\"#live-mineral-ticker\" hx-swap=\"innerHTML\" class=\"rounded border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-[11px] font-semibold text-violet-200 hover:bg-violet-500/25 cursor-pointer\">Refresh ESI</button></div><div id=\"live-mineral-ticker\" hx-get=\"/esi/minerals\" hx-trigger=\"load\" hx-swap=\"innerHTML\" class=\"text-xs font-mono text-slate-400\">Mengambil harga mineral live dari Public ESI Jita 4-4...</div></div><!-- Two-Column Workspace: Daily Checklist + Quick HTMX Calculator --><div class=\"grid grid-cols-1 gap-6 lg:grid-cols-12\"><!-- Daily Assistant Checklist --><div class=\"tactical-panel rounded-xl p-5 lg:col-span-5 space-y-4\"><div class=\"flex items-center justify-between\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-sky-300\">Checklist Asisten Harian</h2><span class=\"rounded bg-sky-500/15 px-2 py-0.5 font-mono text-[10px] text-sky-300\">COPILOT</span></div><ul class=\"space-y-2.5 text-sm\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -150,7 +150,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", i+1))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 80, Col: 33}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 108, Col: 33}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -163,7 +163,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(task)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 82, Col: 59}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 110, Col: 59}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -186,7 +186,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(data.ActivePlan.Title)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 90, Col: 73}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 118, Col: 73}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
@@ -199,7 +199,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(data.ActivePlan.TotalEstimatedProfit))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 92, Col: 111}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 120, Col: 111}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {
@@ -212,7 +212,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 				var templ_7745c5c3_Var14 string
 				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(data.ActivePlan.ProjectedROI))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 93, Col: 54}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 121, Col: 54}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 				if templ_7745c5c3_Err != nil {
@@ -223,13 +223,106 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div><!-- Quick HTMX Profit Calculator --><div class=\"tactical-panel rounded-xl p-5 lg:col-span-7 space-y-4\"><div class=\"flex items-center justify-between\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">Kalkulator Profit Cepat (HTMX Real-Time)</h2><a href=\"/calculator\" class=\"text-xs text-sky-300 hover:underline\">Mode Lengkap →</a></div><form hx-post=\"/calculator/compute\" hx-target=\"#quick-calc-result\" hx-swap=\"innerHTML\" class=\"grid grid-cols-1 gap-3 sm:grid-cols-2\"><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Nama Item</label> <input type=\"text\" name=\"item_name\" value=\"Hobgoblin I\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Output Qty / Batch</label> <input type=\"number\" name=\"output_qty\" value=\"500\" min=\"1\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Harga Jual Jita / Unit (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"unit_sell_price\" value=\"14500\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Biaya Bahan / Batch (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"material_cost\" value=\"4900000\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Biaya Ekstra BPC / Decryptor</label> <input type=\"number\" step=\"0.01\" name=\"extra_setup_cost\" value=\"0\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Target Batches / Week</label> <input type=\"number\" name=\"batches_per_week\" value=\"4\" min=\"1\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div class=\"sm:col-span-2 flex justify-end\"><button type=\"submit\" class=\"rounded-md bg-sky-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer\">Hitung Net Profit &amp; Break-Even</button></div></form><div id=\"quick-calc-result\" class=\"rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-xs text-slate-400\">Klik tombol di atas untuk menghitung Net Profit, Pajak Jita, Break-Even Unit Price, dan Proyeksi Mingguan secara real-time.</div></div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div><!-- Quick HTMX Profit Calculator --><div class=\"tactical-panel rounded-xl p-5 lg:col-span-7 space-y-4\" x-data=\"{\n\t\t\t\t\t\titemName: &#39;Hobgoblin I&#39;,\n\t\t\t\t\t\tsellPrice: 14500,\n\t\t\t\t\t\tesiHint: &#39;&#39;,\n\t\t\t\t\t\tasync fetchJita() {\n\t\t\t\t\t\t\tif (!this.itemName) return;\n\t\t\t\t\t\t\tthis.esiHint = &#39;Mencari di Public ESI...&#39;;\n\t\t\t\t\t\t\ttry {\n\t\t\t\t\t\t\t\tconst r = await fetch(&#39;/esi/lookup?name=&#39; + encodeURIComponent(this.itemName));\n\t\t\t\t\t\t\t\tconst d = await r.json();\n\t\t\t\t\t\t\t\tif (!r.ok) { this.esiHint = d.error || &#39;Item tidak ditemukan&#39;; return; }\n\t\t\t\t\t\t\t\tif (d.lowest_sell &gt; 0) this.sellPrice = d.lowest_sell;\n\t\t\t\t\t\t\t\tthis.esiHint = &#39;Live Jita Sell: &#39; + Number(d.lowest_sell).toLocaleString() + &#39; ISK • Vol: &#39; + Number(d.daily_volume).toLocaleString() + &#39;/hari&#39;;\n\t\t\t\t\t\t\t} catch (e) { this.esiHint = &#39;Gagal terhubung ke Public ESI&#39;; }\n\t\t\t\t\t\t}\n\t\t\t\t\t}\"><div class=\"flex items-center justify-between\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">Kalkulator Profit Cepat (HTMX + Public ESI)</h2><a href=\"/calculator\" class=\"text-xs text-sky-300 hover:underline\">Mode Lengkap →</a></div><form hx-post=\"/calculator/compute\" hx-target=\"#quick-calc-result\" hx-swap=\"innerHTML\" class=\"grid grid-cols-1 gap-3 sm:grid-cols-2\"><div class=\"sm:col-span-2\"><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Nama Item (Auto-Fill Harga Jita via Public ESI)</label><div class=\"mt-1 flex gap-2\"><input type=\"text\" name=\"item_name\" x-model=\"itemName\" class=\"flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-sky-400 focus:outline-none\"> <button type=\"button\" @click=\"fetchJita()\" class=\"rounded-md border border-amber-400/40 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer\">Cek Jita ESI</button></div><div x-show=\"esiHint\" x-text=\"esiHint\" class=\"mt-1 text-[11px] font-mono text-emerald-300\"></div></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Output Qty / Batch</label> <input type=\"number\" name=\"output_qty\" value=\"500\" min=\"1\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Harga Jual Jita / Unit (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"unit_sell_price\" x-model=\"sellPrice\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Biaya Bahan / Batch (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"material_cost\" value=\"4900000\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Biaya Ekstra BPC / Decryptor</label> <input type=\"number\" step=\"0.01\" name=\"extra_setup_cost\" value=\"0\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Target Batches / Week</label> <input type=\"number\" name=\"batches_per_week\" value=\"4\" min=\"1\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div class=\"flex items-end justify-end\"><button type=\"submit\" class=\"w-full rounded-md bg-sky-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer\">Hitung Net Profit &amp; Break-Even</button></div></form><div id=\"quick-calc-result\" class=\"rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-xs text-slate-400\">Klik tombol di atas untuk menghitung Net Profit, Pajak Jita, Break-Even Unit Price, dan Proyeksi Mingguan secara real-time.</div></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
 		templ_7745c5c3_Err = Layout("Dashboard", "dashboard", data.Mode).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func MineralTickerPartial(minerals []service.MineralQuote) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var15 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var15 == nil {
+			templ_7745c5c3_Var15 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<div class=\"grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		for _, m := range minerals {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<div class=\"rounded-lg border border-slate-800 bg-slate-900/70 px-3 py-2 font-mono\"><div class=\"flex items-center justify-between text-[10px] uppercase text-slate-400\"><span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var16 string
+			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(m.Name)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 210, Col: 19}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</span> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if m.IsLive {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<span class=\"text-emerald-300\">LIVE</span>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<span class=\"text-amber-300\">EST</span>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</div><div class=\"mt-1 text-sm font-bold text-white\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var17 string
+			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", m.LowestSell))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 217, Col: 86}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, " <span class=\"text-[10px] font-normal text-slate-400\">ISK</span></div><div class=\"text-[10px] text-slate-400\">Buy: ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var18 string
+			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", m.HighestBuy))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 218, Col: 84}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</div></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
