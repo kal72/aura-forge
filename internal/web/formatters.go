@@ -75,7 +75,7 @@ func TrapBadgeClass(status domain.TrapStatus) string {
 	case domain.TrapStatusWaspadaModal:
 		return "bg-amber-500/15 text-amber-300 border border-amber-500/40"
 	case domain.TrapStatusWaspadaNiche:
-		return "bg-sky-500/15 text-sky-300 border border-sky-500/40"
+		return "bg-violet-500/15 text-sky-300 border border-violet-500/40"
 	case domain.TrapStatusJebakan:
 		return "bg-rose-500/20 text-rose-300 border border-rose-500/50"
 	default:
@@ -91,7 +91,7 @@ func BatchStatusBadgeClass(status domain.BatchStatus) string {
 	case domain.BatchStatusInProduction:
 		return "bg-amber-500/15 text-amber-300 border border-amber-500/40"
 	case domain.BatchStatusListed:
-		return "bg-sky-500/15 text-sky-300 border border-sky-500/40"
+		return "bg-violet-500/15 text-sky-300 border border-violet-500/40"
 	case domain.BatchStatusSold:
 		return "bg-emerald-500/15 text-emerald-300 border border-emerald-500/40"
 	case domain.BatchStatusSlowMover:
@@ -101,10 +101,18 @@ func BatchStatusBadgeClass(status domain.BatchStatus) string {
 	}
 }
 
-// NavLinkClass highlights the active sidebar navigation link for both Day and Night themes.
+// NavLinkUpperClass highlights sidebar links inside the upper 55% Aura Violet diagonal zone.
+func NavLinkUpperClass(activeNav, target string) string {
+	if activeNav == target {
+		return "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold tracking-wide bg-white/20 text-white border border-white/25 border-l-4 border-l-white shadow-xs"
+	}
+	return "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium tracking-wide text-violet-100/90 hover:text-white hover:bg-white/12 border border-transparent transition"
+}
+
+// NavLinkClass highlights sidebar links inside the lower 45% neutral zone (Day & Night adaptive).
 func NavLinkClass(activeNav, target string) string {
 	if activeNav == target {
-		return "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold tracking-wide bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/35 shadow-sm"
+		return "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold tracking-wide bg-violet-500/12 text-violet-700 dark:text-violet-300 border border-violet-500/30 border-l-4 border-l-violet-600 dark:border-l-violet-400 shadow-xs"
 	}
-	return "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium tracking-wide text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-transparent transition"
+	return "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium tracking-wide text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/70 border border-transparent transition"
 }

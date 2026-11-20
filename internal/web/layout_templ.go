@@ -31,7 +31,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"id\" class=\"dark\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"id\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -44,11 +44,11 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " — aura-forge // EVE Market &amp; Industry Copilot</title><script>\n\t\t\t\t(function () {\n\t\t\t\t\tvar saved = localStorage.getItem('af-theme');\n\t\t\t\t\tvar isDark = saved ? saved === 'dark' : true;\n\t\t\t\t\tdocument.documentElement.classList.toggle('dark', isDark);\n\t\t\t\t})();\n\t\t\t</script><script src=\"https://cdn.tailwindcss.com\"></script><script>\n\t\t\t\ttailwind.config = {\n\t\t\t\t\tdarkMode: 'class',\n\t\t\t\t\ttheme: {\n\t\t\t\t\t\textend: {\n\t\t\t\t\t\t\tfontFamily: {\n\t\t\t\t\t\t\t\tmono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t</script><link rel=\"stylesheet\" href=\"/static/app.css\"><script src=\"https://unpkg.com/htmx.org@2.0.4\"></script><script defer src=\"https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js\"></script></head><body class=\"min-h-screen tactical-grid-bg antialiased\" x-data=\"{\n\t\t\t\tsidebarOpen: false,\n\t\t\t\tisDark: document.documentElement.classList.contains(&#39;dark&#39;),\n\t\t\t\ttoggleTheme() {\n\t\t\t\t\tthis.isDark = !this.isDark;\n\t\t\t\t\tdocument.documentElement.classList.toggle(&#39;dark&#39;, this.isDark);\n\t\t\t\t\tlocalStorage.setItem(&#39;af-theme&#39;, this.isDark ? &#39;dark&#39; : &#39;light&#39;);\n\t\t\t\t}\n\t\t\t}\"><!-- Mobile Sidebar Backdrop --><div x-show=\"sidebarOpen\" x-transition.opacity @click=\"sidebarOpen = false\" class=\"fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-xs lg:hidden\" style=\"display: none;\"></div><!-- Left Navigation Sidebar --><aside class=\"af-sidebar fixed inset-y-0 left-0 z-50 flex w-64 flex-col transition-transform duration-200 ease-in-out lg:translate-x-0\" :class=\"sidebarOpen ? &#39;translate-x-0&#39; : &#39;-translate-x-full&#39;\"><!-- Brand Header --><div class=\"flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80 px-4 py-4\"><a href=\"/\" class=\"flex items-center gap-2.5 group\"><div class=\"flex h-9 w-9 items-center justify-center rounded-lg border border-sky-500/40 bg-sky-500/15 font-mono text-sm font-bold text-sky-700 dark:text-sky-300 shadow-[0_0_12px_rgba(56,189,248,0.2)]\">AF</div><div><div class=\"text-sm font-bold tracking-wider text-slate-900 dark:text-white uppercase\">aura-forge</div><div class=\"text-[10px] font-mono tracking-widest text-sky-600 dark:text-sky-400/80 uppercase\">EVE Industry Copilot</div></div></a> <button type=\"button\" @click=\"sidebarOpen = false\" class=\"rounded-md p-1 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 lg:hidden cursor-pointer\" aria-label=\"Tutup Menu\"><svg class=\"h-5 w-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div><!-- Sidebar Links --><nav class=\"flex-1 overflow-y-auto px-3 py-4 space-y-5\"><div><div class=\"px-3 mb-1.5 text-[10px] font-mono font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500\">Operations</div><div class=\"space-y-1\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " — aura-forge // EVE Market &amp; Industry Copilot</title><script>\n\t\t\t\t(function () {\n\t\t\t\t\tvar saved = localStorage.getItem('af-theme');\n\t\t\t\t\tvar isDark = saved === 'dark';\n\t\t\t\t\tdocument.documentElement.classList.toggle('dark', isDark);\n\t\t\t\t})();\n\t\t\t</script><script src=\"https://cdn.tailwindcss.com\"></script><script>\n\t\t\t\ttailwind.config = {\n\t\t\t\t\tdarkMode: 'class',\n\t\t\t\t\ttheme: {\n\t\t\t\t\t\textend: {\n\t\t\t\t\t\t\tfontFamily: {\n\t\t\t\t\t\t\t\tmono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t</script><link rel=\"stylesheet\" href=\"/static/app.css\"><script src=\"https://unpkg.com/htmx.org@2.0.4\"></script><script defer src=\"https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js\"></script></head><body class=\"min-h-screen tactical-grid-bg antialiased\" x-data=\"{\n\t\t\t\tsidebarOpen: false,\n\t\t\t\tisDark: document.documentElement.classList.contains(&#39;dark&#39;),\n\t\t\t\ttoggleTheme() {\n\t\t\t\t\tthis.isDark = !this.isDark;\n\t\t\t\t\tdocument.documentElement.classList.toggle(&#39;dark&#39;, this.isDark);\n\t\t\t\t\tlocalStorage.setItem(&#39;af-theme&#39;, this.isDark ? &#39;dark&#39; : &#39;light&#39;);\n\t\t\t\t}\n\t\t\t}\"><!-- Mobile Sidebar Backdrop --><div x-show=\"sidebarOpen\" x-transition.opacity @click=\"sidebarOpen = false\" class=\"fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-xs lg:hidden\" style=\"display: none;\"></div><!-- Left Navigation Sidebar --><aside class=\"af-sidebar fixed inset-y-0 left-0 z-50 flex w-64 flex-col overflow-y-auto transition-transform duration-200 ease-in-out lg:translate-x-0\" :class=\"sidebarOpen ? &#39;translate-x-0&#39; : &#39;-translate-x-full&#39;\"><!-- Upper Aura Violet Diagonal Zone (Brand + All Menus Unified) --><div class=\"af-sidebar-upper flex flex-col\"><!-- Brand Header --><div class=\"flex items-center justify-between border-b border-white/15 px-4 py-4\"><a href=\"/\" class=\"flex items-center gap-2.5 group\"><div class=\"flex h-9 w-9 items-center justify-center rounded-lg border border-white/35 bg-white/18 font-mono text-sm font-bold text-white shadow-[0_0_16px_rgba(255,255,255,0.18)]\">AF</div><div><div class=\"text-sm font-bold tracking-wider text-white uppercase\">aura-forge</div><div class=\"text-[10px] font-mono tracking-widest text-violet-200/90 uppercase\">EVE Industry Copilot</div></div></a> <button type=\"button\" @click=\"sidebarOpen = false\" class=\"rounded-md p-1 text-violet-100 hover:bg-white/15 lg:hidden cursor-pointer\" aria-label=\"Tutup Menu\"><svg class=\"h-5 w-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div><!-- Unified Sidebar Menu (All Groups at Top) --><nav class=\"px-3 py-4 space-y-4\"><div><div class=\"px-3 mb-1.5 text-[10px] font-mono font-semibold uppercase tracking-widest text-violet-200/75\">Operations</div><div class=\"space-y-1\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var3 = []any{NavLinkClass(activeNav, "dashboard")}
+		var templ_7745c5c3_Var3 = []any{NavLinkUpperClass(activeNav, "dashboard")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var3...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -70,7 +70,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var5 = []any{NavLinkClass(activeNav, "catalog")}
+		var templ_7745c5c3_Var5 = []any{NavLinkUpperClass(activeNav, "catalog")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var5...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -92,7 +92,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var7 = []any{NavLinkClass(activeNav, "calculator")}
+		var templ_7745c5c3_Var7 = []any{NavLinkUpperClass(activeNav, "calculator")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var7...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -110,11 +110,11 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z\"></path></svg> <span>Profit Calculator</span></a></div></div><div><div class=\"px-3 mb-1.5 text-[10px] font-mono font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500\">Strategy &amp; Execution</div><div class=\"space-y-1\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z\"></path></svg> <span>Profit Calculator</span></a></div></div><div><div class=\"px-3 mb-1.5 text-[10px] font-mono font-semibold uppercase tracking-widest text-violet-200/75\">Strategy &amp; Execution</div><div class=\"space-y-1\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var9 = []any{NavLinkClass(activeNav, "allocator")}
+		var templ_7745c5c3_Var9 = []any{NavLinkUpperClass(activeNav, "allocator")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var9...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -136,7 +136,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var11 = []any{NavLinkClass(activeNav, "planner")}
+		var templ_7745c5c3_Var11 = []any{NavLinkUpperClass(activeNav, "planner")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var11...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -158,7 +158,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var13 = []any{NavLinkClass(activeNav, "tracker")}
+		var templ_7745c5c3_Var13 = []any{NavLinkUpperClass(activeNav, "tracker")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var13...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -176,11 +176,11 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4\"></path></svg> <span>Order &amp; Batch Tracker</span></a></div></div><div><div class=\"px-3 mb-1.5 text-[10px] font-mono font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500\">System</div><div class=\"space-y-1\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4\"></path></svg> <span>Order &amp; Batch Tracker</span></a></div></div><div><div class=\"px-3 mb-1.5 text-[10px] font-mono font-semibold uppercase tracking-widest text-violet-200/75\">System</div><div class=\"space-y-1\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var15 = []any{NavLinkClass(activeNav, "settings")}
+		var templ_7745c5c3_Var15 = []any{NavLinkUpperClass(activeNav, "settings")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var15...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -198,7 +198,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M15 12a3 3 0 11-6 0 3 3 0 016 0z\"></path></svg> <span>Settings &amp; EVE SSO</span></a></div></div></nav><!-- Sidebar Footer: ESI Status + Sync Button --><div class=\"border-t border-slate-200 dark:border-slate-800/80 p-3.5 space-y-2.5\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M15 12a3 3 0 11-6 0 3 3 0 016 0z\"></path></svg> <span>Settings &amp; EVE SSO</span></a></div></div></nav></div><!-- Footer Only at Bottom (Neutral Zone) --><div class=\"mt-auto px-3.5 pb-4 pt-3 space-y-2.5\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -210,7 +210,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			var templ_7745c5c3_Var17 string
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(mode.StatusHint)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 159, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 162, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
@@ -223,7 +223,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(mode.CharacterName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 161, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 164, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
@@ -241,31 +241,31 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(mode.StatusHint)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 164, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 167, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" class=\"flex items-center gap-2 rounded-lg border border-sky-500/35 bg-sky-500/10 px-3 py-2 text-[11px] font-mono font-medium text-sky-700 dark:text-sky-300\"><span class=\"h-2 w-2 shrink-0 rounded-full bg-sky-500 dark:bg-sky-400\"></span> <span class=\"truncate\">Public ESI Active</span></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" class=\"flex items-center gap-2 rounded-lg border border-violet-500/35 bg-violet-500/10 px-3 py-2 text-[11px] font-mono font-medium text-violet-700 dark:text-violet-300\"><span class=\"h-2 w-2 shrink-0 rounded-full bg-violet-500 dark:bg-violet-400\"></span> <span class=\"truncate\">Public ESI Active</span></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<button type=\"button\" hx-post=\"/esi/sync-prices\" hx-swap=\"none\" hx-indicator=\"#global-sync-spinner\" class=\"w-full inline-flex items-center justify-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-800 dark:text-amber-200 hover:bg-amber-500/25 transition cursor-pointer\"><span id=\"global-sync-spinner\" class=\"htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-amber-500 dark:border-amber-300 border-t-transparent\"></span> <span>Sync Jita Prices</span></button></div></aside><!-- Right Content Column --><div class=\"flex min-h-screen flex-col lg:pl-64\"><!-- Slim Top Bar --><header class=\"af-topbar sticky top-0 z-30 backdrop-blur\"><div class=\"mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6\"><div class=\"flex items-center gap-3\"><button type=\"button\" @click=\"sidebarOpen = true\" class=\"inline-flex items-center justify-center rounded-md border border-slate-300 dark:border-slate-700 p-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden cursor-pointer\" aria-label=\"Buka Menu\"><svg class=\"h-5 w-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M4 6h16M4 12h16M4 18h16\"></path></svg></button><div class=\"flex items-center gap-2 text-xs font-mono\"><span class=\"hidden sm:inline text-slate-400 dark:text-slate-500\">aura-forge /</span> <span class=\"font-semibold text-slate-800 dark:text-slate-100\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<button type=\"button\" hx-post=\"/esi/sync-prices\" hx-swap=\"none\" hx-indicator=\"#global-sync-spinner\" class=\"w-full inline-flex items-center justify-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-800 dark:text-amber-200 hover:bg-amber-500/25 transition cursor-pointer\"><span id=\"global-sync-spinner\" class=\"htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-amber-500 dark:border-amber-300 border-t-transparent\"></span> <span>Sync Jita Prices</span></button></div></aside><!-- Right Content Column --><div class=\"flex min-h-screen flex-col lg:pl-64\"><!-- Slim Top Bar --><header class=\"af-topbar sticky top-0 z-30 backdrop-blur\"><div class=\"mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6\"><div class=\"flex items-center gap-3\"><button type=\"button\" @click=\"sidebarOpen = true\" class=\"inline-flex items-center justify-center rounded-md border border-slate-300 dark:border-violet-500/30 p-1.5 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden cursor-pointer\" aria-label=\"Buka Menu\"><svg class=\"h-5 w-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M4 6h16M4 12h16M4 18h16\"></path></svg></button><div class=\"flex items-center gap-2 text-xs font-mono\"><span class=\"hidden sm:inline text-slate-400 dark:text-slate-500\">aura-forge /</span> <span class=\"font-semibold text-slate-900 dark:text-slate-100\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var20 string
 		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 201, Col: 78}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 204, Col: 78}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</span></div></div><div class=\"flex items-center gap-2\"><!-- Day / Night Theme Toggle --><button type=\"button\" @click=\"toggleTheme()\" class=\"inline-flex items-center gap-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer\" :title=\"isDark ? &#39;Ganti ke Day Mode&#39; : &#39;Ganti ke Night Mode&#39;\"><svg x-show=\"isDark\" class=\"h-4 w-4 text-amber-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z\"></path></svg> <svg x-show=\"!isDark\" style=\"display: none;\" class=\"h-4 w-4 text-sky-600\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z\"></path></svg> <span x-text=\"isDark ? &#39;Day Mode&#39; : &#39;Night Mode&#39;\"></span></button></div></div></header><!-- Main Content --><main class=\"mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</span></div></div><div class=\"flex items-center gap-2\"><!-- Day / Night Theme Toggle --><button type=\"button\" @click=\"toggleTheme()\" class=\"inline-flex items-center gap-1.5 rounded-lg border border-slate-300 dark:border-violet-500/35 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer\" :title=\"isDark ? &#39;Ganti ke Day Mode&#39; : &#39;Ganti ke Night Mode&#39;\"><svg x-show=\"isDark\" style=\"display: none;\" class=\"h-4 w-4 text-amber-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z\"></path></svg> <svg x-show=\"!isDark\" class=\"h-4 w-4 text-violet-600\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z\"></path></svg> <span x-text=\"isDark ? &#39;Day Mode&#39; : &#39;Night Mode&#39;\"></span></button></div></div></header><!-- Main Content --><main class=\"mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -273,7 +273,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</main><!-- Footer --><footer class=\"border-t border-slate-200 dark:border-slate-800/80 py-4 text-center text-xs text-slate-500 font-mono\">aura-forge // EVE Market &amp; Industry Copilot (2026) — Public ESI Default + Optional EVE SSO Plug-and-Play</footer></div><!-- Alpine.js Toast Notification Stack --><div x-data=\"{\n\t\t\t\t\ttoasts: [],\n\t\t\t\t\tadd(detail) {\n\t\t\t\t\t\tconst id = Date.now() + Math.random();\n\t\t\t\t\t\tthis.toasts.push({ id, level: detail.level || &#39;info&#39;, message: detail.message || &#39;&#39; });\n\t\t\t\t\t\tsetTimeout(() =&gt; { this.toasts = this.toasts.filter(t =&gt; t.id !== id); }, 5000);\n\t\t\t\t\t}\n\t\t\t\t}\" @showToast.window=\"add($event.detail)\" class=\"fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-md\"><template x-for=\"t in toasts\" :key=\"t.id\"><div x-transition class=\"rounded-lg border px-4 py-3 text-xs font-medium shadow-xl backdrop-blur\" :class=\"{\n\t\t\t\t\t\t\t&#39;border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/90 text-emerald-800 dark:text-emerald-200&#39;: t.level === &#39;success&#39;,\n\t\t\t\t\t\t\t&#39;border-rose-500/50 bg-rose-50 dark:bg-rose-950/90 text-rose-800 dark:text-rose-200&#39;: t.level === &#39;error&#39;,\n\t\t\t\t\t\t\t&#39;border-sky-500/50 bg-white dark:bg-slate-900/95 text-sky-800 dark:text-sky-200&#39;: t.level !== &#39;success&#39; &amp;&amp; t.level !== &#39;error&#39;\n\t\t\t\t\t\t}\"><span x-text=\"t.message\"></span></div></template></div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</main><!-- Footer --><footer class=\"border-t border-slate-200 dark:border-slate-800/80 py-4 text-center text-xs text-slate-500 font-mono\">aura-forge // EVE Market &amp; Industry Copilot (2026) — Public ESI Default + Optional EVE SSO Plug-and-Play</footer></div><!-- Alpine.js Toast Notification Stack --><div x-data=\"{\n\t\t\t\t\ttoasts: [],\n\t\t\t\t\tadd(detail) {\n\t\t\t\t\t\tconst id = Date.now() + Math.random();\n\t\t\t\t\t\tthis.toasts.push({ id, level: detail.level || &#39;info&#39;, message: detail.message || &#39;&#39; });\n\t\t\t\t\t\tsetTimeout(() =&gt; { this.toasts = this.toasts.filter(t =&gt; t.id !== id); }, 5000);\n\t\t\t\t\t}\n\t\t\t\t}\" @showToast.window=\"add($event.detail)\" class=\"fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-md\"><template x-for=\"t in toasts\" :key=\"t.id\"><div x-transition class=\"rounded-lg border px-4 py-3 text-xs font-medium shadow-xl backdrop-blur\" :class=\"{\n\t\t\t\t\t\t\t&#39;border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/90 text-emerald-800 dark:text-emerald-200&#39;: t.level === &#39;success&#39;,\n\t\t\t\t\t\t\t&#39;border-rose-500/50 bg-rose-50 dark:bg-rose-950/90 text-rose-800 dark:text-rose-200&#39;: t.level === &#39;error&#39;,\n\t\t\t\t\t\t\t&#39;border-violet-500/45 bg-white dark:bg-slate-900/95 text-violet-900 dark:text-violet-200&#39;: t.level !== &#39;success&#39; &amp;&amp; t.level !== &#39;error&#39;\n\t\t\t\t\t\t}\"><span x-text=\"t.message\"></span></div></template></div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
