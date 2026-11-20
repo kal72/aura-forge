@@ -101,10 +101,10 @@ func BatchStatusBadgeClass(status domain.BatchStatus) string {
 	}
 }
 
-// NavLinkClass highlights the active navigation link.
+// NavLinkClass highlights the active sidebar navigation link for both Day and Night themes.
 func NavLinkClass(activeNav, target string) string {
 	if activeNav == target {
-		return "px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide uppercase bg-sky-500/20 text-sky-300 border border-sky-400/40"
+		return "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold tracking-wide bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/35 shadow-sm"
 	}
-	return "px-3 py-1.5 rounded-md text-xs font-medium tracking-wide uppercase text-slate-300 hover:text-white hover:bg-slate-800/80 transition"
+	return "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium tracking-wide text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-transparent transition"
 }

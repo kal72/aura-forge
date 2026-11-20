@@ -1,30 +1,63 @@
-/* aura-forge // Industrial-Tactical Dark Mode Styles */
+/* aura-forge // Day & Night Tactical Theme Styles */
 :root {
+  --af-bg: #f1f5f9;
+  --af-surface: #ffffff;
+  --af-surface-muted: #f8fafc;
+  --af-sidebar-bg: #ffffff;
+  --af-topbar-bg: rgba(255, 255, 255, 0.92);
+  --af-border: #cbd5e1;
+  --af-border-subtle: #e2e8f0;
+  --af-text: #0f172a;
+  --af-text-muted: #475569;
+  --af-grid: rgba(14, 165, 233, 0.08);
+  --af-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+}
+
+html.dark {
   --af-bg: #090d16;
   --af-surface: #0f1624;
+  --af-surface-muted: #0b1120;
+  --af-sidebar-bg: #0b1120;
+  --af-topbar-bg: rgba(11, 17, 32, 0.92);
   --af-border: rgba(56, 189, 248, 0.16);
-  --af-accent: #38bdf8;
-  --af-amber: #f59e0b;
-  --af-emerald: #10b981;
-  --af-rose: #f43f5e;
+  --af-border-subtle: rgba(30, 41, 59, 0.85);
+  --af-text: #e2e8f0;
+  --af-text-muted: #94a3b8;
+  --af-grid: rgba(56, 189, 248, 0.04);
+  --af-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
 }
 
 body {
   background-color: var(--af-bg);
-  color: #e2e8f0;
+  color: var(--af-text);
   font-feature-settings: "tnum" on, "lnum" on;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.af-sidebar {
+  background-color: var(--af-sidebar-bg);
+  border-right: 1px solid var(--af-border);
+}
+
+.af-topbar {
+  background-color: var(--af-topbar-bg);
+  border-bottom: 1px solid var(--af-border);
 }
 
 .tactical-panel {
-  background: linear-gradient(180deg, rgba(17, 24, 39, 0.92) 0%, rgba(11, 16, 28, 0.96) 100%);
+  background: var(--af-surface);
   border: 1px solid var(--af-border);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--af-shadow);
+}
+
+html.dark .tactical-panel {
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.92) 0%, rgba(11, 16, 28, 0.96) 100%);
 }
 
 .tactical-grid-bg {
   background-image:
-    linear-gradient(to right, rgba(56, 189, 248, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
+    linear-gradient(to right, var(--af-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--af-grid) 1px, transparent 1px);
   background-size: 32px 32px;
 }
 
@@ -36,18 +69,113 @@ body {
   display: inline-flex;
 }
 
+/* ================================================================
+   Day Mode High-Contrast Adaptations (applies when html lacks .dark)
+   ================================================================ */
+html:not(.dark) main .text-white {
+  color: #0f172a !important;
+}
+html:not(.dark) main .text-slate-200 {
+  color: #1e293b !important;
+}
+html:not(.dark) main .text-slate-300 {
+  color: #334155 !important;
+}
+html:not(.dark) main .text-slate-400 {
+  color: #475569 !important;
+}
+html:not(.dark) main .text-slate-500 {
+  color: #64748b !important;
+}
+html:not(.dark) main .text-sky-300,
+html:not(.dark) main .text-sky-200 {
+  color: #0369a1 !important;
+}
+html:not(.dark) main .text-emerald-300,
+html:not(.dark) main .text-emerald-200 {
+  color: #047857 !important;
+}
+html:not(.dark) main .text-amber-300,
+html:not(.dark) main .text-amber-200 {
+  color: #b45309 !important;
+}
+html:not(.dark) main .text-rose-300,
+html:not(.dark) main .text-rose-200,
+html:not(.dark) main .text-rose-400 {
+  color: #be123c !important;
+}
+
+html:not(.dark) main .bg-slate-900,
+html:not(.dark) main .bg-slate-900\/90,
+html:not(.dark) main .bg-slate-900\/70,
+html:not(.dark) main .bg-slate-900\/60,
+html:not(.dark) main .bg-slate-900\/50,
+html:not(.dark) main .bg-slate-950,
+html:not(.dark) main .bg-slate-950\/60 {
+  background-color: #f8fafc !important;
+}
+html:not(.dark) main .bg-slate-800,
+html:not(.dark) main .bg-slate-700\/50,
+html:not(.dark) main .bg-slate-700\/40 {
+  background-color: #e2e8f0 !important;
+}
+html:not(.dark) main .hover\:bg-slate-800\/40:hover,
+html:not(.dark) main .hover\:bg-slate-800\/30:hover {
+  background-color: #f1f5f9 !important;
+}
+
+html:not(.dark) main .border-slate-800,
+html:not(.dark) main .border-slate-800\/80,
+html:not(.dark) main .border-slate-800\/70,
+html:not(.dark) main .border-slate-700 {
+  border-color: #cbd5e1 !important;
+}
+html:not(.dark) main .divide-slate-800\/80 > :not([hidden]) ~ :not([hidden]),
+html:not(.dark) main .divide-slate-800\/70 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #e2e8f0 !important;
+}
+
+html:not(.dark) main .bg-emerald-950\/20,
+html:not(.dark) main .bg-emerald-950\/30,
+html:not(.dark) main .bg-emerald-950\/40 {
+  background-color: #ecfdf5 !important;
+}
+html:not(.dark) main .bg-amber-950\/20,
+html:not(.dark) main .bg-amber-950\/30,
+html:not(.dark) main .bg-amber-950\/40 {
+  background-color: #fffbeb !important;
+}
+html:not(.dark) main .bg-rose-950\/40,
+html:not(.dark) main .bg-rose-950\/50 {
+  background-color: #fff1f2 !important;
+}
+html:not(.dark) main .bg-sky-950\/30 {
+  background-color: #f0f9ff !important;
+}
+
+html:not(.dark) main input,
+html:not(.dark) main select,
+html:not(.dark) main textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
 /* Custom subtle scrollbars */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #0b1120;
+  background: var(--af-surface-muted);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #94a3b8;
   border-radius: 4px;
 }
-::-webkit-scrollbar-thumb:hover {
+html.dark ::-webkit-scrollbar-thumb {
+  background: #1e293b;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
   background: #334155;
 }
