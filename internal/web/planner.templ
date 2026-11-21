@@ -12,20 +12,40 @@ templ PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) {
 			<!-- Header & Plan Switcher -->
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
-					<h1 class="text-2xl font-bold tracking-tight text-white">Weekly Production &amp; Slot Planner</h1>
-					<p class="text-xs text-slate-400 mt-0.5">Validasi kapasitas slot, jadwal eksekusi Day 1–7, Consolidated Shopping List + EVE Multibuy, dan simulasi pertumbuhan Minggu 1–4.</p>
+					<div class="flex flex-wrap items-center gap-2">
+						<h1 class="text-2xl font-bold tracking-tight text-white">Weekly Production &amp; Slot Planner</h1>
+						<span class="rounded-full border border-sky-400/40 bg-sky-500/15 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-sky-200">
+							Hub: { data.Hub.Name }
+						</span>
+					</div>
+					<p class="text-xs text-slate-400 mt-0.5">Slot capacity validation, Day 1–7 execution blueprint, real CCP SDE consolidated shopping list + EVE Multibuy, and Week 1–4 compounding projection.</p>
 				</div>
 				<div class="flex flex-wrap items-center gap-2">
+					if len(data.AllPlans) > 1 {
+						<form method="GET" action="/planner" class="flex items-center gap-1.5">
+							<select
+								name="plan_id"
+								onchange="this.form.submit()"
+								class="rounded-md border border-slate-700 bg-slate-900/90 px-2.5 py-2 text-xs text-slate-200 focus:border-sky-500 focus:outline-none"
+							>
+								for _, p := range data.AllPlans {
+									<option value={ fmt.Sprintf("%d", p.ID) } selected?={ data.ActivePlan != nil && p.ID == data.ActivePlan.ID }>
+										{ p.Title } (Week #{ fmt.Sprintf("%d", p.WeekNumber) })
+									</option>
+								}
+							</select>
+						</form>
+					}
 					if data.ActivePlan != nil && data.ActivePlan.ID > 0 {
 						<form hx-post="/planner/convert-batches" hx-swap="none">
 							<input type="hidden" name="plan_id" value={ fmt.Sprintf("%d", data.ActivePlan.ID) }/>
 							<button type="submit" class="rounded-md bg-emerald-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-emerald-400 transition cursor-pointer">
-								Eksekusi ke Tracker (Draft Batches) →
+								Execute to Tracker (Draft Batches) →
 							</button>
 						</form>
 					} else {
 						<a href="/allocator" class="rounded-md bg-sky-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-sky-400 transition">
-							Buat Rencana dari Smart Allocator →
+							Create Plan from Smart Allocator →
 						</a>
 					}
 				</div>
@@ -39,22 +59,22 @@ templ PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) {
 							if data.ActivePlan != nil {
 								{ data.ActivePlan.Title }
 							} else {
-								Rencana Produksi Mingguan
+								Weekly Production Plan
 							}
 						</h2>
 						<div class="text-xs text-slate-400 mt-0.5">
-							Est. Biaya: <span class="font-mono text-white">{ FormatISK(data.ActivePlan.TotalEstimatedCost) }</span> •
+							Est. Cost: <span class="font-mono text-white">{ FormatISK(data.ActivePlan.TotalEstimatedCost) }</span> •
 							Est. Profit: <span class="font-mono text-emerald-300">{ FormatISK(data.ActivePlan.TotalEstimatedProfit) }</span> •
 							Projected ROI: <span class="font-mono text-sky-300">{ FormatPercent(data.ActivePlan.ProjectedROI) }</span>
 						</div>
 					</div>
 					if data.SlotReport.FitsSlotCapacity {
 						<span class="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-3 py-1 font-mono text-[11px] font-bold text-emerald-300">
-							SLOT KAPASITAS AMAN ({ FormatPercent(data.SlotReport.UtilizationPercent) })
+							SLOT CAPACITY SAFE ({ FormatPercent(data.SlotReport.UtilizationPercent) })
 						</span>
 					} else {
 						<span class="rounded-full border border-rose-500/50 bg-rose-500/20 px-3 py-1 font-mono text-[11px] font-bold text-rose-300">
-							OVER CAPACITY — PERLU PENYESUAIAN
+							OVER CAPACITY — ADJUST BATCHES
 						</span>
 					}
 				</div>
@@ -69,31 +89,186 @@ templ PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) {
 						<div class="mt-1 text-base font-bold text-white">{ fmt.Sprintf("%d req / %d slot", data.SlotReport.ScienceSlotsRequired, data.SlotReport.ScienceSlotsTotal) }</div>
 					</div>
 					<div class="rounded-lg border border-slate-800 bg-slate-900/70 p-3">
-						<div class="text-[10px] uppercase text-slate-400">Total Jam Produksi</div>
-						<div class="mt-1 text-base font-bold text-sky-300">{ fmt.Sprintf("%.1f / %.0f jam", data.SlotReport.TotalProductionHours, data.SlotReport.WeeklySlotCapacityHours) }</div>
+						<div class="text-[10px] uppercase text-slate-400">Total Production Hours</div>
+						<div class="mt-1 text-base font-bold text-sky-300">{ fmt.Sprintf("%.1f / %.0f hrs", data.SlotReport.TotalProductionHours, data.SlotReport.WeeklySlotCapacityHours) }</div>
 					</div>
 					<div class="rounded-lg border border-slate-800 bg-slate-900/70 p-3">
-						<div class="text-[10px] uppercase text-slate-400">Total Volume Kargo</div>
+						<div class="text-[10px] uppercase text-slate-400">Total Cargo Volume</div>
 						<div class="mt-1 text-base font-bold text-amber-300">{ fmt.Sprintf("%.1f m³", data.ShoppingList.TotalVolumeM3) }</div>
 					</div>
 				</div>
 
 				if data.SlotReport.Warning != "" {
 					<div class="rounded-lg border border-amber-500/40 bg-amber-950/30 p-3 text-xs text-amber-200">
-						<strong>Peringatan Kapasitas:</strong> { data.SlotReport.Warning }
+						<strong>Capacity Warning:</strong> { data.SlotReport.Warning }
+					</div>
+				}
+			</div>
+
+			<!-- Planned Production Batches Summary -->
+			if data.ActivePlan != nil && len(data.ActivePlan.Items) > 0 {
+				<div class="tactical-panel rounded-xl p-5 space-y-3">
+					<div class="flex flex-wrap items-center justify-between gap-2">
+						<div>
+							<h2 class="text-sm font-bold uppercase tracking-wider text-violet-300">Planned Production Batches ({ fmt.Sprintf("%d", len(data.ActivePlan.Items)) })</h2>
+							<p class="text-xs text-slate-400 mt-0.5">Target items included in this weekly campaign and used to compute the consolidated BOM below.</p>
+						</div>
+						<a href="/allocator" class="text-[11px] font-mono text-sky-300 hover:text-sky-200 transition">
+							Edit Allocation →
+						</a>
+					</div>
+					<div class="overflow-x-auto">
+						<table class="w-full text-left text-xs">
+							<thead class="border-b border-slate-800 font-mono uppercase text-[10px] text-slate-400">
+								<tr>
+									<th class="py-2 pr-3">Item</th>
+									<th class="py-2 px-3 text-right">Runs</th>
+									<th class="py-2 px-3 text-right">Total Units</th>
+									<th class="py-2 px-3 text-right">Est. Cost</th>
+									<th class="py-2 px-3 text-right">Est. Net Profit</th>
+									<th class="py-2 pl-3 text-right">Build Time</th>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-slate-800/70 font-mono">
+								for _, it := range data.ActivePlan.Items {
+									<tr class="hover:bg-slate-800/30">
+										<td class="py-2 pr-3 font-sans font-semibold text-white">
+											<div class="flex items-center gap-2.5">
+												if it.TypeID > 0 {
+													<img
+														src={ fmt.Sprintf("https://images.evetech.net/types/%d/icon?size=32", it.TypeID) }
+														alt={ it.Name }
+														class="h-6 w-6 rounded border border-slate-700/80 bg-slate-950 object-contain shrink-0"
+														loading="lazy"
+														onerror="this.style.display='none'"
+													/>
+												}
+												<span>{ it.Name }</span>
+											</div>
+										</td>
+										<td class="py-2 px-3 text-right text-slate-300">{ fmt.Sprintf("%dx", it.BatchRuns) }</td>
+										<td class="py-2 px-3 text-right text-slate-300">{ fmt.Sprintf("%d", it.TotalUnits) }</td>
+										<td class="py-2 px-3 text-right text-slate-200">{ FormatISK(it.TotalCost) }</td>
+										<td class="py-2 px-3 text-right font-bold text-emerald-300">+{ FormatISK(it.NetProfit) }</td>
+										<td class="py-2 pl-3 text-right text-sky-300">{ fmt.Sprintf("%.1f hrs", it.ProductionTimeHours*float64(it.BatchRuns)) }</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			}
+
+			<!-- Consolidated Shopping List + EVE Multibuy Exporter -->
+			<div
+				class="tactical-panel rounded-xl p-5 space-y-4"
+				x-data={ fmt.Sprintf(`{
+					copied: false,
+					multibuy: %q,
+					copyMultibuy() {
+						if (!this.multibuy) return;
+						navigator.clipboard.writeText(this.multibuy).then(() => {
+							this.copied = true;
+							window.dispatchEvent(new CustomEvent('showToast', { detail: { level: 'success', message: 'EVE Multibuy format copied to clipboard!' } }));
+							setTimeout(() => this.copied = false, 2500);
+						});
+					}
+				}`, data.ShoppingList.MultibuyText) }
+			>
+				<div class="flex flex-wrap items-center justify-between gap-3">
+					<div>
+						<div class="flex flex-wrap items-center gap-2">
+							<h2 class="text-sm font-bold uppercase tracking-wider text-emerald-300">Consolidated Shopping List &amp; EVE Multibuy</h2>
+							if data.UsingRealSDE {
+								<span class="rounded-full border border-emerald-400/40 bg-emerald-500/15 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-emerald-200">
+									Live { data.Hub.Name } + CCP SDE BOM ({ fmt.Sprintf("%d/%d", data.SDEMatchedItems, data.TotalPlannedItems) } items)
+								</span>
+							} else {
+								<span class="rounded-full border border-amber-400/40 bg-amber-500/15 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-amber-200">
+									Live { data.Hub.Name } Mineral Estimate
+								</span>
+							}
+						</div>
+						<p class="text-xs text-slate-400 mt-0.5">
+							Est. Shopping Cost ({ data.Hub.Name }): <span class="font-mono text-white">{ FormatISK(data.ShoppingList.TotalEstimatedCost) }</span> •
+							Cargo: <span class="font-mono text-amber-300">{ fmt.Sprintf("%.1f m³", data.ShoppingList.TotalVolumeM3) }</span> •
+							Hangar Deducted: <span class="font-mono text-emerald-300">{ fmt.Sprintf("%d units", data.ShoppingList.TotalItemsDeducted) }</span>
+						</p>
+					</div>
+					<button
+						type="button"
+						@click="copyMultibuy()"
+						class="rounded-md border border-emerald-400/50 bg-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-500/30 transition cursor-pointer"
+					>
+						<span x-show="!copied">1-Click Copy EVE Multibuy</span>
+						<span x-show="copied">Copied to Clipboard!</span>
+					</button>
+				</div>
+
+				if len(data.ShoppingList.Items) == 0 {
+					<div class="rounded-lg border border-slate-800 bg-slate-900/50 p-6 text-center text-xs text-slate-400">
+						No raw materials in the active plan yet. Use the <a href="/allocator" class="text-sky-300 underline hover:text-sky-200">Smart Capital Allocator</a> to generate a weekly production plan.
+					</div>
+				} else {
+					<div class="grid grid-cols-1 gap-4 lg:grid-cols-12">
+						<div class="overflow-x-auto lg:col-span-8">
+							<table class="w-full text-left text-xs">
+								<thead class="border-b border-slate-800 font-mono uppercase text-[10px] text-slate-400">
+									<tr>
+										<th class="py-2 pr-3">Material</th>
+										<th class="py-2 px-3 text-right">Required</th>
+										<th class="py-2 px-3 text-right">Hangar</th>
+										<th class="py-2 px-3 text-right">To Buy</th>
+										<th class="py-2 px-3 text-right">Unit ({ data.Hub.Name })</th>
+										<th class="py-2 px-3 text-right">Est. Cost</th>
+										<th class="py-2 pl-3 text-right">Volume</th>
+									</tr>
+								</thead>
+								<tbody class="divide-y divide-slate-800/70 font-mono">
+									for _, m := range data.ShoppingList.Items {
+										<tr class="hover:bg-slate-800/30">
+											<td class="py-2 pr-3 font-sans font-semibold text-white">
+												<div class="flex items-center gap-2">
+													if m.TypeID > 0 {
+														<img
+															src={ fmt.Sprintf("https://images.evetech.net/types/%d/icon?size=32", m.TypeID) }
+															alt={ m.TypeName }
+															class="h-6 w-6 rounded border border-slate-700/80 bg-slate-950 object-contain shrink-0"
+															loading="lazy"
+															onerror="this.style.display='none'"
+														/>
+													}
+													<span>{ m.TypeName }</span>
+												</div>
+											</td>
+											<td class="py-2 px-3 text-right text-slate-300">{ fmt.Sprintf("%d", m.RequiredQuantity) }</td>
+											<td class="py-2 px-3 text-right text-emerald-300">-{ fmt.Sprintf("%d", m.HangarQuantity) }</td>
+											<td class="py-2 px-3 text-right font-bold text-amber-300">{ fmt.Sprintf("%d", m.ToBuyQuantity) }</td>
+											<td class="py-2 px-3 text-right text-slate-400">{ FormatISK(m.EstimatedUnitPrice) }</td>
+											<td class="py-2 px-3 text-right text-white">{ FormatISK(m.TotalCost) }</td>
+											<td class="py-2 pl-3 text-right text-slate-400">{ fmt.Sprintf("%.1f m³", m.VolumeM3) }</td>
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+						<div class="lg:col-span-4">
+							<label class="block text-[10px] font-mono uppercase text-slate-400 mb-1">EVE Multibuy Preview (Tab-Separated)</label>
+							<textarea readonly rows="8" class="w-full rounded-lg border border-slate-700 bg-slate-950 p-3 font-mono text-xs text-emerald-300">{ data.ShoppingList.MultibuyText }</textarea>
+						</div>
 					</div>
 				}
 			</div>
 
 			<!-- Day 1 - Day 7 Execution Blueprint -->
 			<div class="space-y-3">
-				<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Jadwal Eksekusi Harian (Day 1 – Day 7 Blueprint)</h2>
+				<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Daily Execution Schedule (Day 1 – Day 7 Blueprint)</h2>
 				<div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
 					for _, d := range data.ActivePlan.Days {
 						<div class="tactical-panel rounded-xl p-4 space-y-2">
-							<div class="flex items-center justify-between">
+							<div class="flex items-center justify-between gap-2">
 								<span class="rounded bg-sky-500/20 px-2 py-0.5 font-mono text-[10px] font-bold text-sky-300">DAY { fmt.Sprintf("%d", d.DayNumber) }</span>
-								<span class="text-[10px] font-mono text-slate-400 uppercase">{ d.Focus }</span>
+								<span class="text-[10px] font-mono text-slate-400 uppercase truncate">{ d.Focus }</span>
 							</div>
 							<h3 class="text-xs font-bold text-white">{ d.Title }</h3>
 							<ul class="space-y-1.5 text-[11px] text-slate-300 leading-relaxed">
@@ -106,108 +281,28 @@ templ PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) {
 				</div>
 			</div>
 
-			<!-- Consolidated Shopping List + EVE Multibuy Exporter -->
-			<div
-				class="tactical-panel rounded-xl p-5 space-y-4"
-				x-data={ fmt.Sprintf(`{
-					copied: false,
-					multibuy: %q,
-					copyMultibuy() {
-						if (!this.multibuy) return;
-						navigator.clipboard.writeText(this.multibuy).then(() => {
-							this.copied = true;
-							window.dispatchEvent(new CustomEvent('showToast', { detail: { level: 'success', message: 'Format EVE Multibuy berhasil disalin ke clipboard!' } }));
-							setTimeout(() => this.copied = false, 2500);
-						});
-					}
-				}`, data.ShoppingList.MultibuyText) }
-			>
-				<div class="flex flex-wrap items-center justify-between gap-3">
-					<div>
-						<div class="flex flex-wrap items-center gap-2">
-							<h2 class="text-sm font-bold uppercase tracking-wider text-emerald-300">Consolidated Shopping List &amp; EVE Multibuy</h2>
-							<span class="rounded-full border border-emerald-400/40 bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-emerald-200">
-								Live Jita Mineral ESI
-							</span>
-						</div>
-						<p class="text-xs text-slate-400 mt-0.5">
-							Total Estimasi Belanja: <span class="font-mono text-white">{ FormatISK(data.ShoppingList.TotalEstimatedCost) }</span> •
-							Kargo: <span class="font-mono text-amber-300">{ fmt.Sprintf("%.1f m³", data.ShoppingList.TotalVolumeM3) }</span> •
-							Dipotong Stok Hangar: <span class="font-mono text-emerald-300">{ fmt.Sprintf("%d unit", data.ShoppingList.TotalItemsDeducted) }</span>
-						</p>
-					</div>
-					<button
-						type="button"
-						@click="copyMultibuy()"
-						class="rounded-md border border-emerald-400/50 bg-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-500/30 transition cursor-pointer"
-					>
-						<span x-show="!copied">1-Klik Copy Format EVE Multibuy</span>
-						<span x-show="copied">Tersalin ke Clipboard!</span>
-					</button>
-				</div>
-
-				if len(data.ShoppingList.Items) == 0 {
-					<div class="rounded-lg border border-slate-800 bg-slate-900/50 p-6 text-center text-xs text-slate-400">
-						Belum ada bahan baku pada rencana aktif. Gunakan <strong>Smart Capital Allocator</strong> untuk menghasilkan rencana produksi mingguan.
-					</div>
-				} else {
-					<div class="grid grid-cols-1 gap-4 lg:grid-cols-12">
-						<div class="overflow-x-auto lg:col-span-8">
-							<table class="w-full text-left text-xs">
-								<thead class="border-b border-slate-800 font-mono uppercase text-[10px] text-slate-400">
-									<tr>
-										<th class="py-2 pr-3">Material</th>
-										<th class="py-2 px-3 text-right">Kebutuhan</th>
-										<th class="py-2 px-3 text-right">Stok Hangar</th>
-										<th class="py-2 px-3 text-right">Harus Beli</th>
-										<th class="py-2 px-3 text-right">Est. Biaya</th>
-										<th class="py-2 pl-3 text-right">Volume</th>
-									</tr>
-								</thead>
-								<tbody class="divide-y divide-slate-800/70 font-mono">
-									for _, m := range data.ShoppingList.Items {
-										<tr>
-											<td class="py-2 pr-3 font-sans font-semibold text-white">{ m.TypeName }</td>
-											<td class="py-2 px-3 text-right text-slate-300">{ fmt.Sprintf("%d", m.RequiredQuantity) }</td>
-											<td class="py-2 px-3 text-right text-emerald-300">-{ fmt.Sprintf("%d", m.HangarQuantity) }</td>
-											<td class="py-2 px-3 text-right font-bold text-amber-300">{ fmt.Sprintf("%d", m.ToBuyQuantity) }</td>
-											<td class="py-2 px-3 text-right text-white">{ FormatISK(m.TotalCost) }</td>
-											<td class="py-2 pl-3 text-right text-slate-400">{ fmt.Sprintf("%.1f m³", m.VolumeM3) }</td>
-										</tr>
-									}
-								</tbody>
-							</table>
-						</div>
-						<div class="lg:col-span-4">
-							<label class="block text-[10px] font-mono uppercase text-slate-400 mb-1">Preview EVE Multibuy (Tab-Separated)</label>
-							<textarea readonly rows="6" class="w-full rounded-lg border border-slate-700 bg-slate-950 p-3 font-mono text-xs text-emerald-300">{ data.ShoppingList.MultibuyText }</textarea>
-						</div>
-					</div>
-				}
-			</div>
-
-			<!-- Multi-Week Growth Projection (Minggu 1 -> Minggu 4) -->
+			<!-- Multi-Week Growth Projection (Week 1 -> Week 4) -->
 			<div class="tactical-panel rounded-xl p-5 space-y-4">
 				<div>
-					<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">Simulasi Pertumbuhan Modal (Minggu 1 → Minggu 4)</h2>
-					<p class="text-xs text-slate-400 mt-0.5">Proyeksi compounding kas dengan reinvestasi 85% profit mingguan dan rekomendasi kapan naik kelas ke tier produksi berikutnya.</p>
+					<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">Working Capital Compounding Simulation (Week 1 → Week 4)</h2>
+					<p class="text-xs text-slate-400 mt-0.5">4-week compounding projection reinvesting 85% of weekly net profit (keeping 15% cash buffer) with production tier milestones.</p>
 				</div>
 				<div class="overflow-x-auto">
 					<table class="w-full text-left text-xs">
 						<thead class="border-b border-slate-800 font-mono uppercase text-[10px] text-slate-400">
 							<tr>
-								<th class="py-2.5 pr-3">Minggu</th>
-								<th class="py-2.5 px-3 text-right">Modal Awal</th>
-								<th class="py-2.5 px-3 text-right">Profit Mingguan</th>
-								<th class="py-2.5 px-3 text-right">Modal Akhir</th>
-								<th class="py-2.5 px-3">Rekomendasi Tier</th>
-								<th class="py-2.5 pl-3">Panduan Strategis</th>
+								<th class="py-2.5 pr-3">Week</th>
+								<th class="py-2.5 px-3 text-right">Starting Capital</th>
+								<th class="py-2.5 px-3 text-right">Weekly Profit</th>
+								<th class="py-2.5 px-3 text-right">Ending Capital</th>
+								<th class="py-2.5 px-3">Recommended Tier</th>
+								<th class="py-2.5 pl-3">Strategic Guidance</th>
 							</tr>
 						</thead>
 						<tbody class="divide-y divide-slate-800/70">
 							for _, g := range data.Growth4Weeks {
 								<tr class="hover:bg-slate-800/30">
-									<td class="py-2.5 pr-3 font-mono font-bold text-sky-300">Minggu #{ fmt.Sprintf("%d", g.Week) }</td>
+									<td class="py-2.5 pr-3 font-mono font-bold text-sky-300">Week #{ fmt.Sprintf("%d", g.Week) }</td>
 									<td class="py-2.5 px-3 text-right font-mono text-slate-300">{ FormatISK(g.StartingCapital) }</td>
 									<td class="py-2.5 px-3 text-right font-mono text-emerald-300">+{ FormatISK(g.WeeklyProfit) }</td>
 									<td class="py-2.5 px-3 text-right font-mono font-bold text-white">{ FormatISK(g.EndingCapital) }</td>

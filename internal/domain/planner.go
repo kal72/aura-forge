@@ -150,7 +150,7 @@ func BuildWeeklyPlan(
 		sciSlotsTotal = 0
 	}
 	if strings.TrimSpace(title) == "" {
-		title = fmt.Sprintf("Rencana Produksi Minggu #%d", weekNumber)
+		title = fmt.Sprintf("Weekly Production Plan #%d", weekNumber)
 	}
 
 	var totalCost, totalRev, totalProfit float64
@@ -234,15 +234,15 @@ func ValidateSlotCapacity(plan WeeklyPlan) SlotCapacityReport {
 
 	if totalHours > weeklyCapHours {
 		fits = false
-		warnings = append(warnings, fmt.Sprintf("Total waktu produksi (%.1f jam) melebihi kapasitas mingguan %d slot (%.1f jam).", totalHours, mfgTotal, weeklyCapHours))
+		warnings = append(warnings, fmt.Sprintf("Total production time (%.1f hrs) exceeds weekly capacity for %d slot(s) (%.1f hrs).", totalHours, mfgTotal, weeklyCapHours))
 	}
 	if sciRequired > plan.ScienceSlotsTotal {
 		fits = false
-		warnings = append(warnings, fmt.Sprintf("Kebutuhan Science/Invention slot (%d) melebihi kapasitas (%d).", sciRequired, plan.ScienceSlotsTotal))
+		warnings = append(warnings, fmt.Sprintf("Science/Invention slots required (%d) exceed capacity (%d).", sciRequired, plan.ScienceSlotsTotal))
 	}
 	if mfgRequired > mfgTotal*3 && totalHours == 0 {
 		// Heuristic when production hours aren't specified: warn if >3 waves per week
-		warnings = append(warnings, fmt.Sprintf("Jumlah batch (%d) tinggi untuk %d slot manufaktur; pastikan jadwal dibagi ke beberapa gelombang.", mfgRequired, mfgTotal))
+		warnings = append(warnings, fmt.Sprintf("High batch count (%d) for %d manufacturing slot(s); split execution across multiple waves.", mfgRequired, mfgTotal))
 	}
 
 	return SlotCapacityReport{
@@ -269,7 +269,7 @@ func GenerateWeeklySchedule(items []PlanItem, totalMfgSlots int) []DaySchedule {
 		itemSummaries = append(itemSummaries, fmt.Sprintf("%s (%dx batch)", it.Name, it.BatchRuns))
 	}
 
-	wave1Target := "Item Fast Cashflow & Mid-Tier"
+	wave1Target := "Fast Cashflow & Mid-Tier items"
 	if len(itemSummaries) > 0 {
 		limit := len(itemSummaries)
 		if limit > 3 {
@@ -282,71 +282,71 @@ func GenerateWeeklySchedule(items []PlanItem, totalMfgSlots int) []DaySchedule {
 		{
 			DayNumber: 1,
 			Title:     "Day 1: Sourcing & Buy Orders",
-			Focus:     "Pengadaan Bahan Baku",
+			Focus:     "Material Procurement",
 			Tasks: []string{
-				"Copy Consolidated Shopping List ke format EVE Multibuy.",
-				"Pasang Buy Order di Jita 4-4 untuk mineral/komponen bernilai besar agar hemat 5%–10%.",
-				"Angkut bahan baku ke sistem pabrik dengan System Cost Index (SCI) rendah.",
+				"Copy the Consolidated Shopping List below into EVE Online Multibuy.",
+				"Place Buy Orders at your Primary Trade Hub for high-value minerals/components to save 5%–10%.",
+				"Haul raw materials to a low System Cost Index (SCI) manufacturing system.",
 			},
 			BatchesScheduled: []int64{},
 		},
 		{
 			DayNumber: 2,
-			Title:     "Day 2: Produksi Gelombang 1",
-			Focus:     "Eksekusi Slot Awal",
+			Title:     "Day 2: Wave 1 Production",
+			Focus:     "Initial Slot Execution",
 			Tasks: []string{
-				fmt.Sprintf("Isi hingga %d Manufacturing Slot dengan target awal: %s.", totalMfgSlots, wave1Target),
-				"Verifikasi biaya instalasi job (SCI + Facility Tax) sesuai kalkulator.",
+				fmt.Sprintf("Fill up to %d Manufacturing Slot(s) with Wave 1 targets: %s.", totalMfgSlots, wave1Target),
+				"Verify job installation fees (SCI + Facility Tax) match your calculator estimate.",
 			},
 			BatchesScheduled: []int64{},
 		},
 		{
 			DayNumber: 3,
-			Title:     "Day 3: Listing Awal & Cek Jita",
-			Focus:     "Distribusi & Penjualan",
+			Title:     "Day 3: Initial Listing & Hub Check",
+			Focus:     "Distribution & Sales",
 			Tasks: []string{
-				"Deliver job gelombang 1 dan angkut hasil produksi ke Jita 4-4.",
-				"Pasang Sell Order dengan harga kompetitif (1 tick di bawah kompetitor terendah) dan catat status LISTED di Tracker.",
+				"Deliver Wave 1 completed jobs and haul finished goods to your Primary Trade Hub.",
+				"List Sell Orders competitively (1 tick below lowest sell) and mark batches LISTED in Tracker.",
 			},
 			BatchesScheduled: []int64{},
 		},
 		{
 			DayNumber: 4,
-			Title:     "Day 4: Re-Batching Gelombang 2",
-			Focus:     "Perputaran Arus Kas",
+			Title:     "Day 4: Wave 2 Re-Batching",
+			Focus:     "Cashflow Turnover",
 			Tasks: []string{
-				"Gunakan arus kas dari penjualan cepat (Fast Cashflow) untuk restock bahan baku.",
-				"Mulai batch produksi gelombang 2 pada slot manufaktur yang sudah kosong.",
+				"Reinvest incoming ISK from Fast Cashflow sales into fresh raw materials.",
+				"Start Wave 2 production batches in any newly freed manufacturing slots.",
 			},
 			BatchesScheduled: []int64{},
 		},
 		{
 			DayNumber: 5,
-			Title:     "Day 5: Undercut Radar & Relist Aman",
-			Focus:     "Proteksi Margin",
+			Title:     "Day 5: Undercut Radar & Safe Relist",
+			Focus:     "Margin Protection",
 			Tasks: []string{
-				"Periksa Sell Order yang tersalip pesaing (Undercut Radar).",
-				"Gunakan Safe Relist Price sebelum menurunkan harga agar tidak merugi karena Broker & Relist Fee.",
+				"Run Check Live Undercuts in Tracker to spot undercut Sell Orders.",
+				"Check Safe Relist Floor before modifying prices so broker & relist fees never erase profit.",
 			},
 			BatchesScheduled: []int64{},
 		},
 		{
 			DayNumber: 6,
-			Title:     "Day 6: Puncak Trafik Akhir Pekan",
-			Focus:     "Maksimalkan Volume Jual",
+			Title:     "Day 6: Weekend Traffic Peak",
+			Focus:     "Maximize Sales Volume",
 			Tasks: []string{
-				"Pastikan seluruh stok siap jual sudah berada di Jita menjelang puncak pemain akhir pekan.",
-				"Jalankan batch berdurasi panjang (High ROI / Ships / T2) agar slot tetap produktif saat offline.",
+				"Ensure all finished inventory is listed at your Trade Hub ahead of peak weekend player activity.",
+				"Queue longer-duration batches (High ROI / Ships / T2) to keep slots productive while offline.",
 			},
 			BatchesScheduled: []int64{},
 		},
 		{
 			DayNumber: 7,
-			Title:     "Day 7: Panen Profit & Audit Mingguan",
-			Focus:     "Evaluasi & Naik Kelas Modal",
+			Title:     "Day 7: Profit Harvest & Weekly Audit",
+			Focus:     "Review & Scale Up",
 			Tasks: []string{
-				"Tandai batch yang laku menjadi SOLD di Tracker dan hitung Realized Profit minggu ini.",
-				"Evaluasi pertumbuhan modal terhadap proyeksi Minggu 1–4 dan siapkan alokasi kas minggu depan.",
+				"Mark sold batches as SOLD in Tracker and review realized weekly profit.",
+				"Compare capital growth against the Week 1–4 projection and prepare next week's allocation.",
 			},
 			BatchesScheduled: []int64{},
 		},
@@ -496,13 +496,13 @@ func SimulateFourWeekGrowth(startingCapital, weeklyROIPercent, reinvestRate floa
 func recommendCapitalTier(capital float64) (string, string) {
 	switch {
 	case capital >= Tier4CapitalThresholdISK:
-		return "Tier 4 — Industrial Scale (T2 Hulls & Regional)", "Modal siap ekspansi ke T2 Cruisers/Battleships, reaksi bulan, atau arbitrase multi-hub."
+		return "Tier 4 — Industrial Scale (T2 Hulls & Regional)", "Capital ready to scale into T2 Cruisers/Battleships, moon reactions, or multi-hub arbitrage."
 	case capital >= Tier3CapitalThresholdISK:
-		return "Tier 3 — T2 Modules & Invention", "Kas cukup untuk mulai Invention T2 (Modules/Drones/Ammo) dengan margin lebih tebal."
+		return "Tier 3 — T2 Modules & Invention", "Sufficient working capital to start T2 Invention (Modules/Drones/Ammo) for thicker margins."
 	case capital >= Tier2CapitalThresholdISK:
-		return "Tier 2 — T1 Frigates, Destroyers & Rigs", "Naik kelas ke kapal T1 PvP/Faction Warfare dan Rig populer dengan volume harian tinggi."
+		return "Tier 2 — T1 Frigates, Destroyers & Rigs", "Step up to high-volume T1 PvP/Faction Warfare hulls and popular rigs."
 	default:
-		return "Tier 1 — Fast Cashflow (Ammo, Drones & Basic Modules)", "Fokus pada perputaran modal cepat dan jaga Cash Buffer 15% untuk pajak & broker fee."
+		return "Tier 1 — Fast Cashflow (Ammo, Drones & Basic Modules)", "Focus on rapid ISK turnover and keep a 15% cash buffer for taxes and broker fees."
 	}
 }
 

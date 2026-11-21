@@ -76,6 +76,7 @@ type CapitalBucket struct {
 type AllocationResult struct {
 	TotalCapital         float64         `json:"total_capital"`
 	CapitalSource        string          `json:"capital_source"`
+	ActiveHubName        string          `json:"active_hub_name,omitempty"`
 	DeployableCapital    float64         `json:"deployable_capital"`
 	CashBufferISK        float64         `json:"cash_buffer_isk"`
 	TotalAllocatedISK    float64         `json:"total_allocated_isk"`
@@ -88,7 +89,7 @@ func ResolveAvailableCapital(settings UserSettings, profile *CharacterProfile, s
 	if ssoEnabled && profile != nil && profile.WalletBalance > 0 {
 		return RoundISK(profile.WalletBalance), "EVE SSO Wallet (" + profile.CharacterName + ")"
 	}
-	return RoundISK(settings.StartingCapital), "Pengaturan Manual"
+	return RoundISK(settings.StartingCapital), "Manual Settings"
 }
 
 // AllocateCapital divides available capital into 4 buckets and assigns eligible catalog items.
@@ -118,8 +119,8 @@ func AllocateCapital(
 
 	fastBucket := CapitalBucket{
 		Type:         BucketFastCashflow,
-		Label:        "Arus Kas Harian (Fast Cashflow)",
-		Description:  "Item cepat laku (volume harian tinggi, modal kecil) untuk perputaran kas harian.",
+		Label:        "Fast Cashflow (Daily Turnover)",
+		Description:  "High daily volume, low-cost items for steady daily ISK velocity.",
 		Percent:      cfg.FastCashflowPct,
 		BudgetISK:    fastBudget,
 		RemainingISK: fastBudget,
@@ -127,8 +128,8 @@ func AllocateCapital(
 	}
 	midBucket := CapitalBucket{
 		Type:         BucketMidTier,
-		Label:        "Profit Menengah (Mid-Tier)",
-		Description:  "Keseimbangan antara kecepatan jual dan margin stabil.",
+		Label:        "Mid-Tier (Balanced Profit)",
+		Description:  "Balanced sales velocity and reliable profit margins.",
 		Percent:      cfg.MidTierPct,
 		BudgetISK:    midBudget,
 		RemainingISK: midBudget,
@@ -136,8 +137,8 @@ func AllocateCapital(
 	}
 	highBucket := CapitalBucket{
 		Type:         BucketHighROI,
-		Label:        "Pendongkrak Profit (High ROI)",
-		Description:  "Item dengan ROI atau profit per batch tinggi untuk akselerasi pertumbuhan modal.",
+		Label:        "High ROI (Capital Accelerator)",
+		Description:  "Higher ROI or profit-per-batch items to accelerate capital compounding.",
 		Percent:      cfg.HighROIPct,
 		BudgetISK:    highBudget,
 		RemainingISK: highBudget,
@@ -145,8 +146,8 @@ func AllocateCapital(
 	}
 	bufferBucket := CapitalBucket{
 		Type:         BucketCashBuffer,
-		Label:        "Cadangan Kas Operasional (Cash Buffer)",
-		Description:  "Dana cadangan minimal 10%–15% untuk Broker Fee, Job Install Cost, dan Relist.",
+		Label:        "Operational Cash Buffer",
+		Description:  "Reserved 10%–15% safety cushion for Broker Fees, Job Install Costs, and Relists.",
 		Percent:      cfg.CashBufferPct,
 		BudgetISK:    bufferBudget,
 		RemainingISK: bufferBudget,
@@ -273,7 +274,7 @@ func AllocateCapital(
 	totalEstProfit := RoundISK(fastBucket.EstimatedProfit + midBucket.EstimatedProfit + highBucket.EstimatedProfit)
 
 	if capitalSource == "" {
-		capitalSource = "Pengaturan Manual"
+		capitalSource = "Manual Settings"
 	}
 
 	return AllocationResult{

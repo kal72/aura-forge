@@ -2,77 +2,187 @@ package web
 
 import (
 	"fmt"
+	"net/url"
 
 	"aura-forge/internal/domain"
 	"aura-forge/internal/service"
 )
 
-templ TrackerPage(mode service.ModeInfo, batches []domain.BatchRecord, statusFilter string) {
+func computeBeatRelistPrice(competitorPrice float64) float64 {
+	if competitorPrice <= 0 {
+		return 0
+	}
+	beat := domain.RoundEVETick(competitorPrice * 0.999)
+	if beat >= competitorPrice && competitorPrice > 1 {
+		beat = domain.RoundEVETick(competitorPrice * 0.998)
+	}
+	return beat
+}
+
+func nextBatchStatusAction(st domain.BatchStatus) (nextStatus string, label string, btnClass string) {
+	switch st {
+	case domain.BatchStatusDraft:
+		return string(domain.BatchStatusInProduction), "Start Build →", "border-amber-400/45 bg-amber-500/20 text-amber-200 hover:bg-amber-500/35"
+	case domain.BatchStatusInProduction:
+		return string(domain.BatchStatusListed), "List on Market →", "border-sky-400/45 bg-sky-500/20 text-sky-200 hover:bg-sky-500/35"
+	case domain.BatchStatusListed, domain.BatchStatusSlowMover:
+		return string(domain.BatchStatusSold), "Mark Sold ✓", "border-emerald-400/50 bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/35"
+	default:
+		return "", "", ""
+	}
+}
+
+templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.TrackerSummary, batches []domain.BatchRecord, statusFilter string) {
 	@Layout("Production & Market Tracker", "tracker", mode) {
-		<div class="space-y-6" x-data="{ showNewBatch: false }">
+		<div
+			class="space-y-6"
+			x-data="{
+				showNewBatch: false,
+				copyTrackerPrice(val, label) {
+					if (!val) return;
+					navigator.clipboard.writeText(String(val)).then(() => {
+						window.dispatchEvent(new CustomEvent('showToast', { detail: { level: 'success', message: label + ' copied (' + Number(val).toLocaleString() + ' ISK)' } }));
+					});
+				}
+			}"
+		>
+			<!-- Header -->
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-white">Production, Inventory &amp; Market Order Tracker</h1>
-					<p class="text-xs text-slate-400 mt-0.5">Kelola siklus batch (<code class="text-sky-300">DRAFT → IN_PRODUCTION → LISTED → SOLD</code>) serta uji batas aman Relist &amp; Undercut Guard via Public ESI.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">
+						Manage batch lifecycles (<code class="text-sky-300">DRAFT → IN_PRODUCTION → LISTED → SOLD</code>) and protect profit with live <strong class="text-amber-200">{ hub.Name }</strong> Undercut &amp; Safe Relist Guard.
+					</p>
 				</div>
 				<div class="flex flex-wrap gap-2">
 					<button
 						type="button"
 						hx-post="/esi/check-undercuts"
 						hx-swap="none"
-						class="rounded-md border border-amber-400/40 bg-amber-500/15 px-3.5 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer"
+						hx-indicator="#undercut-spinner"
+						class="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/45 bg-amber-500/15 px-3.5 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer"
 					>
-						Cek Undercut Live (Public ESI)
+						<span id="undercut-spinner" class="htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-amber-300 border-t-transparent"></span>
+						<span>Check Live Undercuts ({ hub.Name })</span>
 					</button>
-					<button type="button" @click="showNewBatch = !showNewBatch" class="rounded-md bg-sky-500 px-3.5 py-2 text-xs font-bold text-slate-950 hover:bg-sky-400 transition cursor-pointer">
-						+ Catat Batch Manual
+					<button type="button" @click="showNewBatch = !showNewBatch" class="rounded-lg bg-amber-400 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer">
+						+ Record Batch
 					</button>
 				</div>
 			</div>
 
-			<!-- Manual Batch Form -->
-			<div x-cloak x-show="showNewBatch" x-transition class="tactical-panel rounded-xl p-5 space-y-4">
-				<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">Catat Batch Produksi Baru</h2>
+			<!-- 4 KPI Summary Cards -->
+			<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase tracking-wider text-slate-400">Active Batches</div>
+					<div class="mt-1 text-2xl font-bold font-mono text-white">{ fmt.Sprintf("%d", summary.ActiveCount) }</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">{ fmt.Sprintf("%d listed • %d sold total", summary.ListedCount, summary.SoldCount) }</div>
+				</div>
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase tracking-wider text-amber-300/90">Locked Capital</div>
+					<div class="mt-1 text-2xl font-bold font-mono text-amber-300">{ FormatISK(summary.LockedCapital) }</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">Tied up in unsold batches</div>
+				</div>
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase tracking-wider text-rose-300/90">Undercut Alerts ({ hub.Name })</div>
+					<div class={ "mt-1 text-2xl font-bold font-mono " + func() string { if summary.UndercutCount > 0 { return "text-rose-300" }; return "text-emerald-300" }() }>
+						{ fmt.Sprintf("%d", summary.UndercutCount) }
+					</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">
+						if summary.UndercutCount > 0 {
+							<span class="text-rose-200">Check Safe Relist before lowering price</span>
+						} else {
+							<span>All listed orders competitive</span>
+						}
+					</div>
+				</div>
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase tracking-wider text-emerald-300/90">Realized Profit</div>
+					<div class={ "mt-1 text-2xl font-bold font-mono " + profitColor(summary.RealizedProfit) }>{ FormatISK(summary.RealizedProfit) }</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">Accumulated from SOLD batches</div>
+				</div>
+			</div>
+
+			<!-- Manual Batch Form (with Auto-Fill Active Hub Price + SDE BOM) -->
+			<div
+				x-cloak
+				x-show="showNewBatch"
+				x-transition
+				class="tactical-panel rounded-xl p-5 space-y-4"
+				x-data={ fmt.Sprintf(`{
+					itemName: '',
+					runs: 10,
+					unitsOut: 10,
+					prodCost: 0,
+					sellPrice: 0,
+					lookupNote: '',
+					hubKey: %q,
+					async autoFill() {
+						if (!this.itemName) return;
+						this.lookupNote = 'Fetching live hub price & SDE BOM...';
+						try {
+							const r = await fetch('/esi/lookup?name=' + encodeURIComponent(this.itemName) + '&hub=' + encodeURIComponent(this.hubKey) + '&batch_qty=' + encodeURIComponent(this.unitsOut || 10));
+							const d = await r.json();
+							if (!r.ok) { this.lookupNote = d.error || 'Item not found'; return; }
+							if (d.recommended_sell_price > 0) this.sellPrice = d.recommended_sell_price;
+							else if (d.lowest_sell > 0) this.sellPrice = d.lowest_sell;
+							if (d.sde_has_blueprint && d.sde_material_cost > 0) {
+								this.prodCost = d.sde_material_cost;
+								this.lookupNote = 'Filled from ' + (d.hub_name || 'Hub') + ' + SDE BOM!';
+							} else {
+								this.lookupNote = 'Filled live sell price from ' + (d.hub_name || 'Hub') + '.';
+							}
+						} catch (e) { this.lookupNote = 'Failed to reach Public ESI'; }
+					}
+				}`, hub.Key) }
+			>
+				<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Record New Production Batch</h2>
 				<form hx-post="/tracker/batches" hx-swap="none" class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-					<div>
-						<label class="block text-[11px] font-mono uppercase text-slate-400">Nama Item</label>
-						<input type="text" name="item_name" required placeholder="Hobgoblin I" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"/>
+					<div class="sm:col-span-2">
+						<label class="block text-[10px] font-mono uppercase text-slate-300">Item Name</label>
+						<div class="mt-1 flex gap-2">
+							<input type="text" name="item_name" x-model="itemName" required placeholder="Hobgoblin I" class="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"/>
+							<button type="button" @click="autoFill()" class="shrink-0 rounded-lg border border-amber-400/45 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer">
+								Auto-Fill { hub.Name } + BOM
+							</button>
+						</div>
+						<div x-show="lookupNote" x-text="lookupNote" class="mt-1 text-[11px] font-mono text-emerald-300"></div>
 					</div>
 					<div>
-						<label class="block text-[11px] font-mono uppercase text-slate-400">Jumlah Runs</label>
-						<input type="number" name="runs" value="1" min="1" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
-					</div>
-					<div>
-						<label class="block text-[11px] font-mono uppercase text-slate-400">Total Units Output</label>
-						<input type="number" name="units_output" value="500" min="1" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
-					</div>
-					<div>
-						<label class="block text-[11px] font-mono uppercase text-slate-400">Total Biaya Produksi (ISK)</label>
-						<input type="number" step="0.01" name="actual_production_cost" value="5000000" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
-					</div>
-					<div>
-						<label class="block text-[11px] font-mono uppercase text-slate-400">Harga Jual / Unit (ISK)</label>
-						<input type="number" step="0.01" name="actual_sell_price" value="14500" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
-					</div>
-					<div>
-						<label class="block text-[11px] font-mono uppercase text-slate-400">Status Awal</label>
-						<select name="status" class="mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white">
+						<label class="block text-[10px] font-mono uppercase text-slate-300">Initial Status</label>
+						<select name="status" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white">
 							<option value="DRAFT">DRAFT</option>
 							<option value="IN_PRODUCTION">IN_PRODUCTION</option>
 							<option value="LISTED">LISTED</option>
 							<option value="SOLD">SOLD</option>
 						</select>
 					</div>
-					<div class="sm:col-span-3 flex justify-end gap-2">
-						<button type="button" @click="showNewBatch = false" class="rounded border border-slate-700 px-3 py-1.5 text-xs text-slate-300">Batal</button>
-						<button type="submit" class="rounded bg-sky-500 px-4 py-1.5 text-xs font-bold text-slate-950 hover:bg-sky-400 cursor-pointer">Simpan Batch</button>
+					<div>
+						<label class="block text-[10px] font-mono uppercase text-slate-300">Runs</label>
+						<input type="number" name="runs" x-model="runs" min="1" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[10px] font-mono uppercase text-slate-300">Total Output Units</label>
+						<input type="number" name="units_output" x-model="unitsOut" min="1" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[10px] font-mono uppercase text-slate-300">Total Production Cost (ISK)</label>
+						<input type="number" step="0.01" name="actual_production_cost" x-model="prodCost" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[10px] font-mono uppercase text-slate-300">Sell Price / Unit (ISK)</label>
+						<input type="number" step="0.01" name="actual_sell_price" x-model="sellPrice" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div class="sm:col-span-2 flex items-end justify-end gap-2">
+						<button type="button" @click="showNewBatch = false" class="rounded-lg border border-slate-700 px-3.5 py-2 text-xs text-slate-300 cursor-pointer">Cancel</button>
+						<button type="submit" class="rounded-lg bg-amber-400 px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 cursor-pointer">Save Batch</button>
 					</div>
 				</form>
 			</div>
 
 			<!-- Status Filter Tabs -->
 			<div class="flex flex-wrap gap-2">
-				@trackerTab("Semua", "", statusFilter)
+				@trackerTab("All", "", statusFilter)
 				@trackerTab("DRAFT", "DRAFT", statusFilter)
 				@trackerTab("IN_PRODUCTION", "IN_PRODUCTION", statusFilter)
 				@trackerTab("LISTED", "LISTED", statusFilter)
@@ -80,57 +190,111 @@ templ TrackerPage(mode service.ModeInfo, batches []domain.BatchRecord, statusFil
 				@trackerTab("SLOW_MOVER", "SLOW_MOVER", statusFilter)
 			</div>
 
-			<!-- Batches List -->
+			<!-- Batches Table -->
 			<div class="tactical-panel rounded-xl overflow-hidden">
 				if len(batches) == 0 {
-					<div class="p-10 text-center text-xs text-slate-400">
-						Belum ada batch pada filter ini. Eksekusi rencana dari <strong>Weekly Planner</strong> atau klik <strong>Catat Batch Manual</strong>.
+					<div class="p-10 text-center space-y-2">
+						<div class="text-sm font-semibold text-slate-200">No batches found in this status filter.</div>
+						<div class="text-xs text-slate-400">Execute a plan from <strong>Weekly Planner</strong>, send from <strong>Smart Allocator</strong>, or click <strong>+ Record Batch</strong> above.</div>
 					</div>
 				} else {
 					<div class="overflow-x-auto">
 						<table class="w-full text-left text-xs">
-							<thead class="border-b border-slate-800 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400">
+							<thead class="border-b border-violet-400/20 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400">
 								<tr>
 									<th class="px-4 py-3">Batch &amp; Status</th>
-									<th class="px-4 py-3 text-right">Modal Produksi</th>
-									<th class="px-4 py-3 text-right">Harga Jual / Safe Relist</th>
-									<th class="px-4 py-3 text-right">Net Profit / ROI</th>
-									<th class="px-4 py-3">Relist &amp; Undercut Guard</th>
-									<th class="px-4 py-3 text-right">Siklus &amp; Aksi</th>
+									<th class="px-3 py-3 text-right">Build Cost</th>
+									<th class="px-3 py-3 text-right">Price / Safe Floor / { hub.Name } Live</th>
+									<th class="px-3 py-3 text-right">Net Profit / ROI</th>
+									<th class="px-3 py-3">Relist Guard Simulator</th>
+									<th class="px-4 py-3 text-right">Lifecycle &amp; Actions</th>
 								</tr>
 							</thead>
 							<tbody class="divide-y divide-slate-800/80">
 								for _, b := range batches {
-									<tr class="hover:bg-slate-800/40 align-top">
+									{{ beatPrice := computeBeatRelistPrice(b.CurrentMarketPrice) }}
+									{{ nextSt, nextLabel, nextCls := nextBatchStatusAction(b.Status) }}
+									<tr class="hover:bg-violet-500/5 transition align-top">
+										<!-- Item + Official EVE Icon (32x32) -->
 										<td class="px-4 py-3">
-											<div class="font-semibold text-white text-sm">{ b.ItemName }</div>
-											<div class="mt-1 flex items-center gap-2">
-												<span class={ "inline-block rounded px-2 py-0.5 font-mono text-[10px] font-bold " + BatchStatusBadgeClass(b.Status) }>
-													{ string(b.Status) }
-												</span>
-												<span class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%dx run • %d unit", b.Runs, b.UnitsOutput) }</span>
+											<div class="flex items-start gap-2.5">
+												if b.TypeID > 0 {
+													<img
+														src={ EVEItemIconURL(b.TypeID, 64) }
+														alt={ b.ItemName }
+														loading="lazy"
+														class="h-8 w-8 shrink-0 rounded-lg border border-violet-400/30 bg-slate-900 p-0.5 object-contain mt-0.5"
+														onerror="this.style.display='none'"
+													/>
+												} else {
+													<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-700 bg-slate-900 font-mono text-[9px] font-bold text-slate-400 mt-0.5">
+														EVE
+													</div>
+												}
+												<div class="min-w-0">
+													<div class="font-semibold text-white text-sm leading-snug">{ b.ItemName }</div>
+													<div class="mt-1 flex flex-wrap items-center gap-1.5">
+														<span class={ "inline-block rounded px-2 py-0.5 font-mono text-[10px] font-bold " + BatchStatusBadgeClass(b.Status) }>
+															{ string(b.Status) }
+														</span>
+														<span class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%dx run • %d u", b.Runs, b.UnitsOutput) }</span>
+													</div>
+												</div>
 											</div>
 										</td>
-										<td class="px-4 py-3 text-right font-mono text-slate-200">
+
+										<!-- Build Cost -->
+										<td class="px-3 py-3 text-right font-mono text-slate-200 whitespace-nowrap">
 											{ FormatISK(b.ActualProductionCost) }
 										</td>
-										<td class="px-4 py-3 text-right font-mono">
-											<div class="text-sky-300">{ FormatISK(b.ActualSellPrice) }/u</div>
-											<div class="text-[10px] text-amber-300">Batas Aman: { FormatISK(b.SafeRelistPrice) }/u</div>
+
+										<!-- Listed Price, Safe Floor, Live Hub Price & Smart Copy Action -->
+										<td class="px-3 py-3 text-right font-mono whitespace-nowrap">
+											<div class="text-sky-300 font-semibold">{ FormatISK(b.ActualSellPrice) }/u</div>
+											<div class="text-[10px] text-amber-300">Safe Floor: { FormatISK(b.SafeRelistPrice) }/u</div>
 											if b.CurrentMarketPrice > 0 {
 												<div class="mt-0.5 text-[10px] text-slate-300">
-													Jita Live: { FormatISK(b.CurrentMarketPrice) }/u
+													{ hub.Name }: { FormatISK(b.CurrentMarketPrice) }/u
 													if b.IsUndercut {
 														<span class="ml-1 rounded bg-rose-500/25 border border-rose-400/50 px-1 py-0.5 text-[9px] font-bold text-rose-200">UNDERCUT!</span>
 													}
 												</div>
 											}
+											<div class="mt-1 flex justify-end">
+												if b.IsUndercut && beatPrice >= b.SafeRelistPrice && beatPrice > 0 {
+													<button
+														type="button"
+														data-val={ fmt.Sprintf("%.2f", beatPrice) }
+														@click="copyTrackerPrice($el.dataset.val, 'Beat Relist Price')"
+														class="rounded border border-emerald-400/45 bg-emerald-500/15 px-2 py-0.5 text-[9.5px] font-bold text-emerald-200 hover:bg-emerald-500/30 cursor-pointer"
+													>
+														Copy Beat ({ FormatISK(beatPrice) })
+													</button>
+												} else if b.IsUndercut && b.CurrentMarketPrice > 0 && b.CurrentMarketPrice < b.SafeRelistPrice {
+													<span class="rounded border border-rose-400/50 bg-rose-500/20 px-1.5 py-0.5 text-[9px] font-bold text-rose-200">
+														HOLD — Below Safe Floor
+													</span>
+												} else if b.SafeRelistPrice > 0 {
+													<button
+														type="button"
+														data-val={ fmt.Sprintf("%.2f", b.SafeRelistPrice) }
+														@click="copyTrackerPrice($el.dataset.val, 'Safe Relist Floor')"
+														class="text-[9.5px] text-slate-400 hover:text-amber-200 underline cursor-pointer"
+													>
+														Copy Safe Floor
+													</button>
+												}
+											</div>
 										</td>
-										<td class="px-4 py-3 text-right font-mono">
+
+										<!-- Net Profit / ROI -->
+										<td class="px-3 py-3 text-right font-mono whitespace-nowrap">
 											<div class={ "font-bold " + profitColor(b.NetProfit) }>{ FormatISK(b.NetProfit) }</div>
 											<div class="text-[10px] text-slate-400">ROI { FormatPercent(b.ROI) }</div>
 										</td>
-										<td class="px-4 py-3 min-w-[240px]">
+
+										<!-- Relist Guard Simulator -->
+										<td class="px-3 py-3 min-w-[230px]">
 											<form
 												hx-post={ fmt.Sprintf("/tracker/batches/%d/relist-check", b.ID) }
 												hx-target={ fmt.Sprintf("#relist-res-%d", b.ID) }
@@ -141,38 +305,59 @@ templ TrackerPage(mode service.ModeInfo, batches []domain.BatchRecord, statusFil
 													type="number"
 													step="0.01"
 													name="proposed_price"
-													placeholder="Harga pesaing..."
+													placeholder="Competitor price..."
 													class="w-32 rounded border border-slate-700 bg-slate-950 px-2 py-1 font-mono text-[11px] text-white"
 												/>
 												<button type="submit" class="rounded border border-amber-500/40 bg-amber-500/15 px-2 py-1 text-[10px] font-bold text-amber-200 hover:bg-amber-500/25 cursor-pointer">
-													Cek Relist
+													Test Relist
 												</button>
 											</form>
 											<div id={ fmt.Sprintf("relist-res-%d", b.ID) } class="mt-1.5"></div>
 										</td>
-										<td class="px-4 py-3 text-right">
+
+										<!-- Lifecycle 1-Click + Manual Dropdown + Market + Delete -->
+										<td class="px-4 py-3 text-right whitespace-nowrap">
 											<div class="flex flex-col items-end gap-1.5">
-												<form hx-post={ fmt.Sprintf("/tracker/batches/%d/status", b.ID) } hx-swap="none" class="flex gap-1">
-													<select name="status" class="rounded border border-slate-700 bg-slate-900 px-1.5 py-1 text-[11px] text-white">
-														<option value="DRAFT" selected?={ b.Status == domain.BatchStatusDraft }>DRAFT</option>
-														<option value="IN_PRODUCTION" selected?={ b.Status == domain.BatchStatusInProduction }>IN_PRODUCTION</option>
-														<option value="LISTED" selected?={ b.Status == domain.BatchStatusListed }>LISTED</option>
-														<option value="SOLD" selected?={ b.Status == domain.BatchStatusSold }>SOLD</option>
-														<option value="SLOW_MOVER" selected?={ b.Status == domain.BatchStatusSlowMover }>SLOW_MOVER</option>
-													</select>
-													<button type="submit" class="rounded bg-sky-500/20 border border-sky-400/40 px-2 py-1 text-[10px] font-bold text-sky-200 hover:bg-sky-500/30 cursor-pointer">
-														Update
+												<div class="flex items-center gap-1">
+													if nextSt != "" {
+														<form hx-post={ fmt.Sprintf("/tracker/batches/%d/status", b.ID) } hx-swap="none">
+															<input type="hidden" name="status" value={ nextSt }/>
+															<button type="submit" class={ "rounded border px-2 py-1 text-[10px] font-bold transition cursor-pointer " + nextCls }>
+																{ nextLabel }
+															</button>
+														</form>
+													}
+													<a
+														href={ templ.SafeURL("/marketplace?hub=" + hub.Key + "&q=" + url.QueryEscape(b.ItemName)) }
+														title={ "Inspect " + hub.Name + " Order Book" }
+														class="rounded border border-sky-400/35 bg-sky-500/15 px-2 py-1 text-[10px] font-semibold text-sky-200 hover:bg-sky-500/30 transition"
+													>
+														Market
+													</a>
+												</div>
+												<div class="flex items-center gap-1.5">
+													<form hx-post={ fmt.Sprintf("/tracker/batches/%d/status", b.ID) } hx-swap="none" class="flex gap-1">
+														<select name="status" class="rounded border border-slate-700 bg-slate-900 px-1.5 py-0.5 text-[10px] text-slate-200">
+															<option value="DRAFT" selected?={ b.Status == domain.BatchStatusDraft }>DRAFT</option>
+															<option value="IN_PRODUCTION" selected?={ b.Status == domain.BatchStatusInProduction }>IN_PRODUCTION</option>
+															<option value="LISTED" selected?={ b.Status == domain.BatchStatusListed }>LISTED</option>
+															<option value="SOLD" selected?={ b.Status == domain.BatchStatusSold }>SOLD</option>
+															<option value="SLOW_MOVER" selected?={ b.Status == domain.BatchStatusSlowMover }>SLOW_MOVER</option>
+														</select>
+														<button type="submit" class="rounded bg-slate-800 border border-slate-600 px-1.5 py-0.5 text-[10px] text-slate-200 hover:text-white cursor-pointer">
+															Set
+														</button>
+													</form>
+													<button
+														type="button"
+														hx-delete={ fmt.Sprintf("/tracker/batches/%d", b.ID) }
+														hx-swap="none"
+														hx-confirm="Delete this batch?"
+														class="text-[10px] text-rose-400 hover:underline cursor-pointer"
+													>
+														Delete
 													</button>
-												</form>
-												<button
-													type="button"
-													hx-delete={ fmt.Sprintf("/tracker/batches/%d", b.ID) }
-													hx-swap="none"
-													hx-confirm="Hapus batch ini?"
-													class="text-[10px] text-rose-400 hover:underline cursor-pointer"
-												>
-													Hapus
-												</button>
+												</div>
 											</div>
 										</td>
 									</tr>
@@ -188,9 +373,9 @@ templ TrackerPage(mode service.ModeInfo, batches []domain.BatchRecord, statusFil
 
 templ trackerTab(label, val, active string) {
 	if val == active {
-		<a href={ templ.SafeURL("/tracker?status=" + val) } class="rounded-md bg-sky-500/20 border border-sky-400/50 px-3 py-1.5 font-mono text-xs font-bold text-sky-200">{ label }</a>
+		<a href={ templ.SafeURL("/tracker?status=" + val) } class="rounded-lg bg-amber-400 px-3 py-1.5 font-mono text-xs font-extrabold text-slate-950">{ label }</a>
 	} else {
-		<a href={ templ.SafeURL("/tracker?status=" + val) } class="rounded-md border border-slate-800 bg-slate-900/60 px-3 py-1.5 font-mono text-xs text-slate-400 hover:text-white">{ label }</a>
+		<a href={ templ.SafeURL("/tracker?status=" + val) } class="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-1.5 font-mono text-xs text-slate-300 hover:text-white transition">{ label }</a>
 	}
 }
 

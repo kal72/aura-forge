@@ -83,9 +83,9 @@ func EvaluateRelistGuard(batch BatchRecord, proposedUnitPrice float64, settings 
 
 	var advice string
 	if isSafe {
-		advice = fmt.Sprintf("AMAN RELIST: Masih menyisakan estimasi profit %.2f ISK (batas aman: %.2f ISK/unit).", projectedNet, safeRelist)
+		advice = fmt.Sprintf("SAFE TO RELIST: Retains projected net profit of %.2f ISK (safe floor: %.2f ISK/unit).", projectedNet, safeRelist)
 	} else {
-		advice = fmt.Sprintf("TAHAN HARGA / JANGAN RELIST: Harga %.2f ISK menembus batas aman %.2f ISK/unit dan berisiko rugi %.2f ISK.", proposedUnitPrice, safeRelist, projectedNet)
+		advice = fmt.Sprintf("HOLD PRICE / DO NOT RELIST: Proposed price %.2f ISK breaches safe floor %.2f ISK/unit (projected profit: %.2f ISK).", proposedUnitPrice, safeRelist, projectedNet)
 	}
 
 	return RelistGuardResult{

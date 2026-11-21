@@ -7,21 +7,112 @@ import (
 	"aura-forge/internal/service"
 )
 
+func allocatorHubName(res *domain.AllocationResult) string {
+	if res != nil && res.ActiveHubName != "" {
+		return res.ActiveHubName
+	}
+	return "Primary Hub"
+}
+
+func bucketAccentClass(bt domain.BucketType) string {
+	switch bt {
+	case domain.BucketFastCashflow:
+		return "bg-emerald-500"
+	case domain.BucketMidTier:
+		return "bg-sky-500"
+	case domain.BucketHighROI:
+		return "bg-violet-500"
+	default:
+		return "bg-amber-500"
+	}
+}
+
+func bucketBadgeClass(bt domain.BucketType) string {
+	switch bt {
+	case domain.BucketFastCashflow:
+		return "bg-emerald-500/15 border-emerald-400/30 text-emerald-300"
+	case domain.BucketMidTier:
+		return "bg-sky-500/15 border-sky-400/30 text-sky-300"
+	case domain.BucketHighROI:
+		return "bg-violet-500/15 border-violet-400/30 text-violet-300"
+	default:
+		return "bg-amber-500/15 border-amber-400/30 text-amber-300"
+	}
+}
+
+func bucketUtilPct(used, budget float64) float64 {
+	if budget <= 0 {
+		return 0
+	}
+	pct := (used / budget) * 100.0
+	if pct > 100 {
+		pct = 100
+	}
+	if pct < 0 {
+		pct = 0
+	}
+	return pct
+}
+
 templ AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *domain.AllocationResult, allocErr string) {
 	@Layout("Smart Capital Allocator", "allocator", mode) {
 		<div class="space-y-6">
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
-					<h1 class="text-2xl font-bold tracking-tight text-white">Smart Capital Allocator (4 Keranjang Modal)</h1>
-					<p class="text-xs text-slate-400 mt-0.5">Membagi kas tersedia ke 4 keranjang strategi (Fast Cashflow, Mid-Tier, High ROI, dan Cash Buffer minimal 10%–15%) sambil otomatis menyaring item JEBAKAN.</p>
+					<div class="flex flex-wrap items-center gap-2">
+						<h1 class="text-2xl font-bold tracking-tight text-white">Smart Capital Allocator (4-Bucket Strategy)</h1>
+						<span class="rounded-full border border-sky-400/40 bg-sky-500/15 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-sky-200">
+							Hub: { allocatorHubName(result) }
+						</span>
+					</div>
+					<p class="text-xs text-slate-400 mt-0.5">Splits available working capital across 4 risk-managed buckets (Fast Cashflow, Mid-Tier, High ROI, and 10%–15% Cash Buffer) while automatically filtering out TRAP items.</p>
 				</div>
 				<button type="button" hx-post="/esi/sync-prices" hx-swap="none" class="rounded-md border border-amber-400/40 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer">
-					Refresh Harga Jita (Public ESI)
+					Refresh { allocatorHubName(result) } Prices (Public ESI)
 				</button>
 			</div>
 
-			<!-- Allocation Percentage Controls -->
-			<div class="tactical-panel rounded-xl p-5">
+			<!-- Allocation Percentage Controls + Strategy Presets -->
+			<div
+				class="tactical-panel rounded-xl p-5 space-y-4"
+				x-data={ fmt.Sprintf(`{
+					fast: %.0f,
+					mid: %.0f,
+					high: %.0f,
+					buf: %.0f,
+					get total() {
+						return (Number(this.fast)||0) + (Number(this.mid)||0) + (Number(this.high)||0) + (Number(this.buf)||0);
+					},
+					applyPreset(f, m, h, b) {
+						this.fast = f; this.mid = m; this.high = h; this.buf = b;
+						this.$nextTick(() => {
+							const form = document.getElementById('allocator-form');
+							if (form && window.htmx) window.htmx.trigger(form, 'submit');
+						});
+					}
+				}`, cfg.FastCashflowPct, cfg.MidTierPct, cfg.HighROIPct, cfg.CashBufferPct) }
+			>
+				<div class="flex flex-wrap items-center justify-between gap-2">
+					<div class="flex flex-wrap items-center gap-2 text-[11px]">
+						<span class="font-mono uppercase text-slate-400">Presets:</span>
+						<button type="button" @click="applyPreset(35, 30, 20, 15)" class="rounded border border-slate-700 bg-slate-900/80 px-2.5 py-1 font-mono text-slate-200 hover:border-sky-400/60 hover:text-sky-200 transition cursor-pointer">
+							Beginner Safe (35/30/20/15)
+						</button>
+						<button type="button" @click="applyPreset(50, 25, 10, 15)" class="rounded border border-slate-700 bg-slate-900/80 px-2.5 py-1 font-mono text-slate-200 hover:border-emerald-400/60 hover:text-emerald-200 transition cursor-pointer">
+							Fast Turnover (50/25/10/15)
+						</button>
+						<button type="button" @click="applyPreset(25, 30, 30, 15)" class="rounded border border-slate-700 bg-slate-900/80 px-2.5 py-1 font-mono text-slate-200 hover:border-violet-400/60 hover:text-violet-200 transition cursor-pointer">
+							Growth Focus (25/30/30/15)
+						</button>
+					</div>
+					<span
+						class="rounded-full border px-2.5 py-0.5 font-mono text-[11px] font-bold"
+						:class="total === 100 && Number(buf) >= 10 ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300' : 'border-rose-500/40 bg-rose-500/15 text-rose-300'"
+					>
+						Total: <span x-text="total"></span>%
+					</span>
+				</div>
+
 				<form
 					id="allocator-form"
 					hx-post="/allocator/run"
@@ -30,29 +121,29 @@ templ AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *
 					class="grid grid-cols-1 gap-4 sm:grid-cols-5 items-end"
 				>
 					<div>
-						<label class="block text-[11px] font-mono uppercase text-slate-400">Fast Cashflow (%)</label>
-						<input type="number" step="1" name="fast_cashflow_pct" value={ fmt.Sprintf("%.0f", cfg.FastCashflowPct) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						<label class="block text-[11px] font-mono uppercase text-emerald-300/90">Fast Cashflow (%)</label>
+						<input type="number" step="1" name="fast_cashflow_pct" x-model.number="fast" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 					</div>
 					<div>
-						<label class="block text-[11px] font-mono uppercase text-slate-400">Mid-Tier (%)</label>
-						<input type="number" step="1" name="mid_tier_pct" value={ fmt.Sprintf("%.0f", cfg.MidTierPct) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						<label class="block text-[11px] font-mono uppercase text-sky-300/90">Mid-Tier (%)</label>
+						<input type="number" step="1" name="mid_tier_pct" x-model.number="mid" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 					</div>
 					<div>
-						<label class="block text-[11px] font-mono uppercase text-slate-400">High ROI (%)</label>
-						<input type="number" step="1" name="high_roi_pct" value={ fmt.Sprintf("%.0f", cfg.HighROIPct) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						<label class="block text-[11px] font-mono uppercase text-violet-300/90">High ROI (%)</label>
+						<input type="number" step="1" name="high_roi_pct" x-model.number="high" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 					</div>
 					<div>
-						<label class="block text-[11px] font-mono uppercase text-slate-400">Cash Buffer (Min 10%)</label>
-						<input type="number" step="1" name="cash_buffer_pct" value={ fmt.Sprintf("%.0f", cfg.CashBufferPct) } min="10" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						<label class="block text-[11px] font-mono uppercase text-amber-300/90">Cash Buffer (Min 10%)</label>
+						<input type="number" step="1" name="cash_buffer_pct" x-model.number="buf" min="10" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 					</div>
 					<div>
 						<button type="submit" class="w-full rounded-md bg-sky-500 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer">
-							Hitung Alokasi
+							Compute Allocation
 						</button>
 					</div>
 				</form>
 
-				<div class="mt-4 flex flex-wrap gap-3 border-t border-slate-800 pt-4">
+				<div class="flex flex-wrap gap-3 border-t border-slate-800 pt-4">
 					<button
 						type="button"
 						hx-post="/allocator/to-plan"
@@ -60,7 +151,7 @@ templ AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *
 						hx-swap="none"
 						class="rounded-md border border-emerald-400/50 bg-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-500/30 transition cursor-pointer"
 					>
-						1-Klik Kirim ke Weekly Production Planner →
+						1-Click Send to Weekly Production Planner →
 					</button>
 					<button
 						type="button"
@@ -69,7 +160,7 @@ templ AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *
 						hx-swap="none"
 						class="rounded-md border border-amber-400/50 bg-amber-500/20 px-4 py-2 text-xs font-bold text-amber-200 hover:bg-amber-500/30 transition cursor-pointer"
 					>
-						1-Klik Buat Draft Batches di Tracker
+						1-Click Create Draft Batches in Tracker
 					</button>
 				</div>
 			</div>
@@ -85,27 +176,55 @@ templ AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *
 templ AllocatorResultPartial(res *domain.AllocationResult, errMsg string) {
 	if errMsg != "" {
 		<div class="rounded-xl border border-rose-500/40 bg-rose-950/40 p-4 text-xs text-rose-200">
-			<strong>Validasi Alokasi Gagal:</strong> { errMsg }
+			<strong>Allocation Validation Failed:</strong> { errMsg }
 		</div>
 	} else if res != nil {
 		<div class="space-y-5">
 			<!-- Summary Banner -->
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase text-slate-400">Total Kas ({ res.CapitalSource })</div>
+					<div class="text-[10px] font-mono uppercase text-slate-400">Working Capital ({ res.CapitalSource })</div>
 					<div class="mt-1 text-xl font-bold font-mono text-white">{ FormatISK(res.TotalCapital) }</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase text-slate-400">Dana Dialokasikan</div>
+					<div class="text-[10px] font-mono uppercase text-slate-400">Capital Allocated</div>
 					<div class="mt-1 text-xl font-bold font-mono text-sky-300">{ FormatISK(res.TotalAllocatedISK) }</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase text-slate-400">Cadangan Kas Operasional</div>
+					<div class="text-[10px] font-mono uppercase text-slate-400">Operational Cash Buffer</div>
 					<div class="mt-1 text-xl font-bold font-mono text-amber-300">{ FormatISK(res.CashBufferISK) }</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase text-slate-400">Est. Profit Siklus</div>
-					<div class="mt-1 text-xl font-bold font-mono text-emerald-300">{ FormatISK(res.TotalEstimatedProfit) }</div>
+					<div class="text-[10px] font-mono uppercase text-slate-400">Est. Cycle Profit</div>
+					<div class="mt-1 text-xl font-bold font-mono text-emerald-300">+{ FormatISK(res.TotalEstimatedProfit) }</div>
+				</div>
+			</div>
+
+			<!-- Visual 4-Bucket Distribution Bar -->
+			<div class="tactical-panel rounded-xl p-4 space-y-2.5">
+				<div class="flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono">
+					<span class="uppercase text-slate-400">Capital Distribution Breakdown</span>
+					<span class="text-slate-300">
+						Deployable: <strong class="text-white">{ FormatISK(res.DeployableCapital) }</strong> •
+						Buffer: <strong class="text-amber-300">{ FormatISK(res.CashBufferISK) }</strong>
+					</span>
+				</div>
+				<div class="flex h-3 w-full overflow-hidden rounded-full bg-slate-900 border border-slate-800">
+					for _, b := range res.Buckets {
+						<div
+							class={ bucketAccentClass(b.Type) }
+							style={ fmt.Sprintf("width: %.2f%%;", b.Percent) }
+							title={ fmt.Sprintf("%s: %.0f%% (%s)", b.Label, b.Percent, FormatISK(b.BudgetISK)) }
+						></div>
+					}
+				</div>
+				<div class="flex flex-wrap gap-4 text-[10px] font-mono text-slate-400">
+					for _, b := range res.Buckets {
+						<span class="inline-flex items-center gap-1.5">
+							<span class={ "inline-block h-2 w-2 rounded-full " + bucketAccentClass(b.Type) }></span>
+							<span>{ b.Label } ({ fmt.Sprintf("%.0f%%", b.Percent) })</span>
+						</span>
+					}
 				</div>
 			</div>
 
@@ -118,36 +237,59 @@ templ AllocatorResultPartial(res *domain.AllocationResult, errMsg string) {
 								<h3 class="text-sm font-bold text-white">{ b.Label }</h3>
 								<p class="text-[11px] text-slate-400 mt-0.5">{ b.Description }</p>
 							</div>
-							<span class="rounded bg-sky-500/15 border border-sky-400/30 px-2 py-0.5 font-mono text-xs font-bold text-sky-300">
+							<span class={ "rounded border px-2 py-0.5 font-mono text-xs font-bold " + bucketBadgeClass(b.Type) }>
 								{ fmt.Sprintf("%.0f%%", b.Percent) }
 							</span>
 						</div>
 
-						<div class="flex flex-wrap gap-4 text-xs font-mono border-y border-slate-800/80 py-2">
-							<span>Budget: <strong class="text-white">{ FormatISK(b.BudgetISK) }</strong></span>
+						<div class="space-y-1.5 border-y border-slate-800/80 py-2.5">
+							<div class="flex flex-wrap gap-4 text-xs font-mono">
+								<span>Budget: <strong class="text-white">{ FormatISK(b.BudgetISK) }</strong></span>
+								if b.Type != domain.BucketCashBuffer {
+									<span>Used: <strong class="text-sky-300">{ FormatISK(b.UsedISK) }</strong></span>
+									<span>Est. Profit: <strong class="text-emerald-300">+{ FormatISK(b.EstimatedProfit) }</strong></span>
+								}
+							</div>
 							if b.Type != domain.BucketCashBuffer {
-								<span>Terpakai: <strong class="text-sky-300">{ FormatISK(b.UsedISK) }</strong></span>
-								<span>Est. Profit: <strong class="text-emerald-300">{ FormatISK(b.EstimatedProfit) }</strong></span>
+								<div class="h-1.5 w-full overflow-hidden rounded-full bg-slate-900">
+									<div
+										class={ "h-full rounded-full transition-all " + bucketAccentClass(b.Type) }
+										style={ fmt.Sprintf("width: %.1f%%;", bucketUtilPct(b.UsedISK, b.BudgetISK)) }
+									></div>
+								</div>
 							}
 						</div>
 
 						if b.Type == domain.BucketCashBuffer {
-							<div class="rounded-lg border border-amber-500/30 bg-amber-950/20 p-3 text-xs text-amber-200">
-								Dana ini dikunci sebagai cadangan operasional untuk Broker Fee, Job Install Cost (SCI), dan biaya Relist jika terjadi undercut di Jita.
+							<div class="rounded-lg border border-amber-500/30 bg-amber-950/20 p-3 text-xs text-amber-200 leading-relaxed">
+								This capital is reserved as an operational safety cushion for Broker Fees, Job Install Costs (SCI), and safe Relist adjustments if undercut at <strong>{ allocatorHubName(res) }</strong>.
 							</div>
 						} else if len(b.Items) == 0 {
-							<div class="text-xs text-slate-500 italic">Belum ada kandidat item layak di Catalog yang cocok untuk budget keranjang ini.</div>
+							<div class="text-xs text-slate-500 italic">
+								No eligible VIABLE items in your <a href="/catalog" class="text-sky-300 underline hover:text-sky-200">Catalog</a> fit this bucket's budget yet.
+							</div>
 						} else {
 							<div class="space-y-2">
 								for _, it := range b.Items {
-									<div class="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs">
-										<div>
-											<div class="font-semibold text-white">{ it.Name }</div>
-											<div class="text-[10px] font-mono text-slate-400">
-												{ fmt.Sprintf("%dx batch • ROI %s • Vol %s", it.RecommendedRuns, FormatPercent(it.ROIPercent), FormatVolume(it.DailyVolume)) }
+									<div class="flex items-center justify-between gap-3 rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs">
+										<div class="flex items-center gap-2.5 min-w-0">
+											if it.TypeID > 0 {
+												<img
+													src={ fmt.Sprintf("https://images.evetech.net/types/%d/icon?size=32", it.TypeID) }
+													alt={ it.Name }
+													class="h-7 w-7 rounded border border-slate-700/80 bg-slate-950 object-contain shrink-0"
+													loading="lazy"
+													onerror="this.style.display='none'"
+												/>
+											}
+											<div class="min-w-0">
+												<div class="font-semibold text-white truncate">{ it.Name }</div>
+												<div class="text-[10px] font-mono text-slate-400">
+													{ fmt.Sprintf("%dx batch • ROI %s • Vol %s", it.RecommendedRuns, FormatPercent(it.ROIPercent), FormatVolume(it.DailyVolume)) }
+												</div>
 											</div>
 										</div>
-										<div class="text-right font-mono">
+										<div class="text-right font-mono shrink-0">
 											<div class="text-slate-200">{ FormatISK(it.TotalCost) }</div>
 											<div class="text-[11px] text-emerald-300">+{ FormatISK(it.EstimatedProfit) }</div>
 										</div>

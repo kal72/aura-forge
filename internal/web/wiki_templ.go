@@ -592,6 +592,17 @@ var eveWikiEntries = []wikiEntry{
 	// 5. DAILY WORKFLOW
 	{
 		Category:   "workflow",
+		Term:       "Start Here: Day-0 Setup & Complete Beginner Roadmap (Mulai dari Nol)",
+		BadgeText:  "START HERE",
+		BadgeClass: "border-amber-400/60 bg-amber-500/25 text-amber-200 font-bold",
+		WhereUsed:  "Settings → Catalog → Scanner → Marketplace → Calculator → Allocator → Tracker → Wealth",
+		DescEN:     "Brand new to EVE Online industry & trading? Follow the 7-step Start Here Roadmap at the top of this Wiki: (0) Configure your Starting Capital, Primary Trade Hub (Jita/Amarr/Dodixie/Rens/Hek), taxes, SCI, and Import Official CCP SDE in Settings; (1) Open Catalog and click 'Recommend for My Capital' to add 3–5 safe starter T1 items in 1 click; (2) Scan live daily opportunities in Scanner; (3) Verify Order Book & Sell Walls in Marketplace; (4) Compute exact BOM & copy EVE Multibuy in Calculator; (5) Allocate capital safely & track batches; (6) Add passive PI income and snapshot Net Worth daily.",
+		DescID:     "Baru mulai bisnis industri & trading di EVE Online? Ikuti Roadmap 7 Langkah 'Start Here' di bagian paling atas halaman Wiki ini: (0) Atur Modal Awal, Primary Trade Hub (Jita/Amarr/Dodixie/Rens/Hek), pajak, SCI, dan Import Official CCP SDE di Settings; (1) Buka Catalog lalu klik 'Recommend for My Capital' untuk langsung mengisi 3–5 item T1 aman pemula dalam 1 klik; (2) Cek peluang harian di Scanner; (3) Verifikasi Order Book & Sell Wall di Marketplace; (4) Hitung BOM & salin EVE Multibuy di Calculator; (5) Bagi modal aman & pantau batch; (6) Tambah penghasilan pasif PI dan catat Net Worth harian.",
+		TipEN:      "Golden Rule for Beginners: never put more than 50% of your ISK into one batch, always keep a 10–15% Cash Buffer, and never haul >200M ISK in a T1 hauler.",
+		TipID:      "Aturan Emas Pemula: jangan pernah taruh lebih dari 50% modal ke 1 batch, selalu sisakan 10–15% Cash Buffer, dan jangan angkut barang >200M ISK memakai kapal hauler T1.",
+	},
+	{
+		Category:   "workflow",
 		Term:       "Target Trade Hub (Jita, Amarr, Dodixie, Rens, Hek) for Catalog & Trap Guard",
 		BadgeText:  "5 TRADE HUBS",
 		BadgeClass: "border-sky-400/45 bg-sky-500/20 text-sky-200 font-bold",
@@ -713,52 +724,97 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\" x-data=\"{\n\t\t\t\tlang: localStorage.getItem(&#39;af-wiki-lang&#39;) || &#39;en&#39;,\n\t\t\t\tcat: &#39;all&#39;,\n\t\t\t\tq: &#39;&#39;,\n\t\t\t\tsetLang(l) {\n\t\t\t\t\tthis.lang = l;\n\t\t\t\t\tlocalStorage.setItem(&#39;af-wiki-lang&#39;, l);\n\t\t\t\t},\n\t\t\t\tmatches(category, text) {\n\t\t\t\t\tif (this.cat !== &#39;all&#39; &amp;&amp; this.cat !== category) return false;\n\t\t\t\t\tconst query = this.q.trim().toLowerCase();\n\t\t\t\t\tif (!query) return true;\n\t\t\t\t\tconst haystack = (text || &#39;&#39;).toLowerCase();\n\t\t\t\t\tconst tokens = query.split(/\\s+/).filter(Boolean);\n\t\t\t\t\treturn tokens.every(tok =&gt; haystack.includes(tok));\n\t\t\t\t}\n\t\t\t}\"><!-- Header & EN | ID Language Toggle --><div class=\"flex flex-wrap items-center justify-between gap-4\"><div><h1 class=\"text-2xl font-bold tracking-tight text-white\">EVE Online Wiki &amp; UI Color Guide</h1><p class=\"text-xs text-slate-300/80 mt-0.5\" x-show=\"lang === &#39;en&#39;\">Beginner-friendly reference for every EVE Online term, UI color indicator, badge, and daily workflow inside aura-forge.</p><p x-cloak class=\"text-xs text-slate-300/80 mt-0.5\" x-show=\"lang === &#39;id&#39;\">Panduan ramah pemula untuk semua istilah EVE Online, arti warna/badge di UI, dan alur kerja harian di dalam aura-forge.</p></div><!-- EN | ID Toggle (Default EN per AGENTS.md, instant ID switch for beginner learning) --><div class=\"inline-flex rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur\"><button type=\"button\" @click=\"setLang(&#39;en&#39;)\" :class=\"lang === &#39;en&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3 py-1.5 text-xs font-extrabold tracking-wider transition cursor-pointer\">EN</button> <button type=\"button\" @click=\"setLang(&#39;id&#39;)\" :class=\"lang === &#39;id&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3 py-1.5 text-xs font-extrabold tracking-wider transition cursor-pointer\">ID</button></div></div><!-- Search & Category Filter Bar --><div class=\"tactical-panel rounded-xl p-4 space-y-3\"><div class=\"relative\"><input type=\"text\" x-model=\"q\" :placeholder=\"lang === &#39;en&#39; ? &#39;Search terms or badges (e.g. cheap, fair, high, hot, spread, ME, SCI, undercut, decryptor)...&#39; : &#39;Cari istilah atau badge (mis. cheap, fair, high, hot, spread, ME, SCI, undercut, decryptor)...&#39;\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900/90 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none\"></div><div class=\"flex flex-wrap gap-1.5\"><button type=\"button\" @click=\"cat = &#39;all&#39;\" :class=\"cat === &#39;all&#39; ? &#39;bg-violet-600 text-white border-violet-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">All Topics</button> <button type=\"button\" @click=\"cat = &#39;colors&#39;\" :class=\"cat === &#39;colors&#39; ? &#39;bg-emerald-500 text-slate-950 border-emerald-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Colors &amp; Badges</button> <button type=\"button\" @click=\"cat = &#39;capital&#39;\" :class=\"cat === &#39;capital&#39; ? &#39;bg-amber-300 text-slate-950 border-amber-200&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Capital &amp; KPIs</button> <button type=\"button\" @click=\"cat = &#39;market&#39;\" :class=\"cat === &#39;market&#39; ? &#39;bg-sky-500 text-slate-950 border-sky-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Market &amp; Trading</button> <button type=\"button\" @click=\"cat = &#39;industry&#39;\" :class=\"cat === &#39;industry&#39; ? &#39;bg-amber-400 text-slate-950 border-amber-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Industry &amp; Blueprints</button> <button type=\"button\" @click=\"cat = &#39;pi&#39;\" :class=\"cat === &#39;pi&#39; ? &#39;bg-teal-400 text-slate-950 border-teal-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Planetary Industry (PI)</button> <button type=\"button\" @click=\"cat = &#39;invention&#39;\" :class=\"cat === &#39;invention&#39; ? &#39;bg-violet-500 text-white border-violet-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">T2 Invention &amp; Scaling</button> <button type=\"button\" @click=\"cat = &#39;workflow&#39;\" :class=\"cat === &#39;workflow&#39; ? &#39;bg-emerald-400 text-slate-950 border-emerald-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Daily Beginner Workflow</button></div></div><!-- Wiki Cards Grid --><div class=\"grid grid-cols-1 gap-4 md:grid-cols-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\" x-data=\"{\n\t\t\t\tlang: localStorage.getItem(&#39;af-wiki-lang&#39;) || &#39;en&#39;,\n\t\t\t\tshowQuickstart: true,\n\t\t\t\tcat: &#39;all&#39;,\n\t\t\t\tq: &#39;&#39;,\n\t\t\t\tsetLang(l) {\n\t\t\t\t\tthis.lang = l;\n\t\t\t\t\tlocalStorage.setItem(&#39;af-wiki-lang&#39;, l);\n\t\t\t\t},\n\t\t\t\tmatches(category, text) {\n\t\t\t\t\tif (this.cat !== &#39;all&#39; &amp;&amp; this.cat !== category) return false;\n\t\t\t\t\tconst query = this.q.trim().toLowerCase();\n\t\t\t\t\tif (!query) return true;\n\t\t\t\t\tconst haystack = (text || &#39;&#39;).toLowerCase();\n\t\t\t\t\tconst tokens = query.split(/\\s+/).filter(Boolean);\n\t\t\t\t\treturn tokens.every(tok =&gt; haystack.includes(tok));\n\t\t\t\t}\n\t\t\t}\"><!-- Header & EN | ID Language Toggle --><div class=\"flex flex-wrap items-center justify-between gap-4\"><div><h1 class=\"text-2xl font-bold tracking-tight text-white\">EVE Online Wiki &amp; UI Color Guide</h1><p class=\"text-xs text-slate-300/80 mt-0.5\" x-show=\"lang === &#39;en&#39;\">Beginner-friendly reference for every EVE Online term, UI color indicator, badge, and daily workflow inside aura-forge.</p><p x-cloak class=\"text-xs text-slate-300/80 mt-0.5\" x-show=\"lang === &#39;id&#39;\">Panduan ramah pemula untuk semua istilah EVE Online, arti warna/badge di UI, dan alur kerja harian di dalam aura-forge.</p></div><!-- EN | ID Toggle (Default EN per AGENTS.md, instant ID switch for beginner learning) --><div class=\"inline-flex rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur\"><button type=\"button\" @click=\"setLang(&#39;en&#39;)\" :class=\"lang === &#39;en&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3 py-1.5 text-xs font-extrabold tracking-wider transition cursor-pointer\">EN</button> <button type=\"button\" @click=\"setLang(&#39;id&#39;)\" :class=\"lang === &#39;id&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3 py-1.5 text-xs font-extrabold tracking-wider transition cursor-pointer\">ID</button></div></div><!-- START HERE: Complete Beginner Step-by-Step Guide (Day 0 -> 100B+ ISK) --><div class=\"tactical-panel rounded-2xl border border-amber-400/35 overflow-hidden\"><div class=\"flex flex-wrap items-center justify-between gap-3 border-b border-violet-400/20 bg-gradient-to-r from-violet-950/60 via-slate-950/70 to-amber-950/30 px-5 py-4\"><div><div class=\"flex flex-wrap items-center gap-2\"><span class=\"rounded-md border border-amber-400/50 bg-amber-500/20 px-2 py-0.5 font-mono text-[10px] font-extrabold text-amber-200\">START HERE</span><h2 x-show=\"lang === &#39;en&#39;\" class=\"text-sm font-bold text-white\">Complete Beginner's Step-by-Step Guide (Where to Start from Day 0)</h2><h2 x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-sm font-bold text-white\">Panduan Lengkap Pemula Baru (Langkah demi Langkah Mulai dari Nol)</h2></div><p x-show=\"lang === &#39;en&#39;\" class=\"mt-1 text-xs text-slate-300/85\">Follow these 7 ordered steps to set up your trading &amp; industry business safely without losing ISK to beginner traps.</p><p x-cloak x-show=\"lang === &#39;id&#39;\" class=\"mt-1 text-xs text-slate-300/85\">Ikuti 7 langkah berurutan ini untuk memulai bisnis industri &amp; trading EVE Online secara aman tanpa terjebak rugi modal.</p></div><button type=\"button\" @click=\"showQuickstart = !showQuickstart\" class=\"rounded-lg border border-violet-400/35 bg-slate-900/70 px-3 py-1.5 text-xs font-semibold text-violet-100 hover:border-amber-300/50 transition cursor-pointer\"><span x-show=\"lang === &#39;en&#39;\" x-text=\"showQuickstart ? &#39;Hide Guide&#39; : &#39;Show 7-Step Guide&#39;\"></span> <span x-cloak x-show=\"lang === &#39;id&#39;\" x-text=\"showQuickstart ? &#39;Sembunyikan Panduan&#39; : &#39;Tampilkan Panduan 7 Langkah&#39;\"></span></button></div><div x-show=\"showQuickstart\" x-transition class=\"p-5 space-y-4\"><div class=\"grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4\"><!-- Step 0 --><div class=\"rounded-xl border border-violet-400/25 bg-slate-950/70 p-4 flex flex-col justify-between gap-3\"><div class=\"space-y-1.5\"><div class=\"flex items-center justify-between\"><span class=\"rounded bg-amber-400/20 border border-amber-400/40 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-200\">STEP 0 • ONCE</span> <span class=\"font-mono text-[10px] text-slate-400\">~5 min</span></div><h3 x-show=\"lang === &#39;en&#39;\" class=\"text-xs font-bold text-white\">First-Time Setup &amp; Full SDE</h3><h3 x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-xs font-bold text-white\">Setup Awal &amp; Import Full SDE</h3><p x-show=\"lang === &#39;en&#39;\" class=\"text-[11px] text-slate-300 leading-relaxed\">Enter your Starting Capital (e.g. 20M–100M ISK), pick your <strong>Primary Trade Hub</strong> (Jita, Amarr, Dodixie, Rens, or Hek), click <strong>Sync Live SCI</strong>, then click <strong>Import Full Official CCP SDE</strong> once so all 5,000+ blueprints &amp; 16,000+ market items are ready.</p><p x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-[11px] text-slate-300 leading-relaxed\">Isi modal awal Anda (mis. 20M–100M ISK), pilih <strong>Primary Trade Hub</strong> (Jita, Amarr, Dodixie, Rens, atau Hek), klik <strong>Sync Live SCI</strong>, lalu klik <strong>Import Full Official CCP SDE</strong> 1× agar seluruh 5.000+ blueprint &amp; 16.000+ item market aktif.</p></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if mode.IsAdmin() {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<a href=\"/settings\" class=\"inline-flex items-center justify-center rounded-lg border border-amber-400/40 bg-amber-500/15 px-3 py-1.5 text-[11px] font-bold text-amber-200 hover:bg-amber-500/25 transition\">Open Settings →</a>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div><!-- Step 1 --><div class=\"rounded-xl border border-emerald-400/25 bg-slate-950/70 p-4 flex flex-col justify-between gap-3\"><div class=\"space-y-1.5\"><div class=\"flex items-center justify-between\"><span class=\"rounded bg-emerald-400/20 border border-emerald-400/40 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-200\">STEP 1 • CATALOG</span> <span class=\"font-mono text-[10px] text-slate-400\">1-Click</span></div><h3 x-show=\"lang === &#39;en&#39;\" class=\"text-xs font-bold text-white\">Build Your Starter Product Menu</h3><h3 x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-xs font-bold text-white\">Isi Daftar Produk Pertama (Anti Bingung)</h3><p x-show=\"lang === &#39;en&#39;\" class=\"text-[11px] text-slate-300 leading-relaxed\">Don't guess from 5,000 blueprints! Open Catalog, select your Hub, click <strong>Recommend for My Capital</strong>, and click <strong>+ Add All Viable</strong> to load 3–5 beginner-safe T1 items (cheap NPC BPOs, fast daily sales, ≤35% capital/batch).</p><p x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-[11px] text-slate-300 leading-relaxed\">Tidak perlu menebak dari 5.000 blueprint! Buka Catalog, pilih Hub Anda, klik <strong>Recommend for My Capital</strong>, lalu klik <strong>+ Add All Viable</strong> untuk langsung mengisi 3–5 item T1 aman pemula (BPO NPC murah, cepat laku, modal ≤35%/batch).</p></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if mode.IsAdmin() {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<a href=\"/catalog\" class=\"inline-flex items-center justify-center rounded-lg border border-emerald-400/40 bg-emerald-500/15 px-3 py-1.5 text-[11px] font-bold text-emerald-200 hover:bg-emerald-500/25 transition\">Open Catalog →</a>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div><!-- Step 2 --><div class=\"rounded-xl border border-sky-400/25 bg-slate-950/70 p-4 flex flex-col justify-between gap-3\"><div class=\"space-y-1.5\"><div class=\"flex items-center justify-between\"><span class=\"rounded bg-sky-400/20 border border-sky-400/40 px-2 py-0.5 font-mono text-[10px] font-bold text-sky-200\">STEP 2 • DAILY</span> <span class=\"font-mono text-[10px] text-slate-400\">3 Paths</span></div><h3 x-show=\"lang === &#39;en&#39;\" class=\"text-xs font-bold text-white\">Scan Today's Best Opportunities</h3><h3 x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-xs font-bold text-white\">Cari Peluang Cuan Hari Ini</h3><p x-show=\"lang === &#39;en&#39;\" class=\"text-[11px] text-slate-300 leading-relaxed\">Choose your playstyle in <strong>Opportunity Scanner</strong>: <strong>Manufacturing</strong> (filter T1 + Profitable + Fits Capital), <strong>Station Trading</strong> (zero-hauling flips), or <strong>Inter-Hub Arbitrage</strong> (hauling Jita → Amarr with ≤200M gank-safe cap).</p><p x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-[11px] text-slate-300 leading-relaxed\">Pilih gaya main di <strong>Opportunity Scanner</strong>: <strong>Manufacturing</strong> (centang T1 + Profitable + Fits Capital), <strong>Station Trading</strong> (beli-jual di 1 hub), atau <strong>Inter-Hub Arbitrage</strong> (angkut Jita → Amarr aman ≤200M ISK).</p></div><a href=\"/scanner\" class=\"inline-flex items-center justify-center rounded-lg border border-sky-400/40 bg-sky-500/15 px-3 py-1.5 text-[11px] font-bold text-sky-200 hover:bg-sky-500/25 transition\">Open Scanner →</a></div><!-- Step 3 --><div class=\"rounded-xl border border-violet-400/25 bg-slate-950/70 p-4 flex flex-col justify-between gap-3\"><div class=\"space-y-1.5\"><div class=\"flex items-center justify-between\"><span class=\"rounded bg-violet-400/20 border border-violet-400/40 px-2 py-0.5 font-mono text-[10px] font-bold text-violet-200\">STEP 3 • VERIFY</span> <span class=\"font-mono text-[10px] text-slate-400\">Anti-Trap</span></div><h3 x-show=\"lang === &#39;en&#39;\" class=\"text-xs font-bold text-white\">Check Order Book &amp; Sell Walls</h3><h3 x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-xs font-bold text-white\">Cek Order Book &amp; Sell Wall</h3><p x-show=\"lang === &#39;en&#39;\" class=\"text-[11px] text-slate-300 leading-relaxed\">Before spending ISK, inspect the item in <strong>Marketplace</strong>: verify 7d Daily Volume, check <strong>Net Flip Margin</strong> (after taxes), avoid <strong>SPIKE</strong> traps &amp; giant Sell Walls, and use 1-click <strong>Copy Price</strong> on Recommended Orders.</p><p x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-[11px] text-slate-300 leading-relaxed\">Sebelum keluar modal, cek item di <strong>Marketplace</strong>: pastikan Daily Volume 7d aktif, lihat <strong>Net Flip Margin</strong> (setelah pajak), hindari jebakan <strong>SPIKE</strong> &amp; Sell Wall raksasa, lalu pakai tombol <strong>Copy Price</strong>.</p></div><a href=\"/marketplace\" class=\"inline-flex items-center justify-center rounded-lg border border-violet-400/40 bg-violet-500/15 px-3 py-1.5 text-[11px] font-bold text-violet-200 hover:bg-violet-500/25 transition\">Open Marketplace →</a></div><!-- Step 4 --><div class=\"rounded-xl border border-amber-400/25 bg-slate-950/70 p-4 flex flex-col justify-between gap-3\"><div class=\"space-y-1.5\"><div class=\"flex items-center justify-between\"><span class=\"rounded bg-amber-400/20 border border-amber-400/40 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-200\">STEP 4 • BUILD</span> <span class=\"font-mono text-[10px] text-slate-400\">Multibuy</span></div><h3 x-show=\"lang === &#39;en&#39;\" class=\"text-xs font-bold text-white\">Compute BOM &amp; Copy EVE Multibuy</h3><h3 x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-xs font-bold text-white\">Hitung BOM &amp; Belanja 1-Klik Multibuy</h3><p x-show=\"lang === &#39;en&#39;\" class=\"text-[11px] text-slate-300 leading-relaxed\">In <strong>Profit Calculator (Blueprint SDE Mode)</strong>, pick your blueprint, set Runs/ME/TE &amp; Hub, check the <strong>Make vs. Buy Tree</strong>, then click <strong>Copy EVE Multibuy</strong> and paste directly into EVE Online's Multibuy window.</p><p x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-[11px] text-slate-300 leading-relaxed\">Di <strong>Profit Calculator (Blueprint SDE Mode)</strong>, pilih blueprint, atur Runs/ME/TE &amp; Hub, cek <strong>Make vs. Buy Tree</strong>, lalu klik <strong>Copy EVE Multibuy</strong> dan paste langsung ke jendela Multibuy di game EVE Online.</p></div><a href=\"/calculator?mode=blueprint\" class=\"inline-flex items-center justify-center rounded-lg border border-amber-400/40 bg-amber-500/15 px-3 py-1.5 text-[11px] font-bold text-amber-200 hover:bg-amber-500/25 transition\">Open Calculator →</a></div><!-- Step 5 --><div class=\"rounded-xl border border-sky-400/25 bg-slate-950/70 p-4 flex flex-col justify-between gap-3\"><div class=\"space-y-1.5\"><div class=\"flex items-center justify-between\"><span class=\"rounded bg-sky-400/20 border border-sky-400/40 px-2 py-0.5 font-mono text-[10px] font-bold text-sky-200\">STEP 5 • EXECUTE</span> <span class=\"font-mono text-[10px] text-slate-400\">4 Buckets</span></div><h3 x-show=\"lang === &#39;en&#39;\" class=\"text-xs font-bold text-white\">Allocate Capital &amp; Track Batches</h3><h3 x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-xs font-bold text-white\">Bagi Modal Aman &amp; Pantau Batch</h3><p x-show=\"lang === &#39;en&#39;\" class=\"text-[11px] text-slate-300 leading-relaxed\">Run <strong>Smart Capital Allocator</strong> (auto-skips TRAPs &amp; keeps ≥10% Cash Buffer) → send to <strong>Weekly Planner</strong> → track in <strong>Batch Tracker</strong> (always check <strong>Safe Relist Price</strong> before undercutting!).</p><p x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-[11px] text-slate-300 leading-relaxed\">Jalankan <strong>Smart Capital Allocator</strong> (otomatis buang TRAP &amp; simpan ≥10% Cash Buffer) → kirim ke <strong>Weekly Planner</strong> → pantau di <strong>Batch Tracker</strong> (selalu cek <strong>Safe Relist Price</strong> sebelum menurunkan harga!).</p></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if mode.IsAdmin() {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<a href=\"/allocator\" class=\"inline-flex items-center justify-center rounded-lg border border-sky-400/40 bg-sky-500/15 px-3 py-1.5 text-[11px] font-bold text-sky-200 hover:bg-sky-500/25 transition\">Open Allocator →</a>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div><!-- Step 6 --><div class=\"rounded-xl border border-teal-400/25 bg-slate-950/70 p-4 flex flex-col justify-between gap-3\"><div class=\"space-y-1.5\"><div class=\"flex items-center justify-between\"><span class=\"rounded bg-teal-400/20 border border-teal-400/40 px-2 py-0.5 font-mono text-[10px] font-bold text-teal-200\">STEP 6 • PASSIVE</span> <span class=\"font-mono text-[10px] text-slate-400\">24/7 ISK</span></div><h3 x-show=\"lang === &#39;en&#39;\" class=\"text-xs font-bold text-white\">Add Passive Planetary Industry (PI)</h3><h3 x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-xs font-bold text-white\">Tambah Uang Pasif 24/7 (PI)</h3><p x-show=\"lang === &#39;en&#39;\" class=\"text-[11px] text-slate-300 leading-relaxed\">Set up <strong>Single-Planet P2</strong> colonies (<em>Mechanical Parts</em>, <em>Coolant</em>, <em>Enriched Uranium</em>) using the <strong>PI Hub</strong> Recipe Tree &amp; Planet Catalog so ISK flows in even while you are offline.</p><p x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-[11px] text-slate-300 leading-relaxed\">Pasang koloni <strong>Single-Planet P2</strong> (<em>Mechanical Parts</em>, <em>Coolant</em>, <em>Enriched Uranium</em>) lewat Recipe Tree &amp; Planet Catalog di <strong>PI Hub</strong> agar ISK terus masuk bahkan saat Anda offline.</p></div><a href=\"/pi\" class=\"inline-flex items-center justify-center rounded-lg border border-teal-400/40 bg-teal-500/15 px-3 py-1.5 text-[11px] font-bold text-teal-200 hover:bg-teal-500/25 transition\">Open PI Hub →</a></div><!-- Step 7 --><div class=\"rounded-xl border border-emerald-400/30 bg-emerald-950/20 p-4 flex flex-col justify-between gap-3\"><div class=\"space-y-1.5\"><div class=\"flex items-center justify-between\"><span class=\"rounded bg-emerald-400/20 border border-emerald-400/40 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-200\">STEP 7 • SCALE</span> <span class=\"font-mono text-[10px] text-emerald-300\">→ 100B+</span></div><h3 x-show=\"lang === &#39;en&#39;\" class=\"text-xs font-bold text-white\">Compound Daily &amp; Unlock T2</h3><h3 x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-xs font-bold text-white\">Catat Net Worth &amp; Naik ke T2</h3><p x-show=\"lang === &#39;en&#39;\" class=\"text-[11px] text-slate-300 leading-relaxed\">At the end of every session, click <strong>Auto-Capture Today</strong> in <strong>Net Worth</strong>. Once you reach <strong>1B ISK</strong>, unlock <strong>T2 Invention</strong> to compound smoothly toward 10B → 100B+ ISK!</p><p x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-[11px] text-slate-300 leading-relaxed\">Di akhir sesi bermain, klik <strong>Auto-Capture Today</strong> di <strong>Net Worth</strong>. Begitu modal mencapai <strong>1B ISK</strong>, mulai masuk ke <strong>T2 Invention</strong> untuk compounding menuju 10B → 100B+ ISK!</p></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if mode.IsAdmin() {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<a href=\"/wealth\" class=\"inline-flex items-center justify-center rounded-lg border border-emerald-400/45 bg-emerald-500/20 px-3 py-1.5 text-[11px] font-bold text-emerald-200 hover:bg-emerald-500/30 transition\">Open Net Worth →</a>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<a href=\"/invention\" class=\"inline-flex items-center justify-center rounded-lg border border-emerald-400/45 bg-emerald-500/20 px-3 py-1.5 text-[11px] font-bold text-emerald-200 hover:bg-emerald-500/30 transition\">Open T2 Invention →</a>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div></div><!-- 3 Golden Beginner Rules Strip --><div class=\"rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-[11px] text-amber-100/95 flex flex-wrap items-center gap-x-6 gap-y-1.5\"><span class=\"font-mono font-bold text-amber-300 uppercase\">3 Golden Rules:</span> <span x-show=\"lang === &#39;en&#39;\">1. Keep <strong>10–15% Cash Buffer</strong> for taxes &amp; relists</span> <span x-show=\"lang === &#39;en&#39;\">2. Never put <strong>&gt;50% capital</strong> into 1 batch</span> <span x-show=\"lang === &#39;en&#39;\">3. Never haul <strong>&gt;200M ISK</strong> in a T1 High-Sec hauler</span> <span x-cloak x-show=\"lang === &#39;id&#39;\">1. Selalu sisakan <strong>10–15% Cash Buffer</strong> untuk pajak &amp; relist</span> <span x-cloak x-show=\"lang === &#39;id&#39;\">2. Jangan taruh <strong>&gt;50% modal</strong> di 1 batch saja</span> <span x-cloak x-show=\"lang === &#39;id&#39;\">3. Jangan angkut <strong>&gt;200M ISK</strong> dengan kapal hauler T1 di High-Sec</span></div></div></div><!-- Search & Category Filter Bar --><div class=\"tactical-panel rounded-xl p-4 space-y-3\"><div class=\"relative\"><input type=\"text\" x-model=\"q\" :placeholder=\"lang === &#39;en&#39; ? &#39;Search terms or badges (e.g. cheap, fair, high, hot, spread, ME, SCI, undercut, decryptor)...&#39; : &#39;Cari istilah atau badge (mis. cheap, fair, high, hot, spread, ME, SCI, undercut, decryptor)...&#39;\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900/90 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none\"></div><div class=\"flex flex-wrap gap-1.5\"><button type=\"button\" @click=\"cat = &#39;all&#39;\" :class=\"cat === &#39;all&#39; ? &#39;bg-violet-600 text-white border-violet-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">All Topics</button> <button type=\"button\" @click=\"cat = &#39;colors&#39;\" :class=\"cat === &#39;colors&#39; ? &#39;bg-emerald-500 text-slate-950 border-emerald-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Colors &amp; Badges</button> <button type=\"button\" @click=\"cat = &#39;capital&#39;\" :class=\"cat === &#39;capital&#39; ? &#39;bg-amber-300 text-slate-950 border-amber-200&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Capital &amp; KPIs</button> <button type=\"button\" @click=\"cat = &#39;market&#39;\" :class=\"cat === &#39;market&#39; ? &#39;bg-sky-500 text-slate-950 border-sky-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Market &amp; Trading</button> <button type=\"button\" @click=\"cat = &#39;industry&#39;\" :class=\"cat === &#39;industry&#39; ? &#39;bg-amber-400 text-slate-950 border-amber-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Industry &amp; Blueprints</button> <button type=\"button\" @click=\"cat = &#39;pi&#39;\" :class=\"cat === &#39;pi&#39; ? &#39;bg-teal-400 text-slate-950 border-teal-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Planetary Industry (PI)</button> <button type=\"button\" @click=\"cat = &#39;invention&#39;\" :class=\"cat === &#39;invention&#39; ? &#39;bg-violet-500 text-white border-violet-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">T2 Invention &amp; Scaling</button> <button type=\"button\" @click=\"cat = &#39;workflow&#39;\" :class=\"cat === &#39;workflow&#39; ? &#39;bg-emerald-400 text-slate-950 border-emerald-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Daily Beginner Workflow</button></div></div><!-- Wiki Cards Grid --><div class=\"grid grid-cols-1 gap-4 md:grid-cols-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, item := range eveWikiEntries {
 				searchBlob := strings.ToLower(item.Term + " " + item.BadgeText + " " + item.WhereUsed + " " + item.DescEN + " " + item.DescID + " " + item.TipEN + " " + item.TipID)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div data-search=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div data-search=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(searchBlob)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 773, Col: 30}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1009, Col: 30}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" x-show=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" x-show=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs("matches('" + item.Category + "', $el.dataset.search)")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 774, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1010, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" class=\"tactical-panel rounded-xl p-5 flex flex-col justify-between gap-3\"><div class=\"space-y-2.5\"><div class=\"flex flex-wrap items-start justify-between gap-2\"><h2 class=\"text-sm font-bold text-white leading-snug\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" class=\"tactical-panel rounded-xl p-5 flex flex-col justify-between gap-3\"><div class=\"space-y-2.5\"><div class=\"flex flex-wrap items-start justify-between gap-2\"><h2 class=\"text-sm font-bold text-white leading-snug\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(item.Term)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 779, Col: 73}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1015, Col: 73}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</h2>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</h2>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -767,7 +823,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<span class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<span class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -780,90 +836,90 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(item.BadgeText)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 781, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1017, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</span></div><div class=\"text-[10px] font-mono uppercase tracking-wider text-violet-300/80\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</span></div><div class=\"text-[10px] font-mono uppercase tracking-wider text-violet-300/80\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(item.WhereUsed)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 785, Col: 24}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1021, Col: 24}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div><p x-show=\"lang === &#39;en&#39;\" class=\"text-xs text-slate-200 leading-relaxed\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</div><p x-show=\"lang === &#39;en&#39;\" class=\"text-xs text-slate-200 leading-relaxed\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 788, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1024, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</p><p x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-xs text-slate-200 leading-relaxed\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</p><p x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-xs text-slate-200 leading-relaxed\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 791, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1027, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</p></div><div class=\"rounded-lg border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-100/95\"><span class=\"font-mono font-bold text-amber-300 mr-1\">PRO TIP:</span> <span x-show=\"lang === &#39;en&#39;\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</p></div><div class=\"rounded-lg border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-100/95\"><span class=\"font-mono font-bold text-amber-300 mr-1\">PRO TIP:</span> <span x-show=\"lang === &#39;en&#39;\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 797, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1033, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</span> <span x-cloak x-show=\"lang === &#39;id&#39;\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</span> <span x-cloak x-show=\"lang === &#39;id&#39;\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 798, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1034, Col: 56}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span></div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</span></div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -25,7 +25,7 @@ type Renderer interface {
 	RenderAllocator(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, cfg domain.AllocationConfig, result *domain.AllocationResult, allocErr string) error
 	RenderAllocatorResult(w http.ResponseWriter, r *http.Request, result *domain.AllocationResult, allocErr string) error
 	RenderPlanner(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, data *service.PlannerViewData) error
-	RenderTracker(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, batches []domain.BatchRecord, statusFilter string) error
+	RenderTracker(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, hub domain.TradeHub, summary service.TrackerSummary, batches []domain.BatchRecord, statusFilter string) error
 	RenderRelistResult(w http.ResponseWriter, r *http.Request, res *domain.RelistGuardResult, errMsg string) error
 	RenderSettings(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, sdeStatus service.SDEImportStatus, saved bool) error
 	RenderSDEStatusPartial(w http.ResponseWriter, r *http.Request, status service.SDEImportStatus) error
@@ -496,12 +496,13 @@ func (h *Handlers) HandleLiveMinerals(w http.ResponseWriter, r *http.Request) {
 	h.writeJSON(w, http.StatusOK, pulse)
 }
 
-// HandleCheckUndercuts compares all LISTED/SLOW_MOVER batches against live Jita lowest sell prices via Public ESI.
+// HandleCheckUndercuts compares all LISTED/SLOW_MOVER batches against live lowest sell prices at the user's active Trade Hub.
 func (h *Handlers) HandleCheckUndercuts(w http.ResponseWriter, r *http.Request) {
+	hub := h.svc.ActiveCatalogHub(r.Context())
 	checked, undercuts, err := h.svc.CheckTrackerUndercutsESI(r.Context())
 	if err != nil {
 		if IsHTMX(r) {
-			TriggerToast(w, "error", "Cek Undercut ESI gagal: "+err.Error())
+			TriggerToast(w, "error", fmt.Sprintf("%s undercut check failed: %s", hub.Name, err.Error()))
 			w.WriteHeader(http.StatusOK)
 			return
 		}
@@ -511,17 +512,17 @@ func (h *Handlers) HandleCheckUndercuts(w http.ResponseWriter, r *http.Request) 
 
 	if IsHTMX(r) {
 		level := "success"
-		msg := fmt.Sprintf("Public ESI Undercut Radar: %d batch dicek, aman (0 undercut).", checked)
+		msg := fmt.Sprintf("%s Undercut Radar: %d listed batch(es) checked — all clear (0 undercuts).", hub.Name, checked)
 		if undercuts > 0 {
 			level = "error"
-			msg = fmt.Sprintf("PERHATIAN: %d dari %d batch LISTED sedang ter-undercut di Jita!", undercuts, checked)
+			msg = fmt.Sprintf("ALERT: %d of %d listed batch(es) are being undercut in %s!", undercuts, checked, hub.Name)
 		}
 		TriggerToast(w, level, msg)
 		w.Header().Set("HX-Refresh", "true")
 		w.WriteHeader(http.StatusOK)
 		return
 	}
-	h.writeJSON(w, http.StatusOK, map[string]any{"checked": checked, "undercuts": undercuts})
+	h.writeJSON(w, http.StatusOK, map[string]any{"hub": hub.Key, "checked": checked, "undercuts": undercuts})
 }
 
 // HandleCalculator renders the Net Profit, Tax & Break-Even Calculator page.
@@ -660,7 +661,7 @@ func (h *Handlers) HandleAllocatorToPlan(w http.ResponseWriter, r *http.Request)
 	plan, err := h.svc.CreatePlanFromAllocation(r.Context(), title, weekNum, cfg)
 	if err != nil {
 		if IsHTMX(r) {
-			TriggerToast(w, "error", "Gagal membuat Weekly Plan: "+err.Error())
+			TriggerToast(w, "error", "Failed to create Weekly Plan: "+err.Error())
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -669,7 +670,7 @@ func (h *Handlers) HandleAllocatorToPlan(w http.ResponseWriter, r *http.Request)
 	}
 
 	if IsHTMX(r) {
-		TriggerToast(w, "success", "Weekly Plan berhasil dibuat! Mengarahkan ke Planner...")
+		TriggerToast(w, "success", "Weekly Plan created! Redirecting to Planner...")
 		w.Header().Set("HX-Redirect", fmt.Sprintf("/planner?plan_id=%d", plan.ID))
 		w.WriteHeader(http.StatusOK)
 		return
@@ -690,7 +691,7 @@ func (h *Handlers) HandleAllocatorToBatches(w http.ResponseWriter, r *http.Reque
 	count, err := h.svc.CreateDraftBatchesFromAllocation(r.Context(), cfg)
 	if err != nil {
 		if IsHTMX(r) {
-			TriggerToast(w, "error", "Gagal membuat Draft Batches: "+err.Error())
+			TriggerToast(w, "error", "Failed to create Draft Batches: "+err.Error())
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -699,7 +700,7 @@ func (h *Handlers) HandleAllocatorToBatches(w http.ResponseWriter, r *http.Reque
 	}
 
 	if IsHTMX(r) {
-		TriggerToast(w, "success", fmt.Sprintf("%d Draft Batches berhasil dikirim ke Tracker.", count))
+		TriggerToast(w, "success", fmt.Sprintf("%d Draft Batch(es) sent to Tracker.", count))
 		w.Header().Set("HX-Redirect", "/tracker")
 		w.WriteHeader(http.StatusOK)
 		return
@@ -712,7 +713,7 @@ func (h *Handlers) HandlePlanner(w http.ResponseWriter, r *http.Request) {
 	planID, _ := strconv.ParseInt(r.URL.Query().Get("plan_id"), 10, 64)
 	data, err := h.svc.GetPlannerView(r.Context(), planID)
 	if err != nil {
-		http.Error(w, "Gagal memuat planner: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to load planner: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -732,7 +733,7 @@ func (h *Handlers) HandlePlannerConvertBatches(w http.ResponseWriter, r *http.Re
 	count, err := h.svc.ConvertPlanToTrackerBatches(r.Context(), planID)
 	if err != nil {
 		if IsHTMX(r) {
-			TriggerToast(w, "error", "Konversi gagal: "+err.Error())
+			TriggerToast(w, "error", "Conversion failed: "+err.Error())
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -741,7 +742,7 @@ func (h *Handlers) HandlePlannerConvertBatches(w http.ResponseWriter, r *http.Re
 	}
 
 	if IsHTMX(r) {
-		TriggerToast(w, "success", fmt.Sprintf("%d batch berhasil dieksekusi ke Tracker (status DRAFT).", count))
+		TriggerToast(w, "success", fmt.Sprintf("%d batch(es) sent to Tracker (status: DRAFT).", count))
 		w.Header().Set("HX-Redirect", "/tracker")
 		w.WriteHeader(http.StatusOK)
 		return
@@ -752,15 +753,26 @@ func (h *Handlers) HandlePlannerConvertBatches(w http.ResponseWriter, r *http.Re
 // HandleTracker renders the Production, Inventory & Market Order Tracker.
 func (h *Handlers) HandleTracker(w http.ResponseWriter, r *http.Request) {
 	statusFilter := r.URL.Query().Get("status")
-	batches, err := h.svc.ListBatches(r.Context(), statusFilter)
+	allBatches, err := h.svc.ListBatches(r.Context(), "")
 	if err != nil {
-		http.Error(w, "Gagal memuat tracker: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to load tracker: "+err.Error(), http.StatusInternalServerError)
 		return
+	}
+	summary := service.SummarizeTrackerBatches(allBatches)
+
+	batches := allBatches
+	if statusFilter != "" {
+		batches, err = h.svc.ListBatches(r.Context(), statusFilter)
+		if err != nil {
+			http.Error(w, "Failed to filter tracker: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	if h.renderer != nil {
 		mode := h.svc.GetModeInfo(r.Context())
-		_ = h.renderer.RenderTracker(w, r, mode, batches, statusFilter)
+		hub := h.svc.ActiveCatalogHub(r.Context())
+		_ = h.renderer.RenderTracker(w, r, mode, hub, summary, batches, statusFilter)
 		return
 	}
 	h.writeJSON(w, http.StatusOK, batches)
@@ -769,7 +781,7 @@ func (h *Handlers) HandleTracker(w http.ResponseWriter, r *http.Request) {
 // HandleSaveBatch creates a manual production batch in Tracker.
 func (h *Handlers) HandleSaveBatch(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Form tidak valid", http.StatusBadRequest)
+		http.Error(w, "Invalid form payload", http.StatusBadRequest)
 		return
 	}
 	batch := &domain.BatchRecord{
@@ -787,7 +799,7 @@ func (h *Handlers) HandleSaveBatch(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := h.svc.SaveBatch(r.Context(), batch); err != nil {
 		if IsHTMX(r) {
-			TriggerToast(w, "error", "Gagal menyimpan batch: "+err.Error())
+			TriggerToast(w, "error", "Failed to save batch: "+err.Error())
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -796,7 +808,7 @@ func (h *Handlers) HandleSaveBatch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if IsHTMX(r) {
-		TriggerToast(w, "success", "Batch produksi ditambahkan ke Tracker.")
+		TriggerToast(w, "success", fmt.Sprintf("Batch %q added to Tracker.", batch.ItemName))
 		w.Header().Set("HX-Refresh", "true")
 		w.WriteHeader(http.StatusOK)
 		return
@@ -808,13 +820,13 @@ func (h *Handlers) HandleSaveBatch(w http.ResponseWriter, r *http.Request) {
 func (h *Handlers) HandleUpdateBatchStatus(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil || id <= 0 {
-		http.Error(w, "ID batch tidak valid", http.StatusBadRequest)
+		http.Error(w, "Invalid batch ID", http.StatusBadRequest)
 		return
 	}
 	_ = r.ParseForm()
 	newStatus := domain.BatchStatus(r.FormValue("status"))
 	if newStatus == "" {
-		http.Error(w, "status wajib diisi", http.StatusBadRequest)
+		http.Error(w, "status is required", http.StatusBadRequest)
 		return
 	}
 
@@ -824,7 +836,7 @@ func (h *Handlers) HandleUpdateBatchStatus(w http.ResponseWriter, r *http.Reques
 	}
 
 	if IsHTMX(r) {
-		TriggerToast(w, "success", fmt.Sprintf("Status batch #%d diperbarui ke %s.", id, newStatus))
+		TriggerToast(w, "success", fmt.Sprintf("Batch #%d status updated to %s.", id, newStatus))
 		w.Header().Set("HX-Refresh", "true")
 		w.WriteHeader(http.StatusOK)
 		return
@@ -836,7 +848,7 @@ func (h *Handlers) HandleUpdateBatchStatus(w http.ResponseWriter, r *http.Reques
 func (h *Handlers) HandleDeleteBatch(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil || id <= 0 {
-		http.Error(w, "ID batch tidak valid", http.StatusBadRequest)
+		http.Error(w, "Invalid batch ID", http.StatusBadRequest)
 		return
 	}
 	if err := h.svc.DeleteBatch(r.Context(), id); err != nil {
@@ -844,7 +856,7 @@ func (h *Handlers) HandleDeleteBatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if IsHTMX(r) {
-		TriggerToast(w, "info", fmt.Sprintf("Batch #%d dihapus.", id))
+		TriggerToast(w, "info", fmt.Sprintf("Batch #%d deleted.", id))
 		w.Header().Set("HX-Refresh", "true")
 		w.WriteHeader(http.StatusOK)
 		return

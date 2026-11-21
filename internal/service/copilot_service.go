@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -81,12 +82,16 @@ type MineralQuote struct {
 
 // PlannerViewData bundles all data required to render the Weekly Production & Slot Planner.
 type PlannerViewData struct {
-	ActivePlan   *domain.WeeklyPlan              `json:"active_plan"`
-	AllPlans     []domain.WeeklyPlan             `json:"all_plans"`
-	SlotReport   domain.SlotCapacityReport       `json:"slot_report"`
-	ShoppingList domain.ConsolidatedShoppingList `json:"shopping_list"`
-	Growth4Weeks []domain.GrowthProjection       `json:"growth_4_weeks"`
-	Settings     domain.UserSettings             `json:"settings"`
+	ActivePlan        *domain.WeeklyPlan              `json:"active_plan"`
+	AllPlans          []domain.WeeklyPlan             `json:"all_plans"`
+	SlotReport        domain.SlotCapacityReport       `json:"slot_report"`
+	ShoppingList      domain.ConsolidatedShoppingList `json:"shopping_list"`
+	Growth4Weeks      []domain.GrowthProjection       `json:"growth_4_weeks"`
+	Settings          domain.UserSettings             `json:"settings"`
+	Hub               domain.TradeHub                 `json:"hub"`
+	SDEMatchedItems   int                             `json:"sde_matched_items"`
+	TotalPlannedItems int                             `json:"total_planned_items"`
+	UsingRealSDE      bool                            `json:"using_real_sde"`
 }
 
 // CopilotService orchestrates all domain use-cases across Standard Mode and Optional SSO Mode.
@@ -704,6 +709,7 @@ func (s *CopilotService) RunCapitalAllocation(ctx context.Context, cfg domain.Al
 	if err != nil {
 		return nil, err
 	}
+	res.ActiveHubName = settings.ActiveTradeHub().Name
 	return &res, nil
 }
 
@@ -765,7 +771,7 @@ func (s *CopilotService) CreatePlanFromAllocation(ctx context.Context, title str
 
 // CreateDraftBatchesFromAllocation converts allocation recommendations directly into Draft BatchRecords.
 func (s *CopilotService) CreateDraftBatchesFromAllocation(ctx context.Context, cfg domain.AllocationConfig) (int, error) {
-	plan, err := s.CreatePlanFromAllocation(ctx, "Alokasi Langsung", 1, cfg)
+	plan, err := s.CreatePlanFromAllocation(ctx, "Direct Allocation", 1, cfg)
 	if err != nil {
 		return 0, err
 	}
@@ -778,6 +784,7 @@ func (s *CopilotService) GetPlannerView(ctx context.Context, planID int64) (*Pla
 	if err != nil {
 		return nil, err
 	}
+	hub := settings.ActiveTradeHub()
 	_, availCap, _ := s.resolveProfileAndCapital(ctx, *settings)
 
 	var allPlans []domain.WeeklyPlan
@@ -797,15 +804,15 @@ func (s *CopilotService) GetPlannerView(ctx context.Context, planID int64) (*Pla
 	}
 
 	if selected == nil {
-		empty := domain.BuildWeeklyPlan("Rencana Minggu #1 (Draft)", 1, availCap, settings.ManufacturingSlots, settings.ScienceSlots, nil)
+		empty := domain.BuildWeeklyPlan("Week #1 Plan (Draft)", 1, availCap, settings.ManufacturingSlots, settings.ScienceSlots, nil)
 		selected = &empty
 	}
 
 	slotReport := domain.ValidateSlotCapacity(*selected)
 
-	// Build consolidated shopping list from plan items using live Jita mineral prices from Public ESI
-	liveMinerals := s.GetLiveJitaMinerals(ctx)
-	reqs := buildEstimatedBOMRequirements(selected.Items, liveMinerals)
+	// Build consolidated shopping list using real CCP SDE BOMs priced at the user's active Trade Hub,
+	// falling back to hub-priced mineral estimates only for items without a matching SDE blueprint.
+	reqs, sdeMatched := s.buildRealSDEConsolidatedBOM(ctx, hub, selected.Items)
 
 	// Deduct hangar assets if SSO connected
 	hangarStock := make(map[int32]int64)
@@ -827,12 +834,16 @@ func (s *CopilotService) GetPlannerView(ctx context.Context, planID int64) (*Pla
 	growth, _ := domain.SimulateFourWeekGrowth(availCap, weeklyROI, domain.DefaultReinvestRate)
 
 	return &PlannerViewData{
-		ActivePlan:   selected,
-		AllPlans:     allPlans,
-		SlotReport:   slotReport,
-		ShoppingList: shoppingList,
-		Growth4Weeks: growth,
-		Settings:     *settings,
+		ActivePlan:        selected,
+		AllPlans:          allPlans,
+		SlotReport:        slotReport,
+		ShoppingList:      shoppingList,
+		Growth4Weeks:      growth,
+		Settings:          *settings,
+		Hub:               hub,
+		SDEMatchedItems:   sdeMatched,
+		TotalPlannedItems: len(selected.Items),
+		UsingRealSDE:      sdeMatched > 0,
 	}, nil
 }
 
@@ -926,12 +937,13 @@ func (s *CopilotService) CheckTrackerUndercutsESI(ctx context.Context) (int, int
 		return 0, 0, nil
 	}
 
-	prices, err := s.market.GetJitaPrices(ctx, typeIDs)
-	if err != nil {
-		return 0, 0, fmt.Errorf("gagal mengambil harga Jita live: %w", err)
-	}
-
 	settings, _ := s.GetSettings(ctx)
+	hub := settings.ActiveTradeHub()
+
+	prices, err := s.fetchHubPrices(ctx, hub, typeIDs)
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to fetch live %s prices: %w", hub.Name, err)
+	}
 	checked := 0
 	undercuts := 0
 
@@ -955,7 +967,161 @@ func (s *CopilotService) CheckTrackerUndercutsESI(ctx context.Context) (int, int
 	return checked, undercuts, nil
 }
 
-// buildEstimatedBOMRequirements generates a consolidated mineral bill of materials priced with live Jita ESI quotes.
+// buildRealSDEConsolidatedBOM resolves real CCP SDE blueprint materials for every PlanItem,
+// prices all unique materials in one batched Public ESI lookup at the user's active Trade Hub,
+// and falls back to hub-priced mineral estimates only for items without an SDE blueprint.
+func (s *CopilotService) buildRealSDEConsolidatedBOM(ctx context.Context, hub domain.TradeHub, items []domain.PlanItem) ([]domain.MaterialRequirement, int) {
+	if len(items) == 0 {
+		return nil, 0
+	}
+
+	var sdeReqs []domain.MaterialRequirement
+	var fallbackItems []domain.PlanItem
+	sdeMatched := 0
+
+	if s.sde != nil {
+		for _, it := range items {
+			var bp *domain.SDEBlueprint
+			if it.TypeID > 0 {
+				bp, _ = s.sde.GetBlueprintByProductID(ctx, it.TypeID)
+			}
+			if bp == nil && strings.TrimSpace(it.Name) != "" {
+				if matches, err := s.sde.SearchBlueprints(ctx, strings.TrimSpace(it.Name), "", 5); err == nil {
+					for i := range matches {
+						if strings.EqualFold(matches[i].ProductName, strings.TrimSpace(it.Name)) {
+							bp = &matches[i]
+							break
+						}
+					}
+				}
+			}
+			if bp == nil {
+				fallbackItems = append(fallbackItems, it)
+				continue
+			}
+
+			mats, err := s.sde.GetBlueprintMaterials(ctx, bp.BlueprintTypeID)
+			if err != nil || len(mats) == 0 {
+				fallbackItems = append(fallbackItems, it)
+				continue
+			}
+
+			qtyPerRun := bp.ProductQtyPerRun
+			if qtyPerRun <= 0 {
+				qtyPerRun = 1
+			}
+			totalUnits := it.TotalUnits
+			if totalUnits <= 0 {
+				outPerBatch := it.OutputPerBatch
+				if outPerBatch <= 0 {
+					outPerBatch = qtyPerRun
+				}
+				runsCount := it.BatchRuns
+				if runsCount <= 0 {
+					runsCount = 1
+				}
+				totalUnits = runsCount * outPerBatch
+			}
+			runs := int(math.Ceil(float64(totalUnits) / float64(qtyPerRun)))
+			if runs < 1 {
+				runs = 1
+			}
+
+			defaultME := 10
+			if bp.TechLevel >= 2 {
+				defaultME = 2
+			}
+
+			for _, m := range mats {
+				adjQty := domain.ComputeAdjustedMaterialQty(m.BaseQuantity, runs, defaultME, 0)
+				if adjQty <= 0 {
+					continue
+				}
+				vol := m.VolumeM3
+				if vol <= 0 {
+					vol = 0.01
+				}
+				sdeReqs = append(sdeReqs, domain.MaterialRequirement{
+					TypeID:       m.MaterialTypeID,
+					TypeName:     m.MaterialName,
+					Quantity:     adjQty,
+					UnitVolumeM3: vol,
+				})
+			}
+			sdeMatched++
+		}
+	} else {
+		fallbackItems = items
+	}
+
+	// Fetch live prices for all unique SDE materials in a single batched hub call
+	if len(sdeReqs) > 0 && s.market != nil {
+		seen := make(map[int32]struct{}, len(sdeReqs))
+		matIDs := make([]int32, 0, len(sdeReqs))
+		for _, r := range sdeReqs {
+			if r.TypeID > 0 {
+				if _, ok := seen[r.TypeID]; !ok {
+					seen[r.TypeID] = struct{}{}
+					matIDs = append(matIDs, r.TypeID)
+				}
+			}
+		}
+		if len(matIDs) > 0 {
+			esiCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+			prices, err := s.fetchHubPrices(esiCtx, hub, matIDs)
+			cancel()
+			if err == nil {
+				for i := range sdeReqs {
+					if jp, ok := prices[sdeReqs[i].TypeID]; ok {
+						if jp.LowestSell > 0 {
+							sdeReqs[i].UnitPrice = jp.LowestSell
+						} else if jp.HighestBuy > 0 {
+							sdeReqs[i].UnitPrice = jp.HighestBuy
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Fallback mineral estimate only for non-SDE items, priced at the active hub
+	if len(fallbackItems) > 0 {
+		hubMinerals := s.getLiveHubMinerals(ctx, hub)
+		sdeReqs = append(sdeReqs, buildEstimatedBOMRequirements(fallbackItems, hubMinerals)...)
+	}
+
+	return sdeReqs, sdeMatched
+}
+
+// getLiveHubMinerals fetches live core mineral quotes at the specified Trade Hub.
+func (s *CopilotService) getLiveHubMinerals(ctx context.Context, hub domain.TradeHub) []MineralQuote {
+	defaults := []MineralQuote{
+		{TypeID: 34, Name: "Tritanium", LowestSell: 4.50, HighestBuy: 4.10},
+		{TypeID: 35, Name: "Pyerite", LowestSell: 12.00, HighestBuy: 11.20},
+		{TypeID: 36, Name: "Mexallon", LowestSell: 55.00, HighestBuy: 51.00},
+		{TypeID: 37, Name: "Isogen", LowestSell: 180.00, HighestBuy: 168.00},
+	}
+	if s.market == nil {
+		return defaults
+	}
+	tids := []int32{34, 35, 36, 37}
+	esiCtx, cancel := context.WithTimeout(ctx, 4*time.Second)
+	defer cancel()
+	prices, err := s.fetchHubPrices(esiCtx, hub, tids)
+	if err != nil {
+		return defaults
+	}
+	for i := range defaults {
+		if jp, ok := prices[defaults[i].TypeID]; ok && jp.LowestSell > 0 {
+			defaults[i].LowestSell = jp.LowestSell
+			defaults[i].HighestBuy = jp.HighestBuy
+			defaults[i].IsLive = true
+		}
+	}
+	return defaults
+}
+
+// buildEstimatedBOMRequirements generates a consolidated mineral bill of materials priced with live ESI quotes.
 func buildEstimatedBOMRequirements(items []domain.PlanItem, minerals []MineralQuote) []domain.MaterialRequirement {
 	if len(items) == 0 {
 		return nil
@@ -1028,7 +1194,7 @@ func (s *CopilotService) ConvertPlanToTrackerBatches(ctx context.Context, planID
 	}
 	plan, err := s.plans.GetPlanByID(ctx, planID)
 	if err != nil || plan == nil {
-		return 0, fmt.Errorf("plan #%d tidak ditemukan", planID)
+		return 0, fmt.Errorf("plan #%d not found", planID)
 	}
 	settings, _ := s.GetSettings(ctx)
 	batches := domain.ConvertPlanToBatches(*plan, *settings)
@@ -1054,7 +1220,47 @@ func (s *CopilotService) ListBatches(ctx context.Context, statusFilter string) (
 	return s.batches.ListBatches(ctx, st)
 }
 
-// SaveBatch creates or updates a BatchRecord.
+// TrackerSummary aggregates top-level KPI metrics across all production & market batches.
+type TrackerSummary struct {
+	TotalCount     int     `json:"total_count"`
+	ActiveCount    int     `json:"active_count"`
+	ListedCount    int     `json:"listed_count"`
+	SoldCount      int     `json:"sold_count"`
+	UndercutCount  int     `json:"undercut_count"`
+	LockedCapital  float64 `json:"locked_capital"`
+	RealizedProfit float64 `json:"realized_profit"`
+}
+
+// SummarizeTrackerBatches computes KPI totals across all batches.
+func SummarizeTrackerBatches(all []domain.BatchRecord) TrackerSummary {
+	var sum TrackerSummary
+	sum.TotalCount = len(all)
+	for _, b := range all {
+		switch b.Status {
+		case domain.BatchStatusSold:
+			sum.SoldCount++
+			sum.RealizedProfit += b.NetProfit
+		default:
+			sum.ActiveCount++
+			cost := b.ActualProductionCost
+			if cost <= 0 {
+				cost = b.TotalMaterialCost
+			}
+			sum.LockedCapital += cost
+			if b.Status == domain.BatchStatusListed || b.Status == domain.BatchStatusSlowMover {
+				sum.ListedCount++
+				if b.IsUndercut {
+					sum.UndercutCount++
+				}
+			}
+		}
+	}
+	sum.LockedCapital = domain.RoundISK(sum.LockedCapital)
+	sum.RealizedProfit = domain.RoundISK(sum.RealizedProfit)
+	return sum
+}
+
+// SaveBatch creates or updates a BatchRecord, auto-resolving TypeID from local SDE or Public ESI when missing.
 func (s *CopilotService) SaveBatch(ctx context.Context, b *domain.BatchRecord) (*domain.BatchRecord, error) {
 	if b == nil || strings.TrimSpace(b.ItemName) == "" {
 		return nil, fmt.Errorf("batch item name is required")
@@ -1067,6 +1273,30 @@ func (s *CopilotService) SaveBatch(ctx context.Context, b *domain.BatchRecord) (
 	}
 	if b.Status == "" {
 		b.Status = domain.BatchStatusDraft
+	}
+
+	// Auto-resolve TypeID from local sde_types first (0 ESI calls), then fallback to Public ESI
+	if b.TypeID <= 0 {
+		name := strings.TrimSpace(b.ItemName)
+		if s.sde != nil {
+			if ts, ok := s.sde.(domain.SDETypeSearchRepository); ok {
+				if matches, err := ts.SearchTypes(ctx, name, 5); err == nil {
+					for _, m := range matches {
+						if strings.EqualFold(m.Name, name) {
+							b.TypeID = m.TypeID
+							break
+						}
+					}
+				}
+			}
+		}
+		if b.TypeID <= 0 && s.market != nil {
+			if resolved, err := s.market.ResolveTypeIDs(ctx, []string{name}); err == nil {
+				if tid, ok := resolved[name]; ok {
+					b.TypeID = tid
+				}
+			}
+		}
 	}
 
 	settings, _ := s.GetSettings(ctx)
