@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"aura-forge/internal/domain"
@@ -30,30 +31,43 @@ func (s *CopilotService) fetchHubPrices(ctx context.Context, hub domain.TradeHub
 
 	prices := make(map[int32]domain.JitaPrice, len(typeIDs))
 	now := time.Now()
-	for i, id := range typeIDs {
+	const maxWorkers = 4
+	sem := make(chan struct{}, maxWorkers)
+	var (
+		wg sync.WaitGroup
+		mu sync.Mutex
+	)
+
+	for _, id := range typeIDs {
 		if id <= 0 {
 			continue
 		}
-		if i > 0 {
+		wg.Add(1)
+		go func(typeID int32) {
+			defer wg.Done()
 			select {
+			case sem <- struct{}{}:
+				defer func() { <-sem }()
 			case <-ctx.Done():
-				return prices, ctx.Err()
-			case <-time.After(15 * time.Millisecond):
+				return
 			}
-		}
-		_, _, sum, err := browser.GetRegionOrderBook(ctx, hub, id, 1)
-		if err != nil {
-			continue
-		}
-		prices[id] = domain.JitaPrice{
-			TypeID:          id,
-			LowestSell:      sum.LowestSell,
-			HighestBuy:      sum.HighestBuy,
-			SellOrdersCount: sum.SellOrdersCount,
-			BuyOrdersCount:  sum.BuyOrdersCount,
-			UpdatedTime:     now,
-		}
+			_, _, sum, err := browser.GetRegionOrderBook(ctx, hub, typeID, 1)
+			if err != nil {
+				return
+			}
+			mu.Lock()
+			prices[typeID] = domain.JitaPrice{
+				TypeID:          typeID,
+				LowestSell:      sum.LowestSell,
+				HighestBuy:      sum.HighestBuy,
+				SellOrdersCount: sum.SellOrdersCount,
+				BuyOrdersCount:  sum.BuyOrdersCount,
+				UpdatedTime:     now,
+			}
+			mu.Unlock()
+		}(id)
 	}
+	wg.Wait()
 	return prices, nil
 }
 

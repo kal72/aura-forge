@@ -88,32 +88,47 @@ type HangarAsset struct {
 
 // UserSettings represents application parameters and manual simulation constants.
 type UserSettings struct {
-	ID                 int       `json:"id"`
-	StartingCapital    float64   `json:"starting_capital"`
-	BrokerFeePercent   float64   `json:"broker_fee_percent"`   // e.g. 3.0 for 3.0%
-	SalesTaxPercent    float64   `json:"sales_tax_percent"`    // e.g. 3.6 for 3.6%
-	RelistFeePercent   float64   `json:"relist_fee_percent"`   // e.g. 0.5 for 0.5%
-	ManufacturingSlots int       `json:"manufacturing_slots"` // default 10
-	ScienceSlots       int       `json:"science_slots"`       // default 1
-	SystemCostIndex    float64   `json:"system_cost_index"`    // e.g. 0.045 for 4.5%
-	FreightCostPerM3   float64   `json:"freight_cost_per_m3"`  // e.g. 300 ISK/m³
-	FacilityTaxPercent float64   `json:"facility_tax_percent"` // e.g. 0.25%
-	UpdatedAt          time.Time `json:"updated_at"`
+	ID                           int       `json:"id"`
+	StartingCapital              float64   `json:"starting_capital"`
+	BrokerFeePercent             float64   `json:"broker_fee_percent"`   // e.g. 3.0 for 3.0%
+	SalesTaxPercent              float64   `json:"sales_tax_percent"`    // e.g. 3.6 for 3.6%
+	RelistFeePercent             float64   `json:"relist_fee_percent"`   // e.g. 0.5 for 0.5%
+	ManufacturingSlots           int       `json:"manufacturing_slots"`  // default 10
+	ScienceSlots                 int       `json:"science_slots"`        // default 1
+	SystemCostIndex              float64   `json:"system_cost_index"`    // e.g. 0.045 for 4.5%
+	FreightCostPerM3             float64   `json:"freight_cost_per_m3"`  // e.g. 300 ISK/m³
+	FacilityTaxPercent           float64   `json:"facility_tax_percent"` // e.g. 0.25%
+	AutoPriceSyncEnabled         bool      `json:"auto_price_sync_enabled"`
+	AutoPriceSyncIntervalMinutes int       `json:"auto_price_sync_interval_minutes"` // default 15 minutes
+	UpdatedAt                    time.Time `json:"updated_at"`
 }
 
 // DefaultUserSettings provides sensible defaults for a pilot starting in highsec.
 func DefaultUserSettings() UserSettings {
 	return UserSettings{
-		ID:                 1,
-		StartingCapital:    100_000_000.0, // 100M ISK
-		BrokerFeePercent:   3.0,
-		SalesTaxPercent:    3.6,
-		RelistFeePercent:   0.5,
-		ManufacturingSlots: 10,
-		ScienceSlots:       1,
-		SystemCostIndex:    0.045, // 4.5%
-		FreightCostPerM3:   300.0,
-		FacilityTaxPercent: 0.25,
-		UpdatedAt:          time.Now(),
+		ID:                           1,
+		StartingCapital:              100_000_000.0, // 100M ISK
+		BrokerFeePercent:             3.0,
+		SalesTaxPercent:              3.6,
+		RelistFeePercent:             0.5,
+		ManufacturingSlots:           10,
+		ScienceSlots:                 1,
+		SystemCostIndex:              0.045, // 4.5%
+		FreightCostPerM3:             300.0,
+		FacilityTaxPercent:           0.25,
+		AutoPriceSyncEnabled:         true,
+		AutoPriceSyncIntervalMinutes: 15,
+		UpdatedAt:                    time.Now(),
 	}
+}
+
+// ClampPriceSyncInterval enforces safe minimum (5 min) and maximum (120 min) background sync intervals.
+func ClampPriceSyncInterval(minutes int) int {
+	if minutes < 5 {
+		return 5
+	}
+	if minutes > 120 {
+		return 120
+	}
+	return minutes
 }

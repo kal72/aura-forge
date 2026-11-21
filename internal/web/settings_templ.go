@@ -175,40 +175,184 @@ func SettingsPage(mode service.ModeInfo, settings domain.UserSettings, saved boo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div class=\"sm:col-span-2 pt-2\"><button type=\"submit\" class=\"w-full rounded-md bg-sky-500 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer\">Save Settings</button></div></form></div><!-- Optional EVE SSO Plug-and-Play Card --><div class=\"tactical-panel rounded-xl p-5 lg:col-span-5 space-y-4\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">EVE Online SSO OAuth2 (Optional)</h2>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div class=\"sm:col-span-2 pt-2\"><button type=\"submit\" class=\"w-full rounded-md bg-sky-500 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer\">Save Settings</button></div></form></div><!-- Right Column: Background Jita Price Updater + Optional EVE SSO --><div class=\"lg:col-span-5 space-y-6\"><!-- Background Jita Price Updater Card --><div class=\"tactical-panel rounded-xl p-5 space-y-4\"><div class=\"flex items-center justify-between gap-2\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-emerald-300\">Background Jita Price Updater</h2>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if mode.SSOConnected {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div class=\"rounded-lg border border-emerald-500/40 bg-emerald-950/30 p-4 space-y-3\"><div class=\"flex items-center gap-2 text-sm font-bold text-emerald-300\"><span class=\"h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse\"></span> Connected: ")
+			if mode.PriceSync.IsRunning {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<span class=\"rounded-full border border-amber-400/45 bg-amber-500/20 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-200 animate-pulse\">SYNCING</span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var12 string
-				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(mode.CharacterName)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/settings.templ`, Line: 98, Col: 39}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div><p class=\"text-xs text-slate-300\">Auto-Sync for wallet balance, active market orders, industry jobs, blueprints, and hangar stock deduction is active.</p><div class=\"flex flex-wrap gap-2\"><button type=\"button\" hx-post=\"/auth/sync\" hx-swap=\"none\" class=\"rounded bg-emerald-500 px-3 py-1.5 text-xs font-bold text-slate-950 hover:bg-emerald-400 cursor-pointer\">Sync Character Now</button> <button type=\"button\" hx-post=\"/auth/disconnect\" hx-swap=\"none\" class=\"rounded border border-rose-500/40 bg-rose-500/15 px-3 py-1.5 text-xs font-semibold text-rose-200 hover:bg-rose-500/25 cursor-pointer\">Disconnect EVE SSO</button></div></div>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			} else if mode.SSOEnabled {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<div class=\"rounded-lg border border-sky-500/40 bg-sky-950/30 p-4 space-y-3\"><div class=\"text-sm font-bold text-sky-300\">EVE SSO Credentials Detected in .env</div><p class=\"text-xs text-slate-300\">Click below to connect your EVE Online character and enable Auto-Sync for Wallet, Orders, Jobs, Blueprints &amp; Hangar Assets.</p><a href=\"/auth/login\" class=\"inline-block rounded-md bg-amber-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-amber-400 transition\">Connect EVE SSO →</a></div>")
+			} else if settings.AutoPriceSyncEnabled {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<span class=\"rounded-full border border-emerald-400/45 bg-emerald-500/20 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-200\">AUTO ON</span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"rounded-lg border border-slate-700 bg-slate-900/70 p-4 space-y-3\"><div class=\"inline-block rounded-full border border-amber-400/40 bg-amber-500/15 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-amber-300\">Optional: Set ESI_CLIENT_ID &amp; SECRET in .env for Character Auto-Sync</div><p class=\"text-xs text-slate-300 leading-relaxed\">Running <strong>100% out-of-the-box in Standard Mode (Public ESI + Manual/Import)</strong> with no CCP developer registration required.</p><div class=\"rounded bg-slate-950 p-3 font-mono text-[11px] text-slate-300 space-y-1\"><div class=\"text-slate-500\"># Add to .env when you want to enable EVE SSO:</div><div>ESI_CLIENT_ID=<span class=\"text-sky-300\">your_client_id</span></div><div>ESI_CLIENT_SECRET=<span class=\"text-sky-300\">your_client_secret</span></div><div>ESI_CALLBACK_URL=<span class=\"text-sky-300\">http://localhost:8080/auth/callback</span></div></div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<span class=\"rounded-full border border-slate-500/45 bg-slate-700/40 px-2 py-0.5 font-mono text-[10px] font-bold text-slate-300\">MANUAL</span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</div><p class=\"text-xs text-slate-300 leading-relaxed\">Keeps dynamic <strong>Jita 4-4</strong> prices warm in PostgreSQL <code class=\"text-amber-200\">esi_cache</code> for your active business scope (<strong>Catalog + 68 PI P1–P4 + SDE Blueprints</strong>) so PI Hub, Scanner, Calculator, and Marketplace load instantly. Static recipes &amp; planet catalogs never call ESI; other hubs (Amarr, Dodixie, Rens, Hek) remain on-demand.</p><!-- Live Sync Telemetry --><div class=\"grid grid-cols-2 gap-2 rounded-lg border border-slate-700/70 bg-slate-900/60 p-3 text-[11px] font-mono\"><div><div class=\"text-slate-400 text-[10px] uppercase\">Status</div><div class=\"text-white font-semibold mt-0.5\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var12 string
+			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(mode.PriceSync.FreshnessLabel())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/settings.templ`, Line: 113, Col: 86}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div></div><div><div class=\"text-slate-400 text-[10px] uppercase\">Next Scheduled Sync</div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if mode.PriceSync.NextSyncAt != nil {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<div class=\"text-sky-300 font-semibold mt-0.5\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var13 string
+				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(mode.PriceSync.NextSyncAt.Format("15:04:05"))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/settings.templ`, Line: 118, Col: 102}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<div class=\"text-slate-400 mt-0.5\">—</div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if mode.PriceSync.LastError != "" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<div class=\"col-span-2 text-rose-300 text-[10px] pt-1 border-t border-slate-800\">Last warning: ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var14 string
+				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(mode.PriceSync.LastError)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/settings.templ`, Line: 125, Col: 49}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</div><form hx-post=\"/settings\" hx-swap=\"none\" class=\"space-y-3\"><input type=\"hidden\" name=\"form_section\" value=\"price_updater\"> <label class=\"flex items-center gap-2.5 cursor-pointer select-none rounded-lg border border-slate-700/80 bg-slate-900/50 px-3 py-2.5\"><input type=\"checkbox\" name=\"auto_price_sync_enabled\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if settings.AutoPriceSyncEnabled {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, " checked")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, " class=\"h-4 w-4 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-400\"> <span class=\"text-xs font-medium text-white\">Enable automatic Jita background sync</span></label><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Sync Interval</label> <select name=\"auto_price_sync_interval_minutes\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white\"><option value=\"5\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if settings.AutoPriceSyncIntervalMinutes == 5 {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, " selected")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, ">Every 5 minutes (High Frequency)</option> <option value=\"10\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if settings.AutoPriceSyncIntervalMinutes == 10 {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, " selected")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, ">Every 10 minutes</option> <option value=\"15\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if settings.AutoPriceSyncIntervalMinutes == 15 {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, " selected")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, ">Every 15 minutes (Recommended)</option> <option value=\"30\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if settings.AutoPriceSyncIntervalMinutes == 30 {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, " selected")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, ">Every 30 minutes (Light ESI)</option> <option value=\"60\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if settings.AutoPriceSyncIntervalMinutes == 60 {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, " selected")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, ">Every 60 minutes (Minimal ESI)</option></select></div><div class=\"flex flex-wrap gap-2 pt-1\"><button type=\"submit\" class=\"flex-1 rounded-md bg-emerald-500 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-emerald-400 transition cursor-pointer\">Save Updater Schedule</button> <button type=\"button\" hx-post=\"/esi/sync-prices\" hx-swap=\"none\" class=\"rounded-md border border-amber-400/45 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer\">Run Sync Now</button></div></form></div><!-- Optional EVE SSO Plug-and-Play Card --><div class=\"tactical-panel rounded-xl p-5 space-y-4\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">EVE Online SSO OAuth2 (Optional)</h2>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if mode.SSOConnected {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<div class=\"rounded-lg border border-emerald-500/40 bg-emerald-950/30 p-4 space-y-3\"><div class=\"flex items-center gap-2 text-sm font-bold text-emerald-300\"><span class=\"h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse\"></span> Connected: ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var15 string
+				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(mode.CharacterName)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/settings.templ`, Line: 177, Col: 40}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</div><p class=\"text-xs text-slate-300\">Auto-Sync for wallet balance, active market orders, industry jobs, blueprints, and hangar stock deduction is active.</p><div class=\"flex flex-wrap gap-2\"><button type=\"button\" hx-post=\"/auth/sync\" hx-swap=\"none\" class=\"rounded bg-emerald-500 px-3 py-1.5 text-xs font-bold text-slate-950 hover:bg-emerald-400 cursor-pointer\">Sync Character Now</button> <button type=\"button\" hx-post=\"/auth/disconnect\" hx-swap=\"none\" class=\"rounded border border-rose-500/40 bg-rose-500/15 px-3 py-1.5 text-xs font-semibold text-rose-200 hover:bg-rose-500/25 cursor-pointer\">Disconnect EVE SSO</button></div></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else if mode.SSOEnabled {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<div class=\"rounded-lg border border-sky-500/40 bg-sky-950/30 p-4 space-y-3\"><div class=\"text-sm font-bold text-sky-300\">EVE SSO Credentials Detected in .env</div><p class=\"text-xs text-slate-300\">Click below to connect your EVE Online character and enable Auto-Sync for Wallet, Orders, Jobs, Blueprints &amp; Hangar Assets.</p><a href=\"/auth/login\" class=\"inline-block rounded-md bg-amber-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-amber-400 transition\">Connect EVE SSO →</a></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<div class=\"rounded-lg border border-slate-700 bg-slate-900/70 p-4 space-y-3\"><div class=\"inline-block rounded-full border border-amber-400/40 bg-amber-500/15 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-amber-300\">Optional: Set ESI_CLIENT_ID &amp; SECRET in .env for Character Auto-Sync</div><p class=\"text-xs text-slate-300 leading-relaxed\">Running <strong>100% out-of-the-box in Standard Mode (Public ESI + Manual/Import)</strong> with no CCP developer registration required.</p><div class=\"rounded bg-slate-950 p-3 font-mono text-[11px] text-slate-300 space-y-1\"><div class=\"text-slate-500\"># Add to .env when you want to enable EVE SSO:</div><div>ESI_CLIENT_ID=<span class=\"text-sky-300\">your_client_id</span></div><div>ESI_CLIENT_SECRET=<span class=\"text-sky-300\">your_client_secret</span></div><div>ESI_CALLBACK_URL=<span class=\"text-sky-300\">http://localhost:8080/auth/callback</span></div></div></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</div></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

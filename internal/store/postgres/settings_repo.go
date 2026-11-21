@@ -24,7 +24,7 @@ func (r *SettingsRepo) GetSettings(ctx context.Context) (*domain.UserSettings, e
 	query := `
 		SELECT id, starting_capital, broker_fee_percent, sales_tax_percent, relist_fee_percent,
 		       manufacturing_slots, science_slots, system_cost_index, freight_cost_per_m3,
-		       facility_tax_percent, updated_at
+		       facility_tax_percent, auto_price_sync_enabled, auto_price_sync_interval_minutes, updated_at
 		FROM user_settings
 		WHERE id = 1`
 
@@ -32,7 +32,8 @@ func (r *SettingsRepo) GetSettings(ctx context.Context) (*domain.UserSettings, e
 	err := r.pool.QueryRow(ctx, query).Scan(
 		&s.ID, &s.StartingCapital, &s.BrokerFeePercent, &s.SalesTaxPercent,
 		&s.RelistFeePercent, &s.ManufacturingSlots, &s.ScienceSlots,
-		&s.SystemCostIndex, &s.FreightCostPerM3, &s.FacilityTaxPercent, &s.UpdatedAt,
+		&s.SystemCostIndex, &s.FreightCostPerM3, &s.FacilityTaxPercent,
+		&s.AutoPriceSyncEnabled, &s.AutoPriceSyncIntervalMinutes, &s.UpdatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -42,6 +43,7 @@ func (r *SettingsRepo) GetSettings(ctx context.Context) (*domain.UserSettings, e
 		}
 		return nil, fmt.Errorf("failed to get user settings: %w", err)
 	}
+	s.AutoPriceSyncIntervalMinutes = domain.ClampPriceSyncInterval(s.AutoPriceSyncIntervalMinutes)
 
 	return &s, nil
 }
@@ -51,8 +53,8 @@ func (r *SettingsRepo) SaveSettings(ctx context.Context, s *domain.UserSettings)
 		INSERT INTO user_settings (
 			id, starting_capital, broker_fee_percent, sales_tax_percent, relist_fee_percent,
 			manufacturing_slots, science_slots, system_cost_index, freight_cost_per_m3,
-			facility_tax_percent, updated_at
-		) VALUES (1, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+			facility_tax_percent, auto_price_sync_enabled, auto_price_sync_interval_minutes, updated_at
+		) VALUES (1, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 		ON CONFLICT (id) DO UPDATE SET
 			starting_capital = EXCLUDED.starting_capital,
 			broker_fee_percent = EXCLUDED.broker_fee_percent,
@@ -63,16 +65,19 @@ func (r *SettingsRepo) SaveSettings(ctx context.Context, s *domain.UserSettings)
 			system_cost_index = EXCLUDED.system_cost_index,
 			freight_cost_per_m3 = EXCLUDED.freight_cost_per_m3,
 			facility_tax_percent = EXCLUDED.facility_tax_percent,
+			auto_price_sync_enabled = EXCLUDED.auto_price_sync_enabled,
+			auto_price_sync_interval_minutes = EXCLUDED.auto_price_sync_interval_minutes,
 			updated_at = EXCLUDED.updated_at`
 
 	now := time.Now()
 	s.ID = 1
+	s.AutoPriceSyncIntervalMinutes = domain.ClampPriceSyncInterval(s.AutoPriceSyncIntervalMinutes)
 	s.UpdatedAt = now
 
 	_, err := r.pool.Exec(ctx, query,
 		s.StartingCapital, s.BrokerFeePercent, s.SalesTaxPercent, s.RelistFeePercent,
 		s.ManufacturingSlots, s.ScienceSlots, s.SystemCostIndex, s.FreightCostPerM3,
-		s.FacilityTaxPercent, now,
+		s.FacilityTaxPercent, s.AutoPriceSyncEnabled, s.AutoPriceSyncIntervalMinutes, now,
 	)
 	return err
 }

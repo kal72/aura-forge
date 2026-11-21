@@ -18,7 +18,7 @@ type SSOAuthenticator interface {
 }
 
 // ModeInfo describes the current operational mode (Public ESI Standard vs EVE SSO Connected)
-// along with the currently authenticated application user.
+// along with the currently authenticated application user and background Jita price sync status.
 type ModeInfo struct {
 	SSOEnabled    bool            `json:"sso_enabled"`
 	SSOConnected  bool            `json:"sso_connected"`
@@ -27,6 +27,7 @@ type ModeInfo struct {
 	ModeLabel     string          `json:"mode_label"`
 	StatusHint    string          `json:"status_hint"`
 	CurrentUser   *domain.AppUser `json:"current_user,omitempty"`
+	PriceSync     PriceSyncStatus `json:"price_sync"`
 }
 
 // DashboardSummary aggregates top-level KPIs and daily assistant tasks.
@@ -70,17 +71,18 @@ type PlannerViewData struct {
 
 // CopilotService orchestrates all domain use-cases across Standard Mode and Optional SSO Mode.
 type CopilotService struct {
-	items    domain.ItemRepository
-	batches  domain.BatchRepository
-	plans    domain.PlanRepository
-	chars    domain.CharacterRepository
-	settings domain.SettingsRepository
-	market   domain.MarketDataProvider
-	charSync domain.CharacterSyncProvider
-	sso      SSOAuthenticator
-	sde      domain.SDERepository
-	wealth   domain.NetWorthRepository
-	pi       domain.PIRepository
+	items     domain.ItemRepository
+	batches   domain.BatchRepository
+	plans     domain.PlanRepository
+	chars     domain.CharacterRepository
+	settings  domain.SettingsRepository
+	market    domain.MarketDataProvider
+	charSync  domain.CharacterSyncProvider
+	sso       SSOAuthenticator
+	sde       domain.SDERepository
+	wealth    domain.NetWorthRepository
+	pi        domain.PIRepository
+	priceSync *priceSyncState
 }
 
 // NewCopilotService constructs a CopilotService via Dependency Inversion interfaces.
@@ -95,27 +97,30 @@ func NewCopilotService(
 	sso SSOAuthenticator,
 ) *CopilotService {
 	return &CopilotService{
-		items:    items,
-		batches:  batches,
-		plans:    plans,
-		chars:    chars,
-		settings: settings,
-		market:   market,
-		charSync: charSync,
-		sso:      sso,
+		items:     items,
+		batches:   batches,
+		plans:     plans,
+		chars:     chars,
+		settings:  settings,
+		market:    market,
+		charSync:  charSync,
+		sso:       sso,
+		priceSync: newPriceSyncState(),
 	}
 }
 
 // GetModeInfo inspects SSO config, stored character tokens, and authenticated user context.
 func (s *CopilotService) GetModeInfo(ctx context.Context) ModeInfo {
 	currentUser := domain.AppUserFromContext(ctx)
+	priceSync := s.GetPriceSyncStatus(ctx)
 	ssoEnabled := s.sso != nil && s.sso.IsEnabled()
 	if !ssoEnabled {
 		return ModeInfo{
 			SSOEnabled:  false,
 			ModeLabel:   "Public ESI Active",
-			StatusHint:  "Optional: Isi ESI_CLIENT_ID & SECRET di .env untuk Auto-Sync Karakter",
+			StatusHint:  "Optional: Set ESI_CLIENT_ID & SECRET in .env for Character Auto-Sync",
 			CurrentUser: currentUser,
+			PriceSync:   priceSync,
 		}
 	}
 
@@ -127,18 +132,20 @@ func (s *CopilotService) GetModeInfo(ctx context.Context) ModeInfo {
 				CharacterID:   tok.CharacterID,
 				CharacterName: tok.CharacterName,
 				ModeLabel:     "EVE SSO Connected",
-				StatusHint:    fmt.Sprintf("Terhubung sebagai %s", tok.CharacterName),
+				StatusHint:    fmt.Sprintf("Connected as %s", tok.CharacterName),
 				CurrentUser:   currentUser,
+				PriceSync:     priceSync,
 			}
 		}
 	}
 
 	return ModeInfo{
-		SSOEnabled:  true,
+		SSOEnabled:   true,
 		SSOConnected: false,
-		ModeLabel:   "Public ESI Active",
-		StatusHint:  "EVE SSO Siap: Klik Integrasi EVE SSO untuk menyinkronkan karakter",
-		CurrentUser: currentUser,
+		ModeLabel:    "Public ESI Active",
+		StatusHint:   "EVE SSO Ready: Click Connect EVE SSO to synchronize your character",
+		CurrentUser:  currentUser,
+		PriceSync:    priceSync,
 	}
 }
 
@@ -200,11 +207,13 @@ func (s *CopilotService) UpdateSettings(ctx context.Context, cfg *domain.UserSet
 	if cfg.ScienceSlots < 0 {
 		cfg.ScienceSlots = 0
 	}
+	cfg.AutoPriceSyncIntervalMinutes = domain.ClampPriceSyncInterval(cfg.AutoPriceSyncIntervalMinutes)
 	if s.settings != nil {
 		if err := s.settings.SaveSettings(ctx, cfg); err != nil {
 			return err
 		}
 	}
+	s.priceSync.notifyConfigChanged()
 	return nil
 }
 

@@ -105,13 +105,18 @@ func main() {
 	copilotSvc.SetNetWorthRepository(wealthRepo)
 	copilotSvc.SetPIRepository(piRepo)
 
+	// Start supervised background Jita price updater (Catalog + PI P1-P4 + SDE Blueprints)
+	bgCtx, bgCancel := context.WithCancel(context.Background())
+	defer bgCancel()
+	copilotSvc.StartBackgroundPriceUpdater(bgCtx)
+
 	router := apphttp.NewRouterWithAuth(copilotSvc, authSvc, web.NewRenderer())
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
 		Handler:      router,
 		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 30 * time.Second,
+		WriteTimeout: 120 * time.Second,
 		IdleTimeout:  60 * time.Second,
 	}
 
@@ -127,6 +132,7 @@ func main() {
 	<-quit
 
 	log.Println("[INFO] Shutting down aura-forge server...")
+	bgCancel()
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdownCancel()
 	_ = srv.Shutdown(shutdownCtx)

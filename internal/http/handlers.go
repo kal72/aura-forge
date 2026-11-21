@@ -235,12 +235,12 @@ func (h *Handlers) HandleLoadSampleData(w http.ResponseWriter, r *http.Request) 
 	http.Redirect(w, r, "/catalog", http.StatusSeeOther)
 }
 
-// HandleSyncJitaPrices fetches live Jita prices and volumes from Public ESI.
+// HandleSyncJitaPrices triggers a scoped Jita price refresh (Catalog + PI P1-P4 + SDE Blueprints) via Public ESI.
 func (h *Handlers) HandleSyncJitaPrices(w http.ResponseWriter, r *http.Request) {
-	count, err := h.svc.SyncJitaPrices(r.Context())
+	res, err := h.svc.SyncScopedJitaPrices(r.Context())
 	if err != nil {
 		if IsHTMX(r) {
-			TriggerToast(w, "error", "Sync Public ESI gagal: "+err.Error())
+			TriggerToast(w, "error", "Public ESI Jita sync failed: "+err.Error())
 			w.WriteHeader(http.StatusOK)
 			return
 		}
@@ -248,13 +248,23 @@ func (h *Handlers) HandleSyncJitaPrices(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	if res.SkippedBusy {
+		if IsHTMX(r) {
+			TriggerToast(w, "info", "A Jita price sync cycle is already running in the background.")
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		h.writeJSON(w, http.StatusOK, res)
+		return
+	}
+
 	if IsHTMX(r) {
-		TriggerToast(w, "success", fmt.Sprintf("Harga Jita & volume harian %d item diperbarui dari Public ESI.", count))
+		TriggerToast(w, "success", fmt.Sprintf("Jita prices synced: %d/%d scoped items warmed (%d catalog updated) in %dms.", res.WarmedCount, res.TotalTypeIDs, res.CatalogUpdated, res.DurationMs))
 		w.Header().Set("HX-Refresh", "true")
 		w.WriteHeader(http.StatusOK)
 		return
 	}
-	h.writeJSON(w, http.StatusOK, map[string]any{"updated": count})
+	h.writeJSON(w, http.StatusOK, res)
 }
 
 // HandleSyncSCI fetches live System Cost Index from Public ESI.
@@ -710,28 +720,45 @@ func (h *Handlers) HandleSettings(w http.ResponseWriter, r *http.Request) {
 	h.writeJSON(w, http.StatusOK, settings)
 }
 
-// HandleSaveSettings persists user tax, slot, and capital parameters.
+// HandleSaveSettings persists user tax, slot, capital, and background price updater parameters.
 func (h *Handlers) HandleSaveSettings(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Form tidak valid", http.StatusBadRequest)
+		http.Error(w, "Invalid form submission", http.StatusBadRequest)
 		return
 	}
-	cfg := &domain.UserSettings{
-		ID:                 1,
-		StartingCapital:    parseFloatForm(r, "starting_capital", 100_000_000),
-		BrokerFeePercent:   parseFloatForm(r, "broker_fee_percent", 3.0),
-		SalesTaxPercent:    parseFloatForm(r, "sales_tax_percent", 3.6),
-		RelistFeePercent:   parseFloatForm(r, "relist_fee_percent", 0.5),
-		ManufacturingSlots: parseIntForm(r, "manufacturing_slots", 10),
-		ScienceSlots:       parseIntForm(r, "science_slots", 1),
-		SystemCostIndex:    parseFloatForm(r, "system_cost_index", 0.045),
-		FreightCostPerM3:   parseFloatForm(r, "freight_cost_per_m3", 300),
-		FacilityTaxPercent: parseFloatForm(r, "facility_tax_percent", 0.25),
+
+	existing, _ := h.svc.GetSettings(r.Context())
+	if existing == nil {
+		def := domain.DefaultUserSettings()
+		existing = &def
 	}
 
-	if err := h.svc.UpdateSettings(r.Context(), cfg); err != nil {
+	cfg := *existing
+	cfg.ID = 1
+
+	// Support saving either the Tax/Capital form or the Background Price Updater form independently.
+	if r.FormValue("form_section") == "price_updater" {
+		cfg.AutoPriceSyncEnabled = r.FormValue("auto_price_sync_enabled") == "on" || r.FormValue("auto_price_sync_enabled") == "true"
+		cfg.AutoPriceSyncIntervalMinutes = domain.ClampPriceSyncInterval(parseIntForm(r, "auto_price_sync_interval_minutes", existing.AutoPriceSyncIntervalMinutes))
+	} else {
+		cfg.StartingCapital = parseFloatForm(r, "starting_capital", existing.StartingCapital)
+		cfg.BrokerFeePercent = parseFloatForm(r, "broker_fee_percent", existing.BrokerFeePercent)
+		cfg.SalesTaxPercent = parseFloatForm(r, "sales_tax_percent", existing.SalesTaxPercent)
+		cfg.RelistFeePercent = parseFloatForm(r, "relist_fee_percent", existing.RelistFeePercent)
+		cfg.ManufacturingSlots = parseIntForm(r, "manufacturing_slots", existing.ManufacturingSlots)
+		cfg.ScienceSlots = parseIntForm(r, "science_slots", existing.ScienceSlots)
+		cfg.SystemCostIndex = parseFloatForm(r, "system_cost_index", existing.SystemCostIndex)
+		cfg.FreightCostPerM3 = parseFloatForm(r, "freight_cost_per_m3", existing.FreightCostPerM3)
+		cfg.FacilityTaxPercent = parseFloatForm(r, "facility_tax_percent", existing.FacilityTaxPercent)
+		if r.Form.Has("auto_price_sync_interval_minutes") {
+			cfg.AutoPriceSyncEnabled = r.FormValue("auto_price_sync_enabled") == "on" || r.FormValue("auto_price_sync_enabled") == "true"
+			cfg.AutoPriceSyncIntervalMinutes = domain.ClampPriceSyncInterval(parseIntForm(r, "auto_price_sync_interval_minutes", existing.AutoPriceSyncIntervalMinutes))
+		}
+	}
+
+	if err := h.svc.UpdateSettings(r.Context(), &cfg); err != nil {
 		if IsHTMX(r) {
-			TriggerToast(w, "error", "Gagal menyimpan pengaturan: "+err.Error())
+			TriggerToast(w, "error", "Failed to save settings: "+err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -740,7 +767,7 @@ func (h *Handlers) HandleSaveSettings(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if IsHTMX(r) {
-		TriggerToast(w, "success", "Pengaturan pajak, slot, dan modal berhasil disimpan.")
+		TriggerToast(w, "success", "Settings saved to PostgreSQL.")
 		w.Header().Set("HX-Refresh", "true")
 		w.WriteHeader(http.StatusOK)
 		return

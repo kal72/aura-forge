@@ -7,6 +7,7 @@ import (
 	"math"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"aura-forge/internal/domain"
@@ -77,61 +78,113 @@ type esiMarketOrder struct {
 }
 
 // GetJitaPrices fetches live lowest sell and highest buy prices in Jita 4-4 (The Forge) for each type_id,
-// respecting X-Pages pagination (up to MaxOrderPages) with PostgreSQL caching.
+// using cache-first PostgreSQL esi_cache + singleflight and bounded concurrency (max 4 workers) for fast cold loads.
 func (p *PublicMarketClient) GetJitaPrices(ctx context.Context, typeIDs []int32) (map[int32]domain.JitaPrice, error) {
 	prices := make(map[int32]domain.JitaPrice, len(typeIDs))
-	now := time.Now()
-
-	for _, typeID := range typeIDs {
-		if typeID <= 0 {
-			continue
-		}
-
-		pathPage1 := fmt.Sprintf("/markets/%d/orders/?datasource=tranquility&order_type=all&type_id=%d&page=1", TheForgeRegionID, typeID)
-		body, hdrs, err := p.client.DoGetWithHeaders(ctx, pathPage1, "", true)
-		if err != nil {
-			return nil, fmt.Errorf("fetching Jita orders for type %d: %w", typeID, err)
-		}
-
-		var allOrders []esiMarketOrder
-		if err := json.Unmarshal(body, &allOrders); err != nil {
-			return nil, fmt.Errorf("decoding market orders for type %d: %w", typeID, err)
-		}
-
-		totalPages := 1
-		if hdrs != nil {
-			if rawPages := strings.TrimSpace(hdrs.Get("X-Pages")); rawPages != "" {
-				if n, pErr := strconv.Atoi(rawPages); pErr == nil && n > 1 {
-					totalPages = n
-				}
-			}
-		}
-		if totalPages > MaxOrderPages {
-			totalPages = MaxOrderPages
-		}
-
-		for page := 2; page <= totalPages; page++ {
-			select {
-			case <-ctx.Done():
-				return nil, ctx.Err()
-			case <-time.After(25 * time.Millisecond):
-			}
-			pagePath := fmt.Sprintf("/markets/%d/orders/?datasource=tranquility&order_type=all&type_id=%d&page=%d", TheForgeRegionID, typeID, page)
-			pageBody, _, pErr := p.client.DoGetWithHeaders(ctx, pagePath, "", true)
-			if pErr != nil {
-				break
-			}
-			var pageOrders []esiMarketOrder
-			if uErr := json.Unmarshal(pageBody, &pageOrders); uErr == nil {
-				allOrders = append(allOrders, pageOrders...)
-			}
-		}
-
-		jp := aggregateJitaOrders(typeID, allOrders, now)
-		prices[typeID] = jp
+	if len(typeIDs) == 0 {
+		return prices, nil
 	}
 
+	// Deduplicate valid typeIDs
+	unique := make([]int32, 0, len(typeIDs))
+	seen := make(map[int32]struct{}, len(typeIDs))
+	for _, id := range typeIDs {
+		if id <= 0 {
+			continue
+		}
+		if _, ok := seen[id]; !ok {
+			seen[id] = struct{}{}
+			unique = append(unique, id)
+		}
+	}
+
+	const maxWorkers = 4
+	sem := make(chan struct{}, maxWorkers)
+	var (
+		wg       sync.WaitGroup
+		mu       sync.Mutex
+		firstErr error
+	)
+	now := time.Now()
+
+	for _, id := range unique {
+		wg.Add(1)
+		go func(typeID int32) {
+			defer wg.Done()
+			select {
+			case sem <- struct{}{}:
+				defer func() { <-sem }()
+			case <-ctx.Done():
+				mu.Lock()
+				if firstErr == nil {
+					firstErr = ctx.Err()
+				}
+				mu.Unlock()
+				return
+			}
+
+			jp, err := p.fetchSingleJitaPrice(ctx, typeID, now)
+			mu.Lock()
+			defer mu.Unlock()
+			if err != nil {
+				if firstErr == nil {
+					firstErr = err
+				}
+				return
+			}
+			prices[typeID] = jp
+		}(id)
+	}
+
+	wg.Wait()
+	if firstErr != nil && len(prices) == 0 {
+		return nil, firstErr
+	}
 	return prices, nil
+}
+
+func (p *PublicMarketClient) fetchSingleJitaPrice(ctx context.Context, typeID int32, now time.Time) (domain.JitaPrice, error) {
+	pathPage1 := fmt.Sprintf("/markets/%d/orders/?datasource=tranquility&order_type=all&type_id=%d&page=1", TheForgeRegionID, typeID)
+	body, hdrs, err := p.client.DoGetWithHeaders(ctx, pathPage1, "", true)
+	if err != nil {
+		return domain.JitaPrice{}, fmt.Errorf("fetching Jita orders for type %d: %w", typeID, err)
+	}
+
+	var allOrders []esiMarketOrder
+	if err := json.Unmarshal(body, &allOrders); err != nil {
+		return domain.JitaPrice{}, fmt.Errorf("decoding market orders for type %d: %w", typeID, err)
+	}
+
+	totalPages := 1
+	if hdrs != nil {
+		if rawPages := strings.TrimSpace(hdrs.Get("X-Pages")); rawPages != "" {
+			if n, pErr := strconv.Atoi(rawPages); pErr == nil && n > 1 {
+				totalPages = n
+			}
+		}
+	}
+	if totalPages > MaxOrderPages {
+		totalPages = MaxOrderPages
+	}
+
+	for page := 2; page <= totalPages; page++ {
+		select {
+		case <-ctx.Done():
+			return domain.JitaPrice{}, ctx.Err()
+		default:
+		}
+		pagePath := fmt.Sprintf("/markets/%d/orders/?datasource=tranquility&order_type=all&type_id=%d&page=%d", TheForgeRegionID, typeID, page)
+		pageBody, _, pErr := p.client.DoGetWithHeaders(ctx, pagePath, "", true)
+		if pErr != nil {
+			break
+		}
+		var pageOrders []esiMarketOrder
+		if uErr := json.Unmarshal(pageBody, &pageOrders); uErr == nil {
+			allOrders = append(allOrders, pageOrders...)
+		}
+	}
+
+	return aggregateJitaOrders(typeID, allOrders, now), nil
 }
 
 func aggregateJitaOrders(typeID int32, orders []esiMarketOrder, now time.Time) domain.JitaPrice {
