@@ -56,11 +56,11 @@ func RequireAdmin(next http.Handler) http.Handler {
 		user := CurrentUser(r)
 		if user == nil || !user.IsAdmin() {
 			if IsHTMX(r) {
-				TriggerToast(w, "error", "Akses ditolak: fitur ini khusus Administrator.")
+				TriggerToast(w, "error", "Access denied: Administrator privileges required.")
 				w.WriteHeader(http.StatusForbidden)
 				return
 			}
-			http.Error(w, "403 Forbidden — Akses khusus Administrator", http.StatusForbidden)
+			http.Error(w, "403 Forbidden — Administrator access required", http.StatusForbidden)
 			return
 		}
 		next.ServeHTTP(w, r)

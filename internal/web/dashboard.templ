@@ -13,7 +13,7 @@ templ DashboardPage(data *service.DashboardSummary) {
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-white">Command Center // Dashboard</h1>
-					<p class="text-xs text-slate-400 mt-0.5">Ringkasan modal, kapasitas slot manufaktur, profit terealisasi, dan instruksi asisten harian.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">Summary of available capital, manufacturing slot capacity, realized profit, and daily copilot directives.</p>
 				</div>
 				<div class="flex flex-wrap gap-2">
 					<button
@@ -24,11 +24,11 @@ templ DashboardPage(data *service.DashboardSummary) {
 					>
 						Load Sample Data
 					</button>
-					<a href="/allocator" class="rounded-md border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 transition">
-						Smart Allocator
+					<a href="/scanner" class="rounded-md border border-amber-500/40 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition">
+						Opportunity Scanner
 					</a>
-					<a href="/planner" class="rounded-md border border-amber-500/40 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition">
-						Weekly Planner
+					<a href="/wealth" class="rounded-md border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 transition">
+						100B+ Roadmap
 					</a>
 				</div>
 			</div>
@@ -36,31 +36,31 @@ templ DashboardPage(data *service.DashboardSummary) {
 			<!-- KPI Grid -->
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[11px] font-mono uppercase tracking-wider text-slate-400">Kas Tersedia</div>
+					<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300">Available Capital</div>
 					<div class="mt-2 text-2xl font-bold font-mono text-emerald-300">{ FormatISK(data.AvailableCapital) }</div>
-					<div class="mt-1 text-[11px] text-slate-400">Sumber: { data.CapitalSource }</div>
+					<div class="mt-1 text-[11px] text-slate-400">Source: { data.CapitalSource }</div>
 				</div>
 
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[11px] font-mono uppercase tracking-wider text-slate-400">Modal Terkunci</div>
+					<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300">Locked Capital</div>
 					<div class="mt-2 text-2xl font-bold font-mono text-amber-300">{ FormatISK(data.LockedCapital) }</div>
-					<div class="mt-1 text-[11px] text-slate-400">{ fmt.Sprintf("%d batch aktif (%d undercut)", data.ActiveBatchesCount, data.UndercutBatchesCount) }</div>
+					<div class="mt-1 text-[11px] text-slate-400">{ fmt.Sprintf("%d active batches (%d undercut)", data.ActiveBatchesCount, data.UndercutBatchesCount) }</div>
 				</div>
 
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[11px] font-mono uppercase tracking-wider text-slate-400">Realized Profit</div>
+					<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300">Realized Profit</div>
 					<div class="mt-2 text-2xl font-bold font-mono text-sky-300">{ FormatISK(data.RealizedProfit) }</div>
-					<div class="mt-1 text-[11px] text-slate-400">Akumulasi batch berstatus SOLD</div>
+					<div class="mt-1 text-[11px] text-slate-400">Accumulated from SOLD batches</div>
 				</div>
 
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[11px] font-mono uppercase tracking-wider text-slate-400">Kapasitas Slot</div>
+					<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300">Slot Capacity</div>
 					<div class="mt-2 text-2xl font-bold font-mono text-white">
 						{ fmt.Sprintf("%d / %d", data.MfgSlotsUsed, data.MfgSlotsTotal) }
 						<span class="text-xs font-normal text-slate-400">MFG</span>
 					</div>
 					<div class="mt-1 text-[11px] text-slate-400">
-						{ fmt.Sprintf("Science/Invention: %d / %d • Catalog: %d layak, %d jebakan", data.SciSlotsUsed, data.SciSlotsTotal, data.LayakItemsCount, data.JebakanItemsCount) }
+						{ fmt.Sprintf("Science/Invention: %d / %d • Catalog: %d safe, %d traps", data.SciSlotsUsed, data.SciSlotsTotal, data.LayakItemsCount, data.JebakanItemsCount) }
 					</div>
 				</div>
 			</div>
@@ -89,7 +89,7 @@ templ DashboardPage(data *service.DashboardSummary) {
 					hx-swap="innerHTML"
 					class="text-xs font-mono text-slate-400"
 				>
-					Mengambil harga mineral live dari Public ESI Jita 4-4...
+					Loading live mineral prices from Public ESI Jita 4-4...
 				</div>
 			</div>
 
@@ -98,7 +98,7 @@ templ DashboardPage(data *service.DashboardSummary) {
 				<!-- Daily Assistant Checklist -->
 				<div class="tactical-panel rounded-xl p-5 lg:col-span-5 space-y-4">
 					<div class="flex items-center justify-between">
-						<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">Checklist Asisten Harian</h2>
+						<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">Daily Copilot Checklist</h2>
 						<span class="rounded bg-sky-500/15 px-2 py-0.5 font-mono text-[10px] text-sky-300">COPILOT</span>
 					</div>
 					<ul class="space-y-2.5 text-sm">
@@ -114,13 +114,13 @@ templ DashboardPage(data *service.DashboardSummary) {
 
 					if data.ActivePlan != nil {
 						<div class="rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-3.5">
-							<div class="text-[11px] font-mono uppercase text-emerald-400">Rencana Mingguan Aktif</div>
+							<div class="text-[11px] font-mono uppercase text-emerald-400">Active Weekly Plan</div>
 							<div class="mt-1 font-semibold text-white">{ data.ActivePlan.Title }</div>
 							<div class="mt-1 text-xs text-slate-300">
 								Est. Profit: <span class="font-mono text-emerald-300">{ FormatISK(data.ActivePlan.TotalEstimatedProfit) }</span>
 								({ FormatPercent(data.ActivePlan.ProjectedROI) } ROI)
 							</div>
-							<a href="/planner" class="mt-2 inline-block text-xs font-semibold text-sky-300 hover:underline">Buka Jadwal Day 1–7 &amp; Shopping List →</a>
+							<a href="/planner" class="mt-2 inline-block text-xs font-semibold text-sky-300 hover:underline">Open Day 1–7 Schedule &amp; Shopping List →</a>
 						</div>
 					}
 				</div>
@@ -134,20 +134,20 @@ templ DashboardPage(data *service.DashboardSummary) {
 						esiHint: '',
 						async fetchJita() {
 							if (!this.itemName) return;
-							this.esiHint = 'Mencari di Public ESI...';
+							this.esiHint = 'Looking up Public ESI...';
 							try {
 								const r = await fetch('/esi/lookup?name=' + encodeURIComponent(this.itemName));
 								const d = await r.json();
-								if (!r.ok) { this.esiHint = d.error || 'Item tidak ditemukan'; return; }
+								if (!r.ok) { this.esiHint = d.error || 'Item not found'; return; }
 								if (d.lowest_sell > 0) this.sellPrice = d.lowest_sell;
-								this.esiHint = 'Live Jita Sell: ' + Number(d.lowest_sell).toLocaleString() + ' ISK • Vol: ' + Number(d.daily_volume).toLocaleString() + '/hari';
-							} catch (e) { this.esiHint = 'Gagal terhubung ke Public ESI'; }
+								this.esiHint = 'Live Jita Sell: ' + Number(d.lowest_sell).toLocaleString() + ' ISK • Vol: ' + Number(d.daily_volume).toLocaleString() + '/day';
+							} catch (e) { this.esiHint = 'Failed to reach Public ESI'; }
 						}
 					}"
 				>
 					<div class="flex items-center justify-between">
-						<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Kalkulator Profit Cepat (HTMX + Public ESI)</h2>
-						<a href="/calculator" class="text-xs text-sky-300 hover:underline">Mode Lengkap →</a>
+						<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Quick Profit Calculator (HTMX + Public ESI)</h2>
+						<a href="/calculator" class="text-xs text-sky-300 hover:underline">Full Dual-Mode →</a>
 					</div>
 
 					<form
@@ -157,7 +157,7 @@ templ DashboardPage(data *service.DashboardSummary) {
 						class="grid grid-cols-1 gap-3 sm:grid-cols-2"
 					>
 						<div class="sm:col-span-2">
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Nama Item (Auto-Fill Harga Jita via Public ESI)</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Item Name (Auto-Fill Jita Price via Public ESI)</label>
 							<div class="mt-1 flex gap-2">
 								<input type="text" name="item_name" x-model="itemName" class="flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-sky-400 focus:outline-none"/>
 								<button type="button" @click="fetchJita()" class="rounded-md border border-amber-400/40 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer">

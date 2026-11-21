@@ -297,20 +297,20 @@ func (s *CopilotService) GetDashboard(ctx context.Context) (*DashboardSummary, e
 func buildDailyChecklist(d *DashboardSummary) []string {
 	list := make([]string, 0, 5)
 	if d.TotalCatalogItems == 0 {
-		list = append(list, "Klik 'Load Sample Data' di Catalog atau paste daftar item untuk memulai analisis.")
+		list = append(list, "Run the Opportunity Scanner or click 'Load Sample Data' in Catalog to start discovering profitable items.")
 	} else {
-		list = append(list, "Klik 'Sync Jita Prices' untuk memperbarui harga Sell/Buy dan volume harian dari Public ESI.")
+		list = append(list, "Click 'Sync Jita Prices' to refresh live Sell/Buy prices and daily volumes from Public ESI.")
 	}
 	if d.UndercutBatchesCount > 0 {
-		list = append(list, fmt.Sprintf("PERHATIAN: %d batch sedang ter-undercut di Jita — cek Safe Relist Price di Tracker.", d.UndercutBatchesCount))
+		list = append(list, fmt.Sprintf("ALERT: %d listed batch(es) are currently undercut in Jita — verify Safe Relist Price in Tracker.", d.UndercutBatchesCount))
 	}
 	if d.MfgSlotsUsed < d.MfgSlotsTotal {
-		list = append(list, fmt.Sprintf("Tersedia %d slot manufaktur kosong — jalankan batch dari Weekly Planner agar ISK terus berputar.", d.MfgSlotsTotal-d.MfgSlotsUsed))
+		list = append(list, fmt.Sprintf("%d manufacturing slot(s) are idle — start batches from Weekly Planner to keep ISK compounding.", d.MfgSlotsTotal-d.MfgSlotsUsed))
 	}
 	if d.ActivePlan == nil {
-		list = append(list, "Gunakan Smart Capital Allocator lalu kirim rekomendasi ke Weekly Production Planner.")
+		list = append(list, "Run Smart Capital Allocator and send recommendations to Weekly Production Planner.")
 	} else {
-		list = append(list, fmt.Sprintf("Ikuti jadwal Day 1–7 pada rencana aktif: %s.", d.ActivePlan.Title))
+		list = append(list, fmt.Sprintf("Follow your Day 1–7 schedule on active plan: %s.", d.ActivePlan.Title))
 	}
 	return list
 }

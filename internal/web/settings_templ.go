@@ -48,17 +48,17 @@ func SettingsPage(mode service.ModeInfo, settings domain.UserSettings, saved boo
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\"><div><h1 class=\"text-2xl font-bold tracking-tight text-white\">Settings &amp; EVE Online ESI Mode</h1><p class=\"text-xs text-slate-400 mt-0.5\">Atur modal awal, pajak Jita, kapasitas slot karakter, serta status koneksi opsional EVE SSO OAuth2.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\"><div><h1 class=\"text-2xl font-bold tracking-tight text-white\">Settings &amp; EVE Online ESI Mode</h1><p class=\"text-xs text-slate-300/80 mt-0.5\">Configure starting capital, Jita market taxes, character slot capacity, and optional EVE SSO OAuth2 integration.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if saved {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"rounded-lg border border-emerald-500/40 bg-emerald-950/40 p-3 text-xs text-emerald-200\">Pengaturan berhasil disimpan ke PostgreSQL.</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"rounded-lg border border-emerald-500/40 bg-emerald-950/40 p-3 text-xs text-emerald-200\">Settings saved successfully to PostgreSQL.</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"grid grid-cols-1 gap-6 lg:grid-cols-12\"><!-- Tax, Capital & Slots Form --><div class=\"tactical-panel rounded-xl p-5 lg:col-span-7 space-y-4\"><div class=\"flex flex-wrap items-center justify-between gap-2\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-sky-300\">Parameter Industri &amp; Pajak Jita</h2><form hx-post=\"/esi/sync-sci\" hx-swap=\"none\" class=\"flex items-center gap-2\"><select name=\"solar_system_id\" class=\"rounded border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] font-mono text-white\"><option value=\"30000142\">Jita (The Forge)</option> <option value=\"30000144\">Perimeter</option> <option value=\"30002187\">Amarr (Domain)</option> <option value=\"30002659\">Dodixie (Sinq Laison)</option> <option value=\"30002053\">Hek (Metropolis)</option> <option value=\"30002510\">Rens (Heimatar)</option></select> <button type=\"submit\" class=\"rounded border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-[11px] font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer\">Sync SCI Live (Public ESI)</button></form></div><form hx-post=\"/settings\" hx-swap=\"none\" class=\"grid grid-cols-1 gap-4 sm:grid-cols-2\"><div class=\"sm:col-span-2\"><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Modal Awal Manual / Starting Capital (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"starting_capital\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"grid grid-cols-1 gap-6 lg:grid-cols-12\"><!-- Tax, Capital & Slots Form --><div class=\"tactical-panel rounded-xl p-5 lg:col-span-7 space-y-4\"><div class=\"flex flex-wrap items-center justify-between gap-2\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-sky-300\">Industry &amp; Jita Tax Parameters</h2><form hx-post=\"/esi/sync-sci\" hx-swap=\"none\" class=\"flex items-center gap-2\"><select name=\"solar_system_id\" class=\"rounded border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] font-mono text-white\"><option value=\"30000142\">Jita (The Forge)</option> <option value=\"30000144\">Perimeter</option> <option value=\"30002187\">Amarr (Domain)</option> <option value=\"30002659\">Dodixie (Sinq Laison)</option> <option value=\"30002053\">Hek (Metropolis)</option> <option value=\"30002510\">Rens (Heimatar)</option></select> <button type=\"submit\" class=\"rounded border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-[11px] font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer\">Sync Live SCI (Public ESI)</button></form></div><form hx-post=\"/settings\" hx-swap=\"none\" class=\"grid grid-cols-1 gap-4 sm:grid-cols-2\"><div class=\"sm:col-span-2\"><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Manual Starting Capital (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"starting_capital\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -71,7 +71,7 @@ func SettingsPage(mode service.ModeInfo, settings domain.UserSettings, saved boo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Manufacturing Slots</label> <input type=\"number\" name=\"manufacturing_slots\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Manufacturing Slots</label> <input type=\"number\" name=\"manufacturing_slots\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -84,7 +84,7 @@ func SettingsPage(mode service.ModeInfo, settings domain.UserSettings, saved boo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" min=\"1\" max=\"50\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Science / Invention Slots</label> <input type=\"number\" name=\"science_slots\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" min=\"1\" max=\"50\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Science / Invention Slots</label> <input type=\"number\" name=\"science_slots\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -97,7 +97,7 @@ func SettingsPage(mode service.ModeInfo, settings domain.UserSettings, saved boo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" min=\"0\" max=\"50\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Broker Fee (%)</label> <input type=\"number\" step=\"0.01\" name=\"broker_fee_percent\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" min=\"0\" max=\"50\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Broker Fee (%)</label> <input type=\"number\" step=\"0.01\" name=\"broker_fee_percent\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -110,7 +110,7 @@ func SettingsPage(mode service.ModeInfo, settings domain.UserSettings, saved boo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Sales Tax (%)</label> <input type=\"number\" step=\"0.01\" name=\"sales_tax_percent\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Sales Tax (%)</label> <input type=\"number\" step=\"0.01\" name=\"sales_tax_percent\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -123,7 +123,7 @@ func SettingsPage(mode service.ModeInfo, settings domain.UserSettings, saved boo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Relist Fee (%)</label> <input type=\"number\" step=\"0.01\" name=\"relist_fee_percent\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Relist Fee (%)</label> <input type=\"number\" step=\"0.01\" name=\"relist_fee_percent\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -136,7 +136,7 @@ func SettingsPage(mode service.ModeInfo, settings domain.UserSettings, saved boo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">System Cost Index (Desimal)</label> <input type=\"number\" step=\"0.0001\" name=\"system_cost_index\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">System Cost Index (Decimal)</label> <input type=\"number\" step=\"0.0001\" name=\"system_cost_index\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -149,7 +149,7 @@ func SettingsPage(mode service.ModeInfo, settings domain.UserSettings, saved boo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Facility Tax (%)</label> <input type=\"number\" step=\"0.01\" name=\"facility_tax_percent\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Facility Tax (%)</label> <input type=\"number\" step=\"0.01\" name=\"facility_tax_percent\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -162,7 +162,7 @@ func SettingsPage(mode service.ModeInfo, settings domain.UserSettings, saved boo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Freight Cost (ISK / m³)</label> <input type=\"number\" step=\"0.01\" name=\"freight_cost_per_m3\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Freight Cost (ISK / m³)</label> <input type=\"number\" step=\"0.01\" name=\"freight_cost_per_m3\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -175,12 +175,12 @@ func SettingsPage(mode service.ModeInfo, settings domain.UserSettings, saved boo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div class=\"sm:col-span-2 pt-2\"><button type=\"submit\" class=\"w-full rounded-md bg-sky-500 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer\">Simpan Pengaturan</button></div></form></div><!-- Optional EVE SSO Plug-and-Play Card --><div class=\"tactical-panel rounded-xl p-5 lg:col-span-5 space-y-4\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">EVE Online SSO OAuth2 (Opsional)</h2>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div class=\"sm:col-span-2 pt-2\"><button type=\"submit\" class=\"w-full rounded-md bg-sky-500 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer\">Save Settings</button></div></form></div><!-- Optional EVE SSO Plug-and-Play Card --><div class=\"tactical-panel rounded-xl p-5 lg:col-span-5 space-y-4\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">EVE Online SSO OAuth2 (Optional)</h2>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if mode.SSOConnected {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div class=\"rounded-lg border border-emerald-500/40 bg-emerald-950/30 p-4 space-y-3\"><div class=\"flex items-center gap-2 text-sm font-bold text-emerald-300\"><span class=\"h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse\"></span> Terhubung: ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div class=\"rounded-lg border border-emerald-500/40 bg-emerald-950/30 p-4 space-y-3\"><div class=\"flex items-center gap-2 text-sm font-bold text-emerald-300\"><span class=\"h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse\"></span> Connected: ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -193,17 +193,17 @@ func SettingsPage(mode service.ModeInfo, settings domain.UserSettings, saved boo
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div><p class=\"text-xs text-slate-300\">Auto-Sync saldo dompet, order pasar aktif, industry jobs, blueprints, dan pemotongan stok hangar aktif.</p><div class=\"flex flex-wrap gap-2\"><button type=\"button\" hx-post=\"/auth/sync\" hx-swap=\"none\" class=\"rounded bg-emerald-500 px-3 py-1.5 text-xs font-bold text-slate-950 hover:bg-emerald-400 cursor-pointer\">Sync Karakter Sekarang</button> <button type=\"button\" hx-post=\"/auth/disconnect\" hx-swap=\"none\" class=\"rounded border border-rose-500/40 bg-rose-500/15 px-3 py-1.5 text-xs font-semibold text-rose-200 hover:bg-rose-500/25 cursor-pointer\">Putuskan EVE SSO</button></div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div><p class=\"text-xs text-slate-300\">Auto-Sync for wallet balance, active market orders, industry jobs, blueprints, and hangar stock deduction is active.</p><div class=\"flex flex-wrap gap-2\"><button type=\"button\" hx-post=\"/auth/sync\" hx-swap=\"none\" class=\"rounded bg-emerald-500 px-3 py-1.5 text-xs font-bold text-slate-950 hover:bg-emerald-400 cursor-pointer\">Sync Character Now</button> <button type=\"button\" hx-post=\"/auth/disconnect\" hx-swap=\"none\" class=\"rounded border border-rose-500/40 bg-rose-500/15 px-3 py-1.5 text-xs font-semibold text-rose-200 hover:bg-rose-500/25 cursor-pointer\">Disconnect EVE SSO</button></div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else if mode.SSOEnabled {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<div class=\"rounded-lg border border-sky-500/40 bg-sky-950/30 p-4 space-y-3\"><div class=\"text-sm font-bold text-sky-300\">Kredensial EVE SSO Terdeteksi di .env</div><p class=\"text-xs text-slate-300\">Klik tombol di bawah untuk mengintegrasikan karakter EVE Online Anda dan mengaktifkan Auto-Sync Wallet, Orders, Jobs, Blueprints &amp; Hangar.</p><a href=\"/auth/login\" class=\"inline-block rounded-md bg-amber-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-amber-400 transition\">Integrasi EVE SSO →</a></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<div class=\"rounded-lg border border-sky-500/40 bg-sky-950/30 p-4 space-y-3\"><div class=\"text-sm font-bold text-sky-300\">EVE SSO Credentials Detected in .env</div><p class=\"text-xs text-slate-300\">Click below to connect your EVE Online character and enable Auto-Sync for Wallet, Orders, Jobs, Blueprints &amp; Hangar Assets.</p><a href=\"/auth/login\" class=\"inline-block rounded-md bg-amber-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-amber-400 transition\">Connect EVE SSO →</a></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"rounded-lg border border-slate-700 bg-slate-900/70 p-4 space-y-3\"><div class=\"inline-block rounded-full border border-amber-400/40 bg-amber-500/15 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-amber-300\">Optional: Isi ESI_CLIENT_ID &amp; SECRET di .env untuk Auto-Sync Karakter</div><p class=\"text-xs text-slate-300 leading-relaxed\">Saat ini aplikasi berjalan <strong>100% langsung di Standard Mode (Public ESI + Manual/Import)</strong> tanpa perlu pendaftaran developer CCP.</p><div class=\"rounded bg-slate-950 p-3 font-mono text-[11px] text-slate-300 space-y-1\"><div class=\"text-slate-500\"># Tambahkan di .env jika ingin mengaktifkan SSO:</div><div>ESI_CLIENT_ID=<span class=\"text-sky-300\">your_client_id</span></div><div>ESI_CLIENT_SECRET=<span class=\"text-sky-300\">your_client_secret</span></div><div>ESI_CALLBACK_URL=<span class=\"text-sky-300\">http://localhost:8080/auth/callback</span></div></div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"rounded-lg border border-slate-700 bg-slate-900/70 p-4 space-y-3\"><div class=\"inline-block rounded-full border border-amber-400/40 bg-amber-500/15 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-amber-300\">Optional: Set ESI_CLIENT_ID &amp; SECRET in .env for Character Auto-Sync</div><p class=\"text-xs text-slate-300 leading-relaxed\">Running <strong>100% out-of-the-box in Standard Mode (Public ESI + Manual/Import)</strong> with no CCP developer registration required.</p><div class=\"rounded bg-slate-950 p-3 font-mono text-[11px] text-slate-300 space-y-1\"><div class=\"text-slate-500\"># Add to .env when you want to enable EVE SSO:</div><div>ESI_CLIENT_ID=<span class=\"text-sky-300\">your_client_id</span></div><div>ESI_CLIENT_SECRET=<span class=\"text-sky-300\">your_client_secret</span></div><div>ESI_CALLBACK_URL=<span class=\"text-sky-300\">http://localhost:8080/auth/callback</span></div></div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -214,7 +214,7 @@ func SettingsPage(mode service.ModeInfo, settings domain.UserSettings, saved boo
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = Layout("Settings & EVE SSO", "settings", mode).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Layout("Settings", "settings", mode).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

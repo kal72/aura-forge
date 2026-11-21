@@ -35,7 +35,7 @@ func TestRouterWithAuth_LoginAndRBAC(t *testing.T) {
 	req = httptest.NewRequest(http.MethodGet, "/login", nil)
 	rec = httptest.NewRecorder()
 	router.ServeHTTP(rec, req)
-	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Login Akun") {
+	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Account Sign In") {
 		t.Fatalf("expected /login to render login page, got %d", rec.Code)
 	}
 

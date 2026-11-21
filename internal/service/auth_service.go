@@ -25,8 +25,8 @@ const (
 )
 
 var (
-	ErrInvalidCredentials = errors.New("username atau password salah")
-	ErrUserInactive       = errors.New("akun dinonaktifkan oleh administrator")
+	ErrInvalidCredentials = errors.New("invalid username or password")
+	ErrUserInactive       = errors.New("account has been deactivated by an administrator")
 	usernamePattern       = regexp.MustCompile(`^[a-zA-Z0-9._-]{3,40}$`)
 )
 

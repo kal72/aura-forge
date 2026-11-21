@@ -76,7 +76,7 @@ func (h *Handlers) HandleMarketplaceAddCatalog(w http.ResponseWriter, r *http.Re
 	item, err := h.svc.QuickAddMarketplaceItemToCatalog(r.Context(), int32(typeID), name, category, sellPrice, buyPrice, dailyVol)
 	if err != nil {
 		if IsHTMX(r) {
-			TriggerToast(w, "error", "Gagal menambahkan ke Catalog: "+err.Error())
+			TriggerToast(w, "error", "Failed adding to Catalog: "+err.Error())
 			w.WriteHeader(http.StatusOK)
 			return
 		}
@@ -85,7 +85,7 @@ func (h *Handlers) HandleMarketplaceAddCatalog(w http.ResponseWriter, r *http.Re
 	}
 
 	if IsHTMX(r) {
-		TriggerToast(w, "success", "Item '"+item.Name+"' ditambahkan ke Catalog & Trap Guard.")
+		TriggerToast(w, "success", "Item '"+item.Name+"' added to Catalog & Trap Guard.")
 		w.WriteHeader(http.StatusOK)
 		return
 	}

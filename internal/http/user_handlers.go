@@ -153,12 +153,12 @@ func (h *UserHandlers) HandleCreateUser(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if IsHTMX(r) {
-		TriggerToast(w, "success", "Akun '"+u.Username+"' ("+string(u.Role)+") berhasil dibuat.")
+		TriggerToast(w, "success", "Account '"+u.Username+"' ("+string(u.Role)+") created successfully.")
 		w.Header().Set("HX-Refresh", "true")
 		w.WriteHeader(http.StatusOK)
 		return
 	}
-	http.Redirect(w, r, "/admin/users?msg=Akun+berhasil+dibuat", http.StatusFound)
+	http.Redirect(w, r, "/admin/users?msg=Account+created", http.StatusFound)
 }
 
 // HandleUpdateUser updates a user's display name, role, and active status (admin-only).
@@ -195,12 +195,12 @@ func (h *UserHandlers) HandleUpdateUser(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if IsHTMX(r) {
-		TriggerToast(w, "success", "Akun '"+u.Username+"' diperbarui.")
+		TriggerToast(w, "success", "Account '"+u.Username+"' updated.")
 		w.Header().Set("HX-Refresh", "true")
 		w.WriteHeader(http.StatusOK)
 		return
 	}
-	http.Redirect(w, r, "/admin/users?msg=Akun+diperbarui", http.StatusFound)
+	http.Redirect(w, r, "/admin/users?msg=Account+updated", http.StatusFound)
 }
 
 // HandleResetUserPassword resets a user's password and revokes their active sessions (admin-only).
@@ -227,12 +227,12 @@ func (h *UserHandlers) HandleResetUserPassword(w http.ResponseWriter, r *http.Re
 	}
 
 	if IsHTMX(r) {
-		TriggerToast(w, "success", "Password berhasil direset dan sesi lama dicabut.")
+		TriggerToast(w, "success", "Password reset successfully and old sessions revoked.")
 		w.Header().Set("HX-Refresh", "true")
 		w.WriteHeader(http.StatusOK)
 		return
 	}
-	http.Redirect(w, r, "/admin/users?msg=Password+berhasil+direset", http.StatusFound)
+	http.Redirect(w, r, "/admin/users?msg=Password+reset", http.StatusFound)
 }
 
 // HandleDeleteUser permanently deletes a user account (admin-only).
@@ -260,10 +260,10 @@ func (h *UserHandlers) HandleDeleteUser(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if IsHTMX(r) {
-		TriggerToast(w, "info", "Akun user berhasil dihapus.")
+		TriggerToast(w, "info", "User account deleted.")
 		w.Header().Set("HX-Refresh", "true")
 		w.WriteHeader(http.StatusOK)
 		return
 	}
-	http.Redirect(w, r, "/admin/users?msg=Akun+dihapus", http.StatusFound)
+	http.Redirect(w, r, "/admin/users?msg=Account+deleted", http.StatusFound)
 }

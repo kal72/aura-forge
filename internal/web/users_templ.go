@@ -62,7 +62,7 @@ func UsersPage(mode service.ModeInfo, users []domain.AppUser, flashMsg string, f
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\" x-data=\"{ showCreate: false }\"><div class=\"flex flex-wrap items-center justify-between gap-4\"><div><h1 class=\"text-2xl font-bold tracking-tight text-white\">User Management</h1><p class=\"text-xs text-slate-300/80 mt-0.5\">Kelola akun operator &amp; administrator. Tidak ada registrasi publik — hanya Admin yang dapat membuat dan mengatur akses akun.</p></div><button type=\"button\" @click=\"showCreate = !showCreate\" class=\"rounded-lg bg-amber-400 px-3.5 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer\">+ Tambah Akun User</button></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\" x-data=\"{ showCreate: false }\"><div class=\"flex flex-wrap items-center justify-between gap-4\"><div><h1 class=\"text-2xl font-bold tracking-tight text-white\">User Management</h1><p class=\"text-xs text-slate-300/80 mt-0.5\">Manage operator and administrator accounts. No public registration — only Admins can create and manage access.</p></div><button type=\"button\" @click=\"showCreate = !showCreate\" class=\"rounded-lg bg-amber-400 px-3.5 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer\">+ Add User Account</button></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -109,7 +109,7 @@ func UsersPage(mode service.ModeInfo, users []domain.AppUser, flashMsg string, f
 				return templ_7745c5c3_Err
 			}
 			admins, activeUsers, inactive := countUsersByRoleAndStatus(users)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"grid grid-cols-2 gap-4 sm:grid-cols-4\"><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[10px] font-mono uppercase tracking-wider text-slate-400\">Total Akun</div><div class=\"mt-1 text-2xl font-mono font-bold text-white\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"grid grid-cols-2 gap-4 sm:grid-cols-4\"><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[10px] font-mono uppercase tracking-wider text-slate-400\">Total Accounts</div><div class=\"mt-1 text-2xl font-mono font-bold text-white\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -122,7 +122,7 @@ func UsersPage(mode service.ModeInfo, users []domain.AppUser, flashMsg string, f
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[10px] font-mono uppercase tracking-wider text-amber-300/80\">Administrator</div><div class=\"mt-1 text-2xl font-mono font-bold text-amber-300\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[10px] font-mono uppercase tracking-wider text-amber-300/80\">Administrators</div><div class=\"mt-1 text-2xl font-mono font-bold text-amber-300\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -135,7 +135,7 @@ func UsersPage(mode service.ModeInfo, users []domain.AppUser, flashMsg string, f
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[10px] font-mono uppercase tracking-wider text-emerald-300/80\">Akun Aktif</div><div class=\"mt-1 text-2xl font-mono font-bold text-emerald-300\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[10px] font-mono uppercase tracking-wider text-emerald-300/80\">Active Accounts</div><div class=\"mt-1 text-2xl font-mono font-bold text-emerald-300\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -148,7 +148,7 @@ func UsersPage(mode service.ModeInfo, users []domain.AppUser, flashMsg string, f
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[10px] font-mono uppercase tracking-wider text-rose-300/80\">Nonaktif</div><div class=\"mt-1 text-2xl font-mono font-bold text-rose-300\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[10px] font-mono uppercase tracking-wider text-rose-300/80\">Inactive</div><div class=\"mt-1 text-2xl font-mono font-bold text-rose-300\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -161,7 +161,7 @@ func UsersPage(mode service.ModeInfo, users []domain.AppUser, flashMsg string, f
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div></div></div><!-- Create User Form Panel --><div x-cloak x-show=\"showCreate\" x-transition class=\"tactical-panel rounded-xl p-5 space-y-4\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">Buat Akun User Baru</h2><form hx-post=\"/admin/users\" hx-swap=\"none\" class=\"grid grid-cols-1 gap-4 sm:grid-cols-4\"><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Username</label> <input type=\"text\" name=\"username\" required minlength=\"3\" maxlength=\"40\" placeholder=\"pilot.jita\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Nama Tampilan</label> <input type=\"text\" name=\"display_name\" required placeholder=\"Caldari Trader\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-sm text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Password Awal</label> <input type=\"password\" name=\"password\" required minlength=\"6\" placeholder=\"Min. 6 karakter\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-sm text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Role</label> <select name=\"role\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-sm text-white\"><option value=\"user\">User (Operator)</option> <option value=\"admin\">Admin (Full Access)</option></select></div><div class=\"sm:col-span-4 flex justify-end gap-2\"><button type=\"button\" @click=\"showCreate = false\" class=\"rounded-lg border border-slate-600 px-3.5 py-2 text-xs text-slate-300 hover:bg-slate-800 cursor-pointer\">Batal</button> <button type=\"submit\" class=\"rounded-lg bg-amber-400 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-amber-300 cursor-pointer\">Buat Akun</button></div></form></div><!-- Users Table --><div class=\"tactical-panel rounded-xl overflow-hidden\"><div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs\"><thead class=\"border-b border-violet-400/20 bg-slate-950/50 font-mono uppercase text-[10px] tracking-wider text-slate-300\"><tr><th class=\"px-4 py-3\">Akun</th><th class=\"px-4 py-3\">Role</th><th class=\"px-4 py-3\">Status</th><th class=\"px-4 py-3\">Login Terakhir</th><th class=\"px-4 py-3 text-right\">Aksi</th></tr></thead> <tbody class=\"divide-y divide-violet-400/15\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div></div></div><!-- Create User Form Panel --><div x-cloak x-show=\"showCreate\" x-transition class=\"tactical-panel rounded-xl p-5 space-y-4\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">Create New User Account</h2><form hx-post=\"/admin/users\" hx-swap=\"none\" class=\"grid grid-cols-1 gap-4 sm:grid-cols-4\"><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Username</label> <input type=\"text\" name=\"username\" required minlength=\"3\" maxlength=\"40\" placeholder=\"pilot.jita\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Display Name</label> <input type=\"text\" name=\"display_name\" required placeholder=\"Caldari Trader\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-sm text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Initial Password</label> <input type=\"password\" name=\"password\" required minlength=\"6\" placeholder=\"Min. 6 characters\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-sm text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Role</label> <select name=\"role\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-sm text-white\"><option value=\"user\">User (Operator)</option> <option value=\"admin\">Admin (Full Access)</option></select></div><div class=\"sm:col-span-4 flex justify-end gap-2\"><button type=\"button\" @click=\"showCreate = false\" class=\"rounded-lg border border-slate-600 px-3.5 py-2 text-xs text-slate-300 hover:bg-slate-800 cursor-pointer\">Cancel</button> <button type=\"submit\" class=\"rounded-lg bg-amber-400 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-amber-300 cursor-pointer\">Create Account</button></div></form></div><!-- Users Table --><div class=\"tactical-panel rounded-xl overflow-hidden\"><div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs\"><thead class=\"border-b border-violet-400/20 bg-slate-950/50 font-mono uppercase text-[10px] tracking-wider text-slate-300\"><tr><th class=\"px-4 py-3\">Account</th><th class=\"px-4 py-3\">Role</th><th class=\"px-4 py-3\">Status</th><th class=\"px-4 py-3\">Last Login</th><th class=\"px-4 py-3 text-right\">Actions</th></tr></thead> <tbody class=\"divide-y divide-violet-400/15\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -185,7 +185,7 @@ func UsersPage(mode service.ModeInfo, users []domain.AppUser, flashMsg string, f
 					return templ_7745c5c3_Err
 				}
 				if isSelf {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<span class=\"rounded border border-violet-300/40 bg-violet-500/25 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-violet-100\">ANDA</span>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<span class=\"rounded border border-violet-300/40 bg-violet-500/25 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-violet-100\">YOU</span>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -216,7 +216,7 @@ func UsersPage(mode service.ModeInfo, users []domain.AppUser, flashMsg string, f
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" hx-swap=\"none\" class=\"mt-3 rounded-lg border border-violet-400/25 bg-slate-950/60 p-3 space-y-2.5 max-w-md\"><div class=\"text-[10px] font-mono uppercase tracking-wider text-amber-300\">Edit Akun</div><div class=\"grid grid-cols-1 gap-2 sm:grid-cols-2\"><input type=\"text\" name=\"display_name\" value=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" hx-swap=\"none\" class=\"mt-3 rounded-lg border border-violet-400/25 bg-slate-950/60 p-3 space-y-2.5 max-w-md\"><div class=\"text-[10px] font-mono uppercase tracking-wider text-amber-300\">Edit Account</div><div class=\"grid grid-cols-1 gap-2 sm:grid-cols-2\"><input type=\"text\" name=\"display_name\" value=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -259,7 +259,7 @@ func UsersPage(mode service.ModeInfo, users []domain.AppUser, flashMsg string, f
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, " class=\"rounded border-slate-600 bg-slate-800\"> <span>Akun Aktif</span></label><div class=\"flex gap-2\"><button type=\"submit\" class=\"rounded bg-sky-500 px-3 py-1 text-[11px] font-bold text-slate-950 hover:bg-sky-400 cursor-pointer\">Simpan</button> <button type=\"button\" @click=\"editing = false\" class=\"rounded border border-slate-700 px-3 py-1 text-[11px] text-slate-300 cursor-pointer\">Batal</button></div></form><!-- Inline Reset Password Form --><form x-cloak x-show=\"resetting\" hx-post=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, " class=\"rounded border-slate-600 bg-slate-800\"> <span>Account Active</span></label><div class=\"flex gap-2\"><button type=\"submit\" class=\"rounded bg-sky-500 px-3 py-1 text-[11px] font-bold text-slate-950 hover:bg-sky-400 cursor-pointer\">Save</button> <button type=\"button\" @click=\"editing = false\" class=\"rounded border border-slate-700 px-3 py-1 text-[11px] text-slate-300 cursor-pointer\">Cancel</button></div></form><!-- Inline Reset Password Form --><form x-cloak x-show=\"resetting\" hx-post=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -272,7 +272,7 @@ func UsersPage(mode service.ModeInfo, users []domain.AppUser, flashMsg string, f
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\" hx-swap=\"none\" class=\"mt-3 rounded-lg border border-amber-400/30 bg-slate-950/60 p-3 space-y-2 max-w-sm\"><div class=\"text-[10px] font-mono uppercase tracking-wider text-amber-300\">Reset Password</div><div class=\"flex gap-2\"><input type=\"password\" name=\"new_password\" required minlength=\"6\" placeholder=\"Password baru (min. 6)\" class=\"flex-1 rounded border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-white\"> <button type=\"submit\" class=\"rounded bg-amber-400 px-3 py-1 text-[11px] font-bold text-slate-950 hover:bg-amber-300 cursor-pointer\">Reset</button> <button type=\"button\" @click=\"resetting = false\" class=\"rounded border border-slate-700 px-2.5 py-1 text-[11px] text-slate-300 cursor-pointer\">Tutup</button></div></form></td><td class=\"px-4 py-3.5\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\" hx-swap=\"none\" class=\"mt-3 rounded-lg border border-amber-400/30 bg-slate-950/60 p-3 space-y-2 max-w-sm\"><div class=\"text-[10px] font-mono uppercase tracking-wider text-amber-300\">Reset Password</div><div class=\"flex gap-2\"><input type=\"password\" name=\"new_password\" required minlength=\"6\" placeholder=\"New password (min. 6)\" class=\"flex-1 rounded border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-white\"> <button type=\"submit\" class=\"rounded bg-amber-400 px-3 py-1 text-[11px] font-bold text-slate-950 hover:bg-amber-300 cursor-pointer\">Reset</button> <button type=\"button\" @click=\"resetting = false\" class=\"rounded border border-slate-700 px-2.5 py-1 text-[11px] text-slate-300 cursor-pointer\">Close</button></div></form></td><td class=\"px-4 py-3.5\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -292,12 +292,12 @@ func UsersPage(mode service.ModeInfo, users []domain.AppUser, flashMsg string, f
 					return templ_7745c5c3_Err
 				}
 				if u.IsActive {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<span class=\"inline-flex items-center gap-1.5 rounded-full border border-emerald-400/35 bg-emerald-500/15 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-emerald-200\"><span class=\"h-1.5 w-1.5 rounded-full bg-emerald-400\"></span> AKTIF</span>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<span class=\"inline-flex items-center gap-1.5 rounded-full border border-emerald-400/35 bg-emerald-500/15 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-emerald-200\"><span class=\"h-1.5 w-1.5 rounded-full bg-emerald-400\"></span> ACTIVE</span>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<span class=\"inline-flex items-center gap-1.5 rounded-full border border-rose-400/35 bg-rose-500/15 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-rose-200\"><span class=\"h-1.5 w-1.5 rounded-full bg-rose-400\"></span> NONAKTIF</span>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<span class=\"inline-flex items-center gap-1.5 rounded-full border border-rose-400/35 bg-rose-500/15 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-rose-200\"><span class=\"h-1.5 w-1.5 rounded-full bg-rose-400\"></span> INACTIVE</span>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -317,7 +317,7 @@ func UsersPage(mode service.ModeInfo, users []domain.AppUser, flashMsg string, f
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<span class=\"text-slate-500\">Belum pernah</span>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<span class=\"text-slate-500\">Never</span>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -345,15 +345,15 @@ func UsersPage(mode service.ModeInfo, users []domain.AppUser, flashMsg string, f
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var16 string
-					templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Hapus permanen akun '%s'?", u.Username))
+					templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Permanently delete account '%s'?", u.Username))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/users.templ`, Line: 226, Col: 78}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/users.templ`, Line: 226, Col: 85}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\" hx-swap=\"none\" class=\"rounded border border-rose-400/35 bg-rose-500/15 px-2.5 py-1 text-[11px] font-semibold text-rose-200 hover:bg-rose-500/25 cursor-pointer\">Hapus</button>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\" hx-swap=\"none\" class=\"rounded border border-rose-400/35 bg-rose-500/15 px-2.5 py-1 text-[11px] font-semibold text-rose-200 hover:bg-rose-500/25 cursor-pointer\">Delete</button>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
