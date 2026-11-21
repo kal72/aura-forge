@@ -53,7 +53,7 @@ func TestRouterWithAuth_LoginAndRBAC(t *testing.T) {
 		t.Fatalf("expected session cookie after login")
 	}
 
-	// Regular user can access / (and does NOT see User Management menu)
+	// Regular user can access / (Research Dashboard — NO admin menus, NO financial KPIs, NO Sync Jita Prices button)
 	req = httptest.NewRequest(http.MethodGet, "/", nil)
 	req.AddCookie(userCookies[0])
 	rec = httptest.NewRecorder()
@@ -61,17 +61,50 @@ func TestRouterWithAuth_LoginAndRBAC(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected user GET / to succeed, got %d", rec.Code)
 	}
-	if strings.Contains(rec.Body.String(), "/admin/users") {
-		t.Fatalf("regular user must NOT see User Management menu link")
+	userDashBody := rec.Body.String()
+	for _, forbidden := range []string{"/admin/users", "/settings", "/catalog", "/wealth", "/allocator", "Sync Jita Prices", "Available Capital"} {
+		if strings.Contains(userDashBody, forbidden) {
+			t.Fatalf("regular user dashboard must NOT contain %q", forbidden)
+		}
 	}
 
-	// Regular user attempting GET /admin/users gets 403 Forbidden
-	req = httptest.NewRequest(http.MethodGet, "/admin/users", nil)
-	req.AddCookie(userCookies[0])
-	rec = httptest.NewRecorder()
-	router.ServeHTTP(rec, req)
-	if rec.Code != http.StatusForbidden {
-		t.Fatalf("expected regular user on /admin/users to get 403, got %d", rec.Code)
+	// Regular user CAN access research tools
+	for _, allowed := range []string{"/marketplace", "/scanner", "/calculator", "/invention", "/pi", "/wiki", "/esi/minerals"} {
+		req = httptest.NewRequest(http.MethodGet, allowed, nil)
+		req.AddCookie(userCookies[0])
+		rec = httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected regular user on %s to get 200, got %d", allowed, rec.Code)
+		}
+	}
+
+	// Regular user attempting admin-only pages or write actions gets 403 Forbidden
+	forbiddenRoutes := []struct {
+		method string
+		path   string
+	}{
+		{http.MethodGet, "/admin/users"},
+		{http.MethodGet, "/settings"},
+		{http.MethodGet, "/catalog"},
+		{http.MethodGet, "/allocator"},
+		{http.MethodGet, "/planner"},
+		{http.MethodGet, "/tracker"},
+		{http.MethodGet, "/wealth"},
+		{http.MethodPost, "/esi/sync-prices"},
+		{http.MethodPost, "/settings/sde/import"},
+		{http.MethodPost, "/marketplace/add-catalog"},
+		{http.MethodPost, "/calculator/blueprint/save-catalog"},
+		{http.MethodPost, "/pi/colonies"},
+	}
+	for _, fr := range forbiddenRoutes {
+		req = httptest.NewRequest(fr.method, fr.path, nil)
+		req.AddCookie(userCookies[0])
+		rec = httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+		if rec.Code != http.StatusForbidden {
+			t.Fatalf("expected regular user on %s %s to get 403, got %d", fr.method, fr.path, rec.Code)
+		}
 	}
 
 	// 4. Login as 'admin'
@@ -85,12 +118,14 @@ func TestRouterWithAuth_LoginAndRBAC(t *testing.T) {
 	}
 	adminCookies := rec.Result().Cookies()
 
-	// Admin CAN access /admin/users and sees User Management page
-	req = httptest.NewRequest(http.MethodGet, "/admin/users", nil)
-	req.AddCookie(adminCookies[0])
-	rec = httptest.NewRecorder()
-	router.ServeHTTP(rec, req)
-	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "User Management") {
-		t.Fatalf("expected admin GET /admin/users to render 200, got %d", rec.Code)
+	// Admin CAN access /admin/users, /settings, /catalog, /wealth and sees full Dashboard
+	for _, adminPath := range []string{"/", "/admin/users", "/settings", "/catalog", "/allocator", "/planner", "/tracker", "/wealth"} {
+		req = httptest.NewRequest(http.MethodGet, adminPath, nil)
+		req.AddCookie(adminCookies[0])
+		rec = httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected admin GET %s to render 200, got %d", adminPath, rec.Code)
+		}
 	}
 }

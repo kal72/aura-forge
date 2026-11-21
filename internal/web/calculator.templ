@@ -12,6 +12,7 @@ templ CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input 
 		<div
 			class="space-y-6"
 			x-data={ fmt.Sprintf(`{
+				isAdmin: %t,
 				calcMode: new URLSearchParams(window.location.search).get('mode') === 'blueprint' ? 'blueprint' : 'manual',
 				itemName: %q,
 				sellPrice: %g,
@@ -127,7 +128,7 @@ templ CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input 
 						this.lookupStatus = 'Failed to reach Public ESI';
 					}
 				}
-			}`, input.ItemName, input.UnitSellPrice, len(blueprints), func() int32 {
+			}`, mode.IsAdmin(), input.ItemName, input.UnitSellPrice, len(blueprints), func() int32 {
 				if len(blueprints) > 0 {
 					return blueprints[0].BlueprintTypeID
 				}
@@ -433,7 +434,7 @@ templ CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input 
 							</p>
 						</div>
 						<div class="flex items-center gap-2">
-							<a href="/settings" class="rounded-md border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-[10.5px] font-mono font-semibold text-violet-200 hover:bg-violet-500/25">
+							<a x-show="isAdmin" href="/settings" class="rounded-md border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-[10.5px] font-mono font-semibold text-violet-200 hover:bg-violet-500/25">
 								Import Full SDE →
 							</a>
 							<button type="button" @click="bpModalOpen = false" class="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs font-bold text-slate-300 hover:text-white cursor-pointer">
@@ -662,7 +663,7 @@ templ BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) {
 					} else {
 						<span class="rounded-full border border-rose-500/40 bg-rose-500/20 px-2.5 py-0.5 font-mono text-[11px] font-bold text-rose-300">NET LOSS</span>
 					}
-					<form hx-post="/calculator/blueprint/save-catalog" hx-swap="none">
+					<form x-show="isAdmin" hx-post="/calculator/blueprint/save-catalog" hx-swap="none">
 						<input type="hidden" name="product_type_id" value={ fmt.Sprintf("%d", res.Blueprint.ProductTypeID) }/>
 						<input type="hidden" name="product_name" value={ res.Blueprint.ProductName }/>
 						<input type="hidden" name="category" value={ res.Blueprint.Category }/>

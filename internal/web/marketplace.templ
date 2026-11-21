@@ -88,7 +88,7 @@ func formatInt64(v int64) string {
 
 templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, presets []service.MarketplacePreset, snap *domain.MarketplaceSnapshot, errMsg string) {
 	@Layout("Marketplace", "marketplace", mode) {
-		<div class="space-y-6">
+		<div class="space-y-6" x-data={ fmt.Sprintf("{ isAdmin: %t }", mode.IsAdmin()) }>
 			<!-- Header -->
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
@@ -201,7 +201,7 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 				</div>
 
 				<div class="flex flex-wrap items-center gap-2">
-					<form hx-post="/marketplace/add-catalog" hx-swap="none">
+					<form x-show="isAdmin" hx-post="/marketplace/add-catalog" hx-swap="none">
 						<input type="hidden" name="type_id" value={ fmt.Sprintf("%d", snap.TypeID) }/>
 						<input type="hidden" name="name" value={ snap.TypeName }/>
 						<input type="hidden" name="category" value="Other"/>

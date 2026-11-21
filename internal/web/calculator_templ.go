@@ -54,6 +54,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			}
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf(`{
+				isAdmin: %t,
 				calcMode: new URLSearchParams(window.location.search).get('mode') === 'blueprint' ? 'blueprint' : 'manual',
 				itemName: %q,
 				sellPrice: %g,
@@ -169,7 +170,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 						this.lookupStatus = 'Failed to reach Public ESI';
 					}
 				}
-			}`, input.ItemName, input.UnitSellPrice, len(blueprints), func() int32 {
+			}`, mode.IsAdmin(), input.ItemName, input.UnitSellPrice, len(blueprints), func() int32 {
 				if len(blueprints) > 0 {
 					return blueprints[0].BlueprintTypeID
 				}
@@ -201,7 +202,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 				return 1
 			}()))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 160, Col: 7}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 161, Col: 7}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -214,7 +215,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", input.OutputQty))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 214, Col: 88}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 215, Col: 88}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -227,7 +228,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", input.MaterialCost))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 222, Col: 108}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 223, Col: 108}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -240,7 +241,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", input.ExtraSetupCost))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 226, Col: 113}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 227, Col: 113}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -253,7 +254,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.4f", input.SystemCostIndex))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 230, Col: 117}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 231, Col: 117}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -266,7 +267,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", input.FreightCost))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 234, Col: 106}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 235, Col: 106}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -279,7 +280,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", input.BrokerFeePercent))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 238, Col: 117}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 239, Col: 117}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -292,7 +293,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", input.SalesTaxPercent))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 242, Col: 115}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 243, Col: 115}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -305,7 +306,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", input.EstimatedRelists))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 246, Col: 102}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 247, Col: 102}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -318,7 +319,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", input.BatchesPerWeek))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 250, Col: 99}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 251, Col: 99}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -339,7 +340,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d BPs", len(blueprints)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 277, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 278, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -357,7 +358,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 				var templ_7745c5c3_Var14 string
 				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(h.Key)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 327, Col: 30}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 328, Col: 30}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 				if templ_7745c5c3_Err != nil {
@@ -370,7 +371,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 				var templ_7745c5c3_Var15 string
 				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(h.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 327, Col: 41}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 328, Col: 41}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 				if templ_7745c5c3_Err != nil {
@@ -383,7 +384,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 				var templ_7745c5c3_Var16 string
 				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(h.RegionName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 327, Col: 59}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 328, Col: 59}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 				if templ_7745c5c3_Err != nil {
@@ -406,7 +407,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 				var templ_7745c5c3_Var17 string
 				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(st.Key)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 356, Col: 31}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 357, Col: 31}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 				if templ_7745c5c3_Err != nil {
@@ -419,7 +420,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 				var templ_7745c5c3_Var18 string
 				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(st.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 356, Col: 43}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 357, Col: 43}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 				if templ_7745c5c3_Err != nil {
@@ -437,7 +438,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.4f", settings.SystemCostIndex))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 372, Col: 120}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 373, Col: 120}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -450,7 +451,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			var templ_7745c5c3_Var20 string
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", settings.FreightCostPerM3))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 376, Col: 121}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 377, Col: 121}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 			if templ_7745c5c3_Err != nil {
@@ -463,7 +464,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			var templ_7745c5c3_Var21 string
 			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", settings.BrokerFeePercent))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 381, Col: 120}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 382, Col: 120}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 			if templ_7745c5c3_Err != nil {
@@ -476,7 +477,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			var templ_7745c5c3_Var22 string
 			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", settings.SalesTaxPercent))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 385, Col: 118}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 386, Col: 118}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 			if templ_7745c5c3_Err != nil {
@@ -490,7 +491,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</div></div><!-- Blueprint Catalog Modal Popup (Categories + Tech Level + Live Search + Pagination) --><div x-cloak x-show=\"bpModalOpen\" @keydown.escape.window=\"bpModalOpen = false\" class=\"fixed inset-0 z-[100] flex items-center justify-center p-4\"><!-- Backdrop --><div @click=\"bpModalOpen = false\" class=\"fixed inset-0 bg-slate-950/80 backdrop-blur-xs\"></div><!-- Modal Dialog --><div class=\"relative z-10 flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-amber-400/45 bg-[#0e1126] shadow-2xl\"><!-- Modal Header --><div class=\"flex items-center justify-between gap-3 border-b border-violet-400/20 bg-slate-950/85 px-5 py-3.5\"><div><h3 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">EVE Online Blueprint Catalog</h3><p class=\"text-[11px] font-mono text-slate-400 mt-0.5\"><span x-text=\"bpTotal.toLocaleString()\"></span> matching blueprints • Click any item to load into Calculator</p></div><div class=\"flex items-center gap-2\"><a href=\"/settings\" class=\"rounded-md border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-[10.5px] font-mono font-semibold text-violet-200 hover:bg-violet-500/25\">Import Full SDE →</a> <button type=\"button\" @click=\"bpModalOpen = false\" class=\"rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs font-bold text-slate-300 hover:text-white cursor-pointer\">✕</button></div></div><!-- Search + Tech Filter + Category Pills --><div class=\"border-b border-violet-400/15 bg-slate-950/55 px-5 py-3.5 space-y-3\"><div class=\"flex flex-wrap items-center gap-2.5\"><input type=\"text\" x-model=\"bpSearch\" @input=\"onBPSearchInput()\" placeholder=\"Search blueprint or product (e.g. Gila, Tengu, Hobgoblin II, Damage Control, Orca)...\" class=\"flex-1 min-w-[220px] rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none\"><!-- Tech Level Filter --><div class=\"inline-flex rounded-lg border border-violet-400/30 bg-slate-900 p-0.5 font-mono text-[11px]\"><button type=\"button\" @click=\"setBPTech(0)\" :class=\"bpTech === 0 ? &#39;bg-violet-500 text-white&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2.5 py-1 font-bold cursor-pointer\">ALL</button> <button type=\"button\" @click=\"setBPTech(1)\" :class=\"bpTech === 1 ? &#39;bg-emerald-500 text-slate-950&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2.5 py-1 font-bold cursor-pointer\">T1</button> <button type=\"button\" @click=\"setBPTech(2)\" :class=\"bpTech === 2 ? &#39;bg-amber-400 text-slate-950&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2.5 py-1 font-bold cursor-pointer\">T2</button> <button type=\"button\" @click=\"setBPTech(3)\" :class=\"bpTech === 3 ? &#39;bg-sky-400 text-slate-950&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2.5 py-1 font-bold cursor-pointer\">T3</button></div></div><!-- Category Filter Pills --><div class=\"flex flex-wrap gap-1.5\"><button type=\"button\" @click=\"setBPCategory(&#39;ALL&#39;)\" :class=\"bpCategory === &#39;ALL&#39; ? &#39;bg-amber-400 text-slate-950 border-amber-300&#39; : &#39;bg-slate-900/70 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-md border px-2.5 py-1 font-mono text-[10px] font-bold transition cursor-pointer\">All Categories</button><template x-for=\"cat in bpCategories\" :key=\"cat\"><button type=\"button\" @click=\"setBPCategory(cat)\" :class=\"bpCategory === cat ? &#39;bg-amber-400 text-slate-950 border-amber-300&#39; : &#39;bg-slate-900/70 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-md border px-2.5 py-1 font-mono text-[10px] font-bold transition cursor-pointer\" x-text=\"cat\"></button></template></div></div><!-- Paginated Blueprint Cards Grid --><div class=\"flex-1 overflow-y-auto p-5\"><div x-show=\"bpLoading\" class=\"py-12 text-center font-mono text-xs text-amber-200\">Loading blueprints...</div><div x-show=\"!bpLoading &amp;&amp; bpItems.length === 0\" class=\"py-12 text-center text-xs text-slate-400\">No blueprints matched your filter. Try clearing the search or importing the Full Official CCP SDE in Settings.</div><div x-show=\"!bpLoading &amp;&amp; bpItems.length &gt; 0\" class=\"grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3\"><template x-for=\"bp in bpItems\" :key=\"bp.blueprint_type_id\"><button type=\"button\" @click=\"chooseBlueprint(bp)\" :class=\"selectedBP.blueprint_type_id === bp.blueprint_type_id ? &#39;border-amber-300 bg-amber-400/15&#39; : &#39;border-violet-400/20 bg-slate-950/60 hover:border-amber-300/60 hover:bg-slate-900/80&#39;\" class=\"flex items-center gap-2.5 rounded-xl border p-2.5 text-left transition cursor-pointer\"><img :src=\"&#39;https://images.evetech.net/types/&#39; + bp.product_type_id + &#39;/icon?size=64&#39;\" :alt=\"bp.product_name\" loading=\"lazy\" class=\"h-9 w-9 shrink-0 rounded-lg border border-violet-400/30 bg-slate-950 p-0.5 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"><div class=\"min-w-0 flex-1\"><div class=\"text-xs font-bold text-white truncate\" x-text=\"bp.product_name\"></div><div class=\"mt-0.5 flex items-center gap-1.5 font-mono text-[9.5px] text-slate-400\"><span class=\"rounded border px-1 py-0.25 font-bold\" :class=\"bp.tech_level === 2 ? &#39;border-amber-400/45 bg-amber-500/20 text-amber-200&#39; : (bp.tech_level === 3 ? &#39;border-sky-400/45 bg-sky-500/20 text-sky-200&#39; : &#39;border-emerald-400/40 bg-emerald-500/15 text-emerald-200&#39;)\" x-text=\"&#39;T&#39; + bp.tech_level\"></span> <span class=\"truncate\" x-text=\"bp.category\"></span> <span class=\"ml-auto text-slate-300\" x-text=\"bp.product_qty_per_run + &#39;/run&#39;\"></span></div></div></button></template></div></div><!-- Pagination Footer --><div class=\"flex flex-wrap items-center justify-between gap-2 border-t border-violet-400/20 bg-slate-950/85 px-5 py-3 font-mono text-[11px] text-slate-300\"><div>Page <strong class=\"text-amber-200\" x-text=\"bpPage\"></strong> of <strong class=\"text-white\" x-text=\"bpTotalPages\"></strong> (<span x-text=\"bpTotal.toLocaleString()\"></span> total)</div><div class=\"flex items-center gap-2\"><button type=\"button\" @click=\"if (bpPage &gt; 1) fetchBlueprints(bpPage - 1)\" :disabled=\"bpPage &lt;= 1 || bpLoading\" class=\"rounded-md border border-slate-700 bg-slate-900 px-3 py-1 font-bold text-slate-200 hover:border-amber-400/50 disabled:opacity-40 cursor-pointer\">← Prev</button> <button type=\"button\" @click=\"if (bpPage &lt; bpTotalPages) fetchBlueprints(bpPage + 1)\" :disabled=\"bpPage &gt;= bpTotalPages || bpLoading\" class=\"rounded-md border border-slate-700 bg-slate-900 px-3 py-1 font-bold text-slate-200 hover:border-amber-400/50 disabled:opacity-40 cursor-pointer\">Next →</button></div></div></div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</div></div><!-- Blueprint Catalog Modal Popup (Categories + Tech Level + Live Search + Pagination) --><div x-cloak x-show=\"bpModalOpen\" @keydown.escape.window=\"bpModalOpen = false\" class=\"fixed inset-0 z-[100] flex items-center justify-center p-4\"><!-- Backdrop --><div @click=\"bpModalOpen = false\" class=\"fixed inset-0 bg-slate-950/80 backdrop-blur-xs\"></div><!-- Modal Dialog --><div class=\"relative z-10 flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-amber-400/45 bg-[#0e1126] shadow-2xl\"><!-- Modal Header --><div class=\"flex items-center justify-between gap-3 border-b border-violet-400/20 bg-slate-950/85 px-5 py-3.5\"><div><h3 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">EVE Online Blueprint Catalog</h3><p class=\"text-[11px] font-mono text-slate-400 mt-0.5\"><span x-text=\"bpTotal.toLocaleString()\"></span> matching blueprints • Click any item to load into Calculator</p></div><div class=\"flex items-center gap-2\"><a x-show=\"isAdmin\" href=\"/settings\" class=\"rounded-md border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-[10.5px] font-mono font-semibold text-violet-200 hover:bg-violet-500/25\">Import Full SDE →</a> <button type=\"button\" @click=\"bpModalOpen = false\" class=\"rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs font-bold text-slate-300 hover:text-white cursor-pointer\">✕</button></div></div><!-- Search + Tech Filter + Category Pills --><div class=\"border-b border-violet-400/15 bg-slate-950/55 px-5 py-3.5 space-y-3\"><div class=\"flex flex-wrap items-center gap-2.5\"><input type=\"text\" x-model=\"bpSearch\" @input=\"onBPSearchInput()\" placeholder=\"Search blueprint or product (e.g. Gila, Tengu, Hobgoblin II, Damage Control, Orca)...\" class=\"flex-1 min-w-[220px] rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none\"><!-- Tech Level Filter --><div class=\"inline-flex rounded-lg border border-violet-400/30 bg-slate-900 p-0.5 font-mono text-[11px]\"><button type=\"button\" @click=\"setBPTech(0)\" :class=\"bpTech === 0 ? &#39;bg-violet-500 text-white&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2.5 py-1 font-bold cursor-pointer\">ALL</button> <button type=\"button\" @click=\"setBPTech(1)\" :class=\"bpTech === 1 ? &#39;bg-emerald-500 text-slate-950&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2.5 py-1 font-bold cursor-pointer\">T1</button> <button type=\"button\" @click=\"setBPTech(2)\" :class=\"bpTech === 2 ? &#39;bg-amber-400 text-slate-950&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2.5 py-1 font-bold cursor-pointer\">T2</button> <button type=\"button\" @click=\"setBPTech(3)\" :class=\"bpTech === 3 ? &#39;bg-sky-400 text-slate-950&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2.5 py-1 font-bold cursor-pointer\">T3</button></div></div><!-- Category Filter Pills --><div class=\"flex flex-wrap gap-1.5\"><button type=\"button\" @click=\"setBPCategory(&#39;ALL&#39;)\" :class=\"bpCategory === &#39;ALL&#39; ? &#39;bg-amber-400 text-slate-950 border-amber-300&#39; : &#39;bg-slate-900/70 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-md border px-2.5 py-1 font-mono text-[10px] font-bold transition cursor-pointer\">All Categories</button><template x-for=\"cat in bpCategories\" :key=\"cat\"><button type=\"button\" @click=\"setBPCategory(cat)\" :class=\"bpCategory === cat ? &#39;bg-amber-400 text-slate-950 border-amber-300&#39; : &#39;bg-slate-900/70 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-md border px-2.5 py-1 font-mono text-[10px] font-bold transition cursor-pointer\" x-text=\"cat\"></button></template></div></div><!-- Paginated Blueprint Cards Grid --><div class=\"flex-1 overflow-y-auto p-5\"><div x-show=\"bpLoading\" class=\"py-12 text-center font-mono text-xs text-amber-200\">Loading blueprints...</div><div x-show=\"!bpLoading &amp;&amp; bpItems.length === 0\" class=\"py-12 text-center text-xs text-slate-400\">No blueprints matched your filter. Try clearing the search or importing the Full Official CCP SDE in Settings.</div><div x-show=\"!bpLoading &amp;&amp; bpItems.length &gt; 0\" class=\"grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3\"><template x-for=\"bp in bpItems\" :key=\"bp.blueprint_type_id\"><button type=\"button\" @click=\"chooseBlueprint(bp)\" :class=\"selectedBP.blueprint_type_id === bp.blueprint_type_id ? &#39;border-amber-300 bg-amber-400/15&#39; : &#39;border-violet-400/20 bg-slate-950/60 hover:border-amber-300/60 hover:bg-slate-900/80&#39;\" class=\"flex items-center gap-2.5 rounded-xl border p-2.5 text-left transition cursor-pointer\"><img :src=\"&#39;https://images.evetech.net/types/&#39; + bp.product_type_id + &#39;/icon?size=64&#39;\" :alt=\"bp.product_name\" loading=\"lazy\" class=\"h-9 w-9 shrink-0 rounded-lg border border-violet-400/30 bg-slate-950 p-0.5 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"><div class=\"min-w-0 flex-1\"><div class=\"text-xs font-bold text-white truncate\" x-text=\"bp.product_name\"></div><div class=\"mt-0.5 flex items-center gap-1.5 font-mono text-[9.5px] text-slate-400\"><span class=\"rounded border px-1 py-0.25 font-bold\" :class=\"bp.tech_level === 2 ? &#39;border-amber-400/45 bg-amber-500/20 text-amber-200&#39; : (bp.tech_level === 3 ? &#39;border-sky-400/45 bg-sky-500/20 text-sky-200&#39; : &#39;border-emerald-400/40 bg-emerald-500/15 text-emerald-200&#39;)\" x-text=\"&#39;T&#39; + bp.tech_level\"></span> <span class=\"truncate\" x-text=\"bp.category\"></span> <span class=\"ml-auto text-slate-300\" x-text=\"bp.product_qty_per_run + &#39;/run&#39;\"></span></div></div></button></template></div></div><!-- Pagination Footer --><div class=\"flex flex-wrap items-center justify-between gap-2 border-t border-violet-400/20 bg-slate-950/85 px-5 py-3 font-mono text-[11px] text-slate-300\"><div>Page <strong class=\"text-amber-200\" x-text=\"bpPage\"></strong> of <strong class=\"text-white\" x-text=\"bpTotalPages\"></strong> (<span x-text=\"bpTotal.toLocaleString()\"></span> total)</div><div class=\"flex items-center gap-2\"><button type=\"button\" @click=\"if (bpPage &gt; 1) fetchBlueprints(bpPage - 1)\" :disabled=\"bpPage &lt;= 1 || bpLoading\" class=\"rounded-md border border-slate-700 bg-slate-900 px-3 py-1 font-bold text-slate-200 hover:border-amber-400/50 disabled:opacity-40 cursor-pointer\">← Prev</button> <button type=\"button\" @click=\"if (bpPage &lt; bpTotalPages) fetchBlueprints(bpPage + 1)\" :disabled=\"bpPage &gt;= bpTotalPages || bpLoading\" class=\"rounded-md border border-slate-700 bg-slate-900 px-3 py-1 font-bold text-slate-200 hover:border-amber-400/50 disabled:opacity-40 cursor-pointer\">Next →</button></div></div></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -533,7 +534,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			var templ_7745c5c3_Var24 string
 			templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 560, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 561, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 			if templ_7745c5c3_Err != nil {
@@ -551,7 +552,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			var templ_7745c5c3_Var25 string
 			templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(input.ItemName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 565, Col: 106}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 566, Col: 106}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 			if templ_7745c5c3_Err != nil {
@@ -601,7 +602,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			var templ_7745c5c3_Var28 string
 			templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.NetProfitPerBatch))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 576, Col: 127}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 577, Col: 127}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 			if templ_7745c5c3_Err != nil {
@@ -636,7 +637,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			var templ_7745c5c3_Var31 string
 			templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.WeeklyNetProfit))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 580, Col: 123}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 581, Col: 123}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 			if templ_7745c5c3_Err != nil {
@@ -649,7 +650,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			var templ_7745c5c3_Var32 string
 			templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(res.NetMarginPercent))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 584, Col: 103}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 585, Col: 103}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 			if templ_7745c5c3_Err != nil {
@@ -662,7 +663,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			var templ_7745c5c3_Var33 string
 			templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(res.ROIPercent))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 584, Col: 139}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 585, Col: 139}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 			if templ_7745c5c3_Err != nil {
@@ -675,7 +676,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			var templ_7745c5c3_Var34 string
 			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISKExact(res.BreakEvenUnitPrice))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 588, Col: 108}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 589, Col: 108}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 			if templ_7745c5c3_Err != nil {
@@ -688,7 +689,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			var templ_7745c5c3_Var35 string
 			templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISKExact(res.GrossRevenue))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 593, Col: 146}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 594, Col: 146}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 			if templ_7745c5c3_Err != nil {
@@ -701,7 +702,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			var templ_7745c5c3_Var36 string
 			templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISKExact(res.TotalDirectCost))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 594, Col: 192}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 595, Col: 192}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 			if templ_7745c5c3_Err != nil {
@@ -714,7 +715,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			var templ_7745c5c3_Var37 string
 			templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISKExact(res.JobInstallCost))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 595, Col: 161}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 596, Col: 161}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 			if templ_7745c5c3_Err != nil {
@@ -727,7 +728,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			var templ_7745c5c3_Var38 string
 			templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISKExact(res.TotalMarketFees))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 596, Col: 171}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 597, Col: 171}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 			if templ_7745c5c3_Err != nil {
@@ -740,7 +741,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			var templ_7745c5c3_Var39 string
 			templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISKExact(res.TotalActualCost))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 599, Col: 67}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 600, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 			if templ_7745c5c3_Err != nil {
@@ -784,7 +785,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var41 string
 			templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 609, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 610, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
 			if templ_7745c5c3_Err != nil {
@@ -808,7 +809,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var42 string
 			templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(res.Blueprint.ProductTypeID, 64))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 624, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 625, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 			if templ_7745c5c3_Err != nil {
@@ -821,7 +822,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var43 string
 			templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(res.Blueprint.ProductName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 624, Col: 97}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 625, Col: 97}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 			if templ_7745c5c3_Err != nil {
@@ -834,7 +835,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var44 string
 			templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(res.Blueprint.ProductName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 627, Col: 86}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 628, Col: 86}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 			if templ_7745c5c3_Err != nil {
@@ -847,7 +848,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var45 string
 			templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", res.Blueprint.TechLevel))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 628, Col: 182}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 629, Col: 182}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 			if templ_7745c5c3_Err != nil {
@@ -860,7 +861,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var46 string
 			templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%dx Runs (%d units) • ME %d%% / TE %d%% • %s • %s", res.Runs, res.TotalOutputQty, res.ME, res.TE, res.Structure.Name, res.PriceHub.Name))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 631, Col: 164}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 632, Col: 164}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
 			if templ_7745c5c3_Err != nil {
@@ -887,14 +888,14 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "<form hx-post=\"/calculator/blueprint/save-catalog\" hx-swap=\"none\"><input type=\"hidden\" name=\"product_type_id\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "<form x-show=\"isAdmin\" hx-post=\"/calculator/blueprint/save-catalog\" hx-swap=\"none\"><input type=\"hidden\" name=\"product_type_id\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var47 string
 			templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", res.Blueprint.ProductTypeID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 666, Col: 104}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 667, Col: 104}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var47))
 			if templ_7745c5c3_Err != nil {
@@ -907,7 +908,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var48 string
 			templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(res.Blueprint.ProductName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 667, Col: 80}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 668, Col: 80}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 			if templ_7745c5c3_Err != nil {
@@ -920,7 +921,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var49 string
 			templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.JoinStringErrs(res.Blueprint.Category)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 668, Col: 73}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 669, Col: 73}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var49))
 			if templ_7745c5c3_Err != nil {
@@ -933,7 +934,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var50 string
 			templ_7745c5c3_Var50, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", res.TotalOutputQty))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 669, Col: 90}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 670, Col: 90}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var50))
 			if templ_7745c5c3_Err != nil {
@@ -946,7 +947,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var51 string
 			templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", res.ProductUnitSellPrice))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 670, Col: 103}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 671, Col: 103}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var51))
 			if templ_7745c5c3_Err != nil {
@@ -959,7 +960,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var52 string
 			templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", res.ProductUnitBuyPrice))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 671, Col: 101}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 672, Col: 101}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var52))
 			if templ_7745c5c3_Err != nil {
@@ -972,7 +973,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var53 string
 			templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", res.TotalMaterialCost))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 672, Col: 98}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 673, Col: 98}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var53))
 			if templ_7745c5c3_Err != nil {
@@ -1089,7 +1090,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 						}
 					}`, canvas.Width, canvas.Height, canvas.BranchMapJSON))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 784, Col: 59}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 785, Col: 59}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var54))
 				if templ_7745c5c3_Err != nil {
@@ -1102,7 +1103,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 				var templ_7745c5c3_Var55 string
 				templ_7745c5c3_Var55, templ_7745c5c3_Err = templ.JoinStringErrs(res.Blueprint.ProductName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 798, Col: 99}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 799, Col: 99}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var55))
 				if templ_7745c5c3_Err != nil {
@@ -1115,7 +1116,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 				var templ_7745c5c3_Var56 string
 				templ_7745c5c3_Var56, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", canvas.Width))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 831, Col: 52}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 832, Col: 52}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var56))
 				if templ_7745c5c3_Err != nil {
@@ -1128,7 +1129,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 				var templ_7745c5c3_Var57 string
 				templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", canvas.Height))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 831, Col: 96}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 832, Col: 96}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var57))
 				if templ_7745c5c3_Err != nil {
@@ -1141,7 +1142,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 				var templ_7745c5c3_Var58 string
 				templ_7745c5c3_Var58, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("0 0 %d %d", canvas.Width, canvas.Height))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 831, Col: 162}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 832, Col: 162}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var58))
 				if templ_7745c5c3_Err != nil {
@@ -1159,7 +1160,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var59 string
 					templ_7745c5c3_Var59, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("bpFlowDir === 'output-to-raw' ? %q : %q", edge.PathD, edge.RevPathD))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 834, Col: 97}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 835, Col: 97}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var59))
 					if templ_7745c5c3_Err != nil {
@@ -1172,7 +1173,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var60 string
 					templ_7745c5c3_Var60, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("focusedNodeID && isEdgeInBranch(%q, %q) ? '#fbbf24' : %q", edge.FromID, edge.ToID, indCanvasEdgeStroke(edge.Decision)))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 835, Col: 152}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 836, Col: 152}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var60))
 					if templ_7745c5c3_Err != nil {
@@ -1185,7 +1186,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var61 string
 					templ_7745c5c3_Var61, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("focusedNodeID && isEdgeInBranch(%q, %q) ? 3 : 2", edge.FromID, edge.ToID))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 836, Col: 113}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 837, Col: 113}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var61))
 					if templ_7745c5c3_Err != nil {
@@ -1198,7 +1199,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var62 string
 					templ_7745c5c3_Var62, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("isEdgeInBranch(%q, %q) ? 1 : 0.18", edge.FromID, edge.ToID))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 837, Col: 94}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 838, Col: 94}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var62))
 					if templ_7745c5c3_Err != nil {
@@ -1226,7 +1227,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var64 string
 					templ_7745c5c3_Var64, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("selectNode(%q, %d, %q, %q, %t)", n.NodeID, n.TypeID, n.Name, string(n.Decision), n.CanToggleMake))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 845, Col: 134}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 846, Col: 134}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var64))
 					if templ_7745c5c3_Err != nil {
@@ -1239,7 +1240,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var65 string
 					templ_7745c5c3_Var65, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("[focusedNodeID === %q ? 'ring-2 ring-amber-300 shadow-[0_0_24px_rgba(251,191,36,0.45)]' : '', isNodeInBranch(%q) ? 'opacity-100' : 'opacity-25']", n.NodeID, n.NodeID))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 846, Col: 198}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 847, Col: 198}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var65))
 					if templ_7745c5c3_Err != nil {
@@ -1252,7 +1253,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var66 string
 					templ_7745c5c3_Var66, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("`left: ${bpFlowDir === 'output-to-raw' ? %d : %d}px; top: %dpx; width: %dpx; min-height: %dpx;`", n.X, n.RevX, n.Y, n.Width, n.Height))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 847, Col: 166}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 848, Col: 166}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var66))
 					if templ_7745c5c3_Err != nil {
@@ -1278,7 +1279,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var68 string
 					templ_7745c5c3_Var68, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(n.TypeID, 64))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 850, Col: 49}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 851, Col: 49}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var68))
 					if templ_7745c5c3_Err != nil {
@@ -1291,7 +1292,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var69 string
 					templ_7745c5c3_Var69, templ_7745c5c3_Err = templ.JoinStringErrs(n.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 850, Col: 64}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 851, Col: 64}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var69))
 					if templ_7745c5c3_Err != nil {
@@ -1326,7 +1327,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var72 string
 					templ_7745c5c3_Var72, templ_7745c5c3_Err = templ.JoinStringErrs(string(n.Decision))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 854, Col: 33}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 855, Col: 33}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var72))
 					if templ_7745c5c3_Err != nil {
@@ -1339,7 +1340,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var73 string
 					templ_7745c5c3_Var73, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", n.Quantity))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 856, Col: 108}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 857, Col: 108}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var73))
 					if templ_7745c5c3_Err != nil {
@@ -1352,7 +1353,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var74 string
 					templ_7745c5c3_Var74, templ_7745c5c3_Err = templ.JoinStringErrs(n.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 858, Col: 85}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 859, Col: 85}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var74))
 					if templ_7745c5c3_Err != nil {
@@ -1365,7 +1366,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var75 string
 					templ_7745c5c3_Var75, templ_7745c5c3_Err = templ.JoinStringErrs(n.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 858, Col: 96}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 859, Col: 96}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var75))
 					if templ_7745c5c3_Err != nil {
@@ -1378,7 +1379,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var76 string
 					templ_7745c5c3_Var76, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(n.ActiveCost))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 859, Col: 93}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 860, Col: 93}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var76))
 					if templ_7745c5c3_Err != nil {
@@ -1423,7 +1424,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var79 string
 			templ_7745c5c3_Var79, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.Profit.NetProfitPerBatch))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 889, Col: 144}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 890, Col: 144}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var79))
 			if templ_7745c5c3_Err != nil {
@@ -1436,7 +1437,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var80 string
 			templ_7745c5c3_Var80, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(res.Profit.ROIPercent))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 890, Col: 99}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 891, Col: 99}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var80))
 			if templ_7745c5c3_Err != nil {
@@ -1471,7 +1472,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var83 string
 			templ_7745c5c3_Var83, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.ISKPerHour))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 894, Col: 116}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 895, Col: 116}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var83))
 			if templ_7745c5c3_Err != nil {
@@ -1484,7 +1485,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var84 string
 			templ_7745c5c3_Var84, templ_7745c5c3_Err = templ.JoinStringErrs(res.DurationFormatted)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 895, Col: 86}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 896, Col: 86}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var84))
 			if templ_7745c5c3_Err != nil {
@@ -1497,7 +1498,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var85 string
 			templ_7745c5c3_Var85, templ_7745c5c3_Err = templ.JoinStringErrs(res.PriceHub.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 898, Col: 86}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 899, Col: 86}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var85))
 			if templ_7745c5c3_Err != nil {
@@ -1510,7 +1511,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var86 string
 			templ_7745c5c3_Var86, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.ProductUnitSellPrice))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 899, Col: 104}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 900, Col: 104}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var86))
 			if templ_7745c5c3_Err != nil {
@@ -1523,7 +1524,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var87 string
 			templ_7745c5c3_Var87, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.Profit.BreakEvenUnitPrice))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 900, Col: 110}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 901, Col: 110}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var87))
 			if templ_7745c5c3_Err != nil {
@@ -1536,7 +1537,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var88 string
 			templ_7745c5c3_Var88, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.TotalMaterialCost))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 904, Col: 99}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 905, Col: 99}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var88))
 			if templ_7745c5c3_Err != nil {
@@ -1549,7 +1550,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var89 string
 			templ_7745c5c3_Var89, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.1f m³", res.TotalMaterialVolumeM3))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 905, Col: 108}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 906, Col: 108}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var89))
 			if templ_7745c5c3_Err != nil {
@@ -1572,7 +1573,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var90 string
 					templ_7745c5c3_Var90, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.IndustryTree.OptimalSavingsISK))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 917, Col: 90}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 918, Col: 90}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var90))
 					if templ_7745c5c3_Err != nil {
@@ -1585,7 +1586,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var91 string
 					templ_7745c5c3_Var91, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.1f%%", res.IndustryTree.OptimalSavingsPct))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 917, Col: 162}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 918, Col: 162}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var91))
 					if templ_7745c5c3_Err != nil {
@@ -1618,7 +1619,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 				var templ_7745c5c3_Var92 string
 				templ_7745c5c3_Var92, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.IndustryTree.BuyAllDirectCost))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 932, Col: 99}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 933, Col: 99}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var92))
 				if templ_7745c5c3_Err != nil {
@@ -1631,7 +1632,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 				var templ_7745c5c3_Var93 string
 				templ_7745c5c3_Var93, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.IndustryTree.MakeAllCost))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 936, Col: 94}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 937, Col: 94}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var93))
 				if templ_7745c5c3_Err != nil {
@@ -1644,7 +1645,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 				var templ_7745c5c3_Var94 string
 				templ_7745c5c3_Var94, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.IndustryTree.OptimalCost))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 940, Col: 96}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 941, Col: 96}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var94))
 				if templ_7745c5c3_Err != nil {
@@ -1677,7 +1678,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var95 string
 			templ_7745c5c3_Var95, templ_7745c5c3_Err = templ.JoinStringErrs(res.MultibuyText)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 965, Col: 76}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 966, Col: 76}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var95))
 			if templ_7745c5c3_Err != nil {
@@ -1697,7 +1698,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 						var templ_7745c5c3_Var96 string
 						templ_7745c5c3_Var96, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(fmt.Sprintf("padding-left: %dpx", (n.Depth-1)*16))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 983, Col: 107}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 984, Col: 107}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var96))
 						if templ_7745c5c3_Err != nil {
@@ -1720,7 +1721,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 						var templ_7745c5c3_Var97 string
 						templ_7745c5c3_Var97, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(n.TypeID, 32))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 987, Col: 53}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 988, Col: 53}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var97))
 						if templ_7745c5c3_Err != nil {
@@ -1733,7 +1734,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 						var templ_7745c5c3_Var98 string
 						templ_7745c5c3_Var98, templ_7745c5c3_Err = templ.JoinStringErrs(n.Name)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 987, Col: 68}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 988, Col: 68}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var98))
 						if templ_7745c5c3_Err != nil {
@@ -1746,7 +1747,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 						var templ_7745c5c3_Var99 string
 						templ_7745c5c3_Var99, templ_7745c5c3_Err = templ.JoinStringErrs(n.Name)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 988, Col: 45}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 989, Col: 45}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var99))
 						if templ_7745c5c3_Err != nil {
@@ -1759,7 +1760,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 						var templ_7745c5c3_Var100 string
 						templ_7745c5c3_Var100, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", n.Quantity))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 991, Col: 93}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 992, Col: 93}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var100))
 						if templ_7745c5c3_Err != nil {
@@ -1772,7 +1773,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 						var templ_7745c5c3_Var101 string
 						templ_7745c5c3_Var101, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(n.BuyCost))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 992, Col: 84}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 993, Col: 84}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var101))
 						if templ_7745c5c3_Err != nil {
@@ -1813,7 +1814,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 							var templ_7745c5c3_Var104 string
 							templ_7745c5c3_Var104, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(n.MakeCost))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1000, Col: 43}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1001, Col: 43}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var104))
 							if templ_7745c5c3_Err != nil {
@@ -1851,7 +1852,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 								return "MAKE"
 							}()))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1014, Col: 19}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1015, Col: 19}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var106))
 							if templ_7745c5c3_Err != nil {
@@ -1877,7 +1878,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 							var templ_7745c5c3_Var108 string
 							templ_7745c5c3_Var108, templ_7745c5c3_Err = templ.JoinStringErrs(string(n.ActiveDecision))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1018, Col: 47}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1019, Col: 47}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var108))
 							if templ_7745c5c3_Err != nil {
@@ -1912,7 +1913,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 				var templ_7745c5c3_Var109 string
 				templ_7745c5c3_Var109, templ_7745c5c3_Err = templ.JoinStringErrs(res.IndustryTree.TotalSubJobLabel)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1039, Col: 114}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1040, Col: 114}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var109))
 				if templ_7745c5c3_Err != nil {
@@ -1930,7 +1931,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var110 string
 					templ_7745c5c3_Var110, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", job.StepOrder))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1045, Col: 171}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1046, Col: 171}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var110))
 					if templ_7745c5c3_Err != nil {
@@ -1943,7 +1944,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var111 string
 					templ_7745c5c3_Var111, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(job.ProductTypeID, 32))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1046, Col: 58}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1047, Col: 58}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var111))
 					if templ_7745c5c3_Err != nil {
@@ -1956,7 +1957,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var112 string
 					templ_7745c5c3_Var112, templ_7745c5c3_Err = templ.JoinStringErrs(job.ProductName)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1046, Col: 82}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1047, Col: 82}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var112))
 					if templ_7745c5c3_Err != nil {
@@ -1969,7 +1970,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var113 string
 					templ_7745c5c3_Var113, templ_7745c5c3_Err = templ.JoinStringErrs(job.ProductName)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1047, Col: 66}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1048, Col: 66}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var113))
 					if templ_7745c5c3_Err != nil {
@@ -1982,7 +1983,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var114 string
 					templ_7745c5c3_Var114, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d runs (%d units)", job.Runs, job.OutputQty))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1048, Col: 121}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1049, Col: 121}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var114))
 					if templ_7745c5c3_Err != nil {
@@ -1995,7 +1996,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var115 string
 					templ_7745c5c3_Var115, templ_7745c5c3_Err = templ.JoinStringErrs(job.DurationLabel)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1051, Col: 29}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1052, Col: 29}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var115))
 					if templ_7745c5c3_Err != nil {
@@ -2008,7 +2009,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					var templ_7745c5c3_Var116 string
 					templ_7745c5c3_Var116, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(job.JobInstallCost))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1051, Col: 101}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1052, Col: 101}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var116))
 					if templ_7745c5c3_Err != nil {
@@ -2031,7 +2032,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var117 string
 			templ_7745c5c3_Var117, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d units", res.TotalOutputQty))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1061, Col: 128}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1062, Col: 128}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var117))
 			if templ_7745c5c3_Err != nil {
@@ -2044,7 +2045,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var118 string
 			templ_7745c5c3_Var118, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISKExact(res.Profit.GrossRevenue))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1061, Col: 204}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1062, Col: 204}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var118))
 			if templ_7745c5c3_Err != nil {
@@ -2057,7 +2058,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var119 string
 			templ_7745c5c3_Var119, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISKExact(res.FreightCost))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1062, Col: 122}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1063, Col: 122}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var119))
 			if templ_7745c5c3_Err != nil {
@@ -2070,7 +2071,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var120 string
 			templ_7745c5c3_Var120, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISKExact(res.Profit.JobInstallCost))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1062, Col: 176}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1063, Col: 176}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var120))
 			if templ_7745c5c3_Err != nil {
@@ -2083,7 +2084,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var121 string
 			templ_7745c5c3_Var121, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISKExact(res.Profit.TotalDirectCost))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1062, Col: 260}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1063, Col: 260}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var121))
 			if templ_7745c5c3_Err != nil {
@@ -2096,7 +2097,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var122 string
 			templ_7745c5c3_Var122, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISKExact(res.Profit.TotalMarketFees))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1063, Col: 189}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1064, Col: 189}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var122))
 			if templ_7745c5c3_Err != nil {
@@ -2131,7 +2132,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			var templ_7745c5c3_Var125 string
 			templ_7745c5c3_Var125, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISKExact(res.Profit.WeeklyNetProfit))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1066, Col: 106}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 1067, Col: 106}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var125))
 			if templ_7745c5c3_Err != nil {

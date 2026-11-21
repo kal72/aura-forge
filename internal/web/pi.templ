@@ -127,14 +127,16 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 					>
 						PI Profit Scanner
 					</button>
-					<button
-						type="button"
-						@click="tab = 'colonies'"
-						:class="tab === 'colonies' ? 'bg-emerald-400 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'"
-						class="rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
-					>
-						My Colonies ({ fmt.Sprintf("%d", len(colonies)) })
-					</button>
+					if mode.IsAdmin() {
+						<button
+							type="button"
+							@click="tab = 'colonies'"
+							:class="tab === 'colonies' ? 'bg-emerald-400 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'"
+							class="rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
+						>
+							My Colonies ({ fmt.Sprintf("%d", len(colonies)) })
+						</button>
+					}
 				</div>
 			</div>
 

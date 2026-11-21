@@ -67,6 +67,15 @@ func RequireAdmin(next http.Handler) http.Handler {
 	})
 }
 
+// RequireAdminIfAuth enforces RequireAdmin whenever authSvc is configured (all production and RBAC routes),
+// while remaining a pass-through in legacy auth-less unit tests (authSvc == nil).
+func RequireAdminIfAuth(authSvc *service.AuthService) func(http.Handler) http.Handler {
+	if authSvc == nil {
+		return func(next http.Handler) http.Handler { return next }
+	}
+	return RequireAdmin
+}
+
 // IsHTMX returns true if the incoming HTTP request was initiated by HTMX.
 func IsHTMX(r *http.Request) bool {
 	if v, ok := r.Context().Value(htmxContextKey).(bool); ok {

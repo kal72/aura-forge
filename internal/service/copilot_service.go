@@ -30,6 +30,12 @@ type ModeInfo struct {
 	PriceSync     PriceSyncStatus `json:"price_sync"`
 }
 
+// IsAdmin returns true for authenticated administrators (and in auth-less unit test routers where CurrentUser is nil).
+// In production, RequireAuth guarantees CurrentUser is always non-nil, so role 'user' always evaluates to false.
+func (m ModeInfo) IsAdmin() bool {
+	return m.CurrentUser == nil || m.CurrentUser.IsAdmin()
+}
+
 // DashboardSummary aggregates top-level KPIs and daily assistant tasks.
 type DashboardSummary struct {
 	Mode                 ModeInfo           `json:"mode"`

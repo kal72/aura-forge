@@ -92,219 +92,296 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\"><!-- Header & Quick Actions --><div class=\"flex flex-wrap items-center justify-between gap-4\"><div><h1 class=\"text-2xl font-bold tracking-tight text-white\">Command Center // Dashboard</h1><p class=\"text-xs text-slate-300/80 mt-0.5\">Summary of available capital, manufacturing slot capacity, realized profit, and daily copilot directives.</p></div><div class=\"flex flex-wrap gap-2\"><button type=\"button\" hx-post=\"/catalog/sample\" hx-swap=\"none\" class=\"rounded-md border border-sky-500/40 bg-sky-500/15 px-3 py-1.5 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition cursor-pointer\">Load Sample Data</button> <a href=\"/scanner\" class=\"rounded-md border border-amber-500/40 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition\">Opportunity Scanner</a> <a href=\"/wealth\" class=\"rounded-md border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 transition\">100B+ Roadmap</a></div></div><!-- KPI Grid --><div class=\"grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4\"><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[11px] font-mono uppercase tracking-wider text-slate-300\">Available Capital</div><div class=\"mt-2 text-2xl font-bold font-mono text-emerald-300\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\"><!-- Header & Quick Actions --><div class=\"flex flex-wrap items-center justify-between gap-4\"><div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var3 string
-			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(data.AvailableCapital))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 85, Col: 103}
+			if data.Mode.IsAdmin() {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<h1 class=\"text-2xl font-bold tracking-tight text-white\">Command Center // Dashboard</h1><p class=\"text-xs text-slate-300/80 mt-0.5\">Summary of available capital, manufacturing slot capacity, realized profit, and daily copilot directives.</p>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<h1 class=\"text-2xl font-bold tracking-tight text-white\">Market &amp; Research Dashboard</h1><p class=\"text-xs text-slate-300/80 mt-0.5\">Live New Eden Market Pulse across Minerals, Gas, PI, Macro, Hot Blueprints, and Global Movers, plus Quick Profit Calculator.</p>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><div class=\"mt-1 text-[11px] text-slate-400\">Source: ")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var4 string
-			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(data.CapitalSource)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 86, Col: 78}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div><div class=\"flex flex-wrap gap-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[11px] font-mono uppercase tracking-wider text-slate-300\">Locked Capital</div><div class=\"mt-2 text-2xl font-bold font-mono text-amber-300\">")
+			if data.Mode.IsAdmin() {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<button type=\"button\" hx-post=\"/catalog/sample\" hx-swap=\"none\" class=\"rounded-md border border-sky-500/40 bg-sky-500/15 px-3 py-1.5 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition cursor-pointer\">Load Sample Data</button> <a href=\"/scanner\" class=\"rounded-md border border-amber-500/40 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition\">Opportunity Scanner</a> <a href=\"/wealth\" class=\"rounded-md border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 transition\">100B+ Roadmap</a>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<a href=\"/marketplace\" class=\"rounded-md border border-sky-500/40 bg-sky-500/15 px-3 py-1.5 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition\">Marketplace</a> <a href=\"/scanner\" class=\"rounded-md border border-amber-500/40 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition\">Opportunity Scanner</a> <a href=\"/calculator?mode=blueprint\" class=\"rounded-md border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 transition\">Blueprint Calculator</a>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div></div><!-- Admin-Only Financial KPI Grid -->")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var5 string
-			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(data.LockedCapital))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 91, Col: 98}
+			if data.Mode.IsAdmin() {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4\"><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[11px] font-mono uppercase tracking-wider text-slate-300\">Available Capital</div><div class=\"mt-2 text-2xl font-bold font-mono text-emerald-300\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var3 string
+				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(data.AvailableCapital))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 103, Col: 104}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div><div class=\"mt-1 text-[11px] text-slate-400\">Source: ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var4 string
+				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(data.CapitalSource)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 104, Col: 79}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[11px] font-mono uppercase tracking-wider text-slate-300\">Locked Capital</div><div class=\"mt-2 text-2xl font-bold font-mono text-amber-300\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var5 string
+				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(data.LockedCapital))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 109, Col: 99}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div><div class=\"mt-1 text-[11px] text-slate-400\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var6 string
+				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d active batches (%d undercut)", data.ActiveBatchesCount, data.UndercutBatchesCount))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 110, Col: 151}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[11px] font-mono uppercase tracking-wider text-slate-300\">Realized Profit</div><div class=\"mt-2 text-2xl font-bold font-mono text-sky-300\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var7 string
+				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(data.RealizedProfit))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 115, Col: 98}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</div><div class=\"mt-1 text-[11px] text-slate-400\">Accumulated from SOLD batches</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[11px] font-mono uppercase tracking-wider text-slate-300\">Slot Capacity</div><div class=\"mt-2 text-2xl font-bold font-mono text-white\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var8 string
+				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d / %d", data.MfgSlotsUsed, data.MfgSlotsTotal))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 122, Col: 70}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, " <span class=\"text-xs font-normal text-slate-400\">MFG</span></div><div class=\"mt-1 text-[11px] text-slate-400\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var9 string
+				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Science/Invention: %d / %d • Catalog: %d safe, %d traps", data.SciSlotsUsed, data.SciSlotsTotal, data.LayakItemsCount, data.JebakanItemsCount))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 126, Col: 166}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div></div></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div><div class=\"mt-1 text-[11px] text-slate-400\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var6 string
-			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d active batches (%d undercut)", data.ActiveBatchesCount, data.UndercutBatchesCount))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 92, Col: 150}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[11px] font-mono uppercase tracking-wider text-slate-300\">Realized Profit</div><div class=\"mt-2 text-2xl font-bold font-mono text-sky-300\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var7 string
-			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(data.RealizedProfit))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 97, Col: 97}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><div class=\"mt-1 text-[11px] text-slate-400\">Accumulated from SOLD batches</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[11px] font-mono uppercase tracking-wider text-slate-300\">Slot Capacity</div><div class=\"mt-2 text-2xl font-bold font-mono text-white\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var8 string
-			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d / %d", data.MfgSlotsUsed, data.MfgSlotsTotal))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 104, Col: 69}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " <span class=\"text-xs font-normal text-slate-400\">MFG</span></div><div class=\"mt-1 text-[11px] text-slate-400\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var9 string
-			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Science/Invention: %d / %d • Catalog: %d safe, %d traps", data.SciSlotsUsed, data.SciSlotsTotal, data.LayakItemsCount, data.JebakanItemsCount))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 108, Col: 165}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div></div></div><!-- Live Market Pulse (Minerals, PI Benchmarks, Macro/Fuel, Hot Blueprints & Global Movers) --><div class=\"tactical-panel rounded-xl p-4 space-y-3.5\" x-data=\"{\n\t\t\t\t\tpulseCat: &#39;minerals&#39;,\n\t\t\t\t\tpulseHub: &#39;jita&#39;,\n\t\t\t\t\tpulseSort: &#39;demand&#39;,\n\t\t\t\t\tloadPulse() {\n\t\t\t\t\t\thtmx.ajax(&#39;GET&#39;, &#39;/esi/minerals?category=&#39; + this.pulseCat + &#39;&amp;hub=&#39; + this.pulseHub + &#39;&amp;sort=&#39; + this.pulseSort, {\n\t\t\t\t\t\t\ttarget: &#39;#live-mineral-ticker&#39;,\n\t\t\t\t\t\t\tswap: &#39;innerHTML&#39;,\n\t\t\t\t\t\t\tindicator: &#39;#pulse-spinner&#39;\n\t\t\t\t\t\t});\n\t\t\t\t\t},\n\t\t\t\t\tsetCat(c) {\n\t\t\t\t\t\tthis.pulseCat = c;\n\t\t\t\t\t\tthis.loadPulse();\n\t\t\t\t\t},\n\t\t\t\t\tsetSort(s) {\n\t\t\t\t\t\tthis.pulseSort = s;\n\t\t\t\t\t\tthis.loadPulse();\n\t\t\t\t\t}\n\t\t\t\t}\"><div class=\"flex flex-wrap items-center justify-between gap-3\"><div class=\"flex items-center gap-2\"><span class=\"h-2 w-2 rounded-full bg-emerald-400 animate-pulse\"></span><h2 class=\"text-xs font-bold uppercase tracking-wider text-amber-200\">Live Market Pulse</h2><span id=\"pulse-spinner\" class=\"htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-amber-300 border-t-transparent\"></span></div><div class=\"flex flex-wrap items-center gap-2 ml-auto\"><!-- 6 Category Tabs --><div class=\"inline-flex flex-wrap rounded-lg border border-violet-400/30 bg-slate-950/70 p-0.5\"><button type=\"button\" @click=\"setCat(&#39;minerals&#39;)\" :class=\"pulseCat === &#39;minerals&#39; ? &#39;bg-amber-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">Minerals (8)</button> <button type=\"button\" @click=\"setCat(&#39;gas&#39;)\" :class=\"pulseCat === &#39;gas&#39; ? &#39;bg-teal-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">Gas (8)</button> <button type=\"button\" @click=\"setCat(&#39;pi&#39;)\" :class=\"pulseCat === &#39;pi&#39; ? &#39;bg-violet-500 text-white shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">PI (6)</button> <button type=\"button\" @click=\"setCat(&#39;macro&#39;)\" :class=\"pulseCat === &#39;macro&#39; ? &#39;bg-sky-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">Macro &amp; Fuel (6)</button> <button type=\"button\" @click=\"setCat(&#39;blueprints&#39;)\" :class=\"pulseCat === &#39;blueprints&#39; ? &#39;bg-emerald-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">Hot Blueprints</button> <button type=\"button\" @click=\"setCat(&#39;global&#39;)\" :class=\"pulseCat === &#39;global&#39; ? &#39;bg-rose-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">Global Movers</button></div><!-- Sort Toggle for Hot Blueprints (Hot Demand vs Price Rising) --><div x-cloak x-show=\"pulseCat === &#39;blueprints&#39;\" class=\"inline-flex rounded-lg border border-emerald-400/35 bg-slate-950/70 p-0.5\"><button type=\"button\" @click=\"setSort(&#39;demand&#39;)\" :class=\"pulseSort === &#39;demand&#39; ? &#39;bg-amber-400 text-slate-950&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer\">Hot Demand</button> <button type=\"button\" @click=\"setSort(&#39;price&#39;)\" :class=\"pulseSort === &#39;price&#39; ? &#39;bg-rose-400 text-slate-950&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer\">Price Rising ↑</button></div><!-- Trade Hub Selector --><select x-model=\"pulseHub\" @change=\"loadPulse()\" class=\"rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1 text-[11px] font-mono font-semibold text-amber-200 focus:border-amber-300/60 focus:outline-none\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<!-- Live Market Pulse (Minerals, PI Benchmarks, Macro/Fuel, Hot Blueprints & Global Movers) --><div class=\"tactical-panel rounded-xl p-4 space-y-3.5\" x-data=\"{\n\t\t\t\t\tpulseCat: &#39;minerals&#39;,\n\t\t\t\t\tpulseHub: &#39;jita&#39;,\n\t\t\t\t\tpulseSort: &#39;demand&#39;,\n\t\t\t\t\tloadPulse() {\n\t\t\t\t\t\thtmx.ajax(&#39;GET&#39;, &#39;/esi/minerals?category=&#39; + this.pulseCat + &#39;&amp;hub=&#39; + this.pulseHub + &#39;&amp;sort=&#39; + this.pulseSort, {\n\t\t\t\t\t\t\ttarget: &#39;#live-mineral-ticker&#39;,\n\t\t\t\t\t\t\tswap: &#39;innerHTML&#39;,\n\t\t\t\t\t\t\tindicator: &#39;#pulse-spinner&#39;\n\t\t\t\t\t\t});\n\t\t\t\t\t},\n\t\t\t\t\tsetCat(c) {\n\t\t\t\t\t\tthis.pulseCat = c;\n\t\t\t\t\t\tthis.loadPulse();\n\t\t\t\t\t},\n\t\t\t\t\tsetSort(s) {\n\t\t\t\t\t\tthis.pulseSort = s;\n\t\t\t\t\t\tthis.loadPulse();\n\t\t\t\t\t}\n\t\t\t\t}\"><div class=\"flex flex-wrap items-center justify-between gap-3\"><div class=\"flex items-center gap-2\"><span class=\"h-2 w-2 rounded-full bg-emerald-400 animate-pulse\"></span><h2 class=\"text-xs font-bold uppercase tracking-wider text-amber-200\">Live Market Pulse</h2><span id=\"pulse-spinner\" class=\"htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-amber-300 border-t-transparent\"></span></div><div class=\"flex flex-wrap items-center gap-2 ml-auto\"><!-- 6 Category Tabs --><div class=\"inline-flex flex-wrap rounded-lg border border-violet-400/30 bg-slate-950/70 p-0.5\"><button type=\"button\" @click=\"setCat(&#39;minerals&#39;)\" :class=\"pulseCat === &#39;minerals&#39; ? &#39;bg-amber-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">Minerals (8)</button> <button type=\"button\" @click=\"setCat(&#39;gas&#39;)\" :class=\"pulseCat === &#39;gas&#39; ? &#39;bg-teal-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">Gas (8)</button> <button type=\"button\" @click=\"setCat(&#39;pi&#39;)\" :class=\"pulseCat === &#39;pi&#39; ? &#39;bg-violet-500 text-white shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">PI (6)</button> <button type=\"button\" @click=\"setCat(&#39;macro&#39;)\" :class=\"pulseCat === &#39;macro&#39; ? &#39;bg-sky-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">Macro &amp; Fuel (6)</button> <button type=\"button\" @click=\"setCat(&#39;blueprints&#39;)\" :class=\"pulseCat === &#39;blueprints&#39; ? &#39;bg-emerald-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">Hot Blueprints</button> <button type=\"button\" @click=\"setCat(&#39;global&#39;)\" :class=\"pulseCat === &#39;global&#39; ? &#39;bg-rose-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">Global Movers</button></div><!-- Sort Toggle for Hot Blueprints (Hot Demand vs Price Rising) --><div x-cloak x-show=\"pulseCat === &#39;blueprints&#39;\" class=\"inline-flex rounded-lg border border-emerald-400/35 bg-slate-950/70 p-0.5\"><button type=\"button\" @click=\"setSort(&#39;demand&#39;)\" :class=\"pulseSort === &#39;demand&#39; ? &#39;bg-amber-400 text-slate-950&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer\">Hot Demand</button> <button type=\"button\" @click=\"setSort(&#39;price&#39;)\" :class=\"pulseSort === &#39;price&#39; ? &#39;bg-rose-400 text-slate-950&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer\">Price Rising ↑</button></div><!-- Trade Hub Selector --><select x-model=\"pulseHub\" @change=\"loadPulse()\" class=\"rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1 text-[11px] font-mono font-semibold text-amber-200 focus:border-amber-300/60 focus:outline-none\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, h := range domain.MajorTradeHubs {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<option value=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<option value=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(h.Key)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 224, Col: 29}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 243, Col: 29}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(h.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 224, Col: 40}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 243, Col: 40}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</option>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</option>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</select> <button type=\"button\" @click=\"loadPulse()\" class=\"rounded-lg border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-[11px] font-semibold text-violet-200 hover:bg-violet-500/25 cursor-pointer\">Refresh</button></div></div><div id=\"live-mineral-ticker\" hx-get=\"/esi/minerals?category=minerals&amp;hub=jita&amp;sort=demand\" hx-trigger=\"load\" hx-swap=\"innerHTML\" hx-indicator=\"#pulse-spinner\" class=\"text-xs font-mono text-slate-400\">Loading Live Market Pulse from PostgreSQL cache / Public ESI...</div></div><!-- Two-Column Workspace: Daily Checklist + Quick HTMX Calculator --><div class=\"grid grid-cols-1 gap-6 lg:grid-cols-12\"><!-- Daily Assistant Checklist --><div class=\"tactical-panel rounded-xl p-5 lg:col-span-5 space-y-4\"><div class=\"flex items-center justify-between\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-sky-300\">Daily Copilot Checklist</h2><span class=\"rounded bg-sky-500/15 px-2 py-0.5 font-mono text-[10px] text-sky-300\">COPILOT</span></div><ul class=\"space-y-2.5 text-sm\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</select> <button type=\"button\" @click=\"loadPulse()\" class=\"rounded-lg border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-[11px] font-semibold text-violet-200 hover:bg-violet-500/25 cursor-pointer\">Refresh</button></div></div><div id=\"live-mineral-ticker\" hx-get=\"/esi/minerals?category=minerals&amp;hub=jita&amp;sort=demand\" hx-trigger=\"load\" hx-swap=\"innerHTML\" hx-indicator=\"#pulse-spinner\" class=\"text-xs font-mono text-slate-400\">Loading Live Market Pulse from PostgreSQL cache / Public ESI...</div></div><!-- Two-Column Workspace: Daily Checklist (Admin Only) + Quick HTMX Calculator --><div class=\"grid grid-cols-1 gap-6 lg:grid-cols-12\"><!-- Daily Assistant Checklist (Admin Only) -->")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			for i, task := range data.DailyChecklist {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<li class=\"flex items-start gap-2.5 rounded-lg border border-slate-800 bg-slate-900/60 p-3\"><span class=\"mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sky-500/20 font-mono text-[11px] font-bold text-sky-300\">")
+			if data.Mode.IsAdmin() {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div class=\"tactical-panel rounded-xl p-5 lg:col-span-5 space-y-4\"><div class=\"flex items-center justify-between\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-sky-300\">Daily Copilot Checklist</h2><span class=\"rounded bg-sky-500/15 px-2 py-0.5 font-mono text-[10px] text-sky-300\">COPILOT</span></div><ul class=\"space-y-2.5 text-sm\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var12 string
-				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", i+1))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 262, Col: 33}
+				for i, task := range data.DailyChecklist {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<li class=\"flex items-start gap-2.5 rounded-lg border border-slate-800 bg-slate-900/60 p-3\"><span class=\"mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sky-500/20 font-mono text-[11px] font-bold text-sky-300\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var12 string
+					templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", i+1))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 282, Col: 34}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</span> <span class=\"text-slate-200 leading-relaxed\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var13 string
+					templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(task)
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 284, Col: 60}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</span></li>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</ul>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</span> <span class=\"text-slate-200 leading-relaxed\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
+				if data.ActivePlan != nil {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<div class=\"rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-3.5\"><div class=\"text-[11px] font-mono uppercase text-emerald-400\">Active Weekly Plan</div><div class=\"mt-1 font-semibold text-white\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var14 string
+					templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(data.ActivePlan.Title)
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 292, Col: 74}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</div><div class=\"mt-1 text-xs text-slate-300\">Est. Profit: <span class=\"font-mono text-emerald-300\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var15 string
+					templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(data.ActivePlan.TotalEstimatedProfit))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 294, Col: 112}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</span> (")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var16 string
+					templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(data.ActivePlan.ProjectedROI))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 295, Col: 55}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, " ROI)</div><a href=\"/planner\" class=\"mt-2 inline-block text-xs font-semibold text-sky-300 hover:underline\">Open Day 1–7 Schedule &amp; Shopping List →</a></div>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
 				}
-				var templ_7745c5c3_Var13 string
-				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(task)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 264, Col: 59}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</span></li>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</ul>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<!-- Quick HTMX Profit Calculator -->")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if data.ActivePlan != nil {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<div class=\"rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-3.5\"><div class=\"text-[11px] font-mono uppercase text-emerald-400\">Active Weekly Plan</div><div class=\"mt-1 font-semibold text-white\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
+			var templ_7745c5c3_Var17 = []any{func() string {
+				if data.Mode.IsAdmin() {
+					return "tactical-panel rounded-xl p-5 lg:col-span-7 space-y-4"
 				}
-				var templ_7745c5c3_Var14 string
-				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(data.ActivePlan.Title)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 272, Col: 73}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</div><div class=\"mt-1 text-xs text-slate-300\">Est. Profit: <span class=\"font-mono text-emerald-300\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var15 string
-				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(data.ActivePlan.TotalEstimatedProfit))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 274, Col: 111}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</span> (")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var16 string
-				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(data.ActivePlan.ProjectedROI))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 275, Col: 54}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, " ROI)</div><a href=\"/planner\" class=\"mt-2 inline-block text-xs font-semibold text-sky-300 hover:underline\">Open Day 1–7 Schedule &amp; Shopping List →</a></div>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
+				return "tactical-panel rounded-xl p-5 lg:col-span-12 space-y-4"
+			}()}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var17...)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</div><!-- Quick HTMX Profit Calculator --><div class=\"tactical-panel rounded-xl p-5 lg:col-span-7 space-y-4\" x-data=\"{\n\t\t\t\t\t\titemName: &#39;Hobgoblin I&#39;,\n\t\t\t\t\t\tsellPrice: 14500,\n\t\t\t\t\t\tesiHint: &#39;&#39;,\n\t\t\t\t\t\tasync fetchJita() {\n\t\t\t\t\t\t\tif (!this.itemName) return;\n\t\t\t\t\t\t\tthis.esiHint = &#39;Looking up Public ESI...&#39;;\n\t\t\t\t\t\t\ttry {\n\t\t\t\t\t\t\t\tconst r = await fetch(&#39;/esi/lookup?name=&#39; + encodeURIComponent(this.itemName));\n\t\t\t\t\t\t\t\tconst d = await r.json();\n\t\t\t\t\t\t\t\tif (!r.ok) { this.esiHint = d.error || &#39;Item not found&#39;; return; }\n\t\t\t\t\t\t\t\tif (d.lowest_sell &gt; 0) this.sellPrice = d.lowest_sell;\n\t\t\t\t\t\t\t\tthis.esiHint = &#39;Live Jita Sell: &#39; + Number(d.lowest_sell).toLocaleString() + &#39; ISK • Vol: &#39; + Number(d.daily_volume).toLocaleString() + &#39;/day&#39;;\n\t\t\t\t\t\t\t} catch (e) { this.esiHint = &#39;Failed to reach Public ESI&#39;; }\n\t\t\t\t\t\t}\n\t\t\t\t\t}\"><div class=\"flex items-center justify-between\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">Quick Profit Calculator (HTMX + Public ESI)</h2><a href=\"/calculator\" class=\"text-xs text-sky-300 hover:underline\">Full Dual-Mode →</a></div><form hx-post=\"/calculator/compute\" hx-target=\"#quick-calc-result\" hx-swap=\"innerHTML\" class=\"grid grid-cols-1 gap-3 sm:grid-cols-2\"><div class=\"sm:col-span-2\"><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Item Name (Auto-Fill Jita Price via Public ESI)</label><div class=\"mt-1 flex gap-2\"><input type=\"text\" name=\"item_name\" x-model=\"itemName\" class=\"flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-sky-400 focus:outline-none\"> <button type=\"button\" @click=\"fetchJita()\" class=\"rounded-md border border-amber-400/40 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer\">Fetch Jita ESI</button></div><div x-show=\"esiHint\" x-text=\"esiHint\" class=\"mt-1 text-[11px] font-mono text-emerald-300\"></div></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Output Qty / Batch</label> <input type=\"number\" name=\"output_qty\" value=\"500\" min=\"1\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Jita Sell Price / Unit (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"unit_sell_price\" x-model=\"sellPrice\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Material Cost / Batch (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"material_cost\" value=\"4900000\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Extra BPC / Decryptor Cost</label> <input type=\"number\" step=\"0.01\" name=\"extra_setup_cost\" value=\"0\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Target Batches / Week</label> <input type=\"number\" name=\"batches_per_week\" value=\"4\" min=\"1\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div class=\"flex items-end justify-end\"><button type=\"submit\" class=\"w-full rounded-md bg-sky-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer\">Calculate Net Profit &amp; Break-Even</button></div></form><div id=\"quick-calc-result\" class=\"rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-xs text-slate-400\">Click above to compute Net Profit, Jita Taxes, Break-Even Unit Price, and Weekly Projection in real time.</div></div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<div class=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var18 string
+			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var17).String())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 1, Col: 0}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" x-data=\"{\n\t\t\t\t\t\titemName: &#39;Hobgoblin I&#39;,\n\t\t\t\t\t\tsellPrice: 14500,\n\t\t\t\t\t\tesiHint: &#39;&#39;,\n\t\t\t\t\t\tasync fetchJita() {\n\t\t\t\t\t\t\tif (!this.itemName) return;\n\t\t\t\t\t\t\tthis.esiHint = &#39;Looking up Public ESI...&#39;;\n\t\t\t\t\t\t\ttry {\n\t\t\t\t\t\t\t\tconst r = await fetch(&#39;/esi/lookup?name=&#39; + encodeURIComponent(this.itemName));\n\t\t\t\t\t\t\t\tconst d = await r.json();\n\t\t\t\t\t\t\t\tif (!r.ok) { this.esiHint = d.error || &#39;Item not found&#39;; return; }\n\t\t\t\t\t\t\t\tif (d.lowest_sell &gt; 0) this.sellPrice = d.lowest_sell;\n\t\t\t\t\t\t\t\tthis.esiHint = &#39;Live Jita Sell: &#39; + Number(d.lowest_sell).toLocaleString() + &#39; ISK • Vol: &#39; + Number(d.daily_volume).toLocaleString() + &#39;/day&#39;;\n\t\t\t\t\t\t\t} catch (e) { this.esiHint = &#39;Failed to reach Public ESI&#39;; }\n\t\t\t\t\t\t}\n\t\t\t\t\t}\"><div class=\"flex items-center justify-between\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">Quick Profit Calculator (HTMX + Public ESI)</h2><a href=\"/calculator\" class=\"text-xs text-sky-300 hover:underline\">Full Dual-Mode →</a></div><form hx-post=\"/calculator/compute\" hx-target=\"#quick-calc-result\" hx-swap=\"innerHTML\" class=\"grid grid-cols-1 gap-3 sm:grid-cols-2\"><div class=\"sm:col-span-2\"><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Item Name (Auto-Fill Jita Price via Public ESI)</label><div class=\"mt-1 flex gap-2\"><input type=\"text\" name=\"item_name\" x-model=\"itemName\" class=\"flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-sky-400 focus:outline-none\"> <button type=\"button\" @click=\"fetchJita()\" class=\"rounded-md border border-amber-400/40 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer\">Fetch Jita ESI</button></div><div x-show=\"esiHint\" x-text=\"esiHint\" class=\"mt-1 text-[11px] font-mono text-emerald-300\"></div></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Output Qty / Batch</label> <input type=\"number\" name=\"output_qty\" value=\"500\" min=\"1\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Jita Sell Price / Unit (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"unit_sell_price\" x-model=\"sellPrice\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Material Cost / Batch (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"material_cost\" value=\"4900000\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Extra BPC / Decryptor Cost</label> <input type=\"number\" step=\"0.01\" name=\"extra_setup_cost\" value=\"0\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Target Batches / Week</label> <input type=\"number\" name=\"batches_per_week\" value=\"4\" min=\"1\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div class=\"flex items-end justify-end\"><button type=\"submit\" class=\"w-full rounded-md bg-sky-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer\">Calculate Net Profit &amp; Break-Even</button></div></form><div id=\"quick-calc-result\" class=\"rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-xs text-slate-400\">Click above to compute Net Profit, Jita Taxes, Break-Even Unit Price, and Weekly Projection in real time.</div></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -334,457 +411,457 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var17 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var17 == nil {
-			templ_7745c5c3_Var17 = templ.NopComponent
+		templ_7745c5c3_Var19 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var19 == nil {
+			templ_7745c5c3_Var19 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		if pulse.Category == service.PulseCategoryGlobal && len(pulse.Quotes) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<div class=\"rounded-xl border border-violet-400/25 bg-slate-950/65 p-5 flex flex-wrap items-center justify-between gap-4\"><div class=\"space-y-1 max-w-2xl\"><div class=\"flex items-center gap-2\"><span class=\"rounded border border-amber-400/45 bg-amber-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-200\">GLOBAL SNAPSHOT BASELINE</span> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<div class=\"rounded-xl border border-violet-400/25 bg-slate-950/65 p-5 flex flex-wrap items-center justify-between gap-4\"><div class=\"space-y-1 max-w-2xl\"><div class=\"flex items-center gap-2\"><span class=\"rounded border border-amber-400/45 bg-amber-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-200\">GLOBAL SNAPSHOT BASELINE</span> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if pulse.GlobalStats != nil && pulse.GlobalStats.LatestItems > 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<span class=\"font-mono text-[11px] text-emerald-300\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var18 string
-				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d EVE items recorded", pulse.GlobalStats.LatestItems))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 366, Col: 128}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</span>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</div><p class=\"text-xs text-slate-300 leading-relaxed\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			if pulse.GlobalStats != nil && pulse.GlobalStats.DaysAvailable == 1 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "Day 1 baseline from <code class=\"text-amber-200\">GET /markets/prices/</code> (1 cached ESI call) is saved in PostgreSQL. Day-over-day <strong>Top Global Movers</strong> across all ~15,000+ EVE items will activate automatically once Day 2's snapshot is recorded.")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "Waiting for the first background <code class=\"text-amber-200\">GET /markets/prices/</code> snapshot (runs automatically within ~15s after server start, or click <strong>Sync Jita Prices</strong> in the sidebar).")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</p></div><button type=\"button\" hx-post=\"/esi/sync-prices\" hx-swap=\"none\" class=\"rounded-lg border border-amber-400/45 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer\">Capture Snapshot Now</button></div>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		} else if len(pulse.Quotes) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<div class=\"rounded-xl border border-violet-400/20 bg-slate-950/60 p-5 text-center text-xs text-slate-400\">No market data available yet for this tab. Click <strong>Refresh</strong> or wait for the background Jita sync cycle.</div>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<div class=\"grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			for _, m := range pulse.Quotes {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<div class=\"group relative rounded-xl border border-violet-400/20 bg-slate-950/65 p-3 hover:border-amber-300/55 hover:bg-slate-900/80 transition\"><!-- Top Row: Official EVE Icon + Name + Signal Badge --><div class=\"flex items-start justify-between gap-2\"><a href=\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var19 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/marketplace?hub=%s&q=%s", m.HubKey, m.Name))
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var19)))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\" title=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<span class=\"font-mono text-[11px] text-emerald-300\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var20 string
-				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Open %s order book in %s Marketplace", m.Name, m.HubName))
+				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d EVE items recorded", pulse.GlobalStats.LatestItems))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 398, Col: 85}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 392, Col: 128}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" class=\"flex items-center gap-2.5 min-w-0 flex-1\"><img src=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var21 string
-				templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(m.TypeID, 64))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 402, Col: 42}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</div><p class=\"text-xs text-slate-300 leading-relaxed\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if pulse.GlobalStats != nil && pulse.GlobalStats.DaysAvailable == 1 {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "Day 1 baseline from <code class=\"text-amber-200\">GET /markets/prices/</code> (1 cached ESI call) is saved in PostgreSQL. Day-over-day <strong>Top Global Movers</strong> across all ~15,000+ EVE items will activate automatically once Day 2's snapshot is recorded.")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\" alt=\"")
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "Waiting for the first background <code class=\"text-amber-200\">GET /markets/prices/</code> snapshot (runs automatically within ~15s after server start, or click <strong>Sync Jita Prices</strong> in the sidebar).")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</p></div><button type=\"button\" hx-post=\"/esi/sync-prices\" hx-swap=\"none\" class=\"rounded-lg border border-amber-400/45 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer\">Capture Snapshot Now</button></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else if len(pulse.Quotes) == 0 {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "<div class=\"rounded-xl border border-violet-400/20 bg-slate-950/60 p-5 text-center text-xs text-slate-400\">No market data available yet for this tab. Click <strong>Refresh</strong> or wait for the background Jita sync cycle.</div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<div class=\"grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			for _, m := range pulse.Quotes {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<div class=\"group relative rounded-xl border border-violet-400/20 bg-slate-950/65 p-3 hover:border-amber-300/55 hover:bg-slate-900/80 transition\"><!-- Top Row: Official EVE Icon + Name + Signal Badge --><div class=\"flex items-start justify-between gap-2\"><a href=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var21 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/marketplace?hub=%s&q=%s", m.HubKey, m.Name))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var21)))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "\" title=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var22 string
-				templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(m.Name)
+				templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Open %s order book in %s Marketplace", m.Name, m.HubName))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 403, Col: 20}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 424, Col: 85}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" loading=\"lazy\" class=\"h-9 w-9 shrink-0 rounded-lg border border-violet-400/30 bg-slate-900 p-0.5 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"><div class=\"min-w-0\"><div class=\"text-xs font-bold text-white truncate group-hover:text-amber-200 transition\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "\" class=\"flex items-center gap-2.5 min-w-0 flex-1\"><img src=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var23 string
-				templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(m.Name)
+				templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(m.TypeID, 64))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 409, Col: 105}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 428, Col: 42}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</div><div class=\"flex items-center gap-1.5 text-[9.5px] font-mono text-slate-400\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "\" alt=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				if m.BlueprintCategory != "" {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<span class=\"text-violet-300\">")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_Var24 string
-					templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(m.BlueprintCategory)
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 412, Col: 61}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</span> <span>•</span> ")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
+				var templ_7745c5c3_Var24 string
+				templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(m.Name)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 429, Col: 20}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<span>")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "\" loading=\"lazy\" class=\"h-9 w-9 shrink-0 rounded-lg border border-violet-400/30 bg-slate-900 p-0.5 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"><div class=\"min-w-0\"><div class=\"text-xs font-bold text-white truncate group-hover:text-amber-200 transition\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var25 string
-				templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(m.HubName)
+				templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(m.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 415, Col: 26}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 435, Col: 105}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</span> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "</div><div class=\"flex items-center gap-1.5 text-[9.5px] font-mono text-slate-400\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				if m.IsLive {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "<span class=\"text-emerald-400\">• LIVE</span>")
+				if m.BlueprintCategory != "" {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<span class=\"text-violet-300\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-				} else {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<span class=\"text-amber-300\">• EST</span>")
+					var templ_7745c5c3_Var26 string
+					templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(m.BlueprintCategory)
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 438, Col: 61}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "</span> <span>•</span> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "</div></div></a> ")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var26 = []any{"shrink-0 rounded-md border px-1.5 py-0.5 font-mono text-[9px] font-bold leading-tight text-right " + pulseSignalBadgeClass(m.Signal)}
-				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var26...)
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<span title=\"Market trend signal: HOT (7d volume surge ≥1.25× vs 30d), CHEAP (≤-3% vs 7d), HIGH (≥+3% vs 7d), FAIR (normal)\" class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "<span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var27 string
-				templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var26).String())
+				templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(m.HubName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 1, Col: 0}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 441, Col: 26}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "</span> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				if m.Signal == "HOT" && m.VolumeRatio > 0 {
-					var templ_7745c5c3_Var28 string
-					templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f× HOT", m.VolumeRatio))
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 430, Col: 50}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-				} else if m.Avg7dPrice > 0 {
-					var templ_7745c5c3_Var29 string
-					templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%+.1f%% %s", m.Change7dPercent, m.Signal))
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 432, Col: 64}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
+				if m.IsLive {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "<span class=\"text-emerald-400\">• LIVE</span>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				} else {
-					var templ_7745c5c3_Var30 string
-					templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(m.Signal)
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<span class=\"text-amber-300\">• EST</span>")
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 434, Col: 18}
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "</div></div></a> ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var28 = []any{"shrink-0 rounded-md border px-1.5 py-0.5 font-mono text-[9px] font-bold leading-tight text-right " + pulseSignalBadgeClass(m.Signal)}
+				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var28...)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "<span title=\"Market trend signal: HOT (7d volume surge ≥1.25× vs 30d), CHEAP (≤-3% vs 7d), HIGH (≥+3% vs 7d), FAIR (normal)\" class=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var29 string
+				templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var28).String())
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 1, Col: 0}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if m.Signal == "HOT" && m.VolumeRatio > 0 {
+					var templ_7745c5c3_Var30 string
+					templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f× HOT", m.VolumeRatio))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 456, Col: 50}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "</span></div><!-- Middle Row: Lowest Sell + 7d Mini Sparkline --><div class=\"mt-2.5 flex items-end justify-between gap-2\"><div><div class=\"text-[9.5px] font-mono uppercase text-slate-400\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				if m.IsGlobalMover && !m.IsLive {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "Global Avg")
+				} else if m.Avg7dPrice > 0 {
+					var templ_7745c5c3_Var31 string
+					templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%+.1f%% %s", m.Change7dPercent, m.Signal))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 458, Col: 64}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "Lowest Sell")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "</div><div class=\"text-sm font-mono font-bold text-amber-200 leading-tight\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var31 string
-				templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(formatPulsePrice(m.LowestSell))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 449, Col: 109}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "</div></div>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				if m.SparklinePoints != "" {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "<svg width=\"72\" height=\"20\" viewBox=\"0 0 72 20\" class=\"shrink-0 overflow-visible\" aria-hidden=\"true\"><polyline fill=\"none\" stroke=\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
 					var templ_7745c5c3_Var32 string
-					templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(pulseSparklineColor(m.Signal))
+					templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(m.Signal)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 455, Col: 47}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 460, Col: 18}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" points=\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_Var33 string
-					templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(m.SparklinePoints)
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 459, Col: 35}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "\"></polyline></svg>")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "</div><!-- Bottom Row: Volume / Buy / Spread + Action Shortcut --><div class=\"mt-2 pt-2 border-t border-violet-400/15 flex items-center justify-between gap-2 font-mono text-[10px] text-slate-400\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "</span></div><!-- Middle Row: Lowest Sell + 7d Mini Sparkline --><div class=\"mt-2.5 flex items-end justify-between gap-2\"><div><div class=\"text-[9.5px] font-mono uppercase text-slate-400\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				if m.BlueprintID > 0 || m.IsGlobalMover {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "<span class=\"truncate\">")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					if m.DailyVolume7d > 0 {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "Vol <strong class=\"text-emerald-300\">")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						var templ_7745c5c3_Var34 string
-						templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(formatCompactVol(m.DailyVolume7d))
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 470, Col: 81}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "</strong>")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-					} else {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "Buy <strong class=\"text-slate-200\">")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						var templ_7745c5c3_Var35 string
-						templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(formatPulsePrice(m.HighestBuy))
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 472, Col: 76}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "</strong>")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "</span>")
+				if m.IsGlobalMover && !m.IsLive {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "Global Avg")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "<span class=\"truncate\">Buy: <strong class=\"text-slate-200\">")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_Var36 string
-					templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(formatPulsePrice(m.HighestBuy))
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 476, Col: 98}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "</strong></span>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "Lowest Sell")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "<div class=\"flex items-center gap-2 shrink-0\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "</div><div class=\"text-sm font-mono font-bold text-amber-200 leading-tight\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				if m.BlueprintID > 0 && m.Change7dPercent != 0 {
-					var templ_7745c5c3_Var37 = []any{func() string {
-						if m.Change7dPercent > 0 {
-							return "text-emerald-300"
-						}
-						return "text-rose-300"
-					}()}
-					templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var37...)
+				var templ_7745c5c3_Var33 string
+				templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(formatPulsePrice(m.LowestSell))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 475, Col: 109}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "</div></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if m.SparklinePoints != "" {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "<svg width=\"72\" height=\"20\" viewBox=\"0 0 72 20\" class=\"shrink-0 overflow-visible\" aria-hidden=\"true\"><polyline fill=\"none\" stroke=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "<span class=\"")
+					var templ_7745c5c3_Var34 string
+					templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(pulseSparklineColor(m.Signal))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 481, Col: 47}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" points=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var35 string
+					templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(m.SparklinePoints)
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 485, Col: 35}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "\"></polyline></svg>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "</div><!-- Bottom Row: Volume / Buy / Spread + Action Shortcut --><div class=\"mt-2 pt-2 border-t border-violet-400/15 flex items-center justify-between gap-2 font-mono text-[10px] text-slate-400\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if m.BlueprintID > 0 || m.IsGlobalMover {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "<span class=\"truncate\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					if m.DailyVolume7d > 0 {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "Vol <strong class=\"text-emerald-300\">")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var36 string
+						templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(formatCompactVol(m.DailyVolume7d))
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 496, Col: 81}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "</strong>")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					} else {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "Buy <strong class=\"text-slate-200\">")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var37 string
+						templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(formatPulsePrice(m.HighestBuy))
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 498, Col: 76}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "</strong>")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "</span>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				} else {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, "<span class=\"truncate\">Buy: <strong class=\"text-slate-200\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var38 string
-					templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var37).String())
+					templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(formatPulsePrice(m.HighestBuy))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 1, Col: 0}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 502, Col: 98}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "</strong></span>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var39 string
-					templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%+.1f%%", m.Change7dPercent))
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 486, Col: 57}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "<div class=\"flex items-center gap-2 shrink-0\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if m.BlueprintID > 0 && m.Change7dPercent != 0 {
+					var templ_7745c5c3_Var39 = []any{func() string {
+						if m.Change7dPercent > 0 {
+							return "text-emerald-300"
+						}
+						return "text-rose-300"
+					}()}
+					templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var39...)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "</span> ")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-				} else if m.SpreadPercent > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "<span class=\"text-sky-300\" title=\"Sell vs Buy spread\">Spd ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "<span class=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var40 string
-					templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.1f%%", m.SpreadPercent))
+					templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var39).String())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 488, Col: 106}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 1, Col: 0}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "</span> ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var41 string
+					templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%+.1f%%", m.Change7dPercent))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 512, Col: 57}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "</span> ")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				} else if m.SpreadPercent > 0 {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "<span class=\"text-sky-300\" title=\"Sell vs Buy spread\">Spd ")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var42 string
+					templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.1f%%", m.SpreadPercent))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 514, Col: 106}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, "</span> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
 				if m.IsPI {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "<a href=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, "<a href=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var41 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/pi?type_id=%d&hub=%s", m.TypeID, m.HubKey))
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var41)))
+					var templ_7745c5c3_Var43 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/pi?type_id=%d&hub=%s", m.TypeID, m.HubKey))
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var43)))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "\" class=\"rounded border border-amber-400/40 bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold text-amber-200 hover:bg-amber-500/30 transition\">Tree →</a>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 82, "\" class=\"rounded border border-amber-400/40 bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold text-amber-200 hover:bg-amber-500/30 transition\">Tree →</a>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				} else if m.BlueprintID > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "<a href=\"/calculator?mode=blueprint\" title=\"Open Blueprint SDE Mode in Profit Calculator\" class=\"rounded border border-emerald-400/40 bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold text-emerald-200 hover:bg-emerald-500/30 transition\">Craft →</a>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, "<a href=\"/calculator?mode=blueprint\" title=\"Open Blueprint SDE Mode in Profit Calculator\" class=\"rounded border border-emerald-400/40 bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold text-emerald-200 hover:bg-emerald-500/30 transition\">Craft →</a>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "</div></div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 84, "</div></div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

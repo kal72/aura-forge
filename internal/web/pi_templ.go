@@ -143,152 +143,162 @@ func PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *dom
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"><!-- Header & Right-Aligned Tab Switcher --><div class=\"flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between\"><div class=\"min-w-0\"><h1 class=\"text-2xl font-bold tracking-tight text-white\">Planetary Industry (PI) Hub</h1><p class=\"text-xs text-slate-300/80 mt-0.5\">Browse all 68 P1–P4 PI items, explore the 8-planet resource catalog, inspect recursive recipe trees, scan live hub margins, and track colony timers.</p></div><div class=\"ml-auto self-end xl:self-auto shrink-0 inline-flex flex-wrap justify-end rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur\"><button type=\"button\" @click=\"tab = &#39;explorer&#39;\" :class=\"tab === &#39;explorer&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">P1–P4 Recipe Tree</button> <button type=\"button\" @click=\"tab = &#39;planets&#39;\" :class=\"tab === &#39;planets&#39; ? &#39;bg-violet-500 text-white shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">Planet Catalog (8)</button> <button type=\"button\" @click=\"tab = &#39;scanner&#39;\" :class=\"tab === &#39;scanner&#39; ? &#39;bg-sky-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">PI Profit Scanner</button> <button type=\"button\" @click=\"tab = &#39;colonies&#39;\" :class=\"tab === &#39;colonies&#39; ? &#39;bg-emerald-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">My Colonies (")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"><!-- Header & Right-Aligned Tab Switcher --><div class=\"flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between\"><div class=\"min-w-0\"><h1 class=\"text-2xl font-bold tracking-tight text-white\">Planetary Industry (PI) Hub</h1><p class=\"text-xs text-slate-300/80 mt-0.5\">Browse all 68 P1–P4 PI items, explore the 8-planet resource catalog, inspect recursive recipe trees, scan live hub margins, and track colony timers.</p></div><div class=\"ml-auto self-end xl:self-auto shrink-0 inline-flex flex-wrap justify-end rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur\"><button type=\"button\" @click=\"tab = &#39;explorer&#39;\" :class=\"tab === &#39;explorer&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">P1–P4 Recipe Tree</button> <button type=\"button\" @click=\"tab = &#39;planets&#39;\" :class=\"tab === &#39;planets&#39; ? &#39;bg-violet-500 text-white shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">Planet Catalog (8)</button> <button type=\"button\" @click=\"tab = &#39;scanner&#39;\" :class=\"tab === &#39;scanner&#39; ? &#39;bg-sky-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">PI Profit Scanner</button> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var4 string
-			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(colonies)))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 136, Col: 53}
+			if mode.IsAdmin() {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<button type=\"button\" @click=\"tab = &#39;colonies&#39;\" :class=\"tab === &#39;colonies&#39; ? &#39;bg-emerald-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">My Colonies (")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var4 string
+				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(colonies)))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 137, Col: 54}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, ")</button>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, ")</button></div></div><!-- TAB 1: P1–P4 EXPLORER & RECURSIVE RECIPE TREE --><div x-show=\"tab === &#39;explorer&#39;\" class=\"grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start\"><!-- Left Column: Search + P1–P4 Tier Filter + Item Selector --><div class=\"tactical-panel rounded-xl p-4 lg:col-span-4 space-y-3\"><div class=\"flex items-center justify-between gap-2\"><h2 class=\"text-xs font-bold uppercase tracking-wider text-amber-300\">PI Catalog (P1 – P4)</h2><div class=\"flex items-center gap-1.5 text-[10px] font-mono text-slate-300\"><span>POCO:</span> <select x-model=\"pocoTax\" @change=\"refreshSelectedTree()\" class=\"rounded border border-slate-700 bg-slate-900 px-1.5 py-0.5 text-[10px] text-white\"><option value=\"0\">0%</option> <option value=\"2\">2%</option> <option value=\"5\">5%</option> <option value=\"10\">10%</option></select></div></div><!-- Price Hub Selector (Jita, Amarr, Dodixie, Rens, Hek) --><div class=\"flex items-center justify-between gap-2 rounded-lg border border-violet-400/20 bg-slate-950/50 px-2.5 py-1.5\"><span class=\"text-[10px] font-mono uppercase text-slate-300\">Price Hub</span> <select x-model=\"priceHub\" @change=\"refreshSelectedTree()\" class=\"rounded border border-slate-700 bg-slate-900 px-2 py-0.5 text-[11px] font-semibold text-amber-200\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div><!-- TAB 1: P1–P4 EXPLORER & RECURSIVE RECIPE TREE --><div x-show=\"tab === &#39;explorer&#39;\" class=\"grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start\"><!-- Left Column: Search + P1–P4 Tier Filter + Item Selector --><div class=\"tactical-panel rounded-xl p-4 lg:col-span-4 space-y-3\"><div class=\"flex items-center justify-between gap-2\"><h2 class=\"text-xs font-bold uppercase tracking-wider text-amber-300\">PI Catalog (P1 – P4)</h2><div class=\"flex items-center gap-1.5 text-[10px] font-mono text-slate-300\"><span>POCO:</span> <select x-model=\"pocoTax\" @change=\"refreshSelectedTree()\" class=\"rounded border border-slate-700 bg-slate-900 px-1.5 py-0.5 text-[10px] text-white\"><option value=\"0\">0%</option> <option value=\"2\">2%</option> <option value=\"5\">5%</option> <option value=\"10\">10%</option></select></div></div><!-- Price Hub Selector (Jita, Amarr, Dodixie, Rens, Hek) --><div class=\"flex items-center justify-between gap-2 rounded-lg border border-violet-400/20 bg-slate-950/50 px-2.5 py-1.5\"><span class=\"text-[10px] font-mono uppercase text-slate-300\">Price Hub</span> <select x-model=\"priceHub\" @change=\"refreshSelectedTree()\" class=\"rounded border border-slate-700 bg-slate-900 px-2 py-0.5 text-[11px] font-semibold text-amber-200\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, h := range domain.MajorTradeHubs {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<option value=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<option value=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(h.Key)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 163, Col: 29}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 165, Col: 29}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(h.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 163, Col: 40}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 165, Col: 40}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, " (")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " (")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(h.RegionName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 163, Col: 58}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 165, Col: 58}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, ")</option>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, ")</option>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</select></div><!-- Search Input --><input type=\"text\" x-model=\"searchQ\" placeholder=\"Search PI item (e.g. Robotics, Coolant, Water)...\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none\"><!-- Tier Filter Pills (P1, P2, P3, P4) --><div class=\"grid grid-cols-5 gap-1\"><button type=\"button\" @click=\"tierFilter = &#39;ALL&#39;\" :class=\"tierFilter === &#39;ALL&#39; ? &#39;bg-violet-600 text-white border-violet-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700&#39;\" class=\"rounded-md border py-1 font-mono text-[10px] font-bold transition cursor-pointer\">ALL</button> <button type=\"button\" @click=\"tierFilter = &#39;P1&#39;\" :class=\"tierFilter === &#39;P1&#39; ? &#39;bg-emerald-500 text-slate-950 border-emerald-400&#39; : &#39;bg-slate-900/60 text-emerald-200 border-slate-700&#39;\" class=\"rounded-md border py-1 font-mono text-[10px] font-bold transition cursor-pointer\">P1</button> <button type=\"button\" @click=\"tierFilter = &#39;P2&#39;\" :class=\"tierFilter === &#39;P2&#39; ? &#39;bg-sky-500 text-slate-950 border-sky-400&#39; : &#39;bg-slate-900/60 text-sky-200 border-slate-700&#39;\" class=\"rounded-md border py-1 font-mono text-[10px] font-bold transition cursor-pointer\">P2</button> <button type=\"button\" @click=\"tierFilter = &#39;P3&#39;\" :class=\"tierFilter === &#39;P3&#39; ? &#39;bg-violet-500 text-white border-violet-300&#39; : &#39;bg-slate-900/60 text-violet-200 border-slate-700&#39;\" class=\"rounded-md border py-1 font-mono text-[10px] font-bold transition cursor-pointer\">P3</button> <button type=\"button\" @click=\"tierFilter = &#39;P4&#39;\" :class=\"tierFilter === &#39;P4&#39; ? &#39;bg-amber-400 text-slate-950 border-amber-300&#39; : &#39;bg-slate-900/60 text-amber-200 border-slate-700&#39;\" class=\"rounded-md border py-1 font-mono text-[10px] font-bold transition cursor-pointer\">P4</button></div><!-- Scrollable PI Items List --><div class=\"max-h-[540px] overflow-y-auto space-y-1 pr-1\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</select></div><!-- Search Input --><input type=\"text\" x-model=\"searchQ\" placeholder=\"Search PI item (e.g. Robotics, Coolant, Water)...\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none\"><!-- Tier Filter Pills (P1, P2, P3, P4) --><div class=\"grid grid-cols-5 gap-1\"><button type=\"button\" @click=\"tierFilter = &#39;ALL&#39;\" :class=\"tierFilter === &#39;ALL&#39; ? &#39;bg-violet-600 text-white border-violet-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700&#39;\" class=\"rounded-md border py-1 font-mono text-[10px] font-bold transition cursor-pointer\">ALL</button> <button type=\"button\" @click=\"tierFilter = &#39;P1&#39;\" :class=\"tierFilter === &#39;P1&#39; ? &#39;bg-emerald-500 text-slate-950 border-emerald-400&#39; : &#39;bg-slate-900/60 text-emerald-200 border-slate-700&#39;\" class=\"rounded-md border py-1 font-mono text-[10px] font-bold transition cursor-pointer\">P1</button> <button type=\"button\" @click=\"tierFilter = &#39;P2&#39;\" :class=\"tierFilter === &#39;P2&#39; ? &#39;bg-sky-500 text-slate-950 border-sky-400&#39; : &#39;bg-slate-900/60 text-sky-200 border-slate-700&#39;\" class=\"rounded-md border py-1 font-mono text-[10px] font-bold transition cursor-pointer\">P2</button> <button type=\"button\" @click=\"tierFilter = &#39;P3&#39;\" :class=\"tierFilter === &#39;P3&#39; ? &#39;bg-violet-500 text-white border-violet-300&#39; : &#39;bg-slate-900/60 text-violet-200 border-slate-700&#39;\" class=\"rounded-md border py-1 font-mono text-[10px] font-bold transition cursor-pointer\">P3</button> <button type=\"button\" @click=\"tierFilter = &#39;P4&#39;\" :class=\"tierFilter === &#39;P4&#39; ? &#39;bg-amber-400 text-slate-950 border-amber-300&#39; : &#39;bg-slate-900/60 text-amber-200 border-slate-700&#39;\" class=\"rounded-md border py-1 font-mono text-[10px] font-bold transition cursor-pointer\">P4</button></div><!-- Scrollable PI Items List --><div class=\"max-h-[540px] overflow-y-auto space-y-1 pr-1\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, item := range items {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<button type=\"button\" x-show=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<button type=\"button\" x-show=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("matchesItem(%q, %q)", string(item.Tier), item.Name))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 190, Col: 81}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 192, Col: 81}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" @click=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" @click=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("openTree(%d)", item.TypeID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 191, Col: 57}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 193, Col: 57}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" :class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" :class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("selectedID === %d ? 'border-amber-300/60 bg-amber-400/15 text-white' : 'border-violet-400/15 bg-slate-950/40 text-slate-200 hover:bg-white/10'", item.TypeID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 192, Col: 187}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 194, Col: 187}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" class=\"w-full flex items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5 text-left text-xs transition cursor-pointer\"><div class=\"flex items-center gap-2 min-w-0\"><img src=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" class=\"w-full flex items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5 text-left text-xs transition cursor-pointer\"><div class=\"flex items-center gap-2 min-w-0\"><img src=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(item.TypeID, 32))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 196, Col: 51}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 198, Col: 51}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" alt=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" alt=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(item.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 196, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 198, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" loading=\"lazy\" class=\"h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"> <span class=\"font-medium truncate\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" loading=\"lazy\" class=\"h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"> <span class=\"font-medium truncate\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(item.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 197, Col: 55}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 199, Col: 55}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</span></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</span></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -297,7 +307,7 @@ func PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *dom
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<span class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<span class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -310,25 +320,25 @@ func PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *dom
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var16 string
 				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(string(item.Tier))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 200, Col: 28}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 202, Col: 28}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</span></button>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</span></button>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</div></div><!-- Right Column: Recursive PI Recipe Tree + Source Planets + Live Economics (Top-Aligned with Left Card) --><div class=\"lg:col-span-8 relative\"><div id=\"pi-tree-spinner\" class=\"htmx-indicator pointer-events-none absolute inset-x-0 top-0 z-20 rounded-xl border border-amber-400/50 bg-slate-950/90 backdrop-blur px-4 py-3 text-center text-xs font-mono text-amber-200 shadow-lg\">Loading live hub prices &amp; recursive PI recipe tree...</div><div id=\"pi-tree-panel\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</div></div><!-- Right Column: Recursive PI Recipe Tree + Source Planets + Live Economics (Top-Aligned with Left Card) --><div class=\"lg:col-span-8 relative\"><div id=\"pi-tree-spinner\" class=\"htmx-indicator pointer-events-none absolute inset-x-0 top-0 z-20 rounded-xl border border-amber-400/50 bg-slate-950/90 backdrop-blur px-4 py-3 text-center text-xs font-mono text-amber-200 shadow-lg\">Loading live hub prices &amp; recursive PI recipe tree...</div><div id=\"pi-tree-panel\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -336,118 +346,118 @@ func PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *dom
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</div></div></div><!-- TAB 2: PLANET CATALOG (8 COLONIZABLE PLANETS + LARGE RESOURCE ICONS) --><div x-cloak x-show=\"tab === &#39;planets&#39;\" class=\"space-y-5\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</div></div></div><!-- TAB 2: PLANET CATALOG (8 COLONIZABLE PLANETS + LARGE RESOURCE ICONS) --><div x-cloak x-show=\"tab === &#39;planets&#39;\" class=\"space-y-5\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			planetCatalog := domain.BuildPlanetCatalog()
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div class=\"tactical-panel rounded-xl p-4 flex flex-wrap items-center justify-between gap-3\"><div><h2 class=\"text-sm font-bold uppercase tracking-wider text-violet-200\">New Eden Planet &amp; Resource Catalog</h2><p class=\"text-xs text-slate-300/80 mt-0.5\">Each planet yields 5 Raw P0 resources (→ 5 Basic P1) and supports self-contained Single-Planet P2 factories. Click any P1 or P2 icon to open its live Recipe Tree.</p></div><div class=\"flex flex-wrap gap-1.5\"><button type=\"button\" @click=\"planetFilter = &#39;ALL&#39;\" :class=\"planetFilter === &#39;ALL&#39; ? &#39;bg-violet-600 text-white border-violet-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700&#39;\" class=\"rounded-lg border px-2.5 py-1 font-mono text-[10px] font-bold cursor-pointer\">ALL (8)</button> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<div class=\"tactical-panel rounded-xl p-4 flex flex-wrap items-center justify-between gap-3\"><div><h2 class=\"text-sm font-bold uppercase tracking-wider text-violet-200\">New Eden Planet &amp; Resource Catalog</h2><p class=\"text-xs text-slate-300/80 mt-0.5\">Each planet yields 5 Raw P0 resources (→ 5 Basic P1) and supports self-contained Single-Planet P2 factories. Click any P1 or P2 icon to open its live Recipe Tree.</p></div><div class=\"flex flex-wrap gap-1.5\"><button type=\"button\" @click=\"planetFilter = &#39;ALL&#39;\" :class=\"planetFilter === &#39;ALL&#39; ? &#39;bg-violet-600 text-white border-violet-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700&#39;\" class=\"rounded-lg border px-2.5 py-1 font-mono text-[10px] font-bold cursor-pointer\">ALL (8)</button> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, pl := range planetCatalog {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<button type=\"button\" @click=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<button type=\"button\" @click=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var17 string
 				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("planetFilter = %q", pl.PlanetType))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 229, Col: 85}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 231, Col: 85}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\" :class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\" :class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var18 string
 				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("planetFilter === %q ? 'bg-amber-400 text-slate-950 border-amber-300' : 'bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white'", pl.PlanetType))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 229, Col: 264}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 231, Col: 264}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" class=\"rounded-lg border px-2.5 py-1 font-mono text-[10px] font-bold cursor-pointer\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\" class=\"rounded-lg border px-2.5 py-1 font-mono text-[10px] font-bold cursor-pointer\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var19 string
 				templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(pl.PlanetType)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 230, Col: 23}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 232, Col: 23}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</button>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</button>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</div></div><div class=\"grid grid-cols-1 gap-5 lg:grid-cols-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</div></div><div class=\"grid grid-cols-1 gap-5 lg:grid-cols-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, pl := range planetCatalog {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<div x-show=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<div x-show=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var20 string
 				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("planetFilter === 'ALL' || planetFilter === %q", pl.PlanetType))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 239, Col: 91}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 241, Col: 91}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\" class=\"tactical-panel rounded-xl p-5 space-y-4\"><!-- Planet Header with Large 64x64 Official EVE Planet Icon --><div class=\"flex items-start gap-4 border-b border-violet-400/20 pb-4\"><img src=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" class=\"tactical-panel rounded-xl p-5 space-y-4\"><!-- Planet Header with Large 64x64 Official EVE Planet Icon --><div class=\"flex items-start gap-4 border-b border-violet-400/20 pb-4\"><img src=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var21 string
 				templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(pl.PlanetTypeID, 128))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 245, Col: 51}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 247, Col: 51}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\" alt=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\" alt=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var22 string
 				templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(pl.PlanetType + " Planet")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 246, Col: 40}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 248, Col: 40}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" loading=\"lazy\" class=\"h-16 w-16 shrink-0 rounded-xl border border-amber-300/45 bg-slate-950/90 p-1 shadow-[0_0_20px_rgba(139,92,246,0.3)] object-cover\" onerror=\"this.style.display=&#39;none&#39;\"><div class=\"space-y-1\"><div class=\"flex items-center gap-2\"><h3 class=\"text-lg font-bold text-white\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\" loading=\"lazy\" class=\"h-16 w-16 shrink-0 rounded-xl border border-amber-300/45 bg-slate-950/90 p-1 shadow-[0_0_20px_rgba(139,92,246,0.3)] object-cover\" onerror=\"this.style.display=&#39;none&#39;\"><div class=\"space-y-1\"><div class=\"flex items-center gap-2\"><h3 class=\"text-lg font-bold text-white\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var23 string
 				templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(pl.PlanetType)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 253, Col: 66}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 255, Col: 66}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, " Planet</h3>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, " Planet</h3>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -456,7 +466,7 @@ func PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *dom
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<span class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<span class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -469,379 +479,379 @@ func PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *dom
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\">5 P0 / 5 P1</span></div><p class=\"text-xs text-slate-300/85 leading-relaxed\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\">5 P0 / 5 P1</span></div><p class=\"text-xs text-slate-300/85 leading-relaxed\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var26 string
 				templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(pl.Description)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 258, Col: 78}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 260, Col: 78}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</p></div></div><!-- 5 Raw P0 -> P1 Resource Tiles with Large 40x40 Icons --><div class=\"space-y-2\"><div class=\"text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-300\">Raw Resources (P0) → Basic Products (P1)</div><div class=\"grid grid-cols-1 gap-2 sm:grid-cols-2\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</p></div></div><!-- 5 Raw P0 -> P1 Resource Tiles with Large 40x40 Icons --><div class=\"space-y-2\"><div class=\"text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-300\">Raw Resources (P0) → Basic Products (P1)</div><div class=\"grid grid-cols-1 gap-2 sm:grid-cols-2\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				for i, p0 := range pl.P0Resources {
 					p1 := pl.P1Products[i]
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<button type=\"button\" @click=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<button type=\"button\" @click=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var27 string
 					templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("openTree(%d)", p1.TypeID))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 270, Col: 58}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 272, Col: 58}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\" class=\"flex items-center gap-3 rounded-lg border border-violet-400/20 bg-slate-950/50 p-2.5 text-left hover:border-amber-300/50 hover:bg-white/5 transition cursor-pointer\"><img src=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "\" class=\"flex items-center gap-3 rounded-lg border border-violet-400/20 bg-slate-950/50 p-2.5 text-left hover:border-amber-300/50 hover:bg-white/5 transition cursor-pointer\"><img src=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var28 string
 					templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(p0.TypeID, 64))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 274, Col: 47}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 276, Col: 47}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "\" alt=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "\" alt=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var29 string
 					templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(p0.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 275, Col: 25}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 277, Col: 25}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "\" loading=\"lazy\" class=\"h-10 w-10 shrink-0 rounded-lg border border-slate-700 bg-slate-900 p-0.5 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"><div class=\"min-w-0 flex-1\"><div class=\"text-xs font-bold text-white truncate\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "\" loading=\"lazy\" class=\"h-10 w-10 shrink-0 rounded-lg border border-slate-700 bg-slate-900 p-0.5 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"><div class=\"min-w-0 flex-1\"><div class=\"text-xs font-bold text-white truncate\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var30 string
 					templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(p0.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 281, Col: 72}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 283, Col: 72}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</div><div class=\"mt-0.5 flex items-center gap-1.5 text-[11px] text-emerald-300\"><span class=\"text-slate-500\">→</span> <img src=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</div><div class=\"mt-0.5 flex items-center gap-1.5 text-[11px] text-emerald-300\"><span class=\"text-slate-500\">→</span> <img src=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var31 string
 					templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(p1.TypeID, 32))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 285, Col: 49}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 287, Col: 49}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "\" alt=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "\" alt=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var32 string
 					templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(p1.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 286, Col: 27}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 288, Col: 27}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "\" loading=\"lazy\" class=\"h-5 w-5 shrink-0 rounded border border-emerald-400/30 bg-slate-950 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"> <span class=\"font-medium truncate\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "\" loading=\"lazy\" class=\"h-5 w-5 shrink-0 rounded border border-emerald-400/30 bg-slate-950 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"> <span class=\"font-medium truncate\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var33 string
 					templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(p1.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 291, Col: 57}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 293, Col: 57}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "</span></div></div></button>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "</span></div></div></button>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "</div></div><!-- Single-Planet P2 Products (100% Self-Contained on 1 Planet!) --><div class=\"space-y-2 pt-2 border-t border-violet-400/15\"><div class=\"text-[10px] font-mono font-bold uppercase tracking-wider text-sky-300\">Single-Planet P2 Factories (")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</div></div><!-- Single-Planet P2 Products (100% Self-Contained on 1 Planet!) --><div class=\"space-y-2 pt-2 border-t border-violet-400/15\"><div class=\"text-[10px] font-mono font-bold uppercase tracking-wider text-sky-300\">Single-Planet P2 Factories (")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var34 string
 				templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(pl.SinglePlanetP2)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 302, Col: 80}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 304, Col: 80}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, " Self-Contained Options)</div><div class=\"flex flex-wrap gap-2\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, " Self-Contained Options)</div><div class=\"flex flex-wrap gap-2\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				for _, p2 := range pl.SinglePlanetP2 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<button type=\"button\" @click=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "<button type=\"button\" @click=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var35 string
 					templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("openTree(%d)", p2.TypeID))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 308, Col: 58}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 310, Col: 58}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "\" class=\"inline-flex items-center gap-2 rounded-lg border border-sky-400/30 bg-sky-500/10 px-2.5 py-1.5 text-xs font-semibold text-sky-100 hover:border-amber-300/60 hover:bg-amber-400/15 hover:text-amber-100 transition cursor-pointer\"><img src=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "\" class=\"inline-flex items-center gap-2 rounded-lg border border-sky-400/30 bg-sky-500/10 px-2.5 py-1.5 text-xs font-semibold text-sky-100 hover:border-amber-300/60 hover:bg-amber-400/15 hover:text-amber-100 transition cursor-pointer\"><img src=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var36 string
 					templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(p2.TypeID, 64))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 312, Col: 47}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 314, Col: 47}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "\" alt=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "\" alt=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var37 string
 					templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(p2.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 313, Col: 25}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 315, Col: 25}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "\" loading=\"lazy\" class=\"h-9 w-9 shrink-0 rounded-md border border-sky-400/35 bg-slate-950/90 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"> <span>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "\" loading=\"lazy\" class=\"h-9 w-9 shrink-0 rounded-md border border-sky-400/35 bg-slate-950/90 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"> <span>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var38 string
 					templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(p2.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 318, Col: 26}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 320, Col: 26}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "</span></button>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "</span></button>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "</div></div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "</div></div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "</div></div><!-- TAB 3: PI PROFIT SCANNER (BY TIER P1–P4) --><div x-cloak x-show=\"tab === &#39;scanner&#39;\" class=\"space-y-5\"><div class=\"tactical-panel rounded-xl p-5 space-y-4\"><div><h2 class=\"text-sm font-bold uppercase tracking-wider text-sky-300\">PI Tier Profit Scanner (Live Jita Public ESI)</h2><p class=\"text-xs text-slate-300/80 mt-0.5\">Compare every PI commodity in P1, P2, P3, or P4 against live Jita Sell prices after POCO import/export taxes.</p></div><form hx-post=\"/pi/scan\" hx-target=\"#pi-scan-results\" hx-swap=\"innerHTML\" hx-indicator=\"#pi-scan-spinner\" class=\"flex flex-wrap items-end gap-3\"><div class=\"w-44\"><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">PI Tier</label> <select name=\"tier\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white\"><option value=\"P1\">P1 — Basic (15 items)</option> <option value=\"P2\" selected>P2 — Refined (24 items)</option> <option value=\"P3\">P3 — Specialized (21 items)</option> <option value=\"P4\">P4 — Advanced (8 items)</option></select></div><div class=\"w-48\"><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Price Hub</label> <select name=\"hub\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</div></div><!-- TAB 3: PI PROFIT SCANNER (BY TIER P1–P4) --><div x-cloak x-show=\"tab === &#39;scanner&#39;\" class=\"space-y-5\"><div class=\"tactical-panel rounded-xl p-5 space-y-4\"><div><h2 class=\"text-sm font-bold uppercase tracking-wider text-sky-300\">PI Tier Profit Scanner (Live Jita Public ESI)</h2><p class=\"text-xs text-slate-300/80 mt-0.5\">Compare every PI commodity in P1, P2, P3, or P4 against live Jita Sell prices after POCO import/export taxes.</p></div><form hx-post=\"/pi/scan\" hx-target=\"#pi-scan-results\" hx-swap=\"innerHTML\" hx-indicator=\"#pi-scan-spinner\" class=\"flex flex-wrap items-end gap-3\"><div class=\"w-44\"><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">PI Tier</label> <select name=\"tier\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white\"><option value=\"P1\">P1 — Basic (15 items)</option> <option value=\"P2\" selected>P2 — Refined (24 items)</option> <option value=\"P3\">P3 — Specialized (21 items)</option> <option value=\"P4\">P4 — Advanced (8 items)</option></select></div><div class=\"w-48\"><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Price Hub</label> <select name=\"hub\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, h := range domain.MajorTradeHubs {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "<option value=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<option value=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var39 string
 				templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(h.Key)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 356, Col: 30}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 358, Col: 30}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var40 string
 				templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(h.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 356, Col: 41}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 358, Col: 41}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, " (")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, " (")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var41 string
 				templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs(h.RegionName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 356, Col: 59}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 358, Col: 59}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, ")</option>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, ")</option>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</select></div><div class=\"w-32\"><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">POCO Tax (%)</label> <input type=\"number\" step=\"0.5\" name=\"poco_tax\" value=\"5.0\" min=\"0\" max=\"30\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white\"></div><button type=\"submit\" class=\"inline-flex items-center gap-2 rounded-lg bg-sky-400 px-5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-sky-300 transition cursor-pointer\"><span id=\"pi-scan-spinner\" class=\"htmx-indicator h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent\"></span> <span>Scan PI Tier (Live ESI)</span></button></form></div><div id=\"pi-scan-results\"><div class=\"tactical-panel rounded-xl p-8 text-center text-xs text-slate-300/80\">Choose a PI Tier (P1–P4) and click <strong>Scan PI Tier</strong> to rank the highest-profit PI commodities in Jita.</div></div></div><!-- TAB 3: MY PI COLONIES & EXTRACTOR TIMERS --><div x-cloak x-show=\"tab === &#39;colonies&#39;\" class=\"space-y-5\"><div class=\"flex flex-wrap items-center justify-between gap-3\"><div><h2 class=\"text-sm font-bold uppercase tracking-wider text-emerald-300\">Active PI Colonies &amp; Extractor Timers</h2><p class=\"text-xs text-slate-300/80 mt-0.5\">Never let your extractors sit idle — track expiry countdowns and reset timers in 1 click.</p></div><button type=\"button\" @click=\"showAddColony = !showAddColony\" class=\"rounded-lg bg-emerald-400 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-emerald-300 transition cursor-pointer\">+ Add PI Colony</button></div><div x-cloak x-show=\"showAddColony\" x-transition class=\"tactical-panel rounded-xl p-5 space-y-4\"><h3 class=\"text-xs font-bold uppercase tracking-wider text-amber-300\">Add Tracked Planet Colony</h3><form hx-post=\"/pi/colonies\" hx-swap=\"none\" class=\"grid grid-cols-1 gap-3 sm:grid-cols-3\"><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Planet Name</label> <input type=\"text\" name=\"planet_name\" required placeholder=\"e.g. Perimeter III\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Solar System</label> <input type=\"text\" name=\"solar_system\" placeholder=\"e.g. Perimeter\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Planet Type</label> <select name=\"planet_type\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "</select></div><div class=\"w-32\"><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">POCO Tax (%)</label> <input type=\"number\" step=\"0.5\" name=\"poco_tax\" value=\"5.0\" min=\"0\" max=\"30\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white\"></div><button type=\"submit\" class=\"inline-flex items-center gap-2 rounded-lg bg-sky-400 px-5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-sky-300 transition cursor-pointer\"><span id=\"pi-scan-spinner\" class=\"htmx-indicator h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent\"></span> <span>Scan PI Tier (Live ESI)</span></button></form></div><div id=\"pi-scan-results\"><div class=\"tactical-panel rounded-xl p-8 text-center text-xs text-slate-300/80\">Choose a PI Tier (P1–P4) and click <strong>Scan PI Tier</strong> to rank the highest-profit PI commodities in Jita.</div></div></div><!-- TAB 3: MY PI COLONIES & EXTRACTOR TIMERS --><div x-cloak x-show=\"tab === &#39;colonies&#39;\" class=\"space-y-5\"><div class=\"flex flex-wrap items-center justify-between gap-3\"><div><h2 class=\"text-sm font-bold uppercase tracking-wider text-emerald-300\">Active PI Colonies &amp; Extractor Timers</h2><p class=\"text-xs text-slate-300/80 mt-0.5\">Never let your extractors sit idle — track expiry countdowns and reset timers in 1 click.</p></div><button type=\"button\" @click=\"showAddColony = !showAddColony\" class=\"rounded-lg bg-emerald-400 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-emerald-300 transition cursor-pointer\">+ Add PI Colony</button></div><div x-cloak x-show=\"showAddColony\" x-transition class=\"tactical-panel rounded-xl p-5 space-y-4\"><h3 class=\"text-xs font-bold uppercase tracking-wider text-amber-300\">Add Tracked Planet Colony</h3><form hx-post=\"/pi/colonies\" hx-swap=\"none\" class=\"grid grid-cols-1 gap-3 sm:grid-cols-3\"><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Planet Name</label> <input type=\"text\" name=\"planet_name\" required placeholder=\"e.g. Perimeter III\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Solar System</label> <input type=\"text\" name=\"solar_system\" placeholder=\"e.g. Perimeter\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Planet Type</label> <select name=\"planet_type\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, pt := range domain.AllPlanetTypes {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "<option value=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "<option value=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var42 string
 				templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(pt)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 412, Col: 27}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 414, Col: 27}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var43 string
 				templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(pt)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 412, Col: 34}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 414, Col: 34}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "</option>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "</option>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "</select></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Target PI Product</label> <select name=\"product_type_id\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "</select></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Target PI Product</label> <select name=\"product_type_id\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, it := range items {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "<option value=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "<option value=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var44 string
 				templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", it.TypeID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 420, Col: 53}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 422, Col: 53}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "\">[")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "\">[")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var45 string
 				templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(string(it.Tier))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 420, Col: 74}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 422, Col: 74}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "] ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "] ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var46 string
 				templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(it.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 420, Col: 87}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 422, Col: 87}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "</option>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "</option>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "</select></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Extractor Cycle (Hours)</label> <input type=\"number\" name=\"cycle_hours\" value=\"48\" min=\"1\" max=\"336\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Est. Daily ISK</label> <input type=\"number\" step=\"10000\" name=\"est_daily_isk\" value=\"1500000\" min=\"0\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white\"></div><div class=\"sm:col-span-3 flex justify-end gap-2\"><button type=\"button\" @click=\"showAddColony = false\" class=\"rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-slate-300 cursor-pointer\">Cancel</button> <button type=\"submit\" class=\"rounded-lg bg-emerald-400 px-4 py-1.5 text-xs font-bold text-slate-950 hover:bg-emerald-300 cursor-pointer\">Save Colony</button></div></form></div><div class=\"tactical-panel rounded-xl overflow-hidden\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "</select></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Extractor Cycle (Hours)</label> <input type=\"number\" name=\"cycle_hours\" value=\"48\" min=\"1\" max=\"336\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Est. Daily ISK</label> <input type=\"number\" step=\"10000\" name=\"est_daily_isk\" value=\"1500000\" min=\"0\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white\"></div><div class=\"sm:col-span-3 flex justify-end gap-2\"><button type=\"button\" @click=\"showAddColony = false\" class=\"rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-slate-300 cursor-pointer\">Cancel</button> <button type=\"submit\" class=\"rounded-lg bg-emerald-400 px-4 py-1.5 text-xs font-bold text-slate-950 hover:bg-emerald-300 cursor-pointer\">Save Colony</button></div></form></div><div class=\"tactical-panel rounded-xl overflow-hidden\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if len(colonies) == 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "<div class=\"p-8 text-center text-xs text-slate-300/80\">No PI colonies tracked yet. Click <strong>+ Add PI Colony</strong> to monitor your extractor timers.</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "<div class=\"p-8 text-center text-xs text-slate-300/80\">No PI colonies tracked yet. Click <strong>+ Add PI Colony</strong> to monitor your extractor timers.</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
 				now := time.Now()
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "<div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs\"><thead class=\"bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15\"><tr><th class=\"px-4 py-3\">Planet / System</th><th class=\"px-4 py-3\">Type</th><th class=\"px-4 py-3\">Product</th><th class=\"px-4 py-3\">Extractor Status</th><th class=\"px-4 py-3 text-right\">Est. Daily ISK</th><th class=\"px-4 py-3 text-right\">Actions</th></tr></thead> <tbody class=\"divide-y divide-violet-400/15\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "<div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs\"><thead class=\"bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15\"><tr><th class=\"px-4 py-3\">Planet / System</th><th class=\"px-4 py-3\">Type</th><th class=\"px-4 py-3\">Product</th><th class=\"px-4 py-3\">Extractor Status</th><th class=\"px-4 py-3 text-right\">Est. Daily ISK</th><th class=\"px-4 py-3 text-right\">Actions</th></tr></thead> <tbody class=\"divide-y divide-violet-400/15\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				for _, c := range colonies {
 					st, rem := c.StatusLabel(now)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "<tr class=\"hover:bg-white/5\"><td class=\"px-4 py-3\"><div class=\"font-semibold text-white\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "<tr class=\"hover:bg-white/5\"><td class=\"px-4 py-3\"><div class=\"font-semibold text-white\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var47 string
 					templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.JoinStringErrs(c.PlanetName)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 463, Col: 64}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 465, Col: 64}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var47))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "</div><div class=\"font-mono text-[10px] text-slate-400\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "</div><div class=\"font-mono text-[10px] text-slate-400\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var48 string
 					templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(c.SolarSystem)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 464, Col: 77}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 466, Col: 77}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "</div></td><td class=\"px-4 py-3\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "</div></td><td class=\"px-4 py-3\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -850,7 +860,7 @@ func PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *dom
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "<span class=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, "<span class=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -863,69 +873,69 @@ func PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *dom
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var51 string
 					templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.JoinStringErrs(c.PlanetType)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 467, Col: 140}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 469, Col: 140}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var51))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, "</span></td><td class=\"px-4 py-3\"><div class=\"flex items-center gap-2\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "</span></td><td class=\"px-4 py-3\"><div class=\"flex items-center gap-2\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					if c.ProductTypeID > 0 {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "<img src=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "<img src=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var52 string
 						templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(c.ProductTypeID, 32))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 472, Col: 60}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 474, Col: 60}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var52))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "\" alt=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "\" alt=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var53 string
 						templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.JoinStringErrs(c.ProductName)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 472, Col: 82}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 474, Col: 82}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var53))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "\" loading=\"lazy\" class=\"h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"> ")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "\" loading=\"lazy\" class=\"h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"> ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "<span class=\"font-medium text-white\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "<span class=\"font-medium text-white\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var54 string
 					templ_7745c5c3_Var54, templ_7745c5c3_Err = templ.JoinStringErrs(c.ProductName)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 474, Col: 65}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 476, Col: 65}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var54))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "</span> ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, "</span> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -934,7 +944,7 @@ func PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *dom
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "<span class=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, "<span class=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -947,20 +957,20 @@ func PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *dom
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, "\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 82, "\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var57 string
 					templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.JoinStringErrs(string(c.Tier))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 475, Col: 135}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 477, Col: 135}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var57))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, "</span></div></td><td class=\"px-4 py-3 font-mono\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, "</span></div></td><td class=\"px-4 py-3 font-mono\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -969,7 +979,7 @@ func PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *dom
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 82, "<span class=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 84, "<span class=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -982,95 +992,95 @@ func PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *dom
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, "\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var60 string
 					templ_7745c5c3_Var60, templ_7745c5c3_Err = templ.JoinStringErrs(st)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 479, Col: 121}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 481, Col: 121}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var60))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 84, "</span> <span class=\"ml-1.5 text-[11px] text-slate-300\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "</span> <span class=\"ml-1.5 text-[11px] text-slate-300\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var61 string
 					templ_7745c5c3_Var61, templ_7745c5c3_Err = templ.JoinStringErrs(rem)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 480, Col: 65}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 482, Col: 65}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var61))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "</span></td><td class=\"px-4 py-3 text-right font-mono text-emerald-300\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 87, "</span></td><td class=\"px-4 py-3 text-right font-mono text-emerald-300\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var62 string
 					templ_7745c5c3_Var62, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(c.EstDailyISK))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 482, Col: 97}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 484, Col: 97}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var62))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "</td><td class=\"px-4 py-3 text-right\"><div class=\"inline-flex gap-1.5\"><button type=\"button\" hx-post=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 88, "</td><td class=\"px-4 py-3 text-right\"><div class=\"inline-flex gap-1.5\"><button type=\"button\" hx-post=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var63 string
 					templ_7745c5c3_Var63, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/pi/colonies/%d/reset?hours=48", c.ID))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 485, Col: 96}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 487, Col: 96}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var63))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 87, "\" hx-swap=\"none\" class=\"rounded border border-emerald-400/35 bg-emerald-500/15 px-2 py-1 text-[10px] font-semibold text-emerald-200 hover:bg-emerald-500/25 cursor-pointer\">+48h</button> <button type=\"button\" hx-post=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, "\" hx-swap=\"none\" class=\"rounded border border-emerald-400/35 bg-emerald-500/15 px-2 py-1 text-[10px] font-semibold text-emerald-200 hover:bg-emerald-500/25 cursor-pointer\">+48h</button> <button type=\"button\" hx-post=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var64 string
 					templ_7745c5c3_Var64, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/pi/colonies/%d/reset?hours=72", c.ID))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 486, Col: 96}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 488, Col: 96}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var64))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 88, "\" hx-swap=\"none\" class=\"rounded border border-sky-400/35 bg-sky-500/15 px-2 py-1 text-[10px] font-semibold text-sky-200 hover:bg-sky-500/25 cursor-pointer\">+72h</button> <button type=\"button\" hx-delete=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "\" hx-swap=\"none\" class=\"rounded border border-sky-400/35 bg-sky-500/15 px-2 py-1 text-[10px] font-semibold text-sky-200 hover:bg-sky-500/25 cursor-pointer\">+72h</button> <button type=\"button\" hx-delete=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var65 string
 					templ_7745c5c3_Var65, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/pi/colonies/%d", c.ID))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 487, Col: 83}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 489, Col: 83}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var65))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, "\" hx-confirm=\"Delete this PI colony?\" hx-swap=\"none\" class=\"rounded border border-rose-400/35 bg-rose-500/15 px-2 py-1 text-[10px] font-semibold text-rose-200 hover:bg-rose-500/25 cursor-pointer\">Delete</button></div></td></tr>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 91, "\" hx-confirm=\"Delete this PI colony?\" hx-swap=\"none\" class=\"rounded border border-rose-400/35 bg-rose-500/15 px-2 py-1 text-[10px] font-semibold text-rose-200 hover:bg-rose-500/25 cursor-pointer\">Delete</button></div></td></tr>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "</tbody></table></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 92, "</tbody></table></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 91, "</div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, "</div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1106,70 +1116,70 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 		}
 		ctx = templ.ClearChildren(ctx)
 		if errMsg != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 92, "<div class=\"tactical-panel rounded-xl p-5 border-rose-400/40 text-xs text-rose-200\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 94, "<div class=\"tactical-panel rounded-xl p-5 border-rose-400/40 text-xs text-rose-200\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var67 string
 			templ_7745c5c3_Var67, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 504, Col: 94}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 506, Col: 94}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var67))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 95, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else if tree == nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 94, "<div class=\"tactical-panel rounded-xl p-10 text-center space-y-2\"><div class=\"text-sm font-semibold text-white\">Select any P1, P2, P3, or P4 item from the left catalog</div><p class=\"text-xs text-slate-300/80 max-w-md mx-auto\">Click an item (for example <strong>Robotics</strong>, <strong>Coolant</strong>, or <strong>Wetware Mainframe</strong>) to reveal its complete recursive recipe tree, exact source planet types, and live Jita factory profit.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, "<div class=\"tactical-panel rounded-xl p-10 text-center space-y-2\"><div class=\"text-sm font-semibold text-white\">Select any P1, P2, P3, or P4 item from the left catalog</div><p class=\"text-xs text-slate-300/80 max-w-md mx-auto\">Click an item (for example <strong>Robotics</strong>, <strong>Coolant</strong>, or <strong>Wetware Mainframe</strong>) to reveal its complete recursive recipe tree, exact source planet types, and live Jita factory profit.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
 			canvas := BuildPIHorizontalCanvasLayout(tree.RootNode)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 95, "<div class=\"space-y-4\" x-data=\"{ copied: false }\"><!-- Selected Item Banner, View Mode Switcher & Required Source Planets --><div class=\"tactical-panel rounded-xl p-5 space-y-3\"><div class=\"flex flex-wrap items-center justify-between gap-2\"><div class=\"flex items-center gap-3 min-w-0\"><img src=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 97, "<div class=\"space-y-4\" x-data=\"{ copied: false }\"><!-- Selected Item Banner, View Mode Switcher & Required Source Planets --><div class=\"tactical-panel rounded-xl p-5 space-y-3\"><div class=\"flex flex-wrap items-center justify-between gap-2\"><div class=\"flex items-center gap-3 min-w-0\"><img src=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var68 string
 			templ_7745c5c3_Var68, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(tree.Commodity.TypeID, 64))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 519, Col: 58}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 521, Col: 58}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var68))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, "\" alt=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 98, "\" alt=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var69 string
 			templ_7745c5c3_Var69, templ_7745c5c3_Err = templ.JoinStringErrs(tree.Commodity.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 519, Col: 86}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 521, Col: 86}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var69))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 97, "\" class=\"h-11 w-11 shrink-0 rounded-lg border border-amber-300/45 bg-slate-950/80 p-0.5 shadow-[0_0_16px_rgba(251,191,36,0.2)] object-contain\" onerror=\"this.style.display=&#39;none&#39;\"><div class=\"flex flex-wrap items-center gap-2 min-w-0\"><h2 class=\"text-xl font-bold text-white truncate\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 99, "\" class=\"h-11 w-11 shrink-0 rounded-lg border border-amber-300/45 bg-slate-950/80 p-0.5 shadow-[0_0_16px_rgba(251,191,36,0.2)] object-contain\" onerror=\"this.style.display=&#39;none&#39;\"><div class=\"flex flex-wrap items-center gap-2 min-w-0\"><h2 class=\"text-xl font-bold text-white truncate\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var70 string
 			templ_7745c5c3_Var70, templ_7745c5c3_Err = templ.JoinStringErrs(tree.Commodity.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 521, Col: 78}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 523, Col: 78}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var70))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 98, "</h2>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 100, "</h2>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1178,7 +1188,7 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 99, "<span class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "<span class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1191,69 +1201,69 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 100, "\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 102, "\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var73 string
 			templ_7745c5c3_Var73, templ_7745c5c3_Err = templ.JoinStringErrs(string(tree.Commodity.Tier))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 523, Col: 37}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 525, Col: 37}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var73))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "</span> <span class=\"font-mono text-[11px] text-slate-400\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 103, "</span> <span class=\"font-mono text-[11px] text-slate-400\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var74 string
 			templ_7745c5c3_Var74, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d units / %dm cycle", tree.Commodity.OutputQty, tree.Commodity.CycleMinutes))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 526, Col: 100}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 528, Col: 100}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var74))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 102, "</span></div></div><div class=\"flex flex-wrap items-center gap-2 ml-auto\"><!-- View Mode Toggle: Details & Economics vs Recipe-Only Horizontal Canvas --><div class=\"inline-flex rounded-lg border border-violet-400/35 bg-slate-950/75 p-0.5\"><button type=\"button\" @click=\"treeViewMode = &#39;details&#39;\" :class=\"treeViewMode === &#39;details&#39; ? &#39;bg-violet-500 text-white shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer\">Details &amp; Economics</button> <button type=\"button\" @click=\"treeViewMode = &#39;canvas&#39;\" :class=\"treeViewMode === &#39;canvas&#39; ? &#39;bg-amber-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer\"><svg class=\"h-3.5 w-3.5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M4 6h4v4H4V6zm12-2h4v4h-4V4zm0 12h4v4h-4v-4zM8 8h4m0 0V6h4m-4 2v10h4\"></path></svg> <span>Tree Canvas</span></button></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 104, "</span></div></div><div class=\"flex flex-wrap items-center gap-2 ml-auto\"><!-- View Mode Toggle: Details & Economics vs Recipe-Only Horizontal Canvas --><div class=\"inline-flex rounded-lg border border-violet-400/35 bg-slate-950/75 p-0.5\"><button type=\"button\" @click=\"treeViewMode = &#39;details&#39;\" :class=\"treeViewMode === &#39;details&#39; ? &#39;bg-violet-500 text-white shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer\">Details &amp; Economics</button> <button type=\"button\" @click=\"treeViewMode = &#39;canvas&#39;\" :class=\"treeViewMode === &#39;canvas&#39; ? &#39;bg-amber-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer\"><svg class=\"h-3.5 w-3.5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M4 6h4v4H4V6zm12-2h4v4h-4V4zm0 12h4v4h-4v-4zM8 8h4m0 0V6h4m-4 2v10h4\"></path></svg> <span>Tree Canvas</span></button></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if tree.MultibuyText != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 103, "<button type=\"button\" x-show=\"treeViewMode === &#39;details&#39;\" @click=\"navigator.clipboard.writeText($refs.piMultibuy.value); copied = true; setTimeout(() =&gt; copied = false, 2000)\" class=\"rounded-md border border-amber-400/45 bg-amber-500/15 px-3 py-1 text-[11px] font-mono font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer\"><span x-show=\"!copied\">Copy Direct Inputs (Multibuy)</span> <span x-cloak x-show=\"copied\">Copied!</span></button> <textarea x-ref=\"piMultibuy\" class=\"hidden\" readonly>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 105, "<button type=\"button\" x-show=\"treeViewMode === &#39;details&#39;\" @click=\"navigator.clipboard.writeText($refs.piMultibuy.value); copied = true; setTimeout(() =&gt; copied = false, 2000)\" class=\"rounded-md border border-amber-400/45 bg-amber-500/15 px-3 py-1 text-[11px] font-mono font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer\"><span x-show=\"!copied\">Copy Direct Inputs (Multibuy)</span> <span x-cloak x-show=\"copied\">Copied!</span></button> <textarea x-ref=\"piMultibuy\" class=\"hidden\" readonly>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var75 string
 				templ_7745c5c3_Var75, templ_7745c5c3_Err = templ.JoinStringErrs(tree.MultibuyText)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 564, Col: 79}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 566, Col: 79}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var75))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 104, "</textarea>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 106, "</textarea>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 105, "</div></div><!-- Consolidated Source Planets Required --><div x-show=\"treeViewMode === &#39;details&#39;\" class=\"pt-2 border-t border-violet-400/15\"><div class=\"text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1.5\">Source Planets Yielding Raw Materials (")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 107, "</div></div><!-- Consolidated Source Planets Required --><div x-show=\"treeViewMode === &#39;details&#39;\" class=\"pt-2 border-t border-violet-400/15\"><div class=\"text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1.5\">Source Planets Yielding Raw Materials (")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var76 string
 			templ_7745c5c3_Var76, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d planet types available", len(tree.RequiredPlanets)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 572, Col: 114}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 574, Col: 114}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var76))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 106, ")</div><div class=\"flex flex-wrap gap-1.5\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 108, ")</div><div class=\"flex flex-wrap gap-1.5\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1263,7 +1273,7 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 107, "<span class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 109, "<span class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1276,25 +1286,25 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 108, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 110, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var79 string
 				templ_7745c5c3_Var79, templ_7745c5c3_Err = templ.JoinStringErrs(pl)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 577, Col: 12}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 579, Col: 12}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var79))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 109, "</span>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 111, "</span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 110, "</div></div></div><!-- MODE A: RECIPE-ONLY INTERACTIVE HORIZONTAL TREE CANVAS (PAN, ZOOM, FLIP DIRECTION & BRANCH HIGHLIGHT) --><div x-cloak x-show=\"treeViewMode === &#39;canvas&#39;\" x-data=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 112, "</div></div></div><!-- MODE A: RECIPE-ONLY INTERACTIVE HORIZONTAL TREE CANVAS (PAN, ZOOM, FLIP DIRECTION & BRANCH HIGHLIGHT) --><div x-cloak x-show=\"treeViewMode === &#39;canvas&#39;\" x-data=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1425,127 +1435,127 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 					}
 				}`, canvas.Width, canvas.Height, canvas.BranchMapJSON))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 712, Col: 58}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 714, Col: 58}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var80))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 111, "\" @mousemove.window=\"onDrag($event)\" @mouseup.window=\"endDrag()\" @keydown.escape.window=\"if (fullscreen) { fullscreen = false; $nextTick(() =&gt; fitView()); }\"><!-- Fullscreen Dark Backdrop (Above App Sidebar & Header) --><div x-cloak x-show=\"fullscreen\" @click=\"toggleFullscreen()\" class=\"fixed inset-0 z-[90] bg-slate-950/80 backdrop-blur-xs\"></div><!-- Canvas Card Container (Elevates cleanly to z-[100] above App Header & Sidebar in Fullscreen) --><div :class=\"fullscreen ? &#39;fixed inset-4 z-[100] flex flex-col shadow-2xl border-amber-400/55 bg-[#0b0e1f]&#39; : &#39;tactical-panel&#39;\" class=\"rounded-xl overflow-hidden border border-violet-400/30\"><!-- Canvas Toolbar --><div class=\"flex flex-wrap items-center justify-between gap-2 border-b border-violet-400/20 bg-slate-950/90 px-4 py-2.5\"><div class=\"flex flex-wrap items-center gap-2 text-xs\"><span class=\"font-bold uppercase tracking-wider text-amber-300\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 113, "\" @mousemove.window=\"onDrag($event)\" @mouseup.window=\"endDrag()\" @keydown.escape.window=\"if (fullscreen) { fullscreen = false; $nextTick(() =&gt; fitView()); }\"><!-- Fullscreen Dark Backdrop (Above App Sidebar & Header) --><div x-cloak x-show=\"fullscreen\" @click=\"toggleFullscreen()\" class=\"fixed inset-0 z-[90] bg-slate-950/80 backdrop-blur-xs\"></div><!-- Canvas Card Container (Elevates cleanly to z-[100] above App Header & Sidebar in Fullscreen) --><div :class=\"fullscreen ? &#39;fixed inset-4 z-[100] flex flex-col shadow-2xl border-amber-400/55 bg-[#0b0e1f]&#39; : &#39;tactical-panel&#39;\" class=\"rounded-xl overflow-hidden border border-violet-400/30\"><!-- Canvas Toolbar --><div class=\"flex flex-wrap items-center justify-between gap-2 border-b border-violet-400/20 bg-slate-950/90 px-4 py-2.5\"><div class=\"flex flex-wrap items-center gap-2 text-xs\"><span class=\"font-bold uppercase tracking-wider text-amber-300\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var81 string
 			templ_7745c5c3_Var81, templ_7745c5c3_Err = templ.JoinStringErrs(tree.Commodity.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 734, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 736, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var81))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 112, " — Recipe Tree</span> <span class=\"hidden md:inline font-mono text-[10px] text-slate-400\">Drag to pan • Scroll to zoom • Click node to highlight branch</span></div><div class=\"flex flex-wrap items-center gap-1.5 font-mono text-[11px]\"><!-- Flip Direction Toggle (Output -> Raw vs Raw -> Output) --><button type=\"button\" @click=\"toggleFlowDir()\" title=\"Flip Horizontal Tree Direction (Output → Raw vs Raw → Output)\" class=\"inline-flex items-center gap-1 rounded border border-sky-400/40 bg-sky-500/15 px-2.5 py-1 text-sky-200 hover:bg-sky-500/25 cursor-pointer\"><svg class=\"h-3.5 w-3.5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4\"></path></svg> <span x-text=\"flowDir === &#39;output-to-raw&#39; ? &#39;Output → Raw&#39; : &#39;Raw → Output&#39;\">Output → Raw</span></button> <button type=\"button\" @click=\"zoomOut()\" title=\"Zoom Out\" class=\"rounded border border-slate-700 bg-slate-900 px-2 py-1 text-slate-200 hover:border-amber-400/50 hover:text-white cursor-pointer\">−</button> <span class=\"min-w-[46px] text-center text-amber-200\" x-text=\"Math.round(scale * 100) + &#39;%&#39;\">100%</span> <button type=\"button\" @click=\"zoomIn()\" title=\"Zoom In\" class=\"rounded border border-slate-700 bg-slate-900 px-2 py-1 text-slate-200 hover:border-amber-400/50 hover:text-white cursor-pointer\">+</button> <button type=\"button\" @click=\"fitView()\" title=\"Fit Tree to Canvas\" class=\"rounded border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-violet-200 hover:bg-violet-500/25 cursor-pointer\">Fit</button> <button type=\"button\" @click=\"resetView()\" title=\"Reset 100%\" class=\"rounded border border-slate-700 bg-slate-900 px-2.5 py-1 text-slate-300 hover:text-white cursor-pointer\">1:1</button> <button type=\"button\" @click=\"toggleFullscreen()\" title=\"Toggle Fullscreen Canvas\" class=\"rounded border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-amber-200 hover:bg-amber-500/25 cursor-pointer\"><span x-show=\"!fullscreen\">Expand</span> <span x-cloak x-show=\"fullscreen\">Exit Full</span></button></div></div><!-- Interactive Pan & Zoom Viewport --><div x-ref=\"canvasViewport\" @mousedown.prevent=\"startDrag($event)\" @click=\"if (!moved &amp;&amp; $event.target === $refs.canvasViewport) clearFocus()\" @wheel.prevent=\"onWheel($event)\" @touchstart.passive=\"startTouch($event)\" @touchmove.prevent=\"onTouch($event)\" @touchend=\"endDrag()\" :class=\"[dragging ? &#39;cursor-grabbing&#39; : &#39;cursor-grab&#39;, fullscreen ? &#39;flex-1 min-h-0&#39; : &#39;h-[560px]&#39;]\" class=\"relative w-full overflow-hidden select-none bg-[#0a0d1c]\" style=\"background-image: radial-gradient(rgba(167, 139, 250, 0.16) 1px, transparent 1px); background-size: 22px 22px;\"><!-- Transformed Stage --><div class=\"absolute top-0 left-0 origin-top-left will-change-transform\" :style=\"`width: ${cw}px; height: ${ch}px; transform: translate3d(${tx}px, ${ty}px, 0) scale(${scale});`\"><!-- Smooth Cubic Bezier Edges (Supports Instant Flip & Branch Highlight) --><svg width=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 114, " — Recipe Tree</span> <span class=\"hidden md:inline font-mono text-[10px] text-slate-400\">Drag to pan • Scroll to zoom • Click node to highlight branch</span></div><div class=\"flex flex-wrap items-center gap-1.5 font-mono text-[11px]\"><!-- Flip Direction Toggle (Output -> Raw vs Raw -> Output) --><button type=\"button\" @click=\"toggleFlowDir()\" title=\"Flip Horizontal Tree Direction (Output → Raw vs Raw → Output)\" class=\"inline-flex items-center gap-1 rounded border border-sky-400/40 bg-sky-500/15 px-2.5 py-1 text-sky-200 hover:bg-sky-500/25 cursor-pointer\"><svg class=\"h-3.5 w-3.5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4\"></path></svg> <span x-text=\"flowDir === &#39;output-to-raw&#39; ? &#39;Output → Raw&#39; : &#39;Raw → Output&#39;\">Output → Raw</span></button> <button type=\"button\" @click=\"zoomOut()\" title=\"Zoom Out\" class=\"rounded border border-slate-700 bg-slate-900 px-2 py-1 text-slate-200 hover:border-amber-400/50 hover:text-white cursor-pointer\">−</button> <span class=\"min-w-[46px] text-center text-amber-200\" x-text=\"Math.round(scale * 100) + &#39;%&#39;\">100%</span> <button type=\"button\" @click=\"zoomIn()\" title=\"Zoom In\" class=\"rounded border border-slate-700 bg-slate-900 px-2 py-1 text-slate-200 hover:border-amber-400/50 hover:text-white cursor-pointer\">+</button> <button type=\"button\" @click=\"fitView()\" title=\"Fit Tree to Canvas\" class=\"rounded border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-violet-200 hover:bg-violet-500/25 cursor-pointer\">Fit</button> <button type=\"button\" @click=\"resetView()\" title=\"Reset 100%\" class=\"rounded border border-slate-700 bg-slate-900 px-2.5 py-1 text-slate-300 hover:text-white cursor-pointer\">1:1</button> <button type=\"button\" @click=\"toggleFullscreen()\" title=\"Toggle Fullscreen Canvas\" class=\"rounded border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-amber-200 hover:bg-amber-500/25 cursor-pointer\"><span x-show=\"!fullscreen\">Expand</span> <span x-cloak x-show=\"fullscreen\">Exit Full</span></button></div></div><!-- Interactive Pan & Zoom Viewport --><div x-ref=\"canvasViewport\" @mousedown.prevent=\"startDrag($event)\" @click=\"if (!moved &amp;&amp; $event.target === $refs.canvasViewport) clearFocus()\" @wheel.prevent=\"onWheel($event)\" @touchstart.passive=\"startTouch($event)\" @touchmove.prevent=\"onTouch($event)\" @touchend=\"endDrag()\" :class=\"[dragging ? &#39;cursor-grabbing&#39; : &#39;cursor-grab&#39;, fullscreen ? &#39;flex-1 min-h-0&#39; : &#39;h-[560px]&#39;]\" class=\"relative w-full overflow-hidden select-none bg-[#0a0d1c]\" style=\"background-image: radial-gradient(rgba(167, 139, 250, 0.16) 1px, transparent 1px); background-size: 22px 22px;\"><!-- Transformed Stage --><div class=\"absolute top-0 left-0 origin-top-left will-change-transform\" :style=\"`width: ${cw}px; height: ${ch}px; transform: translate3d(${tx}px, ${ty}px, 0) scale(${scale});`\"><!-- Smooth Cubic Bezier Edges (Supports Instant Flip & Branch Highlight) --><svg width=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var82 string
 			templ_7745c5c3_Var82, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", canvas.Width))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 783, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 785, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var82))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 113, "\" height=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 115, "\" height=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var83 string
 			templ_7745c5c3_Var83, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", canvas.Height))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 784, Col: 49}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 786, Col: 49}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var83))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 114, "\" viewBox=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 116, "\" viewBox=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var84 string
 			templ_7745c5c3_Var84, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("0 0 %d %d", canvas.Width, canvas.Height))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 785, Col: 71}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 787, Col: 71}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var84))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 115, "\" class=\"pointer-events-none absolute inset-0\" fill=\"none\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 117, "\" class=\"pointer-events-none absolute inset-0\" fill=\"none\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, edge := range canvas.Edges {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 116, "<path :d=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 118, "<path :d=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var85 string
 				templ_7745c5c3_Var85, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("flowDir === 'output-to-raw' ? %q : %q", edge.PathD, edge.RevPathD))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 791, Col: 94}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 793, Col: 94}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var85))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 117, "\" :stroke=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 119, "\" :stroke=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var86 string
 				templ_7745c5c3_Var86, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("focusedNodeID && isEdgeInBranch(%q, %q) ? '#fbbf24' : %q", edge.FromID, edge.ToID, piCanvasEdgeStroke(edge.Tier)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 792, Col: 146}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 794, Col: 146}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var86))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 118, "\" :stroke-width=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 120, "\" :stroke-width=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var87 string
 				templ_7745c5c3_Var87, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("focusedNodeID && isEdgeInBranch(%q, %q) ? 3 : 2", edge.FromID, edge.ToID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 793, Col: 112}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 795, Col: 112}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var87))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 119, "\" :opacity=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 121, "\" :opacity=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var88 string
 				templ_7745c5c3_Var88, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("isEdgeInBranch(%q, %q) ? 1 : 0.18", edge.FromID, edge.ToID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 794, Col: 93}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 796, Col: 93}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var88))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 120, "\" stroke-linecap=\"round\"></path>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 122, "\" stroke-linecap=\"round\"></path>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 121, "</svg><!-- Positioned Recipe Nodes with Official EVE Icons (Click to Highlight Branch, Double-Click to Open Recipe) -->")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 123, "</svg><!-- Positioned Recipe Nodes with Official EVE Icons (Click to Highlight Branch, Double-Click to Open Recipe) -->")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1555,69 +1565,69 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 122, "<div @click.stop=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 124, "<div @click.stop=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var90 string
 				templ_7745c5c3_Var90, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("selectNode(%q, %d, %q, %t)", n.NodeID, n.TypeID, n.Name, n.CanOpenRecipe))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 803, Col: 109}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 805, Col: 109}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var90))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 123, "\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 125, "\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if n.CanOpenRecipe {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 124, " @dblclick.stop=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 126, " @dblclick.stop=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var91 string
 					templ_7745c5c3_Var91, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("openTree(%d)", n.TypeID))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 805, Col: 64}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 807, Col: 64}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var91))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 125, "\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 127, "\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 126, " :class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 128, " :class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var92 string
 				templ_7745c5c3_Var92, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("[focusedNodeID === %q ? 'ring-2 ring-amber-300 shadow-[0_0_24px_rgba(251,191,36,0.45)]' : '', isNodeInBranch(%q) ? 'opacity-100' : 'opacity-25']", n.NodeID, n.NodeID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 807, Col: 197}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 809, Col: 197}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var92))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 127, "\" :style=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 129, "\" :style=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var93 string
 				templ_7745c5c3_Var93, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("`left: ${flowDir === 'output-to-raw' ? %d : %d}px; top: %dpx; width: %dpx; min-height: %dpx;`", n.X, n.RevX, n.Y, n.Width, n.Height))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 808, Col: 163}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 810, Col: 163}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var93))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 128, "\" class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 130, "\" class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1630,33 +1640,33 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 129, "\"><img src=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 131, "\"><img src=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var95 string
 				templ_7745c5c3_Var95, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(n.TypeID, 64))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 812, Col: 44}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 814, Col: 44}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var95))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 130, "\" alt=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 132, "\" alt=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var96 string
 				templ_7745c5c3_Var96, templ_7745c5c3_Err = templ.JoinStringErrs(n.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 813, Col: 22}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 815, Col: 22}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var96))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 131, "\" draggable=\"false\" class=\"h-10 w-10 shrink-0 rounded-lg border border-violet-400/30 bg-slate-950/90 p-0.5 object-contain pointer-events-none\" onerror=\"this.style.display=&#39;none&#39;\"><div class=\"min-w-0 flex-1\"><div class=\"flex items-center justify-between gap-1\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 133, "\" draggable=\"false\" class=\"h-10 w-10 shrink-0 rounded-lg border border-violet-400/30 bg-slate-950/90 p-0.5 object-contain pointer-events-none\" onerror=\"this.style.display=&#39;none&#39;\"><div class=\"min-w-0 flex-1\"><div class=\"flex items-center justify-between gap-1\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1665,7 +1675,7 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 132, "<span class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 134, "<span class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1678,64 +1688,64 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 133, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 135, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var99 string
 				templ_7745c5c3_Var99, templ_7745c5c3_Err = templ.JoinStringErrs(string(n.Tier))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 821, Col: 28}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 823, Col: 28}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var99))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 134, "</span> <span class=\"font-mono text-[11px] font-bold text-amber-200\">×")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 136, "</span> <span class=\"font-mono text-[11px] font-bold text-amber-200\">×")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var100 string
 				templ_7745c5c3_Var100, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", n.Quantity))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 823, Col: 105}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 825, Col: 105}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var100))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 135, "</span></div><div class=\"mt-1 text-xs font-semibold text-white truncate\" title=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 137, "</span></div><div class=\"mt-1 text-xs font-semibold text-white truncate\" title=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var101 string
 				templ_7745c5c3_Var101, templ_7745c5c3_Err = templ.JoinStringErrs(n.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 825, Col: 84}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 827, Col: 84}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var101))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 136, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 138, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var102 string
 				templ_7745c5c3_Var102, templ_7745c5c3_Err = templ.JoinStringErrs(n.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 825, Col: 95}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 827, Col: 95}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var102))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 137, "</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 139, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if n.Tier == domain.PITierP0 && len(n.SourcePlanets) > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 138, "<div class=\"mt-1 flex flex-wrap gap-1\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 140, "<div class=\"mt-1 flex flex-wrap gap-1\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1745,7 +1755,7 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 139, "<span class=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 141, "<span class=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1758,113 +1768,113 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 140, "\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 142, "\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var105 string
 						templ_7745c5c3_Var105, templ_7745c5c3_Err = templ.JoinStringErrs(pl)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 830, Col: 18}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 832, Col: 18}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var105))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 141, "</span>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 143, "</span>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 142, "</div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 144, "</div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 143, "</div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 145, "</div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 144, "</div><!-- Floating Focused Branch Action Bar --><div x-cloak x-show=\"focusedNodeID !== &#39;&#39;\" @mousedown.stop class=\"absolute bottom-3 left-3 z-10 flex flex-wrap items-center gap-2 rounded-xl border border-amber-400/45 bg-slate-950/90 backdrop-blur px-3 py-2 text-xs shadow-xl\"><span class=\"font-mono text-[10px] uppercase text-amber-300/90\">Focused:</span> <span class=\"font-semibold text-white\" x-text=\"focusedName\"></span> <button type=\"button\" x-show=\"focusedCanOpen\" @click=\"openTree(focusedTypeID)\" class=\"rounded-md border border-amber-400/50 bg-amber-400/20 px-2.5 py-1 font-mono text-[10px] font-bold text-amber-200 hover:bg-amber-400/30 cursor-pointer\">Open Recipe →</button> <button type=\"button\" @click=\"clearFocus()\" class=\"rounded-md border border-slate-700 bg-slate-900 px-2 py-1 font-mono text-[10px] text-slate-300 hover:text-white cursor-pointer\">Clear</button></div></div></div></div><!-- MODE B: DETAILS & ECONOMICS (4 KPIs + Vertical Breakdown + P0 Table) --><div x-show=\"treeViewMode === &#39;details&#39;\" class=\"space-y-4\"><!-- 4 Factory Economics KPIs --><div class=\"grid grid-cols-2 gap-3 sm:grid-cols-4\"><div class=\"tactical-panel rounded-xl p-3.5\"><div class=\"text-[10px] font-mono uppercase text-amber-300/80\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 146, "</div><!-- Floating Focused Branch Action Bar --><div x-cloak x-show=\"focusedNodeID !== &#39;&#39;\" @mousedown.stop class=\"absolute bottom-3 left-3 z-10 flex flex-wrap items-center gap-2 rounded-xl border border-amber-400/45 bg-slate-950/90 backdrop-blur px-3 py-2 text-xs shadow-xl\"><span class=\"font-mono text-[10px] uppercase text-amber-300/90\">Focused:</span> <span class=\"font-semibold text-white\" x-text=\"focusedName\"></span> <button type=\"button\" x-show=\"focusedCanOpen\" @click=\"openTree(focusedTypeID)\" class=\"rounded-md border border-amber-400/50 bg-amber-400/20 px-2.5 py-1 font-mono text-[10px] font-bold text-amber-200 hover:bg-amber-400/30 cursor-pointer\">Open Recipe →</button> <button type=\"button\" @click=\"clearFocus()\" class=\"rounded-md border border-slate-700 bg-slate-900 px-2 py-1 font-mono text-[10px] text-slate-300 hover:text-white cursor-pointer\">Clear</button></div></div></div></div><!-- MODE B: DETAILS & ECONOMICS (4 KPIs + Vertical Breakdown + P0 Table) --><div x-show=\"treeViewMode === &#39;details&#39;\" class=\"space-y-4\"><!-- 4 Factory Economics KPIs --><div class=\"grid grid-cols-2 gap-3 sm:grid-cols-4\"><div class=\"tactical-panel rounded-xl p-3.5\"><div class=\"text-[10px] font-mono uppercase text-amber-300/80\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var106 string
 			templ_7745c5c3_Var106, templ_7745c5c3_Err = templ.JoinStringErrs(tree.PriceHub.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 874, Col: 89}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 876, Col: 89}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var106))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 145, " Unit Sell</div><div class=\"mt-1 text-base font-mono font-bold text-amber-200\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 147, " Unit Sell</div><div class=\"mt-1 text-base font-mono font-bold text-amber-200\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var107 string
 			templ_7745c5c3_Var107, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(tree.OutputUnitSell))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 875, Col: 101}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 877, Col: 101}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var107))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 146, "</div><div class=\"text-[10px] font-mono text-slate-400\">Cycle Rev: ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 148, "</div><div class=\"text-[10px] font-mono text-slate-400\">Cycle Rev: ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var108 string
 			templ_7745c5c3_Var108, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(tree.OutputCycleRevenue))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 876, Col: 103}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 878, Col: 103}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var108))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 147, "</div></div><div class=\"tactical-panel rounded-xl p-3.5\"><div class=\"text-[10px] font-mono uppercase text-slate-400\">Inputs + POCO (")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 149, "</div></div><div class=\"tactical-panel rounded-xl p-3.5\"><div class=\"text-[10px] font-mono uppercase text-slate-400\">Inputs + POCO (")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var109 string
 			templ_7745c5c3_Var109, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.1f%%", tree.POCOTaxPercent))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 879, Col: 125}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 881, Col: 125}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var109))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 148, ")</div><div class=\"mt-1 text-base font-mono font-bold text-white\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 150, ")</div><div class=\"mt-1 text-base font-mono font-bold text-white\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var110 string
 			templ_7745c5c3_Var110, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(tree.DirectInputCost + tree.POCOTaxISK))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 880, Col: 116}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 882, Col: 116}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var110))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 149, "</div><div class=\"text-[10px] font-mono text-slate-400\">POCO Tax: ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 151, "</div><div class=\"text-[10px] font-mono text-slate-400\">POCO Tax: ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var111 string
 			templ_7745c5c3_Var111, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(tree.POCOTaxISK))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 881, Col: 94}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 883, Col: 94}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var111))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 150, "</div></div><div class=\"tactical-panel rounded-xl p-3.5\"><div class=\"text-[10px] font-mono uppercase text-emerald-300/80\">Net Profit / Cycle</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 152, "</div></div><div class=\"tactical-panel rounded-xl p-3.5\"><div class=\"text-[10px] font-mono uppercase text-emerald-300/80\">Net Profit / Cycle</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1873,7 +1883,7 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 151, "<div class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 153, "<div class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1886,33 +1896,33 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 152, "\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 154, "\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var114 string
 			templ_7745c5c3_Var114, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(tree.NetProfitPerCycle))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 885, Col: 132}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 887, Col: 132}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var114))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 153, "</div><div class=\"text-[10px] font-mono text-slate-400\">Margin: ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 155, "</div><div class=\"text-[10px] font-mono text-slate-400\">Margin: ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var115 string
 			templ_7745c5c3_Var115, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(tree.NetMarginPercent))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 886, Col: 102}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 888, Col: 102}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var115))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 154, "</div></div><div class=\"tactical-panel rounded-xl p-3.5\"><div class=\"text-[10px] font-mono uppercase text-sky-300/80\">Est. Monthly (1 Factory)</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 156, "</div></div><div class=\"tactical-panel rounded-xl p-3.5\"><div class=\"text-[10px] font-mono uppercase text-sky-300/80\">Est. Monthly (1 Factory)</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1921,7 +1931,7 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 155, "<div class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 157, "<div class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1934,87 +1944,87 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 156, "\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 158, "\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var118 string
 			templ_7745c5c3_Var118, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(tree.EstMonthlyISK))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 890, Col: 124}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 892, Col: 124}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var118))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 157, "</div><div class=\"text-[10px] font-mono text-slate-400\">Daily: ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 159, "</div><div class=\"text-[10px] font-mono text-slate-400\">Daily: ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var119 string
 			templ_7745c5c3_Var119, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(tree.EstDailyISK))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 891, Col: 92}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 893, Col: 92}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var119))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 158, "</div></div></div><!-- Full Recursive Recipe Tree (P4 -> P3 -> P2 -> P1 -> P0 + Planets) --><div class=\"tactical-panel rounded-xl overflow-hidden\"><div class=\"px-4 py-3 border-b border-violet-400/20 flex items-center justify-between\"><h3 class=\"text-xs font-bold uppercase tracking-wider text-amber-300\">Full Recursive Recipe Tree (With Planet Sources)</h3><span class=\"text-[10px] font-mono text-slate-400\">1 Factory Cycle Breakdown</span></div><div class=\"p-4 space-y-1.5 font-mono text-xs\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 160, "</div></div></div><!-- Full Recursive Recipe Tree (P4 -> P3 -> P2 -> P1 -> P0 + Planets) --><div class=\"tactical-panel rounded-xl overflow-hidden\"><div class=\"px-4 py-3 border-b border-violet-400/20 flex items-center justify-between\"><h3 class=\"text-xs font-bold uppercase tracking-wider text-amber-300\">Full Recursive Recipe Tree (With Planet Sources)</h3><span class=\"text-[10px] font-mono text-slate-400\">1 Factory Cycle Breakdown</span></div><div class=\"p-4 space-y-1.5 font-mono text-xs\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, node := range tree.FlatTree {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 159, "<div class=\"flex flex-wrap items-center justify-between gap-2 rounded-lg border border-violet-400/15 bg-slate-950/45 px-3 py-2\" style=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 161, "<div class=\"flex flex-wrap items-center justify-between gap-2 rounded-lg border border-violet-400/15 bg-slate-950/45 px-3 py-2\" style=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var120 string
 				templ_7745c5c3_Var120, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(fmt.Sprintf("margin-left: %dpx", node.Depth*18))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 905, Col: 63}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 907, Col: 63}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var120))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 160, "\"><div class=\"flex flex-wrap items-center gap-2\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 162, "\"><div class=\"flex flex-wrap items-center gap-2\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if node.Depth > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 161, "<span class=\"text-slate-500\">└─</span> ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 163, "<span class=\"text-slate-500\">└─</span> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 162, "<img src=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 164, "<img src=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var121 string
 				templ_7745c5c3_Var121, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(node.TypeID, 32))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 911, Col: 51}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 913, Col: 51}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var121))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 163, "\" alt=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 165, "\" alt=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var122 string
 				templ_7745c5c3_Var122, templ_7745c5c3_Err = templ.JoinStringErrs(node.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 911, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 913, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var122))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 164, "\" loading=\"lazy\" class=\"h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 166, "\" loading=\"lazy\" class=\"h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2023,7 +2033,7 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 165, "<span class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 167, "<span class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2036,46 +2046,46 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 166, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 168, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var125 string
 				templ_7745c5c3_Var125, templ_7745c5c3_Err = templ.JoinStringErrs(string(node.Tier))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 913, Col: 29}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 915, Col: 29}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var125))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 167, "</span> <span class=\"font-sans font-semibold text-white\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 169, "</span> <span class=\"font-sans font-semibold text-white\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var126 string
 				templ_7745c5c3_Var126, templ_7745c5c3_Err = templ.JoinStringErrs(node.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 915, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 917, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var126))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 168, "</span> <span class=\"text-amber-200\">× ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 170, "</span> <span class=\"text-amber-200\">× ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var127 string
 				templ_7745c5c3_Var127, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", node.Quantity))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 916, Col: 75}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 918, Col: 75}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var127))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 169, "</span></div><div class=\"flex flex-wrap items-center gap-1.5\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 171, "</span></div><div class=\"flex flex-wrap items-center gap-1.5\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2086,7 +2096,7 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 170, "<span class=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 172, "<span class=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -2099,111 +2109,111 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 171, "\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 173, "\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var130 string
 						templ_7745c5c3_Var130, templ_7745c5c3_Err = templ.JoinStringErrs(pl)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 923, Col: 16}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 925, Col: 16}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var130))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 172, "</span>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 174, "</span>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
 				} else if node.TotalValue > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 173, "<span class=\"text-[11px] text-slate-300\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 175, "<span class=\"text-[11px] text-slate-300\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var131 string
 					templ_7745c5c3_Var131, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(node.TotalValue))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 927, Col: 79}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 929, Col: 79}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var131))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 174, "</span>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 176, "</span>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 175, "</div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 177, "</div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 176, "</div></div><!-- P0 Raw Material Summary by Planet -->")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 178, "</div></div><!-- P0 Raw Material Summary by Planet -->")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if len(tree.P0Requirements) > 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 177, "<div class=\"tactical-panel rounded-xl overflow-hidden\"><div class=\"px-4 py-2.5 border-b border-violet-400/20\"><h3 class=\"text-xs font-bold uppercase tracking-wider text-violet-200\">Raw P0 Extraction Summary &amp; Compatible Planets</h3></div><div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs\"><thead class=\"bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15\"><tr><th class=\"px-4 py-2\">Raw P0 Resource</th><th class=\"px-4 py-2 text-right\">Total Qty / Cycle</th><th class=\"px-4 py-2\">Found On Planet Types</th></tr></thead> <tbody class=\"divide-y divide-violet-400/10\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 179, "<div class=\"tactical-panel rounded-xl overflow-hidden\"><div class=\"px-4 py-2.5 border-b border-violet-400/20\"><h3 class=\"text-xs font-bold uppercase tracking-wider text-violet-200\">Raw P0 Extraction Summary &amp; Compatible Planets</h3></div><div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs\"><thead class=\"bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15\"><tr><th class=\"px-4 py-2\">Raw P0 Resource</th><th class=\"px-4 py-2 text-right\">Total Qty / Cycle</th><th class=\"px-4 py-2\">Found On Planet Types</th></tr></thead> <tbody class=\"divide-y divide-violet-400/10\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				for _, p0 := range tree.P0Requirements {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 178, "<tr class=\"hover:bg-white/5\"><td class=\"px-4 py-2\"><div class=\"flex items-center gap-2\"><img src=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 180, "<tr class=\"hover:bg-white/5\"><td class=\"px-4 py-2\"><div class=\"flex items-center gap-2\"><img src=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var132 string
 					templ_7745c5c3_Var132, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(p0.TypeID, 32))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 955, Col: 53}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 957, Col: 53}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var132))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 179, "\" alt=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 181, "\" alt=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var133 string
 					templ_7745c5c3_Var133, templ_7745c5c3_Err = templ.JoinStringErrs(p0.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 955, Col: 69}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 957, Col: 69}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var133))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 180, "\" loading=\"lazy\" class=\"h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"> <span class=\"font-semibold text-white\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 182, "\" loading=\"lazy\" class=\"h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"> <span class=\"font-semibold text-white\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var134 string
 					templ_7745c5c3_Var134, templ_7745c5c3_Err = templ.JoinStringErrs(p0.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 956, Col: 61}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 958, Col: 61}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var134))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 181, "</span></div></td><td class=\"px-4 py-2 text-right font-mono text-amber-200\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 183, "</span></div></td><td class=\"px-4 py-2 text-right font-mono text-amber-200\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var135 string
 					templ_7745c5c3_Var135, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", p0.TotalQuantity))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 959, Col: 106}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 961, Col: 106}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var135))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 182, "</td><td class=\"px-4 py-2\"><div class=\"flex flex-wrap gap-1\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 184, "</td><td class=\"px-4 py-2\"><div class=\"flex flex-wrap gap-1\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -2213,7 +2223,7 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 183, "<span class=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 185, "<span class=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -2226,35 +2236,35 @@ func PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) templ.Component
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 184, "\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 186, "\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var138 string
 						templ_7745c5c3_Var138, templ_7745c5c3_Err = templ.JoinStringErrs(pl)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 963, Col: 124}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 965, Col: 124}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var138))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 185, "</span>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 187, "</span>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 186, "</div></td></tr>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 188, "</div></td></tr>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 187, "</tbody></table></div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 189, "</tbody></table></div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 188, "</div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 190, "</div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2285,152 +2295,152 @@ func PIScanPartial(rows []domain.PIProfitRow, tier string, hub domain.TradeHub, 
 		}
 		ctx = templ.ClearChildren(ctx)
 		if errMsg != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 189, "<div class=\"tactical-panel rounded-xl p-4 border-rose-400/40 text-xs text-rose-200\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 191, "<div class=\"tactical-panel rounded-xl p-4 border-rose-400/40 text-xs text-rose-200\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var140 string
 			templ_7745c5c3_Var140, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 981, Col: 94}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 983, Col: 94}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var140))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 190, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 192, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else if len(rows) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 191, "<div class=\"tactical-panel rounded-xl p-8 text-center text-xs text-slate-400\">No PI items returned for tier ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 193, "<div class=\"tactical-panel rounded-xl p-8 text-center text-xs text-slate-400\">No PI items returned for tier ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var141 string
 			templ_7745c5c3_Var141, templ_7745c5c3_Err = templ.JoinStringErrs(strings.ToUpper(tier))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 983, Col: 133}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 985, Col: 133}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var141))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 192, " at ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 194, " at ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var142 string
 			templ_7745c5c3_Var142, templ_7745c5c3_Err = templ.JoinStringErrs(hub.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 983, Col: 149}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 985, Col: 149}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var142))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 193, ".</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 195, ".</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 194, "<div class=\"tactical-panel rounded-xl overflow-hidden\"><div class=\"px-4 py-2.5 border-b border-violet-400/20 flex items-center justify-between text-[11px] font-mono text-slate-300\"><span>Tier <strong class=\"text-amber-300\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 196, "<div class=\"tactical-panel rounded-xl overflow-hidden\"><div class=\"px-4 py-2.5 border-b border-violet-400/20 flex items-center justify-between text-[11px] font-mono text-slate-300\"><span>Tier <strong class=\"text-amber-300\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var143 string
 			templ_7745c5c3_Var143, templ_7745c5c3_Err = templ.JoinStringErrs(strings.ToUpper(tier))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 987, Col: 69}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 989, Col: 69}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var143))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 195, "</strong> Results</span> <span>Price Reference: <strong class=\"text-sky-300\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 197, "</strong> Results</span> <span>Price Reference: <strong class=\"text-sky-300\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var144 string
 			templ_7745c5c3_Var144, templ_7745c5c3_Err = templ.JoinStringErrs(hub.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 988, Col: 66}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 990, Col: 66}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var144))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 196, " (")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 198, " (")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var145 string
 			templ_7745c5c3_Var145, templ_7745c5c3_Err = templ.JoinStringErrs(hub.RegionName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 988, Col: 86}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 990, Col: 86}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var145))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 197, ")</strong></span></div><div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs\"><thead class=\"bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15\"><tr><th class=\"px-4 py-3\">PI Item</th><th class=\"px-4 py-3 text-right\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 199, ")</strong></span></div><div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs\"><thead class=\"bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15\"><tr><th class=\"px-4 py-3\">PI Item</th><th class=\"px-4 py-3 text-right\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var146 string
 			templ_7745c5c3_Var146, templ_7745c5c3_Err = templ.JoinStringErrs(hub.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 995, Col: 50}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 997, Col: 50}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var146))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 198, " Unit Sell</th><th class=\"px-4 py-3 text-right\">Input + POCO</th><th class=\"px-4 py-3 text-right\">Net Profit / Cycle</th><th class=\"px-4 py-3 text-right\">Margin</th><th class=\"px-4 py-3 text-right\">Est. Monthly (1 Factory)</th><th class=\"px-4 py-3\">Verdict</th><th class=\"px-4 py-3 text-right\">Tree</th></tr></thead> <tbody class=\"divide-y divide-violet-400/15 font-mono\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 200, " Unit Sell</th><th class=\"px-4 py-3 text-right\">Input + POCO</th><th class=\"px-4 py-3 text-right\">Net Profit / Cycle</th><th class=\"px-4 py-3 text-right\">Margin</th><th class=\"px-4 py-3 text-right\">Est. Monthly (1 Factory)</th><th class=\"px-4 py-3\">Verdict</th><th class=\"px-4 py-3 text-right\">Tree</th></tr></thead> <tbody class=\"divide-y divide-violet-400/15 font-mono\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, r := range rows {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 199, "<tr class=\"hover:bg-white/5\"><td class=\"px-4 py-2.5 font-sans\"><div class=\"flex items-center gap-2\"><img src=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 201, "<tr class=\"hover:bg-white/5\"><td class=\"px-4 py-2.5 font-sans\"><div class=\"flex items-center gap-2\"><img src=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var147 string
 				templ_7745c5c3_Var147, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(r.TypeID, 32))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 1009, Col: 49}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 1011, Col: 49}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var147))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 200, "\" alt=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 202, "\" alt=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var148 string
 				templ_7745c5c3_Var148, templ_7745c5c3_Err = templ.JoinStringErrs(r.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 1009, Col: 64}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 1011, Col: 64}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var148))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 201, "\" loading=\"lazy\" class=\"h-7 w-7 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"> <span class=\"font-semibold text-white\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 203, "\" loading=\"lazy\" class=\"h-7 w-7 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"> <span class=\"font-semibold text-white\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var149 string
 				templ_7745c5c3_Var149, templ_7745c5c3_Err = templ.JoinStringErrs(r.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 1010, Col: 57}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 1012, Col: 57}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var149))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 202, "</span> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 204, "</span> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2439,7 +2449,7 @@ func PIScanPartial(rows []domain.PIProfitRow, tier string, hub domain.TradeHub, 
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 203, "<span class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 205, "<span class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2452,46 +2462,46 @@ func PIScanPartial(rows []domain.PIProfitRow, tier string, hub domain.TradeHub, 
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 204, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 206, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var152 string
 				templ_7745c5c3_Var152, templ_7745c5c3_Err = templ.JoinStringErrs(string(r.Tier))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 1011, Col: 132}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 1013, Col: 132}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var152))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 205, "</span></div></td><td class=\"px-4 py-2.5 text-right text-amber-200\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 207, "</span></div></td><td class=\"px-4 py-2.5 text-right text-amber-200\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var153 string
 				templ_7745c5c3_Var153, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(r.OutputUnitSell))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 1014, Col: 87}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 1016, Col: 87}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var153))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 206, "</td><td class=\"px-4 py-2.5 text-right text-slate-300\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 208, "</td><td class=\"px-4 py-2.5 text-right text-slate-300\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var154 string
 				templ_7745c5c3_Var154, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(r.DirectInputCost + r.POCOTaxISK))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 1015, Col: 103}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 1017, Col: 103}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var154))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 207, "</td>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 209, "</td>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2500,7 +2510,7 @@ func PIScanPartial(rows []domain.PIProfitRow, tier string, hub domain.TradeHub, 
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 208, "<td class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 210, "<td class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2513,20 +2523,20 @@ func PIScanPartial(rows []domain.PIProfitRow, tier string, hub domain.TradeHub, 
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 209, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 211, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var157 string
 				templ_7745c5c3_Var157, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(r.NetProfitPerCycle))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 1016, Col: 125}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 1018, Col: 125}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var157))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 210, "</td>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 212, "</td>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2535,7 +2545,7 @@ func PIScanPartial(rows []domain.PIProfitRow, tier string, hub domain.TradeHub, 
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 211, "<td class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 213, "<td class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2548,20 +2558,20 @@ func PIScanPartial(rows []domain.PIProfitRow, tier string, hub domain.TradeHub, 
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 212, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 214, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var160 string
 				templ_7745c5c3_Var160, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(r.NetMarginPercent))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 1017, Col: 117}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 1019, Col: 117}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var160))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 213, "</td>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 215, "</td>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2570,7 +2580,7 @@ func PIScanPartial(rows []domain.PIProfitRow, tier string, hub domain.TradeHub, 
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 214, "<td class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 216, "<td class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2583,20 +2593,20 @@ func PIScanPartial(rows []domain.PIProfitRow, tier string, hub domain.TradeHub, 
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 215, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 217, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var163 string
 				templ_7745c5c3_Var163, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(r.EstMonthlyISK))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 1018, Col: 117}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 1020, Col: 117}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var163))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 216, "</td><td class=\"px-4 py-2.5\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 218, "</td><td class=\"px-4 py-2.5\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2605,7 +2615,7 @@ func PIScanPartial(rows []domain.PIProfitRow, tier string, hub domain.TradeHub, 
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 217, "<span class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 219, "<span class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2618,20 +2628,20 @@ func PIScanPartial(rows []domain.PIProfitRow, tier string, hub domain.TradeHub, 
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 218, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 220, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var166 string
 				templ_7745c5c3_Var166, templ_7745c5c3_Err = templ.JoinStringErrs(string(r.Verdict))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 1020, Col: 140}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pi.templ`, Line: 1022, Col: 140}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var166))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 219, "</span></td><td class=\"px-4 py-2.5 text-right font-sans\"><a href=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 221, "</span></td><td class=\"px-4 py-2.5 text-right font-sans\"><a href=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2640,12 +2650,12 @@ func PIScanPartial(rows []domain.PIProfitRow, tier string, hub domain.TradeHub, 
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 220, "\" class=\"rounded border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-[10px] font-semibold text-amber-200 hover:bg-amber-500/25\">View Tree →</a></td></tr>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 222, "\" class=\"rounded border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-[10px] font-semibold text-amber-200 hover:bg-amber-500/25\">View Tree →</a></td></tr>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 221, "</tbody></table></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 223, "</tbody></table></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
