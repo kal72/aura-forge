@@ -153,9 +153,9 @@ func (s *CopilotService) CollectScopedJitaTypeIDs(ctx context.Context) []int32 {
 		addID(id)
 	}
 
-	// 3. Active SDE Blueprints & their materials
+	// 3. Active SDE Blueprints & their materials (capped at 40 so importing 5,000+ full CCP SDE blueprints never bloats ESI sync)
 	if s.sde != nil {
-		if bps, err := s.sde.SearchBlueprints(ctx, "", "", 100); err == nil {
+		if bps, err := s.sde.SearchBlueprints(ctx, "", "", 40); err == nil {
 			for _, bp := range bps {
 				addID(bp.ProductTypeID)
 				if mats, mErr := s.sde.GetBlueprintMaterials(ctx, bp.BlueprintTypeID); mErr == nil {

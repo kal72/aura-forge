@@ -94,6 +94,7 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 		r.Route("/calculator", func(r chi.Router) {
 			r.Get("/", h.HandleCalculator)
 			r.Post("/compute", h.HandleCalculatorCompute)
+			r.Get("/blueprints/search", h.HandleBlueprintSearch)
 			r.Post("/blueprint/compute", h.HandleBlueprintCompute)
 			r.Post("/blueprint/save-catalog", h.HandleBlueprintSaveCatalog)
 		})
@@ -150,6 +151,8 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 		r.Route("/settings", func(r chi.Router) {
 			r.Get("/", h.HandleSettings)
 			r.Post("/", h.HandleSaveSettings)
+			r.Post("/sde/import", h.HandleSDEImport)
+			r.Get("/sde/status", h.HandleSDEStatus)
 		})
 
 		// Optional EVE SSO OAuth2 Routes (available after login)

@@ -102,6 +102,52 @@ func (h *Handlers) HandleBlueprintSaveCatalog(w http.ResponseWriter, r *http.Req
 	http.Redirect(w, r, "/catalog", http.StatusFound)
 }
 
+// HandleBlueprintSearch returns paginated SDE blueprints filtered by query, category, and tech level
+// for the Blueprint Catalog Modal Popup in /calculator.
+func (h *Handlers) HandleBlueprintSearch(w http.ResponseWriter, r *http.Request) {
+	q := strings.TrimSpace(r.URL.Query().Get("q"))
+	category := strings.TrimSpace(r.URL.Query().Get("category"))
+	tech := parseIntDefault(r.URL.Query().Get("tech"), 0)
+	page := parseIntDefault(r.URL.Query().Get("page"), 1)
+	pageSize := parseIntDefault(r.URL.Query().Get("limit"), 24)
+
+	res, err := h.svc.SearchBlueprintsPaged(r.Context(), q, category, tech, page, pageSize)
+	if err != nil {
+		h.writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+	h.writeJSON(w, http.StatusOK, res)
+}
+
+// HandleSDEImport triggers the asynchronous 1-click Official CCP SDE (JSONL) import from /settings.
+func (h *Handlers) HandleSDEImport(w http.ResponseWriter, r *http.Request) {
+	started, err := h.svc.StartOfficialCCPSDEImport()
+	if err != nil {
+		if IsHTMX(r) {
+			TriggerToast(w, "error", "Failed to start Official CCP SDE import: "+err.Error())
+		}
+	} else if started && IsHTMX(r) {
+		TriggerToast(w, "info", "Official CCP SDE (JSONL) import started in background...")
+	}
+
+	status := h.svc.GetSDEImportStatus(r.Context())
+	if h.renderer != nil && IsHTMX(r) {
+		_ = h.renderer.RenderSDEStatusPartial(w, r, status)
+		return
+	}
+	h.writeJSON(w, http.StatusOK, status)
+}
+
+// HandleSDEStatus returns the live progress and installed build counts of the Official CCP SDE importer.
+func (h *Handlers) HandleSDEStatus(w http.ResponseWriter, r *http.Request) {
+	status := h.svc.GetSDEImportStatus(r.Context())
+	if h.renderer != nil && IsHTMX(r) {
+		_ = h.renderer.RenderSDEStatusPartial(w, r, status)
+		return
+	}
+	h.writeJSON(w, http.StatusOK, status)
+}
+
 func parseIntDefault(raw string, fallback int) int {
 	v, err := strconv.Atoi(strings.TrimSpace(raw))
 	if err != nil {

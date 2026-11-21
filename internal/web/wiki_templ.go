@@ -378,6 +378,17 @@ var eveWikiEntries = []wikiEntry{
 		TipID:      "Gunakan banner perbandingan 3 skenario (Buy All vs Make Everything vs Active Optimal Plan) untuk melihat penghematan ISK nyata sebelum memakai slot manufaktur.",
 	},
 	{
+		Category:   "industry",
+		Term:       "Official CCP SDE (JSONL) 1-Click Import & Blueprint Catalog",
+		BadgeText:  "FULL SDE",
+		BadgeClass: "border-amber-400/50 bg-amber-500/20 text-amber-200 font-bold",
+		WhereUsed:  "Settings → Official EVE Online SDE & Calculator → Browse Catalog",
+		DescEN:     "EVE Online's Public ESI API does not provide blueprint recipes — all recipes come from CCP's official Static Data Export (JSONL archive at developers.eveonline.com/static-data/). Go to Settings and click 'Import Full Official CCP SDE' to load all ~5,000+ Manufacturing & Reaction blueprints into PostgreSQL with 0 ESI calls, then browse them via the categorized, paginated Blueprint Catalog Popup in Calculator.",
+		DescID:     "Public API ESI EVE Online tidak menyediakan resep blueprint — seluruh resep berasal dari Static Data Export resmi CCP (arsip JSONL di developers.eveonline.com/static-data/). Buka Settings lalu klik 'Import Full Official CCP SDE' untuk memuat seluruh ~5.000+ blueprint Manufacturing & Reaction ke PostgreSQL (0 call ESI), lalu cari lewat Popup Katalog Blueprint berkategori & berpaginasi di Calculator.",
+		TipEN:      "Re-sync the Official CCP SDE in Settings whenever CCP releases a major game expansion to get new ships and updated recipes.",
+		TipID:      "Lakukan Re-Sync Official CCP SDE di Settings setiap kali CCP merilis ekspansi besar untuk mendapatkan kapal baru dan resep terbaru.",
+	},
+	{
 		Category:   "invention",
 		Term:       "Capital-Phase Tiers (0 → 100B+ ISK)",
 		BadgeText:  "ROADMAP",
@@ -493,7 +504,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs("matches(" + `'` + item.Category + `'` + ", " + "`" + strings.ReplaceAll(searchBlob, "`", "") + "`" + ")")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 534, Col: 120}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 545, Col: 120}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -506,7 +517,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(item.Term)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 539, Col: 73}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 550, Col: 73}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -541,7 +552,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(item.BadgeText)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 541, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 552, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -554,7 +565,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(item.WhereUsed)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 545, Col: 24}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 556, Col: 24}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
@@ -567,7 +578,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 548, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 559, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
@@ -580,7 +591,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 551, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 562, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -593,7 +604,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 557, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 568, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -606,7 +617,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 558, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 569, Col: 56}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {

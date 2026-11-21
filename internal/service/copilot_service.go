@@ -98,6 +98,7 @@ type CopilotService struct {
 	pi              domain.PIRepository
 	globalSnapshots domain.GlobalPriceSnapshotRepository
 	priceSync       *priceSyncState
+	sdeImport       *sdeImportState
 }
 
 // SetGlobalPriceSnapshotRepository attaches the optional PostgreSQL global price snapshot repository.
@@ -126,6 +127,7 @@ func NewCopilotService(
 		charSync:  charSync,
 		sso:       sso,
 		priceSync: newPriceSyncState(),
+		sdeImport: newSDEImportState(),
 	}
 }
 

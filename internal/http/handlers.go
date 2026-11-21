@@ -26,7 +26,8 @@ type Renderer interface {
 	RenderPlanner(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, data *service.PlannerViewData) error
 	RenderTracker(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, batches []domain.BatchRecord, statusFilter string) error
 	RenderRelistResult(w http.ResponseWriter, r *http.Request, res *domain.RelistGuardResult, errMsg string) error
-	RenderSettings(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, saved bool) error
+	RenderSettings(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, sdeStatus service.SDEImportStatus, saved bool) error
+	RenderSDEStatusPartial(w http.ResponseWriter, r *http.Request, status service.SDEImportStatus) error
 	RenderMineralTicker(w http.ResponseWriter, r *http.Request, pulse service.MarketPulseResponse) error
 	RenderLogin(w http.ResponseWriter, r *http.Request, errMsg string, username string) error
 	RenderUsers(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, users []domain.AppUser, flashMsg string, flashErr string) error
@@ -717,7 +718,8 @@ func (h *Handlers) HandleSettings(w http.ResponseWriter, r *http.Request) {
 
 	if h.renderer != nil {
 		mode := h.svc.GetModeInfo(r.Context())
-		_ = h.renderer.RenderSettings(w, r, mode, *settings, saved)
+		sdeStatus := h.svc.GetSDEImportStatus(r.Context())
+		_ = h.renderer.RenderSettings(w, r, mode, *settings, sdeStatus, saved)
 		return
 	}
 	h.writeJSON(w, http.StatusOK, settings)

@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
+	"time"
 
 	"aura-forge/internal/domain"
 
@@ -127,25 +129,71 @@ func (r *SDERepo) UpsertSDEData(ctx context.Context, types []domain.SDEType, blu
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
-	for _, t := range types {
+	const batchSize = 5000
+
+	// 1. Bulk upsert sde_types via UNNEST
+	for start := 0; start < len(types); start += batchSize {
+		end := start + batchSize
+		if end > len(types) {
+			end = len(types)
+		}
+		chunk := types[start:end]
+		ids := make([]int32, len(chunk))
+		names := make([]string, len(chunk))
+		groups := make([]string, len(chunk))
+		cats := make([]string, len(chunk))
+		vols := make([]float64, len(chunk))
+		portions := make([]int32, len(chunk))
+		for i, t := range chunk {
+			ids[i] = t.TypeID
+			names[i] = t.Name
+			groups[i] = t.GroupName
+			cats[i] = t.Category
+			vols[i] = t.VolumeM3
+			portions[i] = int32(t.PortionSize)
+		}
 		if _, err := tx.Exec(ctx, `
 			INSERT INTO sde_types (type_id, name, group_name, category, volume_m3, portion_size)
-			VALUES ($1, $2, $3, $4, $5, $6)
+			SELECT * FROM UNNEST($1::int[], $2::varchar[], $3::varchar[], $4::varchar[], $5::double precision[], $6::int[])
 			ON CONFLICT (type_id) DO UPDATE SET
 				name = EXCLUDED.name,
 				group_name = EXCLUDED.group_name,
 				category = EXCLUDED.category,
 				volume_m3 = EXCLUDED.volume_m3,
 				portion_size = EXCLUDED.portion_size
-		`, t.TypeID, t.Name, t.GroupName, t.Category, t.VolumeM3, t.PortionSize); err != nil {
-			return fmt.Errorf("upserting sde_type %d: %w", t.TypeID, err)
+		`, ids, names, groups, cats, vols, portions); err != nil {
+			return fmt.Errorf("bulk upserting sde_types batch %d-%d: %w", start, end, err)
 		}
 	}
 
-	for _, bp := range blueprints {
+	// 2. Bulk upsert sde_blueprints via UNNEST
+	for start := 0; start < len(blueprints); start += batchSize {
+		end := start + batchSize
+		if end > len(blueprints) {
+			end = len(blueprints)
+		}
+		chunk := blueprints[start:end]
+		bpIDs := make([]int32, len(chunk))
+		bpNames := make([]string, len(chunk))
+		prodIDs := make([]int32, len(chunk))
+		prodNames := make([]string, len(chunk))
+		qtys := make([]int32, len(chunk))
+		times := make([]int32, len(chunk))
+		techs := make([]int32, len(chunk))
+		cats := make([]string, len(chunk))
+		for i, bp := range chunk {
+			bpIDs[i] = bp.BlueprintTypeID
+			bpNames[i] = bp.Name
+			prodIDs[i] = bp.ProductTypeID
+			prodNames[i] = bp.ProductName
+			qtys[i] = int32(bp.ProductQtyPerRun)
+			times[i] = int32(bp.BaseTimeSeconds)
+			techs[i] = int32(bp.TechLevel)
+			cats[i] = bp.Category
+		}
 		if _, err := tx.Exec(ctx, `
 			INSERT INTO sde_blueprints (blueprint_type_id, name, product_type_id, product_name, product_qty_per_run, base_time_seconds, tech_level, category)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+			SELECT * FROM UNNEST($1::int[], $2::varchar[], $3::int[], $4::varchar[], $5::int[], $6::int[], $7::int[], $8::varchar[])
 			ON CONFLICT (blueprint_type_id) DO UPDATE SET
 				name = EXCLUDED.name,
 				product_type_id = EXCLUDED.product_type_id,
@@ -154,26 +202,183 @@ func (r *SDERepo) UpsertSDEData(ctx context.Context, types []domain.SDEType, blu
 				base_time_seconds = EXCLUDED.base_time_seconds,
 				tech_level = EXCLUDED.tech_level,
 				category = EXCLUDED.category
-		`, bp.BlueprintTypeID, bp.Name, bp.ProductTypeID, bp.ProductName, bp.ProductQtyPerRun, bp.BaseTimeSeconds, bp.TechLevel, bp.Category); err != nil {
-			return fmt.Errorf("upserting sde_blueprint %d: %w", bp.BlueprintTypeID, err)
+		`, bpIDs, bpNames, prodIDs, prodNames, qtys, times, techs, cats); err != nil {
+			return fmt.Errorf("bulk upserting sde_blueprints batch %d-%d: %w", start, end, err)
 		}
 	}
 
-	for bpID, mats := range materials {
-		if _, err := tx.Exec(ctx, `DELETE FROM sde_blueprint_materials WHERE blueprint_type_id = $1`, bpID); err != nil {
-			return fmt.Errorf("clearing materials for blueprint %d: %w", bpID, err)
+	// 3. Clear & bulk upsert sde_blueprint_materials for touched blueprints
+	if len(materials) > 0 {
+		touchedBPs := make([]int32, 0, len(materials))
+		flatBP := make([]int32, 0, len(materials)*5)
+		flatMat := make([]int32, 0, len(materials)*5)
+		flatQty := make([]int64, 0, len(materials)*5)
+		for bpID, mats := range materials {
+			touchedBPs = append(touchedBPs, bpID)
+			for _, m := range mats {
+				if m.MaterialTypeID <= 0 || m.BaseQuantity <= 0 {
+					continue
+				}
+				flatBP = append(flatBP, bpID)
+				flatMat = append(flatMat, m.MaterialTypeID)
+				flatQty = append(flatQty, m.BaseQuantity)
+			}
 		}
-		for _, m := range mats {
+
+		for start := 0; start < len(touchedBPs); start += batchSize {
+			end := start + batchSize
+			if end > len(touchedBPs) {
+				end = len(touchedBPs)
+			}
+			if _, err := tx.Exec(ctx, `DELETE FROM sde_blueprint_materials WHERE blueprint_type_id = ANY($1::int[])`, touchedBPs[start:end]); err != nil {
+				return fmt.Errorf("clearing materials batch: %w", err)
+			}
+		}
+
+		for start := 0; start < len(flatBP); start += batchSize {
+			end := start + batchSize
+			if end > len(flatBP) {
+				end = len(flatBP)
+			}
 			if _, err := tx.Exec(ctx, `
 				INSERT INTO sde_blueprint_materials (blueprint_type_id, material_type_id, base_quantity)
-				VALUES ($1, $2, $3)
+				SELECT * FROM UNNEST($1::int[], $2::int[], $3::bigint[])
 				ON CONFLICT (blueprint_type_id, material_type_id) DO UPDATE SET
 					base_quantity = EXCLUDED.base_quantity
-			`, bpID, m.MaterialTypeID, m.BaseQuantity); err != nil {
-				return fmt.Errorf("upserting material %d for blueprint %d: %w", m.MaterialTypeID, bpID, err)
+			`, flatBP[start:end], flatMat[start:end], flatQty[start:end]); err != nil {
+				return fmt.Errorf("bulk upserting sde_blueprint_materials batch %d-%d: %w", start, end, err)
 			}
 		}
 	}
 
 	return tx.Commit(ctx)
+}
+
+// SearchBlueprintsPaged returns a paginated slice of blueprints filtered by query, category, and tech level,
+// along with total count and all available categories for the Blueprint Catalog Modal Popup.
+func (r *SDERepo) SearchBlueprintsPaged(ctx context.Context, query, category string, techLevel int, page, pageSize int) (*domain.BlueprintPageResult, error) {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize <= 0 || pageSize > 60 {
+		pageSize = 24
+	}
+	query = strings.TrimSpace(query)
+	category = strings.TrimSpace(category)
+	if strings.EqualFold(category, "ALL") {
+		category = ""
+	}
+
+	var total int
+	if err := r.pool.QueryRow(ctx, `
+		SELECT COUNT(*)::int
+		FROM sde_blueprints
+		WHERE ($1 = '' OR LOWER(name) LIKE '%' || LOWER($1) || '%' OR LOWER(product_name) LIKE '%' || LOWER($1) || '%')
+		  AND ($2 = '' OR LOWER(category) = LOWER($2))
+		  AND ($3 <= 0 OR tech_level = $3)
+	`, query, category, techLevel).Scan(&total); err != nil {
+		return nil, fmt.Errorf("counting sde_blueprints: %w", err)
+	}
+
+	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
+	if totalPages < 1 {
+		totalPages = 1
+	}
+	if page > totalPages {
+		page = totalPages
+	}
+	offset := (page - 1) * pageSize
+
+	rows, err := r.pool.Query(ctx, `
+		SELECT blueprint_type_id, name, product_type_id, product_name, product_qty_per_run, base_time_seconds, tech_level, category
+		FROM sde_blueprints
+		WHERE ($1 = '' OR LOWER(name) LIKE '%' || LOWER($1) || '%' OR LOWER(product_name) LIKE '%' || LOWER($1) || '%')
+		  AND ($2 = '' OR LOWER(category) = LOWER($2))
+		  AND ($3 <= 0 OR tech_level = $3)
+		ORDER BY tech_level ASC, category ASC, product_name ASC
+		LIMIT $4 OFFSET $5
+	`, query, category, techLevel, pageSize, offset)
+	if err != nil {
+		return nil, fmt.Errorf("searching paged sde_blueprints: %w", err)
+	}
+	defer rows.Close()
+
+	items := make([]domain.SDEBlueprint, 0, pageSize)
+	for rows.Next() {
+		var bp domain.SDEBlueprint
+		if err := rows.Scan(
+			&bp.BlueprintTypeID, &bp.Name, &bp.ProductTypeID, &bp.ProductName,
+			&bp.ProductQtyPerRun, &bp.BaseTimeSeconds, &bp.TechLevel, &bp.Category,
+		); err != nil {
+			return nil, fmt.Errorf("scanning paged sde_blueprint: %w", err)
+		}
+		items = append(items, bp)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	catRows, err := r.pool.Query(ctx, `SELECT DISTINCT category FROM sde_blueprints WHERE category <> '' ORDER BY category ASC`)
+	categories := make([]string, 0, 16)
+	if err == nil {
+		defer catRows.Close()
+		for catRows.Next() {
+			var c string
+			if err := catRows.Scan(&c); err == nil {
+				categories = append(categories, c)
+			}
+		}
+	}
+
+	return &domain.BlueprintPageResult{
+		Items:      items,
+		Total:      total,
+		Page:       page,
+		PageSize:   pageSize,
+		TotalPages: totalPages,
+		Categories: categories,
+	}, nil
+}
+
+// GetSDEMetadata returns the currently installed SDE metadata, falling back to live table counts for the starter set.
+func (r *SDERepo) GetSDEMetadata(ctx context.Context) (*domain.SDEMetadata, error) {
+	var m domain.SDEMetadata
+	err := r.pool.QueryRow(ctx, `
+		SELECT build_number, release_date, source, types_count, blueprints_count, materials_count, updated_at
+		FROM sde_metadata
+		WHERE id = 1
+	`).Scan(&m.BuildNumber, &m.ReleaseDate, &m.Source, &m.TypesCount, &m.BlueprintsCount, &m.MaterialsCount, &m.UpdatedAt)
+	if err != nil {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("reading sde_metadata: %w", err)
+		}
+		m.Source = "starter"
+		m.UpdatedAt = time.Now()
+	}
+
+	// Always reflect live blueprint & type counts accurately
+	_ = r.pool.QueryRow(ctx, `SELECT COUNT(*)::int FROM sde_types`).Scan(&m.TypesCount)
+	_ = r.pool.QueryRow(ctx, `SELECT COUNT(*)::int FROM sde_blueprints`).Scan(&m.BlueprintsCount)
+	_ = r.pool.QueryRow(ctx, `SELECT COUNT(*)::int FROM sde_blueprint_materials`).Scan(&m.MaterialsCount)
+	return &m, nil
+}
+
+// SaveSDEMetadata persists the installed CCP SDE build number and record counts.
+func (r *SDERepo) SaveSDEMetadata(ctx context.Context, meta *domain.SDEMetadata) error {
+	if meta == nil {
+		return nil
+	}
+	_, err := r.pool.Exec(ctx, `
+		INSERT INTO sde_metadata (id, build_number, release_date, source, types_count, blueprints_count, materials_count, updated_at)
+		VALUES (1, $1, $2, $3, $4, $5, $6, NOW())
+		ON CONFLICT (id) DO UPDATE SET
+			build_number = EXCLUDED.build_number,
+			release_date = EXCLUDED.release_date,
+			source = EXCLUDED.source,
+			types_count = EXCLUDED.types_count,
+			blueprints_count = EXCLUDED.blueprints_count,
+			materials_count = EXCLUDED.materials_count,
+			updated_at = NOW()
+	`, meta.BuildNumber, meta.ReleaseDate, meta.Source, meta.TypesCount, meta.BlueprintsCount, meta.MaterialsCount)
+	return err
 }

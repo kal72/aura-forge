@@ -1,0 +1,553 @@
+package service
+
+import (
+	"archive/zip"
+	"bufio"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync"
+	"time"
+
+	"aura-forge/internal/domain"
+)
+
+const (
+	CCPSDELatestMetaURL = "https://developers.eveonline.com/static-data/tranquility/latest.jsonl"
+	CCPSDELatestZipURL  = "https://developers.eveonline.com/static-data/eve-online-static-data-latest-jsonl.zip"
+)
+
+// SDEImportStatus exposes live progress and installed metadata for the Official CCP SDE (JSONL) Importer.
+type SDEImportStatus struct {
+	IsRunning    bool                `json:"is_running"`
+	Stage        string              `json:"stage"` // idle | downloading | parsing | saving | done | error
+	ProgressText string              `json:"progress_text"`
+	LastError    string              `json:"last_error,omitempty"`
+	DurationMs   int64               `json:"duration_ms,omitempty"`
+	Metadata     *domain.SDEMetadata `json:"metadata,omitempty"`
+}
+
+type sdeImportState struct {
+	mu           sync.RWMutex
+	running      bool
+	stage        string
+	progressText string
+	lastError    string
+	durationMs   int64
+}
+
+func newSDEImportState() *sdeImportState {
+	return &sdeImportState{stage: "idle"}
+}
+
+func (st *sdeImportState) setStage(stage, text string) {
+	st.mu.Lock()
+	defer st.mu.Unlock()
+	st.stage = stage
+	st.progressText = text
+}
+
+// GetSDEImportStatus returns the live SDE import state plus installed PostgreSQL blueprint/type counts.
+func (s *CopilotService) GetSDEImportStatus(ctx context.Context) SDEImportStatus {
+	out := SDEImportStatus{Stage: "idle"}
+	if s.sdeImport != nil {
+		s.sdeImport.mu.RLock()
+		out.IsRunning = s.sdeImport.running
+		out.Stage = s.sdeImport.stage
+		out.ProgressText = s.sdeImport.progressText
+		out.LastError = s.sdeImport.lastError
+		out.DurationMs = s.sdeImport.durationMs
+		s.sdeImport.mu.RUnlock()
+	}
+
+	if ext, ok := s.sde.(domain.SDEExtendedRepository); ok && ext != nil {
+		if meta, err := ext.GetSDEMetadata(ctx); err == nil && meta != nil {
+			out.Metadata = meta
+		}
+	} else if s.sde != nil {
+		if bps, err := s.sde.SearchBlueprints(ctx, "", "", 200); err == nil {
+			out.Metadata = &domain.SDEMetadata{
+				Source:          "starter",
+				BlueprintsCount: len(bps),
+			}
+		}
+	}
+	return out
+}
+
+// SearchBlueprintsPaged returns paginated blueprint search results + category list for the Blueprint Catalog Modal Popup.
+func (s *CopilotService) SearchBlueprintsPaged(ctx context.Context, query, category string, techLevel, page, pageSize int) (*domain.BlueprintPageResult, error) {
+	if s.sde == nil {
+		return &domain.BlueprintPageResult{Items: []domain.SDEBlueprint{}, Page: 1, PageSize: 24, TotalPages: 1}, nil
+	}
+	if ext, ok := s.sde.(domain.SDEExtendedRepository); ok && ext != nil {
+		return ext.SearchBlueprintsPaged(ctx, query, category, techLevel, page, pageSize)
+	}
+	// Fallback for basic mock SDERepository
+	all, err := s.sde.SearchBlueprints(ctx, query, category, 200)
+	if err != nil {
+		return nil, err
+	}
+	return &domain.BlueprintPageResult{
+		Items:      all,
+		Total:      len(all),
+		Page:       1,
+		PageSize:   len(all),
+		TotalPages: 1,
+	}, nil
+}
+
+// StartOfficialCCPSDEImport triggers an asynchronous download and bulk PostgreSQL import of
+// CCP's official EVE Online Static Data Export (JSONL ZIP) — 0 ESI API calls.
+func (s *CopilotService) StartOfficialCCPSDEImport() (bool, error) {
+	if s.sde == nil {
+		return false, fmt.Errorf("PostgreSQL SDE repository unavailable")
+	}
+	if s.sdeImport == nil {
+		s.sdeImport = newSDEImportState()
+	}
+
+	s.sdeImport.mu.Lock()
+	if s.sdeImport.running {
+		s.sdeImport.mu.Unlock()
+		return false, nil
+	}
+	s.sdeImport.running = true
+	s.sdeImport.stage = "downloading"
+	s.sdeImport.progressText = "Checking latest official CCP SDE build..."
+	s.sdeImport.lastError = ""
+	s.sdeImport.durationMs = 0
+	s.sdeImport.mu.Unlock()
+
+	go func() {
+		started := time.Now()
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		defer cancel()
+
+		err := s.runOfficialCCPSDEImport(ctx, CCPSDELatestMetaURL, CCPSDELatestZipURL)
+
+		elapsed := time.Since(started).Milliseconds()
+		s.sdeImport.mu.Lock()
+		s.sdeImport.running = false
+		s.sdeImport.durationMs = elapsed
+		if err != nil {
+			s.sdeImport.stage = "error"
+			s.sdeImport.lastError = err.Error()
+			s.sdeImport.progressText = "Import failed"
+			log.Printf("[ERROR] Official CCP SDE import failed: %v", err)
+		} else {
+			s.sdeImport.stage = "done"
+			s.sdeImport.lastError = ""
+		}
+		s.sdeImport.mu.Unlock()
+	}()
+
+	return true, nil
+}
+
+func (s *CopilotService) runOfficialCCPSDEImport(ctx context.Context, metaURL, zipURL string) error {
+	httpClient := &http.Client{Timeout: 4 * time.Minute}
+
+	// 1. Fetch latest build number from tranquility/latest.jsonl (best-effort)
+	buildNum, releaseDate := fetchCCPSDELatestBuild(ctx, httpClient, metaURL)
+
+	// 2. Download official JSONL ZIP to a temp file
+	s.sdeImport.setStage("downloading", "Downloading official CCP SDE JSONL archive...")
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, zipURL, nil)
+	if err != nil {
+		return fmt.Errorf("creating SDE download request: %w", err)
+	}
+	req.Header.Set("User-Agent", "aura-forge/1.0 (EVE Market & Industry Copilot)")
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("downloading CCP SDE archive: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("CCP SDE download returned HTTP %d", resp.StatusCode)
+	}
+
+	tmpFile, err := os.CreateTemp("", "aura-forge-ccp-sde-*.zip")
+	if err != nil {
+		return fmt.Errorf("creating temp SDE file: %w", err)
+	}
+	tmpPath := tmpFile.Name()
+	defer func() { _ = os.Remove(tmpPath) }()
+
+	written, err := io.Copy(tmpFile, resp.Body)
+	_ = tmpFile.Close()
+	if err != nil {
+		return fmt.Errorf("saving CCP SDE archive: %w", err)
+	}
+	log.Printf("[INFO] Downloaded official CCP SDE JSONL archive (%.1f MB, build=%d).", float64(written)/(1024*1024), buildNum)
+
+	// 3. Parse JSONL files directly from ZIP
+	s.sdeImport.setStage("parsing", "Parsing official categories, groups, types, and blueprints JSONL...")
+	types, blueprints, materials, matCount, err := ParseCCPSDEZip(tmpPath)
+	if err != nil {
+		return err
+	}
+
+	// 4. Bulk upsert into PostgreSQL via UNNEST
+	s.sdeImport.setStage("saving", fmt.Sprintf("Saving %d blueprints & %d types to PostgreSQL...", len(blueprints), len(types)))
+	if err := s.sde.UpsertSDEData(ctx, types, blueprints, materials); err != nil {
+		return fmt.Errorf("upserting CCP SDE into PostgreSQL: %w", err)
+	}
+
+	if ext, ok := s.sde.(domain.SDEExtendedRepository); ok && ext != nil {
+		_ = ext.SaveSDEMetadata(ctx, &domain.SDEMetadata{
+			BuildNumber:     buildNum,
+			ReleaseDate:     releaseDate,
+			Source:          "ccp_jsonl",
+			TypesCount:      len(types),
+			BlueprintsCount: len(blueprints),
+			MaterialsCount:  matCount,
+		})
+	}
+
+	s.sdeImport.setStage("done", fmt.Sprintf("Imported %d blueprints (%d materials) from official CCP SDE build #%d.", len(blueprints), matCount, buildNum))
+	log.Printf("[INFO] Official CCP SDE import complete: %d types, %d blueprints, %d material lines (build #%d).", len(types), len(blueprints), matCount, buildNum)
+	return nil
+}
+
+type ccpLatestRow struct {
+	Key         string `json:"_key"`
+	BuildNumber int64  `json:"buildNumber"`
+	ReleaseDate string `json:"releaseDate"`
+}
+
+func fetchCCPSDELatestBuild(ctx context.Context, client *http.Client, metaURL string) (int64, string) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, metaURL, nil)
+	if err != nil {
+		return 0, ""
+	}
+	req.Header.Set("User-Agent", "aura-forge/1.0 (EVE Market & Industry Copilot)")
+	resp, err := client.Do(req)
+	if err != nil {
+		return 0, ""
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return 0, ""
+	}
+
+	scanner := bufio.NewScanner(resp.Body)
+	for scanner.Scan() {
+		var row ccpLatestRow
+		if err := json.Unmarshal(scanner.Bytes(), &row); err == nil {
+			if row.Key == "sde" || row.BuildNumber > 0 {
+				return row.BuildNumber, row.ReleaseDate
+			}
+		}
+	}
+	return 0, ""
+}
+
+// localizedString decodes CCP JSONL name fields whether they are {"en": "..."} or a plain string.
+type localizedString string
+
+func (l *localizedString) UnmarshalJSON(data []byte) error {
+	var plain string
+	if err := json.Unmarshal(data, &plain); err == nil {
+		*l = localizedString(plain)
+		return nil
+	}
+	var m map[string]string
+	if err := json.Unmarshal(data, &m); err == nil {
+		if en, ok := m["en"]; ok {
+			*l = localizedString(en)
+			return nil
+		}
+		for _, v := range m {
+			*l = localizedString(v)
+			return nil
+		}
+	}
+	return nil
+}
+
+type ccpCategoryRow struct {
+	Key  int32           `json:"_key"`
+	Name localizedString `json:"name"`
+}
+
+type ccpGroupRow struct {
+	Key        int32           `json:"_key"`
+	CategoryID int32           `json:"categoryID"`
+	Name       localizedString `json:"name"`
+}
+
+type ccpTypeRow struct {
+	Key         int32           `json:"_key"`
+	GroupID     int32           `json:"groupID"`
+	Name        localizedString `json:"name"`
+	Volume      float64         `json:"volume"`
+	PortionSize int             `json:"portionSize"`
+	MetaGroupID int             `json:"metaGroupID"`
+	Published   bool            `json:"published"`
+}
+
+type ccpBlueprintMaterial struct {
+	TypeID   int32 `json:"typeID"`
+	Quantity int64 `json:"quantity"`
+}
+
+type ccpBlueprintProduct struct {
+	TypeID   int32 `json:"typeID"`
+	Quantity int   `json:"quantity"`
+}
+
+type ccpBlueprintActivity struct {
+	Time      int                    `json:"time"`
+	Materials []ccpBlueprintMaterial `json:"materials"`
+	Products  []ccpBlueprintProduct  `json:"products"`
+}
+
+type ccpBlueprintRow struct {
+	Key        int32 `json:"_key"`
+	Activities struct {
+		Manufacturing *ccpBlueprintActivity `json:"manufacturing"`
+		Reaction      *ccpBlueprintActivity `json:"reaction"`
+	} `json:"activities"`
+}
+
+// ParseCCPSDEZip reads categories.jsonl, groups.jsonl, types.jsonl, and blueprints.jsonl from
+// an official CCP SDE JSONL ZIP archive and builds clean domain slices ready for bulk PostgreSQL upsert.
+func ParseCCPSDEZip(zipPath string) ([]domain.SDEType, []domain.SDEBlueprint, map[int32][]domain.SDEMaterialRequirement, int, error) {
+	zr, err := zip.OpenReader(zipPath)
+	if err != nil {
+		return nil, nil, nil, 0, fmt.Errorf("opening CCP SDE zip: %w", err)
+	}
+	defer zr.Close()
+
+	filesByBase := make(map[string]*zip.File, len(zr.File))
+	for _, f := range zr.File {
+		base := strings.ToLower(filepath.Base(f.Name))
+		filesByBase[base] = f
+	}
+
+	readLines := func(baseName string, fn func(line []byte)) error {
+		zf, ok := filesByBase[baseName]
+		if !ok {
+			return fmt.Errorf("required file %q not found in CCP SDE zip", baseName)
+		}
+		rc, err := zf.Open()
+		if err != nil {
+			return err
+		}
+		defer rc.Close()
+
+		sc := bufio.NewScanner(rc)
+		sc.Buffer(make([]byte, 64*1024), 8*1024*1024)
+		for sc.Scan() {
+			b := sc.Bytes()
+			if len(b) == 0 {
+				continue
+			}
+			fn(b)
+		}
+		return sc.Err()
+	}
+
+	// 1. Categories (optional fallback if missing)
+	catNames := make(map[int32]string, 64)
+	_ = readLines("categories.jsonl", func(line []byte) {
+		var row ccpCategoryRow
+		if json.Unmarshal(line, &row) == nil && row.Key > 0 {
+			catNames[row.Key] = normalizeSDECategory(string(row.Name))
+		}
+	})
+
+	// 2. Groups (optional fallback if missing)
+	type groupMeta struct {
+		Name       string
+		CategoryID int32
+	}
+	groups := make(map[int32]groupMeta, 1500)
+	_ = readLines("groups.jsonl", func(line []byte) {
+		var row ccpGroupRow
+		if json.Unmarshal(line, &row) == nil && row.Key > 0 {
+			groups[row.Key] = groupMeta{Name: string(row.Name), CategoryID: row.CategoryID}
+		}
+	})
+
+	// 3. Types (required)
+	typeInfo := make(map[int32]ccpTypeRow, 45000)
+	if err := readLines("types.jsonl", func(line []byte) {
+		var row ccpTypeRow
+		if json.Unmarshal(line, &row) == nil && row.Key > 0 {
+			typeInfo[row.Key] = row
+		}
+	}); err != nil {
+		return nil, nil, nil, 0, err
+	}
+
+	// 4. Blueprints (required)
+	blueprints := make([]domain.SDEBlueprint, 0, 6000)
+	materials := make(map[int32][]domain.SDEMaterialRequirement, 6000)
+	neededTypeIDs := make(map[int32]struct{}, 15000)
+	totalMatLines := 0
+
+	if err := readLines("blueprints.jsonl", func(line []byte) {
+		var row ccpBlueprintRow
+		if json.Unmarshal(line, &row) != nil || row.Key <= 0 {
+			return
+		}
+
+		var act *ccpBlueprintActivity
+		isReaction := false
+		if row.Activities.Manufacturing != nil && len(row.Activities.Manufacturing.Products) > 0 && len(row.Activities.Manufacturing.Materials) > 0 {
+			act = row.Activities.Manufacturing
+		} else if row.Activities.Reaction != nil && len(row.Activities.Reaction.Products) > 0 && len(row.Activities.Reaction.Materials) > 0 {
+			act = row.Activities.Reaction
+			isReaction = true
+		} else {
+			return
+		}
+
+		prod := act.Products[0]
+		prodType, hasProd := typeInfo[prod.TypeID]
+		if !hasProd || !prodType.Published || strings.TrimSpace(string(prodType.Name)) == "" {
+			return
+		}
+
+		bpName := fmt.Sprintf("%s Blueprint", string(prodType.Name))
+		if bpType, ok := typeInfo[row.Key]; ok && strings.TrimSpace(string(bpType.Name)) != "" {
+			bpName = string(bpType.Name)
+		}
+
+		category := "Other"
+		if isReaction {
+			category = "Reactions"
+		} else if gm, ok := groups[prodType.GroupID]; ok {
+			if cn, ok := catNames[gm.CategoryID]; ok && cn != "" {
+				category = cn
+			}
+			if strings.Contains(strings.ToLower(gm.Name), "rig") {
+				category = "Rigs"
+			} else if strings.Contains(strings.ToLower(gm.Name), "component") {
+				category = "Components"
+			}
+		}
+
+		techLevel := inferTechLevel(prodType.MetaGroupID, string(prodType.Name))
+		qtyPerRun := prod.Quantity
+		if qtyPerRun <= 0 {
+			qtyPerRun = 1
+		}
+		baseTime := act.Time
+		if baseTime <= 0 {
+			baseTime = 600
+		}
+
+		// Collect valid materials
+		matList := make([]domain.SDEMaterialRequirement, 0, len(act.Materials))
+		for _, m := range act.Materials {
+			if m.TypeID <= 0 || m.Quantity <= 0 {
+				continue
+			}
+			if _, ok := typeInfo[m.TypeID]; !ok {
+				continue
+			}
+			neededTypeIDs[m.TypeID] = struct{}{}
+			matList = append(matList, domain.SDEMaterialRequirement{
+				MaterialTypeID: m.TypeID,
+				BaseQuantity:   m.Quantity,
+			})
+		}
+		if len(matList) == 0 {
+			return
+		}
+
+		neededTypeIDs[prod.TypeID] = struct{}{}
+		blueprints = append(blueprints, domain.SDEBlueprint{
+			BlueprintTypeID:  row.Key,
+			Name:             bpName,
+			ProductTypeID:    prod.TypeID,
+			ProductName:      string(prodType.Name),
+			ProductQtyPerRun: qtyPerRun,
+			BaseTimeSeconds:  baseTime,
+			TechLevel:        techLevel,
+			Category:         category,
+		})
+		materials[row.Key] = matList
+		totalMatLines += len(matList)
+	}); err != nil {
+		return nil, nil, nil, 0, err
+	}
+
+	// Build sde_types slice for all referenced product & material types
+	types := make([]domain.SDEType, 0, len(neededTypeIDs))
+	for tid := range neededTypeIDs {
+		t := typeInfo[tid]
+		gm := groups[t.GroupID]
+		cat := catNames[gm.CategoryID]
+		if cat == "" {
+			cat = "Other"
+		}
+		portion := t.PortionSize
+		if portion <= 0 {
+			portion = 1
+		}
+		types = append(types, domain.SDEType{
+			TypeID:      t.Key,
+			Name:        string(t.Name),
+			GroupName:   gm.Name,
+			Category:    cat,
+			VolumeM3:    t.Volume,
+			PortionSize: portion,
+		})
+	}
+
+	return types, blueprints, materials, totalMatLines, nil
+}
+
+func normalizeSDECategory(raw string) string {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "ship":
+		return "Ships"
+	case "module":
+		return "Modules"
+	case "drone":
+		return "Drones"
+	case "charge":
+		return "Ammunition"
+	case "structure", "structure module":
+		return "Structures"
+	case "commodity", "material":
+		return "Components"
+	case "deployable":
+		return "Deployables"
+	case "implant":
+		return "Implants"
+	case "fighter":
+		return "Fighters"
+	case "subsystem":
+		return "Subsystems"
+	case "":
+		return "Other"
+	default:
+		return strings.TrimSpace(raw)
+	}
+}
+
+func inferTechLevel(metaGroupID int, name string) int {
+	switch metaGroupID {
+	case 2:
+		return 2
+	case 14:
+		return 3
+	}
+	if strings.HasSuffix(name, " II") {
+		return 2
+	}
+	return 1
+}

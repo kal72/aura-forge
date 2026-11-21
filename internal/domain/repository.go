@@ -113,6 +113,13 @@ type SDERepository interface {
 	UpsertSDEData(ctx context.Context, types []SDEType, blueprints []SDEBlueprint, materials map[int32][]SDEMaterialRequirement) error
 }
 
+// SDEExtendedRepository is an optional extension on SDERepository supporting paginated modal browsing and SDE metadata.
+type SDEExtendedRepository interface {
+	SearchBlueprintsPaged(ctx context.Context, query, category string, techLevel int, page, pageSize int) (*BlueprintPageResult, error)
+	GetSDEMetadata(ctx context.Context) (*SDEMetadata, error)
+	SaveSDEMetadata(ctx context.Context, meta *SDEMetadata) error
+}
+
 // NetWorthRepository specifies storage operations for daily Net Worth tracking snapshots.
 type NetWorthRepository interface {
 	ListSnapshots(ctx context.Context, limit int) ([]NetWorthSnapshot, error)

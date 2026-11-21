@@ -4,7 +4,29 @@ import (
 	"fmt"
 	"math"
 	"strings"
+	"time"
 )
+
+// SDEMetadata tracks the currently installed EVE Online SDE build and record counts.
+type SDEMetadata struct {
+	BuildNumber     int64     `json:"build_number"`
+	ReleaseDate     string    `json:"release_date"`
+	Source          string    `json:"source"` // "starter" | "ccp_jsonl"
+	TypesCount      int       `json:"types_count"`
+	BlueprintsCount int       `json:"blueprints_count"`
+	MaterialsCount  int       `json:"materials_count"`
+	UpdatedAt       time.Time `json:"updated_at"`
+}
+
+// BlueprintPageResult holds paginated blueprint search results plus available categories for the Modal Popup.
+type BlueprintPageResult struct {
+	Items      []SDEBlueprint `json:"items"`
+	Total      int            `json:"total"`
+	Page       int            `json:"page"`
+	PageSize   int            `json:"page_size"`
+	TotalPages int            `json:"total_pages"`
+	Categories []string       `json:"categories"`
+}
 
 // SDEType represents an EVE Online inventory type from the Static Data Export.
 type SDEType struct {
