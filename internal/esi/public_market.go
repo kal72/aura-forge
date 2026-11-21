@@ -320,3 +320,81 @@ func (p *PublicMarketClient) GetSystemCostIndex(ctx context.Context, solarSystem
 
 	return indices, fmt.Errorf("solar system %d not found in ESI industry systems", solarSystemID)
 }
+
+type esiGlobalMarketPrice struct {
+	TypeID        int32   `json:"type_id"`
+	AveragePrice  float64 `json:"average_price"`
+	AdjustedPrice float64 `json:"adjusted_price"`
+}
+
+// GetGlobalMarketPrices fetches the entire New Eden item price list (~15,000 items) in a SINGLE
+// cached Public ESI request (GET /markets/prices/), strictly honoring Expires/ETag/304 and rate limits.
+func (p *PublicMarketClient) GetGlobalMarketPrices(ctx context.Context) ([]domain.GlobalMarketPrice, error) {
+	body, err := p.client.DoGet(ctx, "/markets/prices/?datasource=tranquility", "", true)
+	if err != nil {
+		return nil, fmt.Errorf("fetching global market prices: %w", err)
+	}
+
+	var parsed []esiGlobalMarketPrice
+	if err := json.Unmarshal(body, &parsed); err != nil {
+		return nil, fmt.Errorf("decoding global market prices: %w", err)
+	}
+
+	out := make([]domain.GlobalMarketPrice, 0, len(parsed))
+	for _, row := range parsed {
+		if row.TypeID <= 0 {
+			continue
+		}
+		out = append(out, domain.GlobalMarketPrice{
+			TypeID:        row.TypeID,
+			AveragePrice:  row.AveragePrice,
+			AdjustedPrice: row.AdjustedPrice,
+		})
+	}
+	return out, nil
+}
+
+type esiUniverseNameEntry struct {
+	ID       int32  `json:"id"`
+	Name     string `json:"name"`
+	Category string `json:"category"`
+}
+
+// ResolveTypeNames resolves up to 100 EVE type_ids into human-readable names in a single POST /universe/names/ call.
+func (p *PublicMarketClient) ResolveTypeNames(ctx context.Context, typeIDs []int32) (map[int32]string, error) {
+	unique := make([]int32, 0, len(typeIDs))
+	seen := make(map[int32]struct{}, len(typeIDs))
+	for _, id := range typeIDs {
+		if id <= 0 {
+			continue
+		}
+		if _, ok := seen[id]; !ok {
+			seen[id] = struct{}{}
+			unique = append(unique, id)
+			if len(unique) >= 100 {
+				break
+			}
+		}
+	}
+
+	out := make(map[int32]string, len(unique))
+	if len(unique) == 0 {
+		return out, nil
+	}
+
+	body, err := p.client.DoPost(ctx, "/universe/names/?datasource=tranquility", unique)
+	if err != nil {
+		return nil, fmt.Errorf("resolving type names: %w", err)
+	}
+
+	var entries []esiUniverseNameEntry
+	if err := json.Unmarshal(body, &entries); err != nil {
+		return nil, fmt.Errorf("decoding universe/names response: %w", err)
+	}
+	for _, e := range entries {
+		if e.ID > 0 && e.Name != "" {
+			out[e.ID] = e.Name
+		}
+	}
+	return out, nil
+}

@@ -89,6 +89,21 @@ type MarketBrowserProvider interface {
 	GetMarketHistory(ctx context.Context, regionID int32, typeID int32, days int) ([]MarketHistoryPoint, error)
 }
 
+// GlobalMarketPriceProvider is an optional Public ESI extension for 1-call global /markets/prices/ snapshots
+// and batch /universe/names/ resolution.
+type GlobalMarketPriceProvider interface {
+	GetGlobalMarketPrices(ctx context.Context) ([]GlobalMarketPrice, error)
+	ResolveTypeNames(ctx context.Context, typeIDs []int32) (map[int32]string, error)
+}
+
+// GlobalPriceSnapshotRepository persists daily global EVE market price snapshots for day-over-day mover detection.
+type GlobalPriceSnapshotRepository interface {
+	UpsertDailySnapshot(ctx context.Context, snapshotDate time.Time, prices []GlobalMarketPrice) (int, error)
+	ListTopPriceMovers(ctx context.Context, limit int, minPrevPrice float64) ([]GlobalPriceMover, error)
+	GetSnapshotStats(ctx context.Context) (*GlobalSnapshotStats, error)
+	PruneOldSnapshots(ctx context.Context, keepDays int) error
+}
+
 // SDERepository specifies storage operations for EVE Online Static Data Export blueprints and materials.
 type SDERepository interface {
 	SearchBlueprints(ctx context.Context, query, category string, limit int) ([]SDEBlueprint, error)

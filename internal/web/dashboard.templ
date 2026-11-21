@@ -3,8 +3,53 @@ package web
 import (
 	"fmt"
 
+	"aura-forge/internal/domain"
 	"aura-forge/internal/service"
 )
+
+func pulseSignalBadgeClass(signal string) string {
+	switch signal {
+	case "HOT":
+		return "border-amber-400/60 bg-amber-500/25 text-amber-200"
+	case "CHEAP":
+		return "border-emerald-400/50 bg-emerald-500/20 text-emerald-200"
+	case "HIGH":
+		return "border-rose-400/50 bg-rose-500/20 text-rose-200"
+	default:
+		return "border-slate-500/40 bg-slate-700/35 text-slate-300"
+	}
+}
+
+func pulseSparklineColor(signal string) string {
+	switch signal {
+	case "HOT":
+		return "#fbbf24" // amber-400
+	case "CHEAP":
+		return "#34d399" // emerald-400
+	case "HIGH":
+		return "#fb7185" // rose-400
+	default:
+		return "#38bdf8" // sky-400
+	}
+}
+
+func formatPulsePrice(v float64) string {
+	if v < 1000 {
+		return fmt.Sprintf("%.2f ISK", v)
+	}
+	return FormatISK(v)
+}
+
+func formatCompactVol(v float64) string {
+	switch {
+	case v >= 1_000_000:
+		return fmt.Sprintf("%.1fM/d", v/1_000_000)
+	case v >= 1_000:
+		return fmt.Sprintf("%.1fK/d", v/1_000)
+	default:
+		return fmt.Sprintf("%.0f/d", v)
+	}
+}
 
 templ DashboardPage(data *service.DashboardSummary) {
 	@Layout("Dashboard", "dashboard", data.Mode) {
@@ -65,31 +110,132 @@ templ DashboardPage(data *service.DashboardSummary) {
 				</div>
 			</div>
 
-			<!-- Live Jita Mineral Index (Public ESI) -->
-			<div class="tactical-panel rounded-xl p-4 space-y-3">
-				<div class="flex flex-wrap items-center justify-between gap-2">
+			<!-- Live Market Pulse (Minerals, PI Benchmarks, Macro/Fuel, Hot Blueprints & Global Movers) -->
+			<div
+				class="tactical-panel rounded-xl p-4 space-y-3.5"
+				x-data="{
+					pulseCat: 'minerals',
+					pulseHub: 'jita',
+					pulseSort: 'demand',
+					loadPulse() {
+						htmx.ajax('GET', '/esi/minerals?category=' + this.pulseCat + '&hub=' + this.pulseHub + '&sort=' + this.pulseSort, {
+							target: '#live-mineral-ticker',
+							swap: 'innerHTML',
+							indicator: '#pulse-spinner'
+						});
+					},
+					setCat(c) {
+						this.pulseCat = c;
+						this.loadPulse();
+					},
+					setSort(s) {
+						this.pulseSort = s;
+						this.loadPulse();
+					}
+				}"
+			>
+				<div class="flex flex-wrap items-center justify-between gap-3">
 					<div class="flex items-center gap-2">
 						<span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-						<h2 class="text-xs font-bold uppercase tracking-wider text-amber-200">Live Jita 4-4 Mineral Index (Public ESI)</h2>
+						<h2 class="text-xs font-bold uppercase tracking-wider text-amber-200">Live Market Pulse</h2>
+						<span id="pulse-spinner" class="htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-amber-300 border-t-transparent"></span>
 					</div>
-					<button
-						type="button"
-						hx-get="/esi/minerals"
-						hx-target="#live-mineral-ticker"
-						hx-swap="innerHTML"
-						class="rounded border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-[11px] font-semibold text-violet-200 hover:bg-violet-500/25 cursor-pointer"
-					>
-						Refresh ESI
-					</button>
+
+					<div class="flex flex-wrap items-center gap-2 ml-auto">
+						<!-- 5 Category Tabs -->
+						<div class="inline-flex flex-wrap rounded-lg border border-violet-400/30 bg-slate-950/70 p-0.5">
+							<button
+								type="button"
+								@click="setCat('minerals')"
+								:class="pulseCat === 'minerals' ? 'bg-amber-400 text-slate-950 shadow-xs' : 'text-slate-300 hover:text-white'"
+								class="rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
+							>
+								Minerals (8)
+							</button>
+							<button
+								type="button"
+								@click="setCat('pi')"
+								:class="pulseCat === 'pi' ? 'bg-violet-500 text-white shadow-xs' : 'text-slate-300 hover:text-white'"
+								class="rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
+							>
+								PI (6)
+							</button>
+							<button
+								type="button"
+								@click="setCat('macro')"
+								:class="pulseCat === 'macro' ? 'bg-sky-400 text-slate-950 shadow-xs' : 'text-slate-300 hover:text-white'"
+								class="rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
+							>
+								Macro &amp; Fuel (6)
+							</button>
+							<button
+								type="button"
+								@click="setCat('blueprints')"
+								:class="pulseCat === 'blueprints' ? 'bg-emerald-400 text-slate-950 shadow-xs' : 'text-slate-300 hover:text-white'"
+								class="rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
+							>
+								Hot Blueprints
+							</button>
+							<button
+								type="button"
+								@click="setCat('global')"
+								:class="pulseCat === 'global' ? 'bg-rose-400 text-slate-950 shadow-xs' : 'text-slate-300 hover:text-white'"
+								class="rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
+							>
+								Global Movers
+							</button>
+						</div>
+
+						<!-- Sort Toggle for Hot Blueprints (Hot Demand vs Price Rising) -->
+						<div x-cloak x-show="pulseCat === 'blueprints'" class="inline-flex rounded-lg border border-emerald-400/35 bg-slate-950/70 p-0.5">
+							<button
+								type="button"
+								@click="setSort('demand')"
+								:class="pulseSort === 'demand' ? 'bg-amber-400 text-slate-950' : 'text-slate-300 hover:text-white'"
+								class="rounded px-2 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer"
+							>
+								Hot Demand
+							</button>
+							<button
+								type="button"
+								@click="setSort('price')"
+								:class="pulseSort === 'price' ? 'bg-rose-400 text-slate-950' : 'text-slate-300 hover:text-white'"
+								class="rounded px-2 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer"
+							>
+								Price Rising ↑
+							</button>
+						</div>
+
+						<!-- Trade Hub Selector -->
+						<select
+							x-model="pulseHub"
+							@change="loadPulse()"
+							class="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1 text-[11px] font-mono font-semibold text-amber-200 focus:border-amber-300/60 focus:outline-none"
+						>
+							for _, h := range domain.MajorTradeHubs {
+								<option value={ h.Key }>{ h.Name }</option>
+							}
+						</select>
+
+						<button
+							type="button"
+							@click="loadPulse()"
+							class="rounded-lg border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-[11px] font-semibold text-violet-200 hover:bg-violet-500/25 cursor-pointer"
+						>
+							Refresh
+						</button>
+					</div>
 				</div>
+
 				<div
 					id="live-mineral-ticker"
-					hx-get="/esi/minerals"
+					hx-get="/esi/minerals?category=minerals&hub=jita&sort=demand"
 					hx-trigger="load"
 					hx-swap="innerHTML"
+					hx-indicator="#pulse-spinner"
 					class="text-xs font-mono text-slate-400"
 				>
-					Loading live mineral prices from Public ESI Jita 4-4...
+					Loading Live Market Pulse from PostgreSQL cache / Public ESI...
 				</div>
 			</div>
 
@@ -161,7 +307,7 @@ templ DashboardPage(data *service.DashboardSummary) {
 							<div class="mt-1 flex gap-2">
 								<input type="text" name="item_name" x-model="itemName" class="flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-sky-400 focus:outline-none"/>
 								<button type="button" @click="fetchJita()" class="rounded-md border border-amber-400/40 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer">
-									Cek Jita ESI
+									Fetch Jita ESI
 								</button>
 							</div>
 							<div x-show="esiHint" x-text="esiHint" class="mt-1 text-[11px] font-mono text-emerald-300"></div>
@@ -171,15 +317,15 @@ templ DashboardPage(data *service.DashboardSummary) {
 							<input type="number" name="output_qty" value="500" min="1" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Harga Jual Jita / Unit (ISK)</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">Jita Sell Price / Unit (ISK)</label>
 							<input type="number" step="0.01" name="unit_sell_price" x-model="sellPrice" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Biaya Bahan / Batch (ISK)</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">Material Cost / Batch (ISK)</label>
 							<input type="number" step="0.01" name="material_cost" value="4900000" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Biaya Ekstra BPC / Decryptor</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">Extra BPC / Decryptor Cost</label>
 							<input type="number" step="0.01" name="extra_setup_cost" value="0" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none"/>
 						</div>
 						<div>
@@ -188,13 +334,13 @@ templ DashboardPage(data *service.DashboardSummary) {
 						</div>
 						<div class="flex items-end justify-end">
 							<button type="submit" class="w-full rounded-md bg-sky-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer">
-								Hitung Net Profit &amp; Break-Even
+								Calculate Net Profit &amp; Break-Even
 							</button>
 						</div>
 					</form>
 
 					<div id="quick-calc-result" class="rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-xs text-slate-400">
-						Klik tombol di atas untuk menghitung Net Profit, Pajak Jita, Break-Even Unit Price, dan Proyeksi Mingguan secara real-time.
+						Click above to compute Net Profit, Jita Taxes, Break-Even Unit Price, and Weekly Projection in real time.
 					</div>
 				</div>
 			</div>
@@ -202,21 +348,158 @@ templ DashboardPage(data *service.DashboardSummary) {
 	}
 }
 
-templ MineralTickerPartial(minerals []service.MineralQuote) {
-	<div class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
-		for _, m := range minerals {
-			<div class="rounded-lg border border-slate-800 bg-slate-900/70 px-3 py-2 font-mono">
-				<div class="flex items-center justify-between text-[10px] uppercase text-slate-400">
-					<span>{ m.Name }</span>
-					if m.IsLive {
-						<span class="text-emerald-300">LIVE</span>
-					} else {
-						<span class="text-amber-300">EST</span>
+templ MineralTickerPartial(pulse service.MarketPulseResponse) {
+	if pulse.Category == service.PulseCategoryGlobal && len(pulse.Quotes) == 0 {
+		<div class="rounded-xl border border-violet-400/25 bg-slate-950/65 p-5 flex flex-wrap items-center justify-between gap-4">
+			<div class="space-y-1 max-w-2xl">
+				<div class="flex items-center gap-2">
+					<span class="rounded border border-amber-400/45 bg-amber-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-200">GLOBAL SNAPSHOT BASELINE</span>
+					if pulse.GlobalStats != nil && pulse.GlobalStats.LatestItems > 0 {
+						<span class="font-mono text-[11px] text-emerald-300">{ fmt.Sprintf("%d EVE items recorded", pulse.GlobalStats.LatestItems) }</span>
 					}
 				</div>
-				<div class="mt-1 text-sm font-bold text-white">{ fmt.Sprintf("%.2f", m.LowestSell) } <span class="text-[10px] font-normal text-slate-400">ISK</span></div>
-				<div class="text-[10px] text-slate-400">Buy: { fmt.Sprintf("%.2f", m.HighestBuy) }</div>
+				<p class="text-xs text-slate-300 leading-relaxed">
+					if pulse.GlobalStats != nil && pulse.GlobalStats.DaysAvailable == 1 {
+						Day 1 baseline from <code class="text-amber-200">GET /markets/prices/</code> (1 cached ESI call) is saved in PostgreSQL. Day-over-day <strong>Top Global Movers</strong> across all ~15,000+ EVE items will activate automatically once Day 2's snapshot is recorded.
+					} else {
+						Waiting for the first background <code class="text-amber-200">GET /markets/prices/</code> snapshot (runs automatically within ~15s after server start, or click <strong>Sync Jita Prices</strong> in the sidebar).
+					}
+				</p>
 			</div>
-		}
-	</div>
+			<button
+				type="button"
+				hx-post="/esi/sync-prices"
+				hx-swap="none"
+				class="rounded-lg border border-amber-400/45 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer"
+			>
+				Capture Snapshot Now
+			</button>
+		</div>
+	} else if len(pulse.Quotes) == 0 {
+		<div class="rounded-xl border border-violet-400/20 bg-slate-950/60 p-5 text-center text-xs text-slate-400">
+			No market data available yet for this tab. Click <strong>Refresh</strong> or wait for the background Jita sync cycle.
+		</div>
+	} else {
+		<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+			for _, m := range pulse.Quotes {
+				<div class="group relative rounded-xl border border-violet-400/20 bg-slate-950/65 p-3 hover:border-amber-300/55 hover:bg-slate-900/80 transition">
+					<!-- Top Row: Official EVE Icon + Name + Signal Badge -->
+					<div class="flex items-start justify-between gap-2">
+						<a
+							href={ templ.SafeURL(fmt.Sprintf("/marketplace?hub=%s&q=%s", m.HubKey, m.Name)) }
+							title={ fmt.Sprintf("Open %s order book in %s Marketplace", m.Name, m.HubName) }
+							class="flex items-center gap-2.5 min-w-0 flex-1"
+						>
+							<img
+								src={ EVEItemIconURL(m.TypeID, 64) }
+								alt={ m.Name }
+								loading="lazy"
+								class="h-9 w-9 shrink-0 rounded-lg border border-violet-400/30 bg-slate-900 p-0.5 object-contain"
+								onerror="this.style.display='none'"
+							/>
+							<div class="min-w-0">
+								<div class="text-xs font-bold text-white truncate group-hover:text-amber-200 transition">{ m.Name }</div>
+								<div class="flex items-center gap-1.5 text-[9.5px] font-mono text-slate-400">
+									if m.BlueprintCategory != "" {
+										<span class="text-violet-300">{ m.BlueprintCategory }</span>
+										<span>•</span>
+									}
+									<span>{ m.HubName }</span>
+									if m.IsLive {
+										<span class="text-emerald-400">• LIVE</span>
+									} else {
+										<span class="text-amber-300">• EST</span>
+									}
+								</div>
+							</div>
+						</a>
+
+						<span
+							title="Market trend signal: HOT (7d volume surge ≥1.25× vs 30d), CHEAP (≤-3% vs 7d), HIGH (≥+3% vs 7d), FAIR (normal)"
+							class={ "shrink-0 rounded-md border px-1.5 py-0.5 font-mono text-[9px] font-bold leading-tight text-right " + pulseSignalBadgeClass(m.Signal) }
+						>
+							if m.Signal == "HOT" && m.VolumeRatio > 0 {
+								{ fmt.Sprintf("%.2f× HOT", m.VolumeRatio) }
+							} else if m.Avg7dPrice > 0 {
+								{ fmt.Sprintf("%+.1f%% %s", m.Change7dPercent, m.Signal) }
+							} else {
+								{ m.Signal }
+							}
+						</span>
+					</div>
+
+					<!-- Middle Row: Lowest Sell + 7d Mini Sparkline -->
+					<div class="mt-2.5 flex items-end justify-between gap-2">
+						<div>
+							<div class="text-[9.5px] font-mono uppercase text-slate-400">
+								if m.IsGlobalMover && !m.IsLive {
+									Global Avg
+								} else {
+									Lowest Sell
+								}
+							</div>
+							<div class="text-sm font-mono font-bold text-amber-200 leading-tight">{ formatPulsePrice(m.LowestSell) }</div>
+						</div>
+						if m.SparklinePoints != "" {
+							<svg width="72" height="20" viewBox="0 0 72 20" class="shrink-0 overflow-visible" aria-hidden="true">
+								<polyline
+									fill="none"
+									stroke={ pulseSparklineColor(m.Signal) }
+									stroke-width="1.8"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									points={ m.SparklinePoints }
+								></polyline>
+							</svg>
+						}
+					</div>
+
+					<!-- Bottom Row: Volume / Buy / Spread + Action Shortcut -->
+					<div class="mt-2 pt-2 border-t border-violet-400/15 flex items-center justify-between gap-2 font-mono text-[10px] text-slate-400">
+						if m.BlueprintID > 0 || m.IsGlobalMover {
+							<span class="truncate">
+								if m.DailyVolume7d > 0 {
+									Vol <strong class="text-emerald-300">{ formatCompactVol(m.DailyVolume7d) }</strong>
+								} else {
+									Buy <strong class="text-slate-200">{ formatPulsePrice(m.HighestBuy) }</strong>
+								}
+							</span>
+						} else {
+							<span class="truncate">Buy: <strong class="text-slate-200">{ formatPulsePrice(m.HighestBuy) }</strong></span>
+						}
+
+						<div class="flex items-center gap-2 shrink-0">
+							if m.BlueprintID > 0 && m.Change7dPercent != 0 {
+								<span class={ func() string {
+									if m.Change7dPercent > 0 {
+										return "text-emerald-300"
+									}
+									return "text-rose-300"
+								}() }>{ fmt.Sprintf("%+.1f%%", m.Change7dPercent) }</span>
+							} else if m.SpreadPercent > 0 {
+								<span class="text-sky-300" title="Sell vs Buy spread">Spd { fmt.Sprintf("%.1f%%", m.SpreadPercent) }</span>
+							}
+
+							if m.IsPI {
+								<a
+									href={ templ.SafeURL(fmt.Sprintf("/pi?type_id=%d&hub=%s", m.TypeID, m.HubKey)) }
+									class="rounded border border-amber-400/40 bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold text-amber-200 hover:bg-amber-500/30 transition"
+								>
+									Tree →
+								</a>
+							} else if m.BlueprintID > 0 {
+								<a
+									href="/calculator"
+									title="Open Blueprint SDE Mode in Profit Calculator"
+									class="rounded border border-emerald-400/40 bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold text-emerald-200 hover:bg-emerald-500/30 transition"
+								>
+									Craft →
+								</a>
+							}
+						</div>
+					</div>
+				</div>
+			}
+		</div>
+	}
 }

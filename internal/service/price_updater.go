@@ -59,15 +59,16 @@ type PriceSyncResult struct {
 }
 
 type priceSyncState struct {
-	mu              sync.RWMutex
-	running         bool
-	lastSyncedAt    *time.Time
-	lastSyncedCount int
-	catalogUpdated  int
-	lastDurationMs  int64
-	lastError       string
-	nextSyncAt      *time.Time
-	wakeCh          chan struct{}
+	mu                   sync.RWMutex
+	running              bool
+	lastSyncedAt         *time.Time
+	lastSyncedCount      int
+	catalogUpdated       int
+	lastDurationMs       int64
+	lastError            string
+	nextSyncAt           *time.Time
+	lastGlobalSnapshotAt time.Time
+	wakeCh               chan struct{}
 }
 
 func newPriceSyncState() *priceSyncState {
@@ -145,6 +146,11 @@ func (s *CopilotService) CollectScopedJitaTypeIDs(ctx context.Context) []int32 {
 	// 2. All producible PI items (P1–P4)
 	for _, piItem := range domain.ListProduciblePICommodities("", "") {
 		addID(piItem.TypeID)
+	}
+
+	// 2b. Dashboard Live Market Pulse benchmarks (8 Minerals + 6 PI + 6 Macro/Fuel)
+	for _, id := range AllMarketPulseTypeIDs() {
+		addID(id)
 	}
 
 	// 3. Active SDE Blueprints & their materials
@@ -255,12 +261,61 @@ func (s *CopilotService) SyncScopedJitaPrices(ctx context.Context) (*PriceSyncRe
 		warmedCount += len(prices)
 	}
 
+	// Step 3: Capture daily 1-call GET /markets/prices/ global snapshot (throttled to max 1x/hour, ESI-safe)
+	if err := s.SyncGlobalPriceSnapshot(ctx, false); err != nil {
+		if errors.Is(err, esi.ErrErrorLimitReached) || errors.Is(err, esi.ErrRateLimitCooldown) {
+			syncErr = err
+			return nil, err
+		}
+		log.Printf("[WARN] Global /markets/prices/ snapshot warning: %v", err)
+	}
+
 	return &PriceSyncResult{
 		TotalTypeIDs:   totalIDs,
 		WarmedCount:    warmedCount,
 		CatalogUpdated: catalogUpdated,
 		DurationMs:     time.Since(started).Milliseconds(),
 	}, nil
+}
+
+// SyncGlobalPriceSnapshot fetches GET /markets/prices/ (1 single cached ESI call for ~15,000 items)
+// and bulk-upserts today's UTC snapshot into PostgreSQL, throttled to at most once per hour.
+func (s *CopilotService) SyncGlobalPriceSnapshot(ctx context.Context, force bool) error {
+	if s.globalSnapshots == nil || s.market == nil {
+		return nil
+	}
+	gp, ok := s.market.(domain.GlobalMarketPriceProvider)
+	if !ok || gp == nil {
+		return nil
+	}
+
+	if !force && s.priceSync != nil {
+		s.priceSync.mu.RLock()
+		lastAt := s.priceSync.lastGlobalSnapshotAt
+		s.priceSync.mu.RUnlock()
+		if !lastAt.IsZero() && time.Since(lastAt) < time.Hour {
+			return nil
+		}
+	}
+
+	prices, err := gp.GetGlobalMarketPrices(ctx)
+	if err != nil {
+		return err
+	}
+
+	saved, err := s.globalSnapshots.UpsertDailySnapshot(ctx, time.Now().UTC(), prices)
+	if err != nil {
+		return err
+	}
+	_ = s.globalSnapshots.PruneOldSnapshots(ctx, 14)
+
+	if s.priceSync != nil {
+		s.priceSync.mu.Lock()
+		s.priceSync.lastGlobalSnapshotAt = time.Now()
+		s.priceSync.mu.Unlock()
+	}
+	log.Printf("[INFO] Global /markets/prices/ snapshot stored: %d EVE items for %s UTC.", saved, time.Now().UTC().Format("2006-01-02"))
+	return nil
 }
 
 // StartBackgroundPriceUpdater launches a single supervised goroutine that periodically warms

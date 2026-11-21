@@ -50,13 +50,27 @@ type DashboardSummary struct {
 	DailyChecklist       []string           `json:"daily_checklist"`
 }
 
-// MineralQuote holds a live Jita Public ESI price snapshot for a core industrial mineral.
+// MineralQuote holds a live trade-hub price snapshot, 7-day trend signal, volume surge, and sparkline for the Dashboard Market Pulse.
 type MineralQuote struct {
-	TypeID     int32   `json:"type_id"`
-	Name       string  `json:"name"`
-	LowestSell float64 `json:"lowest_sell"`
-	HighestBuy float64 `json:"highest_buy"`
-	IsLive     bool    `json:"is_live"`
+	TypeID            int32   `json:"type_id"`
+	Name              string  `json:"name"`
+	LowestSell        float64 `json:"lowest_sell"`
+	HighestBuy        float64 `json:"highest_buy"`
+	SpreadPercent     float64 `json:"spread_percent"`
+	Avg7dPrice        float64 `json:"avg_7d_price"`
+	Change7dPercent   float64 `json:"change_7d_percent"`
+	Signal            string  `json:"signal"` // CHEAP | FAIR | HIGH | HOT
+	SparklinePoints   string  `json:"sparkline_points,omitempty"`
+	Category          string  `json:"category"`
+	HubKey            string  `json:"hub_key"`
+	HubName           string  `json:"hub_name"`
+	IsPI              bool    `json:"is_pi"`
+	IsLive            bool    `json:"is_live"`
+	BlueprintID       int32   `json:"blueprint_id,omitempty"`
+	BlueprintCategory string  `json:"blueprint_category,omitempty"`
+	DailyVolume7d     float64 `json:"daily_volume_7d,omitempty"`
+	VolumeRatio       float64 `json:"volume_ratio,omitempty"` // 7d avg vol / 30d avg vol
+	IsGlobalMover     bool    `json:"is_global_mover,omitempty"`
 }
 
 // PlannerViewData bundles all data required to render the Weekly Production & Slot Planner.
@@ -79,10 +93,16 @@ type CopilotService struct {
 	market    domain.MarketDataProvider
 	charSync  domain.CharacterSyncProvider
 	sso       SSOAuthenticator
-	sde       domain.SDERepository
-	wealth    domain.NetWorthRepository
-	pi        domain.PIRepository
-	priceSync *priceSyncState
+	sde             domain.SDERepository
+	wealth          domain.NetWorthRepository
+	pi              domain.PIRepository
+	globalSnapshots domain.GlobalPriceSnapshotRepository
+	priceSync       *priceSyncState
+}
+
+// SetGlobalPriceSnapshotRepository attaches the optional PostgreSQL global price snapshot repository.
+func (s *CopilotService) SetGlobalPriceSnapshotRepository(repo domain.GlobalPriceSnapshotRepository) {
+	s.globalSnapshots = repo
 }
 
 // NewCopilotService constructs a CopilotService via Dependency Inversion interfaces.

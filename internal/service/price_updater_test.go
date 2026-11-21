@@ -75,9 +75,9 @@ func TestSyncScopedJitaPrices_CollectsPIAndSDEAndUpdatesStatus(t *testing.T) {
 	})
 
 	ids := svc.CollectScopedJitaTypeIDs(context.Background())
-	// 68 PI (P1-P4) + Rifter (587) + Tritanium (34) + Pyerite (35) = 71 unique TypeIDs
-	if len(ids) != 71 {
-		t.Fatalf("expected 71 scoped TypeIDs (68 PI + 3 SDE), got %d", len(ids))
+	// 68 PI (P1-P4) + 8 Minerals (includes Tritanium 34 & Pyerite 35) + 6 Macro/Fuel + Rifter (587) = 83 unique TypeIDs
+	if len(ids) != 83 {
+		t.Fatalf("expected 83 scoped TypeIDs (68 PI + 14 Market Pulse non-PI + 1 Rifter), got %d", len(ids))
 	}
 
 	res, err := svc.SyncScopedJitaPrices(context.Background())
@@ -87,18 +87,18 @@ func TestSyncScopedJitaPrices_CollectsPIAndSDEAndUpdatesStatus(t *testing.T) {
 	if res.SkippedBusy {
 		t.Fatalf("expected sync not to be skipped")
 	}
-	if res.WarmedCount != 71 || res.TotalTypeIDs != 71 {
-		t.Fatalf("expected 71/71 warmed items, got %d/%d", res.WarmedCount, res.TotalTypeIDs)
+	if res.WarmedCount != 83 || res.TotalTypeIDs != 83 {
+		t.Fatalf("expected 83/83 warmed items, got %d/%d", res.WarmedCount, res.TotalTypeIDs)
 	}
 
 	status := svc.GetPriceSyncStatus(context.Background())
 	if status.LastSyncedAt == nil {
 		t.Fatalf("expected LastSyncedAt to be set")
 	}
-	if status.LastSyncedCount != 71 {
-		t.Fatalf("expected LastSyncedCount=71, got %d", status.LastSyncedCount)
+	if status.LastSyncedCount != 83 {
+		t.Fatalf("expected LastSyncedCount=83, got %d", status.LastSyncedCount)
 	}
-	if !strings.Contains(status.FreshnessLabel(), "Jita synced just now (71)") {
+	if !strings.Contains(status.FreshnessLabel(), "Jita synced just now (83)") {
 		t.Fatalf("unexpected FreshnessLabel: %q", status.FreshnessLabel())
 	}
 }

@@ -27,7 +27,7 @@ type Renderer interface {
 	RenderTracker(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, batches []domain.BatchRecord, statusFilter string) error
 	RenderRelistResult(w http.ResponseWriter, r *http.Request, res *domain.RelistGuardResult, errMsg string) error
 	RenderSettings(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, saved bool) error
-	RenderMineralTicker(w http.ResponseWriter, r *http.Request, minerals []service.MineralQuote) error
+	RenderMineralTicker(w http.ResponseWriter, r *http.Request, pulse service.MarketPulseResponse) error
 	RenderLogin(w http.ResponseWriter, r *http.Request, errMsg string, username string) error
 	RenderUsers(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, users []domain.AppUser, flashMsg string, flashErr string) error
 	RenderMarketplace(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, query string, hubKey string, presets []service.MarketplacePreset, snap *domain.MarketplaceSnapshot, errMsg string) error
@@ -310,14 +310,17 @@ func (h *Handlers) HandleLookupItemESI(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// HandleLiveMinerals returns live Jita mineral prices from Public ESI (HTMX partial or JSON).
+// HandleLiveMinerals returns live trade-hub Market Pulse quotes (Minerals, PI Benchmarks, Macro & Fuel, Hot Blueprints, Global Movers) from Public ESI.
 func (h *Handlers) HandleLiveMinerals(w http.ResponseWriter, r *http.Request) {
-	minerals := h.svc.GetLiveJitaMinerals(r.Context())
+	category := r.URL.Query().Get("category")
+	hubKey := r.URL.Query().Get("hub")
+	sortBy := r.URL.Query().Get("sort")
+	pulse := h.svc.GetLiveMarketPulseView(r.Context(), category, hubKey, sortBy)
 	if h.renderer != nil && IsHTMX(r) {
-		_ = h.renderer.RenderMineralTicker(w, r, minerals)
+		_ = h.renderer.RenderMineralTicker(w, r, pulse)
 		return
 	}
-	h.writeJSON(w, http.StatusOK, minerals)
+	h.writeJSON(w, http.StatusOK, pulse)
 }
 
 // HandleCheckUndercuts compares all LISTED/SLOW_MOVER batches against live Jita lowest sell prices via Public ESI.

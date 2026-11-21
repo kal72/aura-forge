@@ -46,9 +46,10 @@ func main() {
 		settingsRepo domain.SettingsRepository
 		cacheRepo    domain.ESICacheRepository
 		userRepo     domain.UserRepository
-		sdeRepo      domain.SDERepository
-		wealthRepo   domain.NetWorthRepository
-		piRepo       domain.PIRepository
+		sdeRepo            domain.SDERepository
+		wealthRepo         domain.NetWorthRepository
+		piRepo             domain.PIRepository
+		globalSnapshotRepo domain.GlobalPriceSnapshotRepository
 	)
 
 	db, err := postgres.NewDB(ctx, cfg.DatabaseURL)
@@ -68,6 +69,7 @@ func main() {
 		sdeRepo = postgres.NewSDERepo(db.Pool)
 		wealthRepo = postgres.NewWealthRepo(db.Pool)
 		piRepo = postgres.NewPIRepo(db.Pool)
+		globalSnapshotRepo = postgres.NewMarketSnapshotRepo(db.Pool)
 	}
 
 	// Initialize Application Auth & seed initial Admin account if database has no users yet
@@ -104,6 +106,7 @@ func main() {
 	copilotSvc.SetSDERepository(sdeRepo)
 	copilotSvc.SetNetWorthRepository(wealthRepo)
 	copilotSvc.SetPIRepository(piRepo)
+	copilotSvc.SetGlobalPriceSnapshotRepository(globalSnapshotRepo)
 
 	// Start supervised background Jita price updater (Catalog + PI P1-P4 + SDE Blueprints)
 	bgCtx, bgCancel := context.WithCancel(context.Background())

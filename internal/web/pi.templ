@@ -62,14 +62,16 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 	@Layout("Planetary Industry (PI) Hub", "pi", mode) {
 		<div
 			class="space-y-6"
-			x-data="{
+			x-data={ fmt.Sprintf(`{
 				tab: 'explorer',
+				treeViewMode: 'details',
+				flowDir: 'output-to-raw',
 				tierFilter: 'ALL',
 				planetFilter: 'ALL',
 				searchQ: '',
 				pocoTax: 5.0,
 				priceHub: 'jita',
-				selectedID: 0,
+				selectedID: %d,
 				showAddColony: false,
 				matchesItem(tier, name) {
 					if (this.tierFilter !== 'ALL' && tier !== this.tierFilter) return false;
@@ -86,16 +88,21 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 						this.openTree(this.selectedID);
 					}
 				}
-			}"
+			}`, func() int32 {
+				if selectedTree != nil {
+					return selectedTree.Commodity.TypeID
+				}
+				return 0
+			}()) }
 		>
-			<!-- Header & Tab Switcher -->
-			<div class="flex flex-wrap items-center justify-between gap-4">
-				<div>
+			<!-- Header & Right-Aligned Tab Switcher -->
+			<div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+				<div class="min-w-0">
 					<h1 class="text-2xl font-bold tracking-tight text-white">Planetary Industry (PI) Hub</h1>
-					<p class="text-xs text-slate-300/80 mt-0.5">Browse all 68 P1–P4 PI items, explore the 8-planet resource catalog, inspect recursive recipe trees, scan live Jita margins, and track colony timers.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">Browse all 68 P1–P4 PI items, explore the 8-planet resource catalog, inspect recursive recipe trees, scan live hub margins, and track colony timers.</p>
 				</div>
 
-				<div class="inline-flex flex-wrap rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur">
+				<div class="ml-auto self-end xl:self-auto shrink-0 inline-flex flex-wrap justify-end rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur">
 					<button
 						type="button"
 						@click="tab = 'explorer'"
@@ -132,7 +139,7 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 			</div>
 
 			<!-- TAB 1: P1–P4 EXPLORER & RECURSIVE RECIPE TREE -->
-			<div x-show="tab === 'explorer'" class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+			<div x-show="tab === 'explorer'" class="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
 				<!-- Left Column: Search + P1–P4 Tier Filter + Item Selector -->
 				<div class="tactical-panel rounded-xl p-4 lg:col-span-4 space-y-3">
 					<div class="flex items-center justify-between gap-2">
@@ -197,10 +204,10 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 					</div>
 				</div>
 
-				<!-- Right Column: Recursive PI Recipe Tree + Source Planets + Live Economics -->
-				<div class="lg:col-span-8 space-y-4">
-					<div id="pi-tree-spinner" class="htmx-indicator tactical-panel rounded-xl p-4 text-center text-xs font-mono text-amber-200">
-						Loading live Jita prices &amp; recursive PI recipe tree from Public ESI...
+				<!-- Right Column: Recursive PI Recipe Tree + Source Planets + Live Economics (Top-Aligned with Left Card) -->
+				<div class="lg:col-span-8 relative">
+					<div id="pi-tree-spinner" class="htmx-indicator pointer-events-none absolute inset-x-0 top-0 z-20 rounded-xl border border-amber-400/50 bg-slate-950/90 backdrop-blur px-4 py-3 text-center text-xs font-mono text-amber-200 shadow-lg">
+						Loading live hub prices &amp; recursive PI recipe tree...
 					</div>
 					<div id="pi-tree-panel">
 						@PITreePartial(selectedTree, "")
@@ -503,14 +510,15 @@ templ PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) {
 			</p>
 		</div>
 	} else {
+		{{ canvas := BuildPIHorizontalCanvasLayout(tree.RootNode) }}
 		<div class="space-y-4" x-data="{ copied: false }">
-			<!-- Selected Item Banner & Required Source Planets -->
+			<!-- Selected Item Banner, View Mode Switcher & Required Source Planets -->
 			<div class="tactical-panel rounded-xl p-5 space-y-3">
 				<div class="flex flex-wrap items-center justify-between gap-2">
-					<div class="flex items-center gap-3">
+					<div class="flex items-center gap-3 min-w-0">
 						<img src={ EVEItemIconURL(tree.Commodity.TypeID, 64) } alt={ tree.Commodity.Name } class="h-11 w-11 shrink-0 rounded-lg border border-amber-300/45 bg-slate-950/80 p-0.5 shadow-[0_0_16px_rgba(251,191,36,0.2)] object-contain" onerror="this.style.display='none'"/>
-						<div class="flex flex-wrap items-center gap-2">
-							<h2 class="text-xl font-bold text-white">{ tree.Commodity.Name }</h2>
+						<div class="flex flex-wrap items-center gap-2 min-w-0">
+							<h2 class="text-xl font-bold text-white truncate">{ tree.Commodity.Name }</h2>
 							<span class={ "rounded border px-2 py-0.5 font-mono text-[10px] font-bold " + piTierBadgeClass(tree.Commodity.Tier) }>
 								{ string(tree.Commodity.Tier) }
 							</span>
@@ -519,21 +527,47 @@ templ PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) {
 							</span>
 						</div>
 					</div>
-					if tree.MultibuyText != "" {
-						<button
-							type="button"
-							@click="navigator.clipboard.writeText($refs.piMultibuy.value); copied = true; setTimeout(() => copied = false, 2000)"
-							class="rounded-md border border-amber-400/45 bg-amber-500/15 px-3 py-1 text-[11px] font-mono font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer"
-						>
-							<span x-show="!copied">Copy Direct Inputs (Multibuy)</span>
-							<span x-cloak x-show="copied">Copied!</span>
-						</button>
-						<textarea x-ref="piMultibuy" class="hidden" readonly>{ tree.MultibuyText }</textarea>
-					}
+					<div class="flex flex-wrap items-center gap-2 ml-auto">
+						<!-- View Mode Toggle: Details & Economics vs Recipe-Only Horizontal Canvas -->
+						<div class="inline-flex rounded-lg border border-violet-400/35 bg-slate-950/75 p-0.5">
+							<button
+								type="button"
+								@click="treeViewMode = 'details'"
+								:class="treeViewMode === 'details' ? 'bg-violet-500 text-white shadow-xs' : 'text-slate-300 hover:text-white'"
+								class="rounded-md px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer"
+							>
+								Details &amp; Economics
+							</button>
+							<button
+								type="button"
+								@click="treeViewMode = 'canvas'"
+								:class="treeViewMode === 'canvas' ? 'bg-amber-400 text-slate-950 shadow-xs' : 'text-slate-300 hover:text-white'"
+								class="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer"
+							>
+								<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M4 6h4v4H4V6zm12-2h4v4h-4V4zm0 12h4v4h-4v-4zM8 8h4m0 0V6h4m-4 2v10h4"></path>
+								</svg>
+								<span>Tree Canvas</span>
+							</button>
+						</div>
+
+						if tree.MultibuyText != "" {
+							<button
+								type="button"
+								x-show="treeViewMode === 'details'"
+								@click="navigator.clipboard.writeText($refs.piMultibuy.value); copied = true; setTimeout(() => copied = false, 2000)"
+								class="rounded-md border border-amber-400/45 bg-amber-500/15 px-3 py-1 text-[11px] font-mono font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer"
+							>
+								<span x-show="!copied">Copy Direct Inputs (Multibuy)</span>
+								<span x-cloak x-show="copied">Copied!</span>
+							</button>
+							<textarea x-ref="piMultibuy" class="hidden" readonly>{ tree.MultibuyText }</textarea>
+						}
+					</div>
 				</div>
 
 				<!-- Consolidated Source Planets Required -->
-				<div class="pt-2 border-t border-violet-400/15">
+				<div x-show="treeViewMode === 'details'" class="pt-2 border-t border-violet-400/15">
 					<div class="text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1.5">
 						Source Planets Yielding Raw Materials ({ fmt.Sprintf("%d planet types available", len(tree.RequiredPlanets)) })
 					</div>
@@ -547,109 +581,397 @@ templ PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) {
 				</div>
 			</div>
 
-			<!-- 4 Factory Economics KPIs -->
-			<div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-				<div class="tactical-panel rounded-xl p-3.5">
-					<div class="text-[10px] font-mono uppercase text-amber-300/80">{ tree.PriceHub.Name } Unit Sell</div>
-					<div class="mt-1 text-base font-mono font-bold text-amber-200">{ FormatISK(tree.OutputUnitSell) }</div>
-					<div class="text-[10px] font-mono text-slate-400">Cycle Rev: { FormatISK(tree.OutputCycleRevenue) }</div>
-				</div>
-				<div class="tactical-panel rounded-xl p-3.5">
-					<div class="text-[10px] font-mono uppercase text-slate-400">Inputs + POCO ({ fmt.Sprintf("%.1f%%", tree.POCOTaxPercent) })</div>
-					<div class="mt-1 text-base font-mono font-bold text-white">{ FormatISK(tree.DirectInputCost + tree.POCOTaxISK) }</div>
-					<div class="text-[10px] font-mono text-slate-400">POCO Tax: { FormatISK(tree.POCOTaxISK) }</div>
-				</div>
-				<div class="tactical-panel rounded-xl p-3.5">
-					<div class="text-[10px] font-mono uppercase text-emerald-300/80">Net Profit / Cycle</div>
-					<div class={ "mt-1 text-base font-mono font-bold " + profitColor(tree.NetProfitPerCycle) }>{ FormatISK(tree.NetProfitPerCycle) }</div>
-					<div class="text-[10px] font-mono text-slate-400">Margin: { FormatPercent(tree.NetMarginPercent) }</div>
-				</div>
-				<div class="tactical-panel rounded-xl p-3.5">
-					<div class="text-[10px] font-mono uppercase text-sky-300/80">Est. Monthly (1 Factory)</div>
-					<div class={ "mt-1 text-base font-mono font-bold " + profitColor(tree.EstMonthlyISK) }>{ FormatISK(tree.EstMonthlyISK) }</div>
-					<div class="text-[10px] font-mono text-slate-400">Daily: { FormatISK(tree.EstDailyISK) }</div>
-				</div>
-			</div>
-
-			<!-- Full Recursive Recipe Tree (P4 -> P3 -> P2 -> P1 -> P0 + Planets) -->
-			<div class="tactical-panel rounded-xl overflow-hidden">
-				<div class="px-4 py-3 border-b border-violet-400/20 flex items-center justify-between">
-					<h3 class="text-xs font-bold uppercase tracking-wider text-amber-300">Full Recursive Recipe Tree (With Planet Sources)</h3>
-					<span class="text-[10px] font-mono text-slate-400">1 Factory Cycle Breakdown</span>
-				</div>
-				<div class="p-4 space-y-1.5 font-mono text-xs">
-					for _, node := range tree.FlatTree {
-						<div
-							class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-violet-400/15 bg-slate-950/45 px-3 py-2"
-							style={ fmt.Sprintf("margin-left: %dpx", node.Depth*18) }
-						>
-							<div class="flex flex-wrap items-center gap-2">
-								if node.Depth > 0 {
-									<span class="text-slate-500">└─</span>
-								}
-								<img src={ EVEItemIconURL(node.TypeID, 32) } alt={ node.Name } loading="lazy" class="h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain" onerror="this.style.display='none'"/>
-								<span class={ "rounded border px-1.5 py-0.5 text-[9px] font-bold " + piTierBadgeClass(node.Tier) }>
-									{ string(node.Tier) }
-								</span>
-								<span class="font-sans font-semibold text-white">{ node.Name }</span>
-								<span class="text-amber-200">× { fmt.Sprintf("%d", node.Quantity) }</span>
-							</div>
-
-							<div class="flex flex-wrap items-center gap-1.5">
-								if node.Tier == domain.PITierP0 {
-									for _, pl := range node.SourcePlanets {
-										<span class={ "rounded border px-1.5 py-0.5 text-[9px] font-semibold " + planetBadgeClass(pl) }>
-											{ pl }
-										</span>
-									}
-								} else if node.TotalValue > 0 {
-									<span class="text-[11px] text-slate-300">{ FormatISK(node.TotalValue) }</span>
-								}
-							</div>
-						</div>
+			<!-- MODE A: RECIPE-ONLY INTERACTIVE HORIZONTAL TREE CANVAS (PAN, ZOOM, FLIP DIRECTION & BRANCH HIGHLIGHT) -->
+			<div
+				x-cloak
+				x-show="treeViewMode === 'canvas'"
+				x-data={ fmt.Sprintf(`{
+					scale: 1,
+					tx: 20,
+					ty: 20,
+					dragging: false,
+					moved: false,
+					downX: 0,
+					downY: 0,
+					startX: 0,
+					startY: 0,
+					fullscreen: false,
+					cw: %d,
+					ch: %d,
+					focusedNodeID: '',
+					focusedTypeID: 0,
+					focusedName: '',
+					focusedCanOpen: false,
+					branchMap: %s,
+					init() {
+						this.$watch('treeViewMode', (v) => {
+							if (v === 'canvas') {
+								this.$nextTick(() => this.fitView());
+							}
+						});
+						if (this.treeViewMode === 'canvas') {
+							setTimeout(() => this.fitView(), 30);
+						}
+					},
+					fitView() {
+						const vp = this.$refs.canvasViewport;
+						if (!vp || vp.clientWidth === 0 || vp.clientHeight === 0) return;
+						const pad = 28;
+						const sx = (vp.clientWidth - pad) / this.cw;
+						const sy = (vp.clientHeight - pad) / this.ch;
+						const s = Math.max(0.35, Math.min(1.05, Math.min(sx, sy)));
+						this.scale = Math.round(s * 100) / 100;
+						this.tx = Math.max(16, Math.round((vp.clientWidth - this.cw * this.scale) / 2));
+						this.ty = Math.max(16, Math.round((vp.clientHeight - this.ch * this.scale) / 2));
+					},
+					resetView() {
+						this.scale = 1;
+						this.tx = 20;
+						this.ty = 20;
+					},
+					zoomIn() {
+						this.scale = Math.min(2.0, Math.round((this.scale + 0.15) * 100) / 100);
+					},
+					zoomOut() {
+						this.scale = Math.max(0.3, Math.round((this.scale - 0.15) * 100) / 100);
+					},
+					onWheel(e) {
+						const delta = e.deltaY < 0 ? 0.1 : -0.1;
+						this.scale = Math.max(0.3, Math.min(2.0, Math.round((this.scale + delta) * 100) / 100));
+					},
+					startDrag(e) {
+						this.dragging = true;
+						this.moved = false;
+						this.downX = e.clientX;
+						this.downY = e.clientY;
+						this.startX = e.clientX - this.tx;
+						this.startY = e.clientY - this.ty;
+					},
+					onDrag(e) {
+						if (!this.dragging) return;
+						if (Math.abs(e.clientX - this.downX) > 4 || Math.abs(e.clientY - this.downY) > 4) {
+							this.moved = true;
+						}
+						this.tx = e.clientX - this.startX;
+						this.ty = e.clientY - this.startY;
+					},
+					endDrag() {
+						this.dragging = false;
+					},
+					startTouch(e) {
+						if (e.touches.length !== 1) return;
+						this.dragging = true;
+						this.moved = false;
+						this.downX = e.touches[0].clientX;
+						this.downY = e.touches[0].clientY;
+						this.startX = e.touches[0].clientX - this.tx;
+						this.startY = e.touches[0].clientY - this.ty;
+					},
+					onTouch(e) {
+						if (!this.dragging || e.touches.length !== 1) return;
+						if (Math.abs(e.touches[0].clientX - this.downX) > 4 || Math.abs(e.touches[0].clientY - this.downY) > 4) {
+							this.moved = true;
+						}
+						this.tx = e.touches[0].clientX - this.startX;
+						this.ty = e.touches[0].clientY - this.startY;
+					},
+					toggleFullscreen() {
+						this.fullscreen = !this.fullscreen;
+						this.$nextTick(() => this.fitView());
+					},
+					toggleFlowDir() {
+						this.flowDir = this.flowDir === 'output-to-raw' ? 'raw-to-output' : 'output-to-raw';
+					},
+					selectNode(nodeID, typeID, name, canOpen) {
+						if (this.moved) return;
+						if (this.focusedNodeID === nodeID) {
+							this.clearFocus();
+							return;
+						}
+						this.focusedNodeID = nodeID;
+						this.focusedTypeID = typeID;
+						this.focusedName = name;
+						this.focusedCanOpen = canOpen;
+					},
+					clearFocus() {
+						this.focusedNodeID = '';
+						this.focusedTypeID = 0;
+						this.focusedName = '';
+						this.focusedCanOpen = false;
+					},
+					isNodeInBranch(nodeID) {
+						if (!this.focusedNodeID) return true;
+						const list = this.branchMap[this.focusedNodeID];
+						return Array.isArray(list) && list.includes(nodeID);
+					},
+					isEdgeInBranch(fromID, toID) {
+						if (!this.focusedNodeID) return true;
+						const list = this.branchMap[this.focusedNodeID];
+						return Array.isArray(list) && list.includes(fromID) && list.includes(toID);
 					}
-				</div>
-			</div>
+				}`, canvas.Width, canvas.Height, canvas.BranchMapJSON) }
+				@mousemove.window="onDrag($event)"
+				@mouseup.window="endDrag()"
+				@keydown.escape.window="if (fullscreen) { fullscreen = false; $nextTick(() => fitView()); }"
+			>
+				<!-- Fullscreen Dark Backdrop (Above App Sidebar & Header) -->
+				<div
+					x-cloak
+					x-show="fullscreen"
+					@click="toggleFullscreen()"
+					class="fixed inset-0 z-[90] bg-slate-950/80 backdrop-blur-xs"
+				></div>
 
-			<!-- P0 Raw Material Summary by Planet -->
-			if len(tree.P0Requirements) > 0 {
-				<div class="tactical-panel rounded-xl overflow-hidden">
-					<div class="px-4 py-2.5 border-b border-violet-400/20">
-						<h3 class="text-xs font-bold uppercase tracking-wider text-violet-200">Raw P0 Extraction Summary &amp; Compatible Planets</h3>
+				<!-- Canvas Card Container (Elevates cleanly to z-[100] above App Header & Sidebar in Fullscreen) -->
+				<div
+					:class="fullscreen ? 'fixed inset-4 z-[100] flex flex-col shadow-2xl border-amber-400/55 bg-[#0b0e1f]' : 'tactical-panel'"
+					class="rounded-xl overflow-hidden border border-violet-400/30"
+				>
+					<!-- Canvas Toolbar -->
+					<div class="flex flex-wrap items-center justify-between gap-2 border-b border-violet-400/20 bg-slate-950/90 px-4 py-2.5">
+						<div class="flex flex-wrap items-center gap-2 text-xs">
+							<span class="font-bold uppercase tracking-wider text-amber-300">
+								{ tree.Commodity.Name } — Recipe Tree
+							</span>
+							<span class="hidden md:inline font-mono text-[10px] text-slate-400">Drag to pan • Scroll to zoom • Click node to highlight branch</span>
+						</div>
+						<div class="flex flex-wrap items-center gap-1.5 font-mono text-[11px]">
+							<!-- Flip Direction Toggle (Output -> Raw vs Raw -> Output) -->
+							<button
+								type="button"
+								@click="toggleFlowDir()"
+								title="Flip Horizontal Tree Direction (Output → Raw vs Raw → Output)"
+								class="inline-flex items-center gap-1 rounded border border-sky-400/40 bg-sky-500/15 px-2.5 py-1 text-sky-200 hover:bg-sky-500/25 cursor-pointer"
+							>
+								<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+								</svg>
+								<span x-text="flowDir === 'output-to-raw' ? 'Output → Raw' : 'Raw → Output'">Output → Raw</span>
+							</button>
+							<button type="button" @click="zoomOut()" title="Zoom Out" class="rounded border border-slate-700 bg-slate-900 px-2 py-1 text-slate-200 hover:border-amber-400/50 hover:text-white cursor-pointer">−</button>
+							<span class="min-w-[46px] text-center text-amber-200" x-text="Math.round(scale * 100) + '%'">100%</span>
+							<button type="button" @click="zoomIn()" title="Zoom In" class="rounded border border-slate-700 bg-slate-900 px-2 py-1 text-slate-200 hover:border-amber-400/50 hover:text-white cursor-pointer">+</button>
+							<button type="button" @click="fitView()" title="Fit Tree to Canvas" class="rounded border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-violet-200 hover:bg-violet-500/25 cursor-pointer">Fit</button>
+							<button type="button" @click="resetView()" title="Reset 100%" class="rounded border border-slate-700 bg-slate-900 px-2.5 py-1 text-slate-300 hover:text-white cursor-pointer">1:1</button>
+							<button type="button" @click="toggleFullscreen()" title="Toggle Fullscreen Canvas" class="rounded border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-amber-200 hover:bg-amber-500/25 cursor-pointer">
+								<span x-show="!fullscreen">Expand</span>
+								<span x-cloak x-show="fullscreen">Exit Full</span>
+							</button>
+						</div>
 					</div>
-					<div class="overflow-x-auto">
-						<table class="w-full text-left text-xs">
-							<thead class="bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15">
-								<tr>
-									<th class="px-4 py-2">Raw P0 Resource</th>
-									<th class="px-4 py-2 text-right">Total Qty / Cycle</th>
-									<th class="px-4 py-2">Found On Planet Types</th>
-								</tr>
-							</thead>
-							<tbody class="divide-y divide-violet-400/10">
-								for _, p0 := range tree.P0Requirements {
-									<tr class="hover:bg-white/5">
-										<td class="px-4 py-2">
-											<div class="flex items-center gap-2">
-												<img src={ EVEItemIconURL(p0.TypeID, 32) } alt={ p0.Name } loading="lazy" class="h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain" onerror="this.style.display='none'"/>
-												<span class="font-semibold text-white">{ p0.Name }</span>
-											</div>
-										</td>
-										<td class="px-4 py-2 text-right font-mono text-amber-200">{ fmt.Sprintf("%d", p0.TotalQuantity) }</td>
-										<td class="px-4 py-2">
-											<div class="flex flex-wrap gap-1">
-												for _, pl := range p0.SourcePlanets {
-													<span class={ "rounded border px-1.5 py-0.5 font-mono text-[9px] font-semibold " + planetBadgeClass(pl) }>{ pl }</span>
+
+					<!-- Interactive Pan & Zoom Viewport -->
+					<div
+						x-ref="canvasViewport"
+						@mousedown.prevent="startDrag($event)"
+						@click="if (!moved && $event.target === $refs.canvasViewport) clearFocus()"
+						@wheel.prevent="onWheel($event)"
+						@touchstart.passive="startTouch($event)"
+						@touchmove.prevent="onTouch($event)"
+						@touchend="endDrag()"
+						:class="[dragging ? 'cursor-grabbing' : 'cursor-grab', fullscreen ? 'flex-1 min-h-0' : 'h-[560px]']"
+						class="relative w-full overflow-hidden select-none bg-[#0a0d1c]"
+						style="background-image: radial-gradient(rgba(167, 139, 250, 0.16) 1px, transparent 1px); background-size: 22px 22px;"
+					>
+						<!-- Transformed Stage -->
+						<div
+							class="absolute top-0 left-0 origin-top-left will-change-transform"
+							:style="`width: ${cw}px; height: ${ch}px; transform: translate3d(${tx}px, ${ty}px, 0) scale(${scale});`"
+						>
+							<!-- Smooth Cubic Bezier Edges (Supports Instant Flip & Branch Highlight) -->
+							<svg
+								width={ fmt.Sprintf("%d", canvas.Width) }
+								height={ fmt.Sprintf("%d", canvas.Height) }
+								viewBox={ fmt.Sprintf("0 0 %d %d", canvas.Width, canvas.Height) }
+								class="pointer-events-none absolute inset-0"
+								fill="none"
+							>
+								for _, edge := range canvas.Edges {
+									<path
+										:d={ fmt.Sprintf("flowDir === 'output-to-raw' ? %q : %q", edge.PathD, edge.RevPathD) }
+										:stroke={ fmt.Sprintf("focusedNodeID && isEdgeInBranch(%q, %q) ? '#fbbf24' : %q", edge.FromID, edge.ToID, piCanvasEdgeStroke(edge.Tier)) }
+										:stroke-width={ fmt.Sprintf("focusedNodeID && isEdgeInBranch(%q, %q) ? 3 : 2", edge.FromID, edge.ToID) }
+										:opacity={ fmt.Sprintf("isEdgeInBranch(%q, %q) ? 1 : 0.18", edge.FromID, edge.ToID) }
+										stroke-linecap="round"
+									></path>
+								}
+							</svg>
+
+							<!-- Positioned Recipe Nodes with Official EVE Icons (Click to Highlight Branch, Double-Click to Open Recipe) -->
+							for _, n := range canvas.Nodes {
+								<div
+									@click.stop={ fmt.Sprintf("selectNode(%q, %d, %q, %t)", n.NodeID, n.TypeID, n.Name, n.CanOpenRecipe) }
+									if n.CanOpenRecipe {
+										@dblclick.stop={ fmt.Sprintf("openTree(%d)", n.TypeID) }
+									}
+									:class={ fmt.Sprintf("[focusedNodeID === %q ? 'ring-2 ring-amber-300 shadow-[0_0_24px_rgba(251,191,36,0.45)]' : '', isNodeInBranch(%q) ? 'opacity-100' : 'opacity-25']", n.NodeID, n.NodeID) }
+									:style={ fmt.Sprintf("`left: ${flowDir === 'output-to-raw' ? %d : %d}px; top: %dpx; width: %dpx; min-height: %dpx;`", n.X, n.RevX, n.Y, n.Width, n.Height) }
+									class={ "absolute rounded-xl border px-2.5 py-2 flex items-center gap-2.5 backdrop-blur-xs transition-all duration-150 cursor-pointer hover:border-amber-300/80 hover:shadow-[0_0_16px_rgba(251,191,36,0.28)] " + piCanvasNodeBorderClass(n.Tier, n.IsRoot) }
+								>
+									<img
+										src={ EVEItemIconURL(n.TypeID, 64) }
+										alt={ n.Name }
+										draggable="false"
+										class="h-10 w-10 shrink-0 rounded-lg border border-violet-400/30 bg-slate-950/90 p-0.5 object-contain pointer-events-none"
+										onerror="this.style.display='none'"
+									/>
+									<div class="min-w-0 flex-1">
+										<div class="flex items-center justify-between gap-1">
+											<span class={ "rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold leading-none " + piTierBadgeClass(n.Tier) }>
+												{ string(n.Tier) }
+											</span>
+											<span class="font-mono text-[11px] font-bold text-amber-200">×{ fmt.Sprintf("%d", n.Quantity) }</span>
+										</div>
+										<div class="mt-1 text-xs font-semibold text-white truncate" title={ n.Name }>{ n.Name }</div>
+										if n.Tier == domain.PITierP0 && len(n.SourcePlanets) > 0 {
+											<div class="mt-1 flex flex-wrap gap-1">
+												for _, pl := range n.SourcePlanets {
+													<span class={ "rounded border px-1 py-0.25 font-mono text-[8.5px] font-semibold leading-tight " + planetBadgeClass(pl) }>
+														{ pl }
+													</span>
 												}
 											</div>
-										</td>
-									</tr>
-								}
-							</tbody>
-						</table>
+										}
+									</div>
+								</div>
+							}
+						</div>
+
+						<!-- Floating Focused Branch Action Bar -->
+						<div
+							x-cloak
+							x-show="focusedNodeID !== ''"
+							@mousedown.stop
+							class="absolute bottom-3 left-3 z-10 flex flex-wrap items-center gap-2 rounded-xl border border-amber-400/45 bg-slate-950/90 backdrop-blur px-3 py-2 text-xs shadow-xl"
+						>
+							<span class="font-mono text-[10px] uppercase text-amber-300/90">Focused:</span>
+							<span class="font-semibold text-white" x-text="focusedName"></span>
+							<button
+								type="button"
+								x-show="focusedCanOpen"
+								@click="openTree(focusedTypeID)"
+								class="rounded-md border border-amber-400/50 bg-amber-400/20 px-2.5 py-1 font-mono text-[10px] font-bold text-amber-200 hover:bg-amber-400/30 cursor-pointer"
+							>
+								Open Recipe →
+							</button>
+							<button
+								type="button"
+								@click="clearFocus()"
+								class="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 font-mono text-[10px] text-slate-300 hover:text-white cursor-pointer"
+							>
+								Clear
+							</button>
+						</div>
 					</div>
 				</div>
-			}
+			</div>
+
+			<!-- MODE B: DETAILS & ECONOMICS (4 KPIs + Vertical Breakdown + P0 Table) -->
+			<div x-show="treeViewMode === 'details'" class="space-y-4">
+				<!-- 4 Factory Economics KPIs -->
+				<div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+					<div class="tactical-panel rounded-xl p-3.5">
+						<div class="text-[10px] font-mono uppercase text-amber-300/80">{ tree.PriceHub.Name } Unit Sell</div>
+						<div class="mt-1 text-base font-mono font-bold text-amber-200">{ FormatISK(tree.OutputUnitSell) }</div>
+						<div class="text-[10px] font-mono text-slate-400">Cycle Rev: { FormatISK(tree.OutputCycleRevenue) }</div>
+					</div>
+					<div class="tactical-panel rounded-xl p-3.5">
+						<div class="text-[10px] font-mono uppercase text-slate-400">Inputs + POCO ({ fmt.Sprintf("%.1f%%", tree.POCOTaxPercent) })</div>
+						<div class="mt-1 text-base font-mono font-bold text-white">{ FormatISK(tree.DirectInputCost + tree.POCOTaxISK) }</div>
+						<div class="text-[10px] font-mono text-slate-400">POCO Tax: { FormatISK(tree.POCOTaxISK) }</div>
+					</div>
+					<div class="tactical-panel rounded-xl p-3.5">
+						<div class="text-[10px] font-mono uppercase text-emerald-300/80">Net Profit / Cycle</div>
+						<div class={ "mt-1 text-base font-mono font-bold " + profitColor(tree.NetProfitPerCycle) }>{ FormatISK(tree.NetProfitPerCycle) }</div>
+						<div class="text-[10px] font-mono text-slate-400">Margin: { FormatPercent(tree.NetMarginPercent) }</div>
+					</div>
+					<div class="tactical-panel rounded-xl p-3.5">
+						<div class="text-[10px] font-mono uppercase text-sky-300/80">Est. Monthly (1 Factory)</div>
+						<div class={ "mt-1 text-base font-mono font-bold " + profitColor(tree.EstMonthlyISK) }>{ FormatISK(tree.EstMonthlyISK) }</div>
+						<div class="text-[10px] font-mono text-slate-400">Daily: { FormatISK(tree.EstDailyISK) }</div>
+					</div>
+				</div>
+
+				<!-- Full Recursive Recipe Tree (P4 -> P3 -> P2 -> P1 -> P0 + Planets) -->
+				<div class="tactical-panel rounded-xl overflow-hidden">
+					<div class="px-4 py-3 border-b border-violet-400/20 flex items-center justify-between">
+						<h3 class="text-xs font-bold uppercase tracking-wider text-amber-300">Full Recursive Recipe Tree (With Planet Sources)</h3>
+						<span class="text-[10px] font-mono text-slate-400">1 Factory Cycle Breakdown</span>
+					</div>
+					<div class="p-4 space-y-1.5 font-mono text-xs">
+						for _, node := range tree.FlatTree {
+							<div
+								class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-violet-400/15 bg-slate-950/45 px-3 py-2"
+								style={ fmt.Sprintf("margin-left: %dpx", node.Depth*18) }
+							>
+								<div class="flex flex-wrap items-center gap-2">
+									if node.Depth > 0 {
+										<span class="text-slate-500">└─</span>
+									}
+									<img src={ EVEItemIconURL(node.TypeID, 32) } alt={ node.Name } loading="lazy" class="h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain" onerror="this.style.display='none'"/>
+									<span class={ "rounded border px-1.5 py-0.5 text-[9px] font-bold " + piTierBadgeClass(node.Tier) }>
+										{ string(node.Tier) }
+									</span>
+									<span class="font-sans font-semibold text-white">{ node.Name }</span>
+									<span class="text-amber-200">× { fmt.Sprintf("%d", node.Quantity) }</span>
+								</div>
+
+								<div class="flex flex-wrap items-center gap-1.5">
+									if node.Tier == domain.PITierP0 {
+										for _, pl := range node.SourcePlanets {
+											<span class={ "rounded border px-1.5 py-0.5 text-[9px] font-semibold " + planetBadgeClass(pl) }>
+												{ pl }
+											</span>
+										}
+									} else if node.TotalValue > 0 {
+										<span class="text-[11px] text-slate-300">{ FormatISK(node.TotalValue) }</span>
+									}
+								</div>
+							</div>
+						}
+					</div>
+				</div>
+
+				<!-- P0 Raw Material Summary by Planet -->
+				if len(tree.P0Requirements) > 0 {
+					<div class="tactical-panel rounded-xl overflow-hidden">
+						<div class="px-4 py-2.5 border-b border-violet-400/20">
+							<h3 class="text-xs font-bold uppercase tracking-wider text-violet-200">Raw P0 Extraction Summary &amp; Compatible Planets</h3>
+						</div>
+						<div class="overflow-x-auto">
+							<table class="w-full text-left text-xs">
+								<thead class="bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15">
+									<tr>
+										<th class="px-4 py-2">Raw P0 Resource</th>
+										<th class="px-4 py-2 text-right">Total Qty / Cycle</th>
+										<th class="px-4 py-2">Found On Planet Types</th>
+									</tr>
+								</thead>
+								<tbody class="divide-y divide-violet-400/10">
+									for _, p0 := range tree.P0Requirements {
+										<tr class="hover:bg-white/5">
+											<td class="px-4 py-2">
+												<div class="flex items-center gap-2">
+													<img src={ EVEItemIconURL(p0.TypeID, 32) } alt={ p0.Name } loading="lazy" class="h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain" onerror="this.style.display='none'"/>
+													<span class="font-semibold text-white">{ p0.Name }</span>
+												</div>
+											</td>
+											<td class="px-4 py-2 text-right font-mono text-amber-200">{ fmt.Sprintf("%d", p0.TotalQuantity) }</td>
+											<td class="px-4 py-2">
+												<div class="flex flex-wrap gap-1">
+													for _, pl := range p0.SourcePlanets {
+														<span class={ "rounded border px-1.5 py-0.5 font-mono text-[9px] font-semibold " + planetBadgeClass(pl) }>{ pl }</span>
+													}
+												</div>
+											</td>
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				}
+			</div>
 		</div>
 	}
 }
