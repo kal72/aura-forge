@@ -15,27 +15,71 @@ func (s *CopilotService) SetPIRepository(repo domain.PIRepository) {
 	s.pi = repo
 }
 
+// fetchHubPrices retrieves cached Public ESI prices for a list of typeIDs at any of the 5 major trade hubs.
+func (s *CopilotService) fetchHubPrices(ctx context.Context, hub domain.TradeHub, typeIDs []int32) (map[int32]domain.JitaPrice, error) {
+	if s.market == nil || len(typeIDs) == 0 {
+		return map[int32]domain.JitaPrice{}, nil
+	}
+	if hub.Key == "jita" {
+		return s.market.GetJitaPrices(ctx, typeIDs)
+	}
+	browser, ok := s.market.(domain.MarketBrowserProvider)
+	if !ok {
+		return s.market.GetJitaPrices(ctx, typeIDs)
+	}
+
+	prices := make(map[int32]domain.JitaPrice, len(typeIDs))
+	now := time.Now()
+	for i, id := range typeIDs {
+		if id <= 0 {
+			continue
+		}
+		if i > 0 {
+			select {
+			case <-ctx.Done():
+				return prices, ctx.Err()
+			case <-time.After(15 * time.Millisecond):
+			}
+		}
+		_, _, sum, err := browser.GetRegionOrderBook(ctx, hub, id, 1)
+		if err != nil {
+			continue
+		}
+		prices[id] = domain.JitaPrice{
+			TypeID:          id,
+			LowestSell:      sum.LowestSell,
+			HighestBuy:      sum.HighestBuy,
+			SellOrdersCount: sum.SellOrdersCount,
+			BuyOrdersCount:  sum.BuyOrdersCount,
+			UpdatedTime:     now,
+		}
+	}
+	return prices, nil
+}
+
 // InspectPIRecipeTree builds the full recursive P4->P3->P2->P1->P0 recipe tree with required source planets
-// and live Jita Public ESI pricing.
-func (s *CopilotService) InspectPIRecipeTree(ctx context.Context, typeID int32, pocoTaxPct float64) (*domain.PIRecipeAnalysis, error) {
+// and live Public ESI pricing from the chosen trade hub (Jita, Amarr, Dodixie, Rens, or Hek).
+func (s *CopilotService) InspectPIRecipeTree(ctx context.Context, typeID int32, pocoTaxPct float64, hubKey string) (*domain.PIRecipeAnalysis, error) {
 	if typeID <= 0 {
 		return nil, fmt.Errorf("please select a PI item to inspect")
 	}
+	hub := domain.LookupTradeHub(hubKey)
 	typeIDs := domain.CollectPITreeTypeIDs(typeID)
-	prices := make(map[int32]domain.JitaPrice)
-	if s.market != nil && len(typeIDs) > 0 {
-		if fetched, err := s.market.GetJitaPrices(ctx, typeIDs); err == nil && fetched != nil {
-			prices = fetched
-		}
+	prices, _ := s.fetchHubPrices(ctx, hub, typeIDs)
+	analysis, err := domain.BuildPIRecipeTree(typeID, prices, pocoTaxPct)
+	if err != nil {
+		return nil, err
 	}
-	return domain.BuildPIRecipeTree(typeID, prices, pocoTaxPct)
+	analysis.PriceHub = hub
+	return analysis, nil
 }
 
-// ScanPIProfitability scans all PI items in a chosen tier (P1, P2, P3, or P4) against live Jita Public ESI prices
-// and ranks them by estimated monthly factory profit.
-func (s *CopilotService) ScanPIProfitability(ctx context.Context, tier string, pocoTaxPct float64) ([]domain.PIProfitRow, error) {
+// ScanPIProfitability scans all PI items in a chosen tier (P1, P2, P3, or P4) against live Public ESI prices
+// at the selected trade hub and ranks them by estimated monthly factory profit.
+func (s *CopilotService) ScanPIProfitability(ctx context.Context, tier string, pocoTaxPct float64, hubKey string) ([]domain.PIProfitRow, domain.TradeHub, error) {
+	hub := domain.LookupTradeHub(hubKey)
 	if s.market == nil {
-		return nil, fmt.Errorf("Public ESI market provider is not available")
+		return nil, hub, fmt.Errorf("Public ESI market provider is not available")
 	}
 	tier = strings.ToUpper(strings.TrimSpace(tier))
 	if tier == "" || tier == "ALL" {
@@ -44,7 +88,7 @@ func (s *CopilotService) ScanPIProfitability(ctx context.Context, tier string, p
 
 	items := domain.ListProduciblePICommodities(tier, "")
 	if len(items) == 0 {
-		return []domain.PIProfitRow{}, nil
+		return []domain.PIProfitRow{}, hub, nil
 	}
 
 	// Collect unique TypeIDs for output + direct inputs in one batch
@@ -68,9 +112,9 @@ func (s *CopilotService) ScanPIProfitability(ctx context.Context, tier string, p
 		}
 	}
 
-	prices, err := s.market.GetJitaPrices(ctx, typeIDs)
+	prices, err := s.fetchHubPrices(ctx, hub, typeIDs)
 	if err != nil {
-		return nil, fmt.Errorf("fetching live Jita PI prices: %w", err)
+		return nil, hub, fmt.Errorf("fetching live %s PI prices: %w", hub.Name, err)
 	}
 
 	rows := make([]domain.PIProfitRow, 0, len(items))
@@ -105,7 +149,7 @@ func (s *CopilotService) ScanPIProfitability(ctx context.Context, tier string, p
 	sort.Slice(rows, func(i, j int) bool {
 		return rows[i].EstMonthlyISK > rows[j].EstMonthlyISK
 	})
-	return rows, nil
+	return rows, hub, nil
 }
 
 // ListPIColonies returns all tracked player PI colonies ordered by soonest extractor expiry.

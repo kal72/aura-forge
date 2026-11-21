@@ -58,9 +58,10 @@ type PIP0Requirement struct {
 	SourcePlanets []string `json:"source_planets"`
 }
 
-// PIRecipeAnalysis bundles the full recursive recipe tree, source planets, and live Jita factory economics.
+// PIRecipeAnalysis bundles the full recursive recipe tree, source planets, and live trade hub factory economics.
 type PIRecipeAnalysis struct {
 	Commodity          PICommodity       `json:"commodity"`
+	PriceHub           TradeHub          `json:"price_hub"`
 	RootNode           PITreeNode        `json:"root_node"`
 	FlatTree           []PITreeNode      `json:"flat_tree"` // pre-order flattened for clean Templ rendering
 	P0Requirements     []PIP0Requirement `json:"p0_requirements"`
@@ -492,6 +493,7 @@ func BuildPIRecipeTree(typeID int32, prices map[int32]JitaPrice, pocoTaxPct floa
 
 	return &PIRecipeAnalysis{
 		Commodity:          rootComm,
+		PriceHub:           LookupTradeHub("jita"),
 		RootNode:           rootNode,
 		FlatTree:           flat,
 		P0Requirements:     p0List,

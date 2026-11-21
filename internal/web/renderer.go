@@ -154,7 +154,7 @@ func (tr *TemplRenderer) RenderPITreePartial(w http.ResponseWriter, r *http.Requ
 	return PITreePartial(tree, errMsg).Render(r.Context(), w)
 }
 
-func (tr *TemplRenderer) RenderPIScanPartial(w http.ResponseWriter, r *http.Request, rows []domain.PIProfitRow, tier string, errMsg string) error {
+func (tr *TemplRenderer) RenderPIScanPartial(w http.ResponseWriter, r *http.Request, rows []domain.PIProfitRow, tier string, hub domain.TradeHub, errMsg string) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	return PIScanPartial(rows, tier, errMsg).Render(r.Context(), w)
+	return PIScanPartial(rows, tier, hub, errMsg).Render(r.Context(), w)
 }

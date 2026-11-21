@@ -68,6 +68,7 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 				planetFilter: 'ALL',
 				searchQ: '',
 				pocoTax: 5.0,
+				priceHub: 'jita',
 				selectedID: 0,
 				showAddColony: false,
 				matchesItem(tier, name) {
@@ -78,7 +79,12 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 				openTree(id) {
 					this.selectedID = id;
 					this.tab = 'explorer';
-					htmx.ajax('GET', '/pi/tree?type_id=' + id + '&poco_tax=' + this.pocoTax, { target: '#pi-tree-panel', swap: 'innerHTML', indicator: '#pi-tree-spinner' });
+					htmx.ajax('GET', '/pi/tree?type_id=' + id + '&poco_tax=' + this.pocoTax + '&hub=' + this.priceHub, { target: '#pi-tree-panel', swap: 'innerHTML', indicator: '#pi-tree-spinner' });
+				},
+				refreshSelectedTree() {
+					if (this.selectedID > 0) {
+						this.openTree(this.selectedID);
+					}
 				}
 			}"
 		>
@@ -129,17 +135,27 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 			<div x-show="tab === 'explorer'" class="grid grid-cols-1 gap-6 lg:grid-cols-12">
 				<!-- Left Column: Search + P1–P4 Tier Filter + Item Selector -->
 				<div class="tactical-panel rounded-xl p-4 lg:col-span-4 space-y-3">
-					<div class="flex items-center justify-between">
+					<div class="flex items-center justify-between gap-2">
 						<h2 class="text-xs font-bold uppercase tracking-wider text-amber-300">PI Catalog (P1 – P4)</h2>
 						<div class="flex items-center gap-1.5 text-[10px] font-mono text-slate-300">
-							<span>POCO Tax:</span>
-							<select x-model="pocoTax" class="rounded border border-slate-700 bg-slate-900 px-1.5 py-0.5 text-[10px] text-white">
+							<span>POCO:</span>
+							<select x-model="pocoTax" @change="refreshSelectedTree()" class="rounded border border-slate-700 bg-slate-900 px-1.5 py-0.5 text-[10px] text-white">
 								<option value="0">0%</option>
 								<option value="2">2%</option>
 								<option value="5">5%</option>
 								<option value="10">10%</option>
 							</select>
 						</div>
+					</div>
+
+					<!-- Price Hub Selector (Jita, Amarr, Dodixie, Rens, Hek) -->
+					<div class="flex items-center justify-between gap-2 rounded-lg border border-violet-400/20 bg-slate-950/50 px-2.5 py-1.5">
+						<span class="text-[10px] font-mono uppercase text-slate-300">Price Hub</span>
+						<select x-model="priceHub" @change="refreshSelectedTree()" class="rounded border border-slate-700 bg-slate-900 px-2 py-0.5 text-[11px] font-semibold text-amber-200">
+							for _, h := range domain.MajorTradeHubs {
+								<option value={ h.Key }>{ h.Name } ({ h.RegionName })</option>
+							}
+						</select>
 					</div>
 
 					<!-- Search Input -->
@@ -165,7 +181,7 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 							<button
 								type="button"
 								x-show={ fmt.Sprintf("matchesItem(%q, %q)", string(item.Tier), item.Name) }
-								@click={ fmt.Sprintf("selectedID = %d; htmx.ajax('GET', '/pi/tree?type_id=%d&poco_tax=' + pocoTax, { target: '#pi-tree-panel', swap: 'innerHTML', indicator: '#pi-tree-spinner' })", item.TypeID, item.TypeID) }
+								@click={ fmt.Sprintf("openTree(%d)", item.TypeID) }
 								:class={ fmt.Sprintf("selectedID === %d ? 'border-amber-300/60 bg-amber-400/15 text-white' : 'border-violet-400/15 bg-slate-950/40 text-slate-200 hover:bg-white/10'", item.TypeID) }
 								class="w-full flex items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5 text-left text-xs transition cursor-pointer"
 							>
@@ -326,7 +342,15 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 								<option value="P4">P4 — Advanced (8 items)</option>
 							</select>
 						</div>
-						<div class="w-40">
+						<div class="w-48">
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Price Hub</label>
+							<select name="hub" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white">
+								for _, h := range domain.MajorTradeHubs {
+									<option value={ h.Key }>{ h.Name } ({ h.RegionName })</option>
+								}
+							</select>
+						</div>
+						<div class="w-32">
 							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">POCO Tax (%)</label>
 							<input type="number" step="0.5" name="poco_tax" value="5.0" min="0" max="30" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white"/>
 						</div>
@@ -526,7 +550,7 @@ templ PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) {
 			<!-- 4 Factory Economics KPIs -->
 			<div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
 				<div class="tactical-panel rounded-xl p-3.5">
-					<div class="text-[10px] font-mono uppercase text-amber-300/80">Jita Unit Sell</div>
+					<div class="text-[10px] font-mono uppercase text-amber-300/80">{ tree.PriceHub.Name } Unit Sell</div>
 					<div class="mt-1 text-base font-mono font-bold text-amber-200">{ FormatISK(tree.OutputUnitSell) }</div>
 					<div class="text-[10px] font-mono text-slate-400">Cycle Rev: { FormatISK(tree.OutputCycleRevenue) }</div>
 				</div>
@@ -630,19 +654,23 @@ templ PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) {
 	}
 }
 
-templ PIScanPartial(rows []domain.PIProfitRow, tier string, errMsg string) {
+templ PIScanPartial(rows []domain.PIProfitRow, tier string, hub domain.TradeHub, errMsg string) {
 	if errMsg != "" {
 		<div class="tactical-panel rounded-xl p-4 border-rose-400/40 text-xs text-rose-200">{ errMsg }</div>
 	} else if len(rows) == 0 {
-		<div class="tactical-panel rounded-xl p-8 text-center text-xs text-slate-400">No PI items returned for tier { strings.ToUpper(tier) }.</div>
+		<div class="tactical-panel rounded-xl p-8 text-center text-xs text-slate-400">No PI items returned for tier { strings.ToUpper(tier) } at { hub.Name }.</div>
 	} else {
 		<div class="tactical-panel rounded-xl overflow-hidden">
+			<div class="px-4 py-2.5 border-b border-violet-400/20 flex items-center justify-between text-[11px] font-mono text-slate-300">
+				<span>Tier <strong class="text-amber-300">{ strings.ToUpper(tier) }</strong> Results</span>
+				<span>Price Reference: <strong class="text-sky-300">{ hub.Name } ({ hub.RegionName })</strong></span>
+			</div>
 			<div class="overflow-x-auto">
 				<table class="w-full text-left text-xs">
 					<thead class="bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15">
 						<tr>
 							<th class="px-4 py-3">PI Item</th>
-							<th class="px-4 py-3 text-right">Jita Unit Sell</th>
+							<th class="px-4 py-3 text-right">{ hub.Name } Unit Sell</th>
 							<th class="px-4 py-3 text-right">Input + POCO</th>
 							<th class="px-4 py-3 text-right">Net Profit / Cycle</th>
 							<th class="px-4 py-3 text-right">Margin</th>
@@ -670,7 +698,7 @@ templ PIScanPartial(rows []domain.PIProfitRow, tier string, errMsg string) {
 									<span class={ "inline-block rounded border px-2 py-0.5 text-[10px] font-bold " + verdictBadgeClass(r.Verdict) }>{ string(r.Verdict) }</span>
 								</td>
 								<td class="px-4 py-2.5 text-right font-sans">
-									<a href={ templ.SafeURL(fmt.Sprintf("/pi?type_id=%d", r.TypeID)) } class="rounded border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-[10px] font-semibold text-amber-200 hover:bg-amber-500/25">
+									<a href={ templ.SafeURL(fmt.Sprintf("/pi?type_id=%d&hub=%s", r.TypeID, hub.Key)) } class="rounded border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-[10px] font-semibold text-amber-200 hover:bg-amber-500/25">
 										View Tree →
 									</a>
 								</td>

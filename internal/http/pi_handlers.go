@@ -17,12 +17,13 @@ func (h *Handlers) HandlePIPage(w http.ResponseWriter, r *http.Request) {
 	items := domain.ListProduciblePICommodities("ALL", "")
 	colonies, _ := h.svc.ListPIColonies(r.Context())
 
-	// Optionally pre-load a recipe tree if ?type_id= is provided (default: Robotics 9848 without blocking on ESI)
+	// Optionally pre-load a recipe tree if ?type_id= is provided
 	var selectedTree *domain.PIRecipeAnalysis
 	if rawID := strings.TrimSpace(r.URL.Query().Get("type_id")); rawID != "" {
 		if id, err := strconv.ParseInt(rawID, 10, 32); err == nil && id > 0 {
 			pocoTax := parseFloatDefault(r.URL.Query().Get("poco_tax"), 5.0)
-			if res, err := h.svc.InspectPIRecipeTree(r.Context(), int32(id), pocoTax); err == nil {
+			hubKey := strings.TrimSpace(r.URL.Query().Get("hub"))
+			if res, err := h.svc.InspectPIRecipeTree(r.Context(), int32(id), pocoTax, hubKey); err == nil {
 				selectedTree = res
 			}
 		}
@@ -35,15 +36,19 @@ func (h *Handlers) HandlePIPage(w http.ResponseWriter, r *http.Request) {
 	_ = h.renderer.RenderPI(w, r, mode, items, selectedTree, colonies)
 }
 
-// HandlePITree returns the HTMX partial with the full recursive PI Recipe Tree, Source Planets, and live Jita economics.
+// HandlePITree returns the HTMX partial with the full recursive PI Recipe Tree, Source Planets, and live hub economics.
 func (h *Handlers) HandlePITree(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(strings.TrimSpace(r.URL.Query().Get("type_id")), 10, 32)
 	if err != nil || id <= 0 {
 		id, _ = strconv.ParseInt(strings.TrimSpace(r.FormValue("type_id")), 10, 32)
 	}
 	pocoTax := parseFloatDefault(r.URL.Query().Get("poco_tax"), parseFloatDefault(r.FormValue("poco_tax"), 5.0))
+	hubKey := strings.TrimSpace(r.URL.Query().Get("hub"))
+	if hubKey == "" {
+		hubKey = strings.TrimSpace(r.FormValue("hub"))
+	}
 
-	res, rErr := h.svc.InspectPIRecipeTree(r.Context(), int32(id), pocoTax)
+	res, rErr := h.svc.InspectPIRecipeTree(r.Context(), int32(id), pocoTax, hubKey)
 	errMsg := ""
 	if rErr != nil {
 		errMsg = rErr.Error()
@@ -56,7 +61,7 @@ func (h *Handlers) HandlePITree(w http.ResponseWriter, r *http.Request) {
 	_ = h.renderer.RenderPITreePartial(w, r, res, errMsg)
 }
 
-// HandlePIScan scans all PI items in a selected tier (P1, P2, P3, or P4) against live Jita Public ESI prices.
+// HandlePIScan scans all PI items in a selected tier (P1, P2, P3, or P4) against live Public ESI prices at the chosen hub.
 func (h *Handlers) HandlePIScan(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
@@ -64,18 +69,19 @@ func (h *Handlers) HandlePIScan(w http.ResponseWriter, r *http.Request) {
 	}
 	tier := strings.TrimSpace(r.FormValue("tier"))
 	pocoTax := parseFloatDefault(r.FormValue("poco_tax"), 5.0)
+	hubKey := strings.TrimSpace(r.FormValue("hub"))
 
-	rows, err := h.svc.ScanPIProfitability(r.Context(), tier, pocoTax)
+	rows, hub, err := h.svc.ScanPIProfitability(r.Context(), tier, pocoTax, hubKey)
 	errMsg := ""
 	if err != nil {
 		errMsg = err.Error()
 	}
 
 	if h.renderer == nil {
-		h.writeJSON(w, http.StatusOK, map[string]any{"rows": rows, "error": errMsg})
+		h.writeJSON(w, http.StatusOK, map[string]any{"rows": rows, "hub": hub, "error": errMsg})
 		return
 	}
-	_ = h.renderer.RenderPIScanPartial(w, r, rows, tier, errMsg)
+	_ = h.renderer.RenderPIScanPartial(w, r, rows, tier, hub, errMsg)
 }
 
 // HandlePIColonySave creates a new tracked PI colony with an extractor expiry timer.

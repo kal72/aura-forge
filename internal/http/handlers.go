@@ -43,7 +43,7 @@ type Renderer interface {
 	RenderWiki(w http.ResponseWriter, r *http.Request, mode service.ModeInfo) error
 	RenderPI(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, items []domain.PICommodity, selectedTree *domain.PIRecipeAnalysis, colonies []domain.PIColony) error
 	RenderPITreePartial(w http.ResponseWriter, r *http.Request, tree *domain.PIRecipeAnalysis, errMsg string) error
-	RenderPIScanPartial(w http.ResponseWriter, r *http.Request, rows []domain.PIProfitRow, tier string, errMsg string) error
+	RenderPIScanPartial(w http.ResponseWriter, r *http.Request, rows []domain.PIProfitRow, tier string, hub domain.TradeHub, errMsg string) error
 }
 
 // Handlers exposes all HTTP and HTMX endpoints for aura-forge.
