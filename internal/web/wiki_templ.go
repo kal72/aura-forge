@@ -276,6 +276,28 @@ var eveWikiEntries = []wikiEntry{
 	},
 	{
 		Category:   "market",
+		Term:       "Station Trading Scanner (Rec. Buy/Sell Orders, Round-Trip Fees & Est. Daily Flip)",
+		BadgeText:  "STATION TRADE",
+		BadgeClass: "border-sky-400/45 bg-sky-500/20 text-sky-200 font-bold",
+		WhereUsed:  "Opportunity Scanner → Station Trading",
+		DescEN:     "Station Trading flips items inside one Trade Hub (Jita, Amarr, Dodixie, Rens, or Hek) with zero hauling: place a Buy Order at Rec. Buy Order (1-tick above Highest Buy, rounded to EVE's 4 significant figures), wait for sellers to fill it, then relist at Rec. Sell Order (1-tick below Lowest Sell). Our scanner automatically deducts 2× Broker Fee + Sales Tax (Round-Trip Fees) and estimates Est. Daily Flip Profit assuming a conservative 10% share of 7d Daily Volume.",
+		DescID:     "Station Trading memutar barang di dalam satu Trade Hub (Jita, Amarr, Dodixie, Rens, atau Hek) tanpa mengangkut barang: pasang Buy Order di angka Rec. Buy Order (1-tick di atas Highest Buy, sesuai aturan 4 angka penting EVE), tunggu ada penjual yang menjual ke order Anda, lalu jual ulang di Rec. Sell Order (1-tick di bawah Lowest Sell). Scanner otomatis memotong 2× Broker Fee + Sales Tax (Round-Trip Fees) dan menghitung Est. Daily Flip Profit secara konservatif (asumsi 10% pangsa dari volume harian 7d).",
+		TipEN:      "For beginners in Amarr/Dodixie/Rens/Hek, check Daily Vol (7d) first — high margin means nothing if only 2 units trade per day.",
+		TipID:      "Untuk pemula di Amarr/Dodixie/Rens/Hek, selalu cek Daily Vol (7d) terlebih dahulu — margin besar percuma jika barang hanya laku 2 unit per hari.",
+	},
+	{
+		Category:   "market",
+		Term:       "Inter-Hub Arbitrage & Hauling Guide (Profit / Trip, Cargo m³ & GANK RISK >200M)",
+		BadgeText:  "HAULING / ARB",
+		BadgeClass: "border-emerald-400/45 bg-emerald-500/20 text-emerald-200 font-bold",
+		WhereUsed:  "Opportunity Scanner → Inter-Hub Arbitrage",
+		DescEN:     "Inter-Hub Arbitrage buys cheap compact items at an Origin Hub (e.g. Jita) and hauls them to sell higher at a Destination Hub (e.g. Amarr, Dodixie, Rens, Hek). Max Trip Units is automatically capped by the smallest of 3 real-world limits: your Trip Budget (ISK), your ship's Max Cargo (m³), and 50% of Destination Daily Volume (so you don't flood a quiet hub). If cargo value exceeds 200M ISK, the scanner flags GANK RISK because T1 High-Sec haulers carrying >200M ISK are prime targets for suicide gankers.",
+		DescID:     "Inter-Hub Arbitrage berarti membeli barang kompak yang murah di Hub Asal (mis. Jita) lalu mengangkutnya untuk dijual lebih mahal di Hub Tujuan (mis. Amarr, Dodixie, Rens, Hek). Max Trip Units otomatis dibatasi oleh angka terkecil dari 3 batas nyata: Trip Budget (ISK), kapasitas kargo kapal (Max Cargo m³), dan 50% volume harian hub tujuan (agar stok tidak nyangkut). Jika nilai muatan melebihi 200M ISK, muncul peringatan GANK RISK karena kapal hauler T1 di High-Sec dengan muatan >200M ISK sering menjadi incaran suicide ganker.",
+		TipEN:      "Keep T1 hauler trips under 150M–200M ISK (or split into 2 trips / use a Blockade Runner or Red Frog courier contract) to protect your capital.",
+		TipID:      "Jaga nilai muatan kapal hauler T1 di bawah 150M–200M ISK per perjalanan (atau bagi jadi 2 trip / pakai jasa kurir) agar modal Anda tetap aman dari ganker.",
+	},
+	{
+		Category:   "market",
 		Term:       "Station Trading vs. Inter-Hub Arbitrage",
 		BadgeText:  "STRATEGY",
 		BadgeClass: "border-sky-400/35 bg-sky-500/15 text-sky-200",
@@ -431,6 +453,17 @@ var eveWikiEntries = []wikiEntry{
 		DescID:     "Struktur industri milik player (Upwell) yang memberi bonus tambahan ME dan TE di atas ME/TE blueprint Anda, sehingga biaya produksi jauh lebih hemat dibanding NPC Station.",
 		TipEN:      "Switching from an NPC Station to a rigged Raitaru can turn a borderline 4% margin into a solid 8–10% margin.",
 		TipID:      "Pindah produksi dari NPC Station ke Raitaru ber-rig sering kali mengubah margin tipis 4% menjadi 8–10% yang sehat.",
+	},
+	{
+		Category:   "industry",
+		Term:       "Manufacturing ISK/hr Scanner Guide (Multi-Hub, Tech Level, Daily Vol & Fits Capital)",
+		BadgeText:  "MFG SCANNER",
+		BadgeClass: "border-amber-400/45 bg-amber-500/20 text-amber-200 font-bold",
+		WhereUsed:  "Opportunity Scanner → Manufacturing ISK/hr",
+		DescEN:     "Evaluates SDE blueprints live against your chosen Trade Hub (Jita, Amarr, Dodixie, Rens, or Hek) after deducting materials, SCI, facility tax, freight, broker fee, and sales tax. Use 'Tech Level = T1' + 'Profitable Only' + 'Fits My Capital Only' as a beginner to surface safe, affordable builds immediately. Watch the Daily Vol (7d) column: a LOW VOL badge warns that 1 batch output exceeds daily hub sales, while OVER CAP warns that direct costs exceed your Available Capital.",
+		DescID:     "Mengevaluasi profitabilitas blueprint SDE secara live di Trade Hub pilihan Anda (Jita, Amarr, Dodixie, Rens, atau Hek) setelah memotong bahan baku, SCI, facility tax, ongkos angkut, broker fee, dan pajak jual. Sebagai pemula, aktifkan 'Tech Level = T1' + 'Profitable Only' + 'Fits My Capital Only' untuk langsung menyaring produksi yang aman dan sesuai modal. Perhatikan kolom Daily Vol (7d): tanda LOW VOL berarti output 1 batch lebih besar dari penjualan harian hub, sedangkan OVER CAP berarti biaya produksi melebihi Available Capital Anda.",
+		TipEN:      "Click '+ Catalog' (admin) on any STRONG or MODERATE blueprint with healthy Daily Vol to add it straight to your factory Catalog, or click 'Calc' to inspect its full Recursive Industry Tree.",
+		TipID:      "Klik '+ Catalog' (admin) pada blueprint STRONG atau MODERATE bervolume harian sehat untuk langsung memasukkannya ke Catalog pabrik Anda, atau klik 'Calc' untuk membuka Recursive Industry Tree.",
 	},
 	{
 		Category:   "industry",
@@ -682,7 +715,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(searchBlob)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 729, Col: 30}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 762, Col: 30}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -695,7 +728,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs("matches('" + item.Category + "', $el.dataset.search)")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 730, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 763, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -708,7 +741,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(item.Term)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 735, Col: 73}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 768, Col: 73}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -743,7 +776,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(item.BadgeText)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 737, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 770, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
@@ -756,7 +789,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(item.WhereUsed)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 741, Col: 24}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 774, Col: 24}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
@@ -769,7 +802,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 744, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 777, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -782,7 +815,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 747, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 780, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -795,7 +828,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 753, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 786, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
@@ -808,7 +841,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 754, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 787, Col: 56}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {

@@ -3,6 +3,8 @@ package http
 import (
 	"net/http"
 	"strings"
+
+	"aura-forge/internal/service"
 )
 
 // HandleScannerPage renders the Opportunity Scanner page (Manufacturing, Station Trading, Inter-Hub Arbitrage).
@@ -16,21 +18,29 @@ func (h *Handlers) HandleScannerPage(w http.ResponseWriter, r *http.Request) {
 	_ = h.renderer.RenderScanner(w, r, mode, *settings)
 }
 
-// HandleScanManufacturing runs a live SDE Blueprint Manufacturing Margin Scan against Jita Public ESI prices.
+// HandleScanManufacturing runs a live multi-hub SDE Blueprint Manufacturing Margin Scan via Public ESI.
 func (h *Handlers) HandleScanManufacturing(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
 
-	category := strings.TrimSpace(r.FormValue("category"))
-	runs := parseIntDefault(r.FormValue("runs"), 10)
-	me := parseIntDefault(r.FormValue("me"), 10)
-	te := parseIntDefault(r.FormValue("te"), 20)
-	structureKey := strings.TrimSpace(r.FormValue("structure_key"))
-	matSource := strings.TrimSpace(r.FormValue("material_price_source"))
+	req := service.ManufacturingScanRequest{
+		HubKey:              strings.TrimSpace(r.FormValue("hub")),
+		Category:            strings.TrimSpace(r.FormValue("category")),
+		TechLevel:           parseIntDefault(r.FormValue("tech_level"), 0),
+		SearchQuery:         strings.TrimSpace(r.FormValue("q")),
+		Runs:                parseIntDefault(r.FormValue("runs"), 10),
+		ME:                  parseIntDefault(r.FormValue("me"), 10),
+		TE:                  parseIntDefault(r.FormValue("te"), 20),
+		StructureKey:        strings.TrimSpace(r.FormValue("structure_key")),
+		MaterialPriceSource: strings.TrimSpace(r.FormValue("material_price_source")),
+		ProfitableOnly:      r.FormValue("profitable_only") == "on" || r.FormValue("profitable_only") == "true",
+		FitsCapitalOnly:     r.FormValue("fits_capital_only") == "on" || r.FormValue("fits_capital_only") == "true",
+		SortBy:              strings.TrimSpace(r.FormValue("sort_by")),
+	}
 
-	results, err := h.svc.ScanManufacturingOpportunities(r.Context(), category, runs, me, te, structureKey, matSource)
+	results, err := h.svc.ScanManufacturingOpportunitiesV2(r.Context(), req)
 	errMsg := ""
 	if err != nil {
 		errMsg = err.Error()
@@ -40,18 +50,22 @@ func (h *Handlers) HandleScanManufacturing(w http.ResponseWriter, r *http.Reques
 		h.writeJSON(w, http.StatusOK, map[string]any{"results": results, "error": errMsg})
 		return
 	}
-	_ = h.renderer.RenderScannerManufacturing(w, r, results, errMsg)
+	mode := h.svc.GetModeInfo(r.Context())
+	_ = h.renderer.RenderScannerManufacturing(w, r, mode.IsAdmin(), results, errMsg)
 }
 
-// HandleScanStationTrading runs a live Jita 4-4 Buy->Sell Station Trading Spread Scan.
+// HandleScanStationTrading runs a live multi-hub Buy->Sell Station Trading Spread Scan.
 func (h *Handlers) HandleScanStationTrading(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
 
+	hubKey := strings.TrimSpace(r.FormValue("hub"))
 	category := strings.TrimSpace(r.FormValue("category"))
-	results, err := h.svc.ScanStationTradingOpportunities(r.Context(), category)
+	profitableOnly := r.FormValue("profitable_only") == "on" || r.FormValue("profitable_only") == "true"
+
+	results, err := h.svc.ScanStationTradingOpportunitiesV2(r.Context(), hubKey, category, profitableOnly)
 	errMsg := ""
 	if err != nil {
 		errMsg = err.Error()
@@ -64,7 +78,7 @@ func (h *Handlers) HandleScanStationTrading(w http.ResponseWriter, r *http.Reque
 	_ = h.renderer.RenderScannerStationTrading(w, r, results, errMsg)
 }
 
-// HandleScanArbitrage runs a live Inter-Hub Arbitrage Scan between two Empire trade hubs.
+// HandleScanArbitrage runs a live parallel Inter-Hub Arbitrage Scan with cargo cap & gank-safe trip sizing.
 func (h *Handlers) HandleScanArbitrage(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
@@ -79,8 +93,12 @@ func (h *Handlers) HandleScanArbitrage(w http.ResponseWriter, r *http.Request) {
 	if destKey == "" {
 		destKey = "amarr"
 	}
+	category := strings.TrimSpace(r.FormValue("category"))
+	cargoCap := parseFloatForm(r, "cargo_cap_m3", 5000)
+	tripBudget := parseFloatForm(r, "trip_budget_isk", 150_000_000)
+	profitableOnly := r.FormValue("profitable_only") == "on" || r.FormValue("profitable_only") == "true"
 
-	results, err := h.svc.ScanInterHubArbitrageOpportunities(r.Context(), originKey, destKey)
+	results, err := h.svc.ScanInterHubArbitrageOpportunitiesV2(r.Context(), originKey, destKey, category, cargoCap, tripBudget, profitableOnly)
 	errMsg := ""
 	if err != nil {
 		errMsg = err.Error()

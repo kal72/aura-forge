@@ -35,7 +35,7 @@ type Renderer interface {
 	RenderMarketplace(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, query string, hubKey string, presets []service.MarketplacePreset, snap *domain.MarketplaceSnapshot, errMsg string) error
 	RenderMarketplaceResults(w http.ResponseWriter, r *http.Request, snap *domain.MarketplaceSnapshot, errMsg string) error
 	RenderScanner(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings) error
-	RenderScannerManufacturing(w http.ResponseWriter, r *http.Request, results []domain.ManufacturingOpportunity, errMsg string) error
+	RenderScannerManufacturing(w http.ResponseWriter, r *http.Request, isAdmin bool, results []domain.ManufacturingOpportunity, errMsg string) error
 	RenderScannerStationTrading(w http.ResponseWriter, r *http.Request, results []domain.StationTradeOpportunity, errMsg string) error
 	RenderScannerArbitrage(w http.ResponseWriter, r *http.Request, results []domain.ArbitrageOpportunity, errMsg string) error
 	RenderWealth(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, summary *domain.WealthSummary) error

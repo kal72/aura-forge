@@ -114,9 +114,9 @@ func (tr *TemplRenderer) RenderScanner(w http.ResponseWriter, r *http.Request, m
 	return ScannerPage(mode, settings).Render(r.Context(), w)
 }
 
-func (tr *TemplRenderer) RenderScannerManufacturing(w http.ResponseWriter, r *http.Request, results []domain.ManufacturingOpportunity, errMsg string) error {
+func (tr *TemplRenderer) RenderScannerManufacturing(w http.ResponseWriter, r *http.Request, isAdmin bool, results []domain.ManufacturingOpportunity, errMsg string) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	return ScannerManufacturingPartial(results, errMsg).Render(r.Context(), w)
+	return ScannerManufacturingPartial(isAdmin, results, errMsg).Render(r.Context(), w)
 }
 
 func (tr *TemplRenderer) RenderScannerStationTrading(w http.ResponseWriter, r *http.Request, results []domain.StationTradeOpportunity, errMsg string) error {

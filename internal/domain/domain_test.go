@@ -404,3 +404,73 @@ Broken Item	INVALID_NUM	1M	500	1`
 		t.Errorf("expected Compressed Blue Ice to be marked non-manufacturable")
 	}
 }
+
+func TestScannerV2_StationTradeAndArbitrageTrip(t *testing.T) {
+	if got := domain.RoundEVETick(1234567); got != 1235000 {
+		t.Errorf("expected RoundEVETick(1234567) == 1235000, got %.2f", got)
+	}
+
+	// 1. Multi-Hub Station Trading with Recommended Buy/Sell Orders & EstDailyFlipProfit
+	amarr := domain.LookupTradeHub("amarr")
+	st := domain.EvaluateStationTradeForHub(2048, "Damage Control II", "Modules", amarr, domain.JitaPrice{
+		HighestBuy:      700_000,
+		LowestSell:      900_000,
+		SellOrdersCount: 25,
+		BuyOrdersCount:  18,
+	}, 200, 3.0, 3.6)
+	if st.HubKey != "amarr" || st.HubName != amarr.Name {
+		t.Errorf("expected Amarr hub, got %s (%s)", st.HubKey, st.HubName)
+	}
+	if st.RecommendedBuyOrder <= st.HighestBuy || st.RecommendedSellOrder >= st.LowestSell {
+		t.Errorf("expected recommended orders inside spread (%.0f .. %.0f), got buy=%.0f sell=%.0f",
+			st.HighestBuy, st.LowestSell, st.RecommendedBuyOrder, st.RecommendedSellOrder)
+	}
+	if st.EstDailyFlipProfit <= 0 || st.Verdict != domain.VerdictStrong {
+		t.Errorf("expected positive EstDailyFlipProfit and STRONG verdict, got %+v", st)
+	}
+
+	// 2. Arbitrage Trip Sizing bounded by 50% Destination Liquidity (40/2 = 20 units) & Gank-Safe
+	jita := domain.LookupTradeHub("jita")
+	arbSafe := domain.EvaluateArbitrageWithTrip(
+		2048, "Damage Control II", "Modules",
+		jita, amarr,
+		1_000_000, 1_300_000, 1_150_000,
+		5.0, 40.0, 5000.0, 150_000_000.0,
+		300.0, 3.0, 3.6,
+	)
+	if arbSafe.MaxTripUnits != 20 {
+		t.Errorf("expected MaxTripUnits capped at 50%% of dest daily vol (20), got %d", arbSafe.MaxTripUnits)
+	}
+	if arbSafe.GankRiskWarning {
+		t.Errorf("expected 20M trip to be gank-safe, got GankRiskWarning=true")
+	}
+	if arbSafe.EstProfitPerTrip <= 0 {
+		t.Errorf("expected positive EstProfitPerTrip, got %.2f", arbSafe.EstProfitPerTrip)
+	}
+
+	// 3. Arbitrage Gank Risk Trigger (> 200M ISK cargo value)
+	arbRisky := domain.EvaluateArbitrageWithTrip(
+		44992, "PLEX", "Commodities",
+		jita, amarr,
+		5_000_000, 5_800_000, 5_500_000,
+		0.01, 5000.0, 5000.0, 300_000_000.0,
+		300.0, 3.0, 3.6,
+	)
+	if !arbRisky.GankRiskWarning || arbRisky.TripCapitalRequired <= domain.HighSecGankSafeCapISK {
+		t.Errorf("expected GankRiskWarning=true for >200M ISK trip, got %+v", arbRisky)
+	}
+
+	// 4. Manufacturing Sort Modes
+	mfgs := []domain.ManufacturingOpportunity{
+		{ProductName: "A", ISKPerHour: 100_000, ROIPercent: 40, NetProfit: 1_000_000, DailyVolume7d: 500},
+		{ProductName: "B", ISKPerHour: 500_000, ROIPercent: 15, NetProfit: 3_000_000, DailyVolume7d: 10_000},
+	}
+	domain.SortManufacturingOpportunitiesBy(mfgs, "roi")
+	if mfgs[0].ProductName != "A" {
+		t.Errorf("expected ROI sort first=A, got %s", mfgs[0].ProductName)
+	}
+	domain.SortManufacturingOpportunitiesBy(mfgs, "volume")
+	if mfgs[0].ProductName != "B" {
+		t.Errorf("expected volume sort first=B, got %s", mfgs[0].ProductName)
+	}
+}

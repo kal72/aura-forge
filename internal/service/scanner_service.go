@@ -4,10 +4,26 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
+	"sync"
 
 	"aura-forge/internal/domain"
 )
+
+// ManufacturingScanRequest encapsulates all filters for Opportunity Scanner v2 Tab 1 (Manufacturing ISK/hr).
+type ManufacturingScanRequest struct {
+	HubKey              string
+	Category            string
+	TechLevel           int // 0 = All, 1 = T1, 2 = T2, 3 = T3
+	SearchQuery         string
+	Runs                int
+	ME                  int
+	TE                  int
+	StructureKey        string
+	MaterialPriceSource string
+	ProfitableOnly      bool
+	FitsCapitalOnly     bool
+	SortBy              string // isk_hr | roi | profit | volume
+}
 
 // scannerBasketItem defines a high-liquidity EVE item used for Station Trading and Inter-Hub Arbitrage scans.
 type scannerBasketItem struct {
@@ -18,61 +34,262 @@ type scannerBasketItem struct {
 }
 
 var defaultStationTradeBasket = []scannerBasketItem{
+	// Commodities & Macro
 	{TypeID: 44992, Name: "PLEX", Category: "Commodities", VolumeM3: 0.01},
+	{TypeID: 40520, Name: "Large Skill Injector", Category: "Commodities", VolumeM3: 0.01},
+	// PI & Structure Fuel
+	{TypeID: 9848, Name: "Robotics", Category: "PI & Fuel", VolumeM3: 6.0},
+	{TypeID: 9834, Name: "Guidance Systems", Category: "PI & Fuel", VolumeM3: 6.0},
+	{TypeID: 3689, Name: "Mechanical Parts", Category: "PI & Fuel", VolumeM3: 1.5},
+	{TypeID: 9832, Name: "Coolant", Category: "PI & Fuel", VolumeM3: 1.5},
+	{TypeID: 44, Name: "Enriched Uranium", Category: "PI & Fuel", VolumeM3: 1.5},
+	{TypeID: 4051, Name: "Nitrogen Fuel Block", Category: "PI & Fuel", VolumeM3: 5.0},
+	{TypeID: 4246, Name: "Hydrogen Fuel Block", Category: "PI & Fuel", VolumeM3: 5.0},
+	{TypeID: 4247, Name: "Helium Fuel Block", Category: "PI & Fuel", VolumeM3: 5.0},
+	{TypeID: 4312, Name: "Oxygen Fuel Block", Category: "PI & Fuel", VolumeM3: 5.0},
+	// Drones
+	{TypeID: 2454, Name: "Hobgoblin I", Category: "Drones", VolumeM3: 5.0},
 	{TypeID: 2456, Name: "Hobgoblin II", Category: "Drones", VolumeM3: 5.0},
+	{TypeID: 2486, Name: "Warrior I", Category: "Drones", VolumeM3: 5.0},
 	{TypeID: 2488, Name: "Warrior II", Category: "Drones", VolumeM3: 5.0},
+	{TypeID: 2183, Name: "Hammerhead I", Category: "Drones", VolumeM3: 10.0},
 	{TypeID: 2185, Name: "Hammerhead II", Category: "Drones", VolumeM3: 10.0},
+	{TypeID: 2203, Name: "Acolyte II", Category: "Drones", VolumeM3: 5.0},
+	// Modules
+	{TypeID: 2046, Name: "Damage Control I", Category: "Modules", VolumeM3: 5.0},
 	{TypeID: 2048, Name: "Damage Control II", Category: "Modules", VolumeM3: 5.0},
 	{TypeID: 3841, Name: "Large Shield Extender II", Category: "Modules", VolumeM3: 25.0},
+	{TypeID: 3831, Name: "Medium Shield Extender II", Category: "Modules", VolumeM3: 10.0},
 	{TypeID: 5975, Name: "5MN Y-T8 Compact Microwarpdrive", Category: "Modules", VolumeM3: 5.0},
 	{TypeID: 527, Name: "Stasis Webifier I", Category: "Modules", VolumeM3: 5.0},
+	{TypeID: 526, Name: "Stasis Webifier II", Category: "Modules", VolumeM3: 5.0},
 	{TypeID: 3244, Name: "Warp Scrambler II", Category: "Modules", VolumeM3: 5.0},
+	{TypeID: 3242, Name: "Warp Disruptor II", Category: "Modules", VolumeM3: 5.0},
 	{TypeID: 1952, Name: "Sensor Booster II", Category: "Modules", VolumeM3: 5.0},
 	{TypeID: 2205, Name: "Ballistic Control System II", Category: "Modules", VolumeM3: 5.0},
 	{TypeID: 519, Name: "Gyrostabilizer II", Category: "Modules", VolumeM3: 5.0},
 	{TypeID: 10190, Name: "Magnetic Field Stabilizer II", Category: "Modules", VolumeM3: 5.0},
+	{TypeID: 2364, Name: "Heat Sink II", Category: "Modules", VolumeM3: 5.0},
+	// Ships
 	{TypeID: 32880, Name: "Venture", Category: "Ships", VolumeM3: 2500.0},
 	{TypeID: 587, Name: "Rifter", Category: "Ships", VolumeM3: 2500.0},
 	{TypeID: 16240, Name: "Catalyst", Category: "Ships", VolumeM3: 5000.0},
 	{TypeID: 16242, Name: "Thrasher", Category: "Ships", VolumeM3: 5000.0},
 	{TypeID: 621, Name: "Caracal", Category: "Ships", VolumeM3: 10000.0},
-	{TypeID: 2454, Name: "Hobgoblin I", Category: "Drones", VolumeM3: 5.0},
-	{TypeID: 2046, Name: "Damage Control I", Category: "Modules", VolumeM3: 5.0},
 }
 
 // Compact, high-demand items suitable for beginner high-sec hauling arbitrage.
 var defaultArbitrageBasket = []scannerBasketItem{
+	// Compact T2 & Core Modules (5–25 m3)
 	{TypeID: 2048, Name: "Damage Control II", Category: "Modules", VolumeM3: 5.0},
 	{TypeID: 3841, Name: "Large Shield Extender II", Category: "Modules", VolumeM3: 25.0},
-	{TypeID: 2456, Name: "Hobgoblin II", Category: "Drones", VolumeM3: 5.0},
-	{TypeID: 2488, Name: "Warrior II", Category: "Drones", VolumeM3: 5.0},
-	{TypeID: 2185, Name: "Hammerhead II", Category: "Drones", VolumeM3: 10.0},
+	{TypeID: 3831, Name: "Medium Shield Extender II", Category: "Modules", VolumeM3: 10.0},
 	{TypeID: 3244, Name: "Warp Scrambler II", Category: "Modules", VolumeM3: 5.0},
+	{TypeID: 3242, Name: "Warp Disruptor II", Category: "Modules", VolumeM3: 5.0},
+	{TypeID: 526, Name: "Stasis Webifier II", Category: "Modules", VolumeM3: 5.0},
 	{TypeID: 2205, Name: "Ballistic Control System II", Category: "Modules", VolumeM3: 5.0},
 	{TypeID: 519, Name: "Gyrostabilizer II", Category: "Modules", VolumeM3: 5.0},
 	{TypeID: 10190, Name: "Magnetic Field Stabilizer II", Category: "Modules", VolumeM3: 5.0},
+	{TypeID: 2364, Name: "Heat Sink II", Category: "Modules", VolumeM3: 5.0},
 	{TypeID: 1952, Name: "Sensor Booster II", Category: "Modules", VolumeM3: 5.0},
+	{TypeID: 5975, Name: "5MN Y-T8 Compact Microwarpdrive", Category: "Modules", VolumeM3: 5.0},
+	{TypeID: 2046, Name: "Damage Control I", Category: "Modules", VolumeM3: 5.0},
+	// Drones (5–10 m3)
+	{TypeID: 2456, Name: "Hobgoblin II", Category: "Drones", VolumeM3: 5.0},
+	{TypeID: 2488, Name: "Warrior II", Category: "Drones", VolumeM3: 5.0},
+	{TypeID: 2185, Name: "Hammerhead II", Category: "Drones", VolumeM3: 10.0},
+	{TypeID: 2203, Name: "Acolyte II", Category: "Drones", VolumeM3: 5.0},
+	{TypeID: 2454, Name: "Hobgoblin I", Category: "Drones", VolumeM3: 5.0},
+	// PI & Fuel (1.5–6 m3)
+	{TypeID: 9848, Name: "Robotics", Category: "PI & Fuel", VolumeM3: 6.0},
+	{TypeID: 9834, Name: "Guidance Systems", Category: "PI & Fuel", VolumeM3: 6.0},
+	{TypeID: 3689, Name: "Mechanical Parts", Category: "PI & Fuel", VolumeM3: 1.5},
+	{TypeID: 9832, Name: "Coolant", Category: "PI & Fuel", VolumeM3: 1.5},
+	{TypeID: 44, Name: "Enriched Uranium", Category: "PI & Fuel", VolumeM3: 1.5},
+	{TypeID: 4051, Name: "Nitrogen Fuel Block", Category: "PI & Fuel", VolumeM3: 5.0},
+	{TypeID: 4246, Name: "Hydrogen Fuel Block", Category: "PI & Fuel", VolumeM3: 5.0},
+	{TypeID: 4247, Name: "Helium Fuel Block", Category: "PI & Fuel", VolumeM3: 5.0},
+	{TypeID: 4312, Name: "Oxygen Fuel Block", Category: "PI & Fuel", VolumeM3: 5.0},
+	// High-value Commodities
+	{TypeID: 44992, Name: "PLEX", Category: "Commodities", VolumeM3: 0.01},
 }
 
-// ScanManufacturingOpportunities evaluates all SDE blueprints against live Jita Public ESI prices
-// and ranks them by ISK/Hour per slot.
+// fetchHubDailyVolumesBatch fetches 7-day average daily volumes for a slice of typeIDs using 4 bounded workers.
+func (s *CopilotService) fetchHubDailyVolumesBatch(ctx context.Context, hub domain.TradeHub, typeIDs []int32) map[int32]float64 {
+	vols := make(map[int32]float64, len(typeIDs))
+	if s.market == nil || len(typeIDs) == 0 {
+		return vols
+	}
+	const maxWorkers = 4
+	sem := make(chan struct{}, maxWorkers)
+	var (
+		wg sync.WaitGroup
+		mu sync.Mutex
+	)
+	for _, id := range typeIDs {
+		if id <= 0 {
+			continue
+		}
+		wg.Add(1)
+		go func(tid int32) {
+			defer wg.Done()
+			select {
+			case sem <- struct{}{}:
+				defer func() { <-sem }()
+			case <-ctx.Done():
+				return
+			}
+			avg7, _ := s.fetchHubDailyVolume(ctx, hub, tid)
+			mu.Lock()
+			vols[tid] = avg7
+			mu.Unlock()
+		}(id)
+	}
+	wg.Wait()
+	return vols
+}
+
+// ScanManufacturingOpportunities is a backward-compatible wrapper delegating to ScanManufacturingOpportunitiesV2.
 func (s *CopilotService) ScanManufacturingOpportunities(
 	ctx context.Context,
 	category string,
 	runs, me, te int,
 	structureKey, materialPriceSource string,
 ) ([]domain.ManufacturingOpportunity, error) {
+	return s.ScanManufacturingOpportunitiesV2(ctx, ManufacturingScanRequest{
+		Category:            category,
+		Runs:                runs,
+		ME:                  me,
+		TE:                  te,
+		StructureKey:        structureKey,
+		MaterialPriceSource: materialPriceSource,
+	})
+}
+
+// selectBlueprintsForScan picks up to maxLimit relevant SDE blueprints without falling into the
+// alphabetical "A–Z first 100" trap after importing the full 5,000+ Official CCP SDE.
+func (s *CopilotService) selectBlueprintsForScan(ctx context.Context, req ManufacturingScanRequest, maxLimit int) ([]domain.SDEBlueprint, error) {
+	q := strings.TrimSpace(req.SearchQuery)
+	cat := strings.TrimSpace(req.Category)
+
+	// Case 1: Specific search keyword or category selected — query the full SDE directly (paged + tech filter)
+	if q != "" || cat != "" {
+		if ext, ok := s.sde.(domain.SDEExtendedRepository); ok {
+			pageRes, err := ext.SearchBlueprintsPaged(ctx, q, cat, req.TechLevel, 1, maxLimit)
+			if err == nil && pageRes != nil {
+				return pageRes.Items, nil
+			}
+		}
+		raw, err := s.sde.SearchBlueprints(ctx, q, cat, maxLimit*2)
+		if err != nil {
+			return nil, err
+		}
+		out := make([]domain.SDEBlueprint, 0, maxLimit)
+		for _, bp := range raw {
+			if req.TechLevel > 0 && bp.TechLevel != req.TechLevel {
+				continue
+			}
+			out = append(out, bp)
+			if len(out) >= maxLimit {
+				break
+			}
+		}
+		return out, nil
+	}
+
+	// Case 2: Default "All Blueprints" scan — prioritize high-liquidity starter pool + user's own Catalog items
+	// so popular items (Hobgoblin, Rifter, Venture, Scourge, Damage Control, etc.) are always evaluated!
+	selected := make([]domain.SDEBlueprint, 0, maxLimit)
+	seenBP := make(map[int32]struct{}, maxLimit)
+	addBP := func(bp domain.SDEBlueprint) {
+		if len(selected) >= maxLimit {
+			return
+		}
+		if req.TechLevel > 0 && bp.TechLevel != req.TechLevel {
+			return
+		}
+		if _, exists := seenBP[bp.BlueprintTypeID]; exists {
+			return
+		}
+		seenBP[bp.BlueprintTypeID] = struct{}{}
+		selected = append(selected, bp)
+	}
+
+	// 2a. User Catalog items with SDE blueprints first
+	if s.items != nil {
+		if catItems, err := s.items.ListItems(ctx); err == nil {
+			for _, it := range catItems {
+				if it.TypeID <= 0 {
+					continue
+				}
+				if bp, err := s.sde.GetBlueprintByProductID(ctx, it.TypeID); err == nil && bp != nil {
+					addBP(*bp)
+				}
+			}
+		}
+	}
+
+	// 2b. Curated popular T1/T2 starter blueprints
+	for _, seed := range starterCatalogPool {
+		if len(selected) >= maxLimit {
+			break
+		}
+		found, err := s.sde.SearchBlueprints(ctx, seed.ProductName, "", 5)
+		if err != nil {
+			continue
+		}
+		for _, bp := range found {
+			if strings.EqualFold(strings.TrimSpace(bp.ProductName), seed.ProductName) {
+				addBP(bp)
+				break
+			}
+		}
+	}
+
+	// 2c. Top up remaining slots from SDE (respecting TechLevel)
+	if len(selected) < maxLimit {
+		if ext, ok := s.sde.(domain.SDEExtendedRepository); ok {
+			if pageRes, err := ext.SearchBlueprintsPaged(ctx, "", "", req.TechLevel, 1, maxLimit); err == nil && pageRes != nil {
+				for _, bp := range pageRes.Items {
+					addBP(bp)
+				}
+			}
+		} else if extra, err := s.sde.SearchBlueprints(ctx, "", "", maxLimit); err == nil {
+			for _, bp := range extra {
+				addBP(bp)
+			}
+		}
+	}
+
+	return selected, nil
+}
+
+// ScanManufacturingOpportunitiesV2 evaluates SDE blueprints at any of the 5 major trade hubs
+// with Tech Level, Search, Daily Volume (7d), Fits-Capital, and Profitable-Only filtering.
+func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, req ManufacturingScanRequest) ([]domain.ManufacturingOpportunity, error) {
 	if s.sde == nil {
 		return nil, fmt.Errorf("EVE SDE blueprint database is not available")
 	}
 	if s.market == nil {
 		return nil, fmt.Errorf("Public ESI market provider is not available")
 	}
-	if runs <= 0 {
-		runs = 10
+	if req.Runs <= 0 {
+		req.Runs = 10
 	}
 
-	bps, err := s.sde.SearchBlueprints(ctx, "", category, 100)
+	settings, _ := s.GetSettings(ctx)
+	_, availCap, _ := s.resolveProfileAndCapital(ctx, *settings)
+	if availCap <= 0 {
+		availCap = settings.StartingCapital
+	}
+
+	hub := settings.ActiveTradeHub()
+	if strings.TrimSpace(req.HubKey) != "" {
+		hub = domain.LookupTradeHub(req.HubKey)
+	}
+
+	const maxScanBlueprints = 40
+	bps, err := s.selectBlueprintsForScan(ctx, req, maxScanBlueprints)
 	if err != nil {
 		return nil, fmt.Errorf("loading blueprints: %w", err)
 	}
@@ -80,10 +297,9 @@ func (s *CopilotService) ScanManufacturingOpportunities(
 		return []domain.ManufacturingOpportunity{}, nil
 	}
 
-	settings, _ := s.GetSettings(ctx)
 	matsByBP := make(map[int32][]domain.SDEMaterialRequirement, len(bps))
 	seen := make(map[int32]struct{})
-	typeIDs := make([]int32, 0, len(bps)+16)
+	typeIDs := make([]int32, 0, len(bps)+24)
 	addID := func(id int32) {
 		if id <= 0 {
 			return
@@ -106,12 +322,14 @@ func (s *CopilotService) ScanManufacturingOpportunities(
 		}
 	}
 
-	prices, err := s.market.GetJitaPrices(ctx, typeIDs)
+	prices, err := s.fetchHubPrices(ctx, hub, typeIDs)
 	if err != nil {
-		return nil, fmt.Errorf("fetching live Jita prices from Public ESI: %w", err)
+		return nil, fmt.Errorf("fetching live %s prices from Public ESI: %w", hub.Name, err)
 	}
 
 	results := make([]domain.ManufacturingOpportunity, 0, len(bps))
+	volProductIDs := make([]int32, 0, len(bps))
+
 	for _, bp := range bps {
 		reqs := matsByBP[bp.BlueprintTypeID]
 		if len(reqs) == 0 {
@@ -119,11 +337,12 @@ func (s *CopilotService) ScanManufacturingOpportunities(
 		}
 		calcRes, cErr := domain.CalculateBlueprintManufacturing(bp, reqs, domain.BlueprintCalcInput{
 			BlueprintTypeID:     bp.BlueprintTypeID,
-			Runs:                runs,
-			ME:                  me,
-			TE:                  te,
-			StructureKey:        structureKey,
-			MaterialPriceSource: materialPriceSource,
+			Runs:                req.Runs,
+			ME:                  req.ME,
+			TE:                  req.TE,
+			StructureKey:        req.StructureKey,
+			HubKey:              hub.Key,
+			MaterialPriceSource: req.MaterialPriceSource,
 			SystemCostIndex:     settings.SystemCostIndex,
 			FacilityTaxPercent:  settings.FacilityTaxPercent,
 			FreightCostPerM3:    settings.FreightCostPerM3,
@@ -137,38 +356,78 @@ func (s *CopilotService) ScanManufacturingOpportunities(
 			continue
 		}
 
+		verdict := domain.ClassifyManufacturingVerdict(calcRes.Profit.NetProfitPerBatch, calcRes.Profit.NetMarginPercent, calcRes.ISKPerHour)
+		fitsCap := availCap <= 0 || calcRes.Profit.TotalDirectCost <= availCap
+		if req.ProfitableOnly && verdict == domain.VerdictAvoid {
+			continue
+		}
+		if req.FitsCapitalOnly && !fitsCap {
+			continue
+		}
+
+		tech := bp.TechLevel
+		if tech <= 0 {
+			tech = 1
+		}
+		recSell := domain.RoundEVETick(calcRes.ProductUnitSellPrice * 0.999)
+		if recSell <= 0 {
+			recSell = calcRes.ProductUnitSellPrice
+		}
+
 		results = append(results, domain.ManufacturingOpportunity{
 			BlueprintTypeID:   bp.BlueprintTypeID,
 			ProductTypeID:     bp.ProductTypeID,
 			ProductName:       bp.ProductName,
 			Category:          bp.Category,
-			Runs:              runs,
+			TechLevel:         tech,
+			HubKey:            hub.Key,
+			HubName:           hub.Name,
+			Runs:              req.Runs,
 			OutputQty:         calcRes.TotalOutputQty,
 			MaterialCost:      calcRes.TotalMaterialCost,
 			ProductUnitSell:   calcRes.ProductUnitSellPrice,
+			RecommendedSell:   recSell,
+			FitsCapital:       fitsCap,
 			NetProfit:         calcRes.Profit.NetProfitPerBatch,
 			NetMarginPercent:  calcRes.Profit.NetMarginPercent,
 			ROIPercent:        calcRes.Profit.ROIPercent,
 			ISKPerHour:        calcRes.ISKPerHour,
 			DurationFormatted: calcRes.DurationFormatted,
-			Verdict:           domain.ClassifyManufacturingVerdict(calcRes.Profit.NetProfitPerBatch, calcRes.Profit.NetMarginPercent, calcRes.ISKPerHour),
+			Verdict:           verdict,
 		})
+		volProductIDs = append(volProductIDs, bp.ProductTypeID)
 	}
 
-	domain.SortManufacturingOpportunities(results)
+	// Enrich with 7d daily volume at the selected hub (4 bounded workers, cached in esi_cache)
+	vols := s.fetchHubDailyVolumesBatch(ctx, hub, volProductIDs)
+	for i := range results {
+		results[i].DailyVolume7d = vols[results[i].ProductTypeID]
+	}
+
+	domain.SortManufacturingOpportunitiesBy(results, req.SortBy)
 	return results, nil
 }
 
-// ScanStationTradingOpportunities scans high-liquidity Jita items + user Catalog items for profitable Buy->Sell flips.
+// ScanStationTradingOpportunities is a backward-compatible wrapper delegating to ScanStationTradingOpportunitiesV2.
 func (s *CopilotService) ScanStationTradingOpportunities(ctx context.Context, category string) ([]domain.StationTradeOpportunity, error) {
+	return s.ScanStationTradingOpportunitiesV2(ctx, "", category, false)
+}
+
+// ScanStationTradingOpportunitiesV2 scans high-liquidity items + user Catalog items at any of the 5 trade hubs
+// for profitable Buy->Sell flips, enriched with 7d daily volume and Recommended Buy/Sell Order prices.
+func (s *CopilotService) ScanStationTradingOpportunitiesV2(ctx context.Context, hubKey, category string, profitableOnly bool) ([]domain.StationTradeOpportunity, error) {
 	if s.market == nil {
 		return nil, fmt.Errorf("Public ESI market provider is not available")
 	}
 
 	settings, _ := s.GetSettings(ctx)
+	hub := settings.ActiveTradeHub()
+	if strings.TrimSpace(hubKey) != "" {
+		hub = domain.LookupTradeHub(hubKey)
+	}
 	catFilter := strings.TrimSpace(category)
 
-	basket := make([]scannerBasketItem, 0, len(defaultStationTradeBasket)+10)
+	basket := make([]scannerBasketItem, 0, len(defaultStationTradeBasket)+12)
 	seen := make(map[int32]struct{})
 
 	for _, b := range defaultStationTradeBasket {
@@ -207,10 +466,11 @@ func (s *CopilotService) ScanStationTradingOpportunities(ctx context.Context, ca
 		typeIDs = append(typeIDs, b.TypeID)
 	}
 
-	prices, err := s.market.GetJitaPrices(ctx, typeIDs)
+	prices, err := s.fetchHubPrices(ctx, hub, typeIDs)
 	if err != nil {
-		return nil, fmt.Errorf("fetching Jita station trading prices: %w", err)
+		return nil, fmt.Errorf("fetching %s station trading prices: %w", hub.Name, err)
 	}
+	vols := s.fetchHubDailyVolumesBatch(ctx, hub, typeIDs)
 
 	results := make([]domain.StationTradeOpportunity, 0, len(basket))
 	for _, b := range basket {
@@ -218,25 +478,35 @@ func (s *CopilotService) ScanStationTradingOpportunities(ctx context.Context, ca
 		if !ok || jp.LowestSell <= 0 || jp.HighestBuy <= 0 {
 			continue
 		}
-		results = append(results, domain.EvaluateStationTrade(
-			b.TypeID, b.Name, b.Category, jp,
+		opp := domain.EvaluateStationTradeForHub(
+			b.TypeID, b.Name, b.Category, hub, jp, vols[b.TypeID],
 			settings.BrokerFeePercent, settings.SalesTaxPercent,
-		))
+		)
+		if profitableOnly && opp.Verdict == domain.VerdictAvoid {
+			continue
+		}
+		results = append(results, opp)
 	}
 
 	domain.SortStationTradeOpportunities(results)
 	return results, nil
 }
 
-// ScanInterHubArbitrageOpportunities compares live prices between two major Empire trade hubs
-// after deducting hauling/freight cost and destination market taxes.
+// ScanInterHubArbitrageOpportunities is a backward-compatible wrapper delegating to ScanInterHubArbitrageOpportunitiesV2.
 func (s *CopilotService) ScanInterHubArbitrageOpportunities(ctx context.Context, originKey, destKey string) ([]domain.ArbitrageOpportunity, error) {
+	return s.ScanInterHubArbitrageOpportunitiesV2(ctx, originKey, destKey, "", 5000, 150_000_000, false)
+}
+
+// ScanInterHubArbitrageOpportunitiesV2 compares live prices between two major Empire trade hubs in parallel
+// after deducting hauling cost, destination taxes, cargo cap (m3), budget, and destination daily liquidity.
+func (s *CopilotService) ScanInterHubArbitrageOpportunitiesV2(
+	ctx context.Context,
+	originKey, destKey, category string,
+	cargoCapM3, tripBudgetISK float64,
+	profitableOnly bool,
+) ([]domain.ArbitrageOpportunity, error) {
 	if s.market == nil {
 		return nil, fmt.Errorf("Public ESI market provider is not available")
-	}
-	browser, ok := s.market.(domain.MarketBrowserProvider)
-	if !ok {
-		return nil, fmt.Errorf("multi-hub order book provider is not available")
 	}
 
 	originHub := domain.LookupTradeHub(originKey)
@@ -246,32 +516,97 @@ func (s *CopilotService) ScanInterHubArbitrageOpportunities(ctx context.Context,
 	}
 
 	settings, _ := s.GetSettings(ctx)
-	results := make([]domain.ArbitrageOpportunity, 0, len(defaultArbitrageBasket))
+	catFilter := strings.TrimSpace(category)
 
-	for i, item := range defaultArbitrageBasket {
-		if i > 0 {
-			select {
-			case <-ctx.Done():
-				return results, ctx.Err()
-			case <-time.After(20 * time.Millisecond):
+	basket := make([]scannerBasketItem, 0, len(defaultArbitrageBasket)+10)
+	seen := make(map[int32]struct{})
+	for _, b := range defaultArbitrageBasket {
+		if catFilter != "" && !strings.EqualFold(b.Category, catFilter) {
+			continue
+		}
+		basket = append(basket, b)
+		seen[b.TypeID] = struct{}{}
+	}
+
+	// Merge user's catalog items with valid TypeIDs
+	if s.items != nil {
+		if catalogItems, err := s.items.ListItems(ctx); err == nil {
+			for _, it := range catalogItems {
+				if it.TypeID <= 0 {
+					continue
+				}
+				if _, ok := seen[it.TypeID]; ok {
+					continue
+				}
+				if catFilter != "" && !strings.EqualFold(string(it.Category), catFilter) {
+					continue
+				}
+				basket = append(basket, scannerBasketItem{
+					TypeID:   it.TypeID,
+					Name:     it.Name,
+					Category: string(it.Category),
+					VolumeM3: 10.0,
+				})
+				seen[it.TypeID] = struct{}{}
 			}
 		}
-		_, _, originSum, oErr := browser.GetRegionOrderBook(ctx, originHub, item.TypeID, 1)
-		if oErr != nil || originSum.LowestSell <= 0 {
-			continue
-		}
-		_, _, destSum, dErr := browser.GetRegionOrderBook(ctx, destHub, item.TypeID, 1)
-		if dErr != nil || destSum.LowestSell <= 0 {
+	}
+
+	typeIDs := make([]int32, 0, len(basket))
+	for _, b := range basket {
+		typeIDs = append(typeIDs, b.TypeID)
+	}
+
+	// Fetch Origin prices, Destination prices, and Destination 7d daily volumes concurrently (cache-first, bounded workers)
+	var (
+		originPrices map[int32]domain.JitaPrice
+		destPrices   map[int32]domain.JitaPrice
+		destVols     map[int32]float64
+		originErr    error
+		destErr      error
+		wg           sync.WaitGroup
+	)
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		originPrices, originErr = s.fetchHubPrices(ctx, originHub, typeIDs)
+	}()
+	go func() {
+		defer wg.Done()
+		destPrices, destErr = s.fetchHubPrices(ctx, destHub, typeIDs)
+	}()
+	go func() {
+		defer wg.Done()
+		destVols = s.fetchHubDailyVolumesBatch(ctx, destHub, typeIDs)
+	}()
+	wg.Wait()
+
+	if originErr != nil {
+		return nil, fmt.Errorf("fetching %s prices: %w", originHub.Name, originErr)
+	}
+	if destErr != nil {
+		return nil, fmt.Errorf("fetching %s prices: %w", destHub.Name, destErr)
+	}
+
+	results := make([]domain.ArbitrageOpportunity, 0, len(basket))
+	for _, item := range basket {
+		op, okO := originPrices[item.TypeID]
+		dp, okD := destPrices[item.TypeID]
+		if !okO || !okD || op.LowestSell <= 0 || dp.LowestSell <= 0 {
 			continue
 		}
 
-		opp := domain.EvaluateArbitrage(
+		opp := domain.EvaluateArbitrageWithTrip(
 			item.TypeID, item.Name, item.Category,
 			originHub, destHub,
-			originSum.LowestSell, destSum.LowestSell, destSum.HighestBuy,
-			item.VolumeM3, settings.FreightCostPerM3,
+			op.LowestSell, dp.LowestSell, dp.HighestBuy,
+			item.VolumeM3, destVols[item.TypeID], cargoCapM3, tripBudgetISK,
+			settings.FreightCostPerM3,
 			settings.BrokerFeePercent, settings.SalesTaxPercent,
 		)
+		if profitableOnly && opp.Verdict == domain.VerdictAvoid {
+			continue
+		}
 		results = append(results, opp)
 	}
 
