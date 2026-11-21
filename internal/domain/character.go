@@ -100,6 +100,7 @@ type UserSettings struct {
 	FacilityTaxPercent           float64   `json:"facility_tax_percent"` // e.g. 0.25%
 	AutoPriceSyncEnabled         bool      `json:"auto_price_sync_enabled"`
 	AutoPriceSyncIntervalMinutes int       `json:"auto_price_sync_interval_minutes"` // default 15 minutes
+	DefaultTradeHub              string    `json:"default_trade_hub"`                // jita | amarr | dodixie | rens | hek
 	UpdatedAt                    time.Time `json:"updated_at"`
 }
 
@@ -118,8 +119,14 @@ func DefaultUserSettings() UserSettings {
 		FacilityTaxPercent:           0.25,
 		AutoPriceSyncEnabled:         true,
 		AutoPriceSyncIntervalMinutes: 15,
+		DefaultTradeHub:              "jita",
 		UpdatedAt:                    time.Now(),
 	}
+}
+
+// ActiveTradeHub resolves DefaultTradeHub to one of the 5 major EVE Empire hubs (defaults to Jita).
+func (u UserSettings) ActiveTradeHub() TradeHub {
+	return LookupTradeHub(u.DefaultTradeHub)
 }
 
 // ClampPriceSyncInterval enforces safe minimum (5 min) and maximum (120 min) background sync intervals.

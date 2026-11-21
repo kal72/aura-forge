@@ -16,8 +16,9 @@ import (
 // Renderer defines the UI rendering contract implemented by Templ views in internal/web.
 type Renderer interface {
 	RenderDashboard(w http.ResponseWriter, r *http.Request, data *service.DashboardSummary) error
-	RenderCatalog(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, items []domain.MarketItem, summary service.CatalogSummary, category, status, search, sortBy string, importRes *domain.ImportResult) error
-	RenderCatalogTable(w http.ResponseWriter, r *http.Request, items []domain.MarketItem) error
+	RenderCatalog(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, hub domain.TradeHub, items []domain.MarketItem, summary service.CatalogSummary, category, status, search, sortBy string, importRes *domain.ImportResult) error
+	RenderCatalogTable(w http.ResponseWriter, r *http.Request, hub domain.TradeHub, items []domain.MarketItem) error
+	RenderCatalogRecommendations(w http.ResponseWriter, r *http.Request, res *service.CatalogRecommendResult) error
 	RenderCalculator(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, input domain.ProfitCalcInput, result *domain.ProfitCalcResult, calcErr string, blueprints []domain.SDEBlueprint) error
 	RenderCalculatorResult(w http.ResponseWriter, r *http.Request, input domain.ProfitCalcInput, result *domain.ProfitCalcResult, calcErr string) error
 	RenderBlueprintResult(w http.ResponseWriter, r *http.Request, result *domain.BlueprintCalcResult, errMsg string) error
@@ -96,6 +97,7 @@ func (h *Handlers) HandleCatalog(w http.ResponseWriter, r *http.Request) {
 	search := r.URL.Query().Get("q")
 	sortBy := r.URL.Query().Get("sort")
 
+	hub := h.svc.ActiveCatalogHub(r.Context())
 	items, summary, err := h.svc.ListCatalogSorted(r.Context(), category, status, search, sortBy)
 	if err != nil {
 		http.Error(w, "Failed to load catalog: "+err.Error(), http.StatusInternalServerError)
@@ -104,14 +106,52 @@ func (h *Handlers) HandleCatalog(w http.ResponseWriter, r *http.Request) {
 
 	if h.renderer != nil {
 		if IsHTMX(r) && r.Header.Get("HX-Target") == "catalog-table" {
-			_ = h.renderer.RenderCatalogTable(w, r, items)
+			_ = h.renderer.RenderCatalogTable(w, r, hub, items)
 			return
 		}
 		mode := h.svc.GetModeInfo(r.Context())
-		_ = h.renderer.RenderCatalog(w, r, mode, items, summary, category, status, search, sortBy, nil)
+		_ = h.renderer.RenderCatalog(w, r, mode, hub, items, summary, category, status, search, sortBy, nil)
 		return
 	}
 	h.writeJSON(w, http.StatusOK, items)
+}
+
+// HandleSetCatalogHub switches the user's Primary Trade Hub (Jita/Amarr/Dodixie/Rens/Hek)
+// and immediately refreshes catalog prices & SDE BOM costs for the newly selected hub.
+func (h *Handlers) HandleSetCatalogHub(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form payload", http.StatusBadRequest)
+		return
+	}
+	hub := domain.LookupTradeHub(r.FormValue("hub"))
+	settings, _ := h.svc.GetSettings(r.Context())
+	if settings == nil {
+		def := domain.DefaultUserSettings()
+		settings = &def
+	}
+	settings.DefaultTradeHub = hub.Key
+	if err := h.svc.UpdateSettings(r.Context(), settings); err != nil {
+		if IsHTMX(r) {
+			TriggerToast(w, "error", "Failed to save Trade Hub: "+err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	updated, _ := h.svc.SyncJitaPrices(r.Context())
+	if IsHTMX(r) {
+		if updated > 0 {
+			TriggerToast(w, "success", fmt.Sprintf("Primary Trade Hub switched to %s (%d catalog items synced).", hub.Name, updated))
+		} else {
+			TriggerToast(w, "success", fmt.Sprintf("Primary Trade Hub switched to %s.", hub.Name))
+		}
+		w.Header().Set("HX-Refresh", "true")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	http.Redirect(w, r, "/catalog", http.StatusSeeOther)
 }
 
 // HandleSaveCatalogItem creates or updates an item in the catalog.
@@ -170,8 +210,9 @@ func (h *Handlers) HandleSaveCatalogItem(w http.ResponseWriter, r *http.Request)
 			return
 		}
 		items, _, _ := h.svc.ListCatalogSorted(r.Context(), "", "", "", "")
+		hub := h.svc.ActiveCatalogHub(r.Context())
 		if h.renderer != nil {
-			_ = h.renderer.RenderCatalogTable(w, r, items)
+			_ = h.renderer.RenderCatalogTable(w, r, hub, items)
 			return
 		}
 	}
@@ -192,8 +233,9 @@ func (h *Handlers) HandleDeleteCatalogItem(w http.ResponseWriter, r *http.Reques
 	if IsHTMX(r) {
 		TriggerToast(w, "info", "Item removed from catalog.")
 		items, _, _ := h.svc.ListCatalogSorted(r.Context(), "", "", "", "")
+		hub := h.svc.ActiveCatalogHub(r.Context())
 		if h.renderer != nil {
-			_ = h.renderer.RenderCatalogTable(w, r, items)
+			_ = h.renderer.RenderCatalogTable(w, r, hub, items)
 			return
 		}
 	}
@@ -223,9 +265,10 @@ func (h *Handlers) HandleBulkImport(w http.ResponseWriter, r *http.Request) {
 	if IsHTMX(r) {
 		TriggerToast(w, "success", fmt.Sprintf("Import complete: %d succeeded, %d errors.", res.SuccessCount, res.ErrorCount))
 		items, summary, _ := h.svc.ListCatalogSorted(r.Context(), "", "", "", "")
+		hub := h.svc.ActiveCatalogHub(r.Context())
 		if h.renderer != nil {
 			mode := h.svc.GetModeInfo(r.Context())
-			_ = h.renderer.RenderCatalog(w, r, mode, items, summary, "", "", "", "", res)
+			_ = h.renderer.RenderCatalog(w, r, mode, hub, items, summary, "", "", "", "", res)
 			return
 		}
 	}
@@ -309,30 +352,134 @@ func (h *Handlers) HandleSyncSCI(w http.ResponseWriter, r *http.Request) {
 	h.writeJSON(w, http.StatusOK, map[string]any{"solar_system_id": systemID, "manufacturing_sci": sci})
 }
 
-// HandleLookupItemESI resolves an item name and returns its Jita sell/buy price, daily volume,
-// and optional Official CCP SDE BOM material cost for the requested batch_qty.
+// HandleCatalogRecommend scans curated beginner-safe SDE blueprints against Available Capital and live Jita prices.
+func (h *Handlers) HandleCatalogRecommend(w http.ResponseWriter, r *http.Request) {
+	res, err := h.svc.RecommendCatalogForCapital(r.Context())
+	if err != nil {
+		if IsHTMX(r) {
+			TriggerToast(w, "error", "Failed to build recommendations: "+err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if h.renderer != nil {
+		_ = h.renderer.RenderCatalogRecommendations(w, r, res)
+		return
+	}
+	h.writeJSON(w, http.StatusOK, res)
+}
+
+// HandleCatalogRecommendApply adds one or all viable recommended starter items into the user's Catalog.
+func (h *Handlers) HandleCatalogRecommendApply(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form payload", http.StatusBadRequest)
+		return
+	}
+	mode := strings.TrimSpace(r.FormValue("mode")) // "all_viable" or "single"
+	targetTypeID, _ := strconv.ParseInt(strings.TrimSpace(r.FormValue("type_id")), 10, 32)
+
+	recRes, err := h.svc.RecommendCatalogForCapital(r.Context())
+	if err != nil {
+		if IsHTMX(r) {
+			TriggerToast(w, "error", "Failed to apply recommendations: "+err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	added := 0
+	for _, rec := range recRes.Items {
+		if mode == "single" {
+			if rec.TypeID != int32(targetTypeID) {
+				continue
+			}
+		} else {
+			if rec.AlreadyInCatalog || rec.TrapStatus != domain.TrapStatusLayak {
+				continue
+			}
+		}
+		sellPrice := rec.RecommendedSell
+		if sellPrice <= 0 {
+			sellPrice = rec.JitaSell
+		}
+		item := &domain.MarketItem{
+			TypeID:                rec.TypeID,
+			Name:                  rec.Name,
+			Category:              rec.Category,
+			EstimatedJitaSell:     sellPrice,
+			EstimatedJitaBuy:      rec.JitaBuy,
+			DailyVolume:           rec.DailyVolume,
+			MaterialCost:          rec.MaterialCost,
+			BatchOutputQty:        rec.BatchOutputQty,
+			IsManufacturable:      true,
+			IsFrequentlyDestroyed: rec.IsFrequentlyDestroyed,
+			TrapAnalysis: domain.TrapReport{
+				Avg7dPrice:       rec.Avg7d,
+				BOMSyncedFromSDE: true,
+			},
+		}
+		if _, err := h.svc.SaveCatalogItem(r.Context(), item); err == nil {
+			added++
+		}
+	}
+
+	if IsHTMX(r) {
+		if added == 0 {
+			TriggerToast(w, "info", "All recommended VIABLE items are already in your catalog.")
+		} else {
+			TriggerToast(w, "success", fmt.Sprintf("Added %d recommended item(s) to your Catalog.", added))
+		}
+		w.Header().Set("HX-Refresh", "true")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	http.Redirect(w, r, "/catalog", http.StatusSeeOther)
+}
+
+// HandleLookupItemESI resolves an item name and returns live sell/buy price, daily volume,
+// 7d low/avg/high range, break-even floor, Recommended Sell Price, and optional SDE BOM material cost
+// at the requested hub (or the user's configured Primary Trade Hub).
 func (h *Handlers) HandleLookupItemESI(w http.ResponseWriter, r *http.Request) {
 	name := strings.TrimSpace(r.URL.Query().Get("name"))
 	if name == "" {
 		http.Error(w, "name query parameter is required", http.StatusBadRequest)
 		return
 	}
-	jp, dailyVol, err := h.svc.LookupItemPriceESI(r.Context(), name)
+	hub := h.svc.ActiveCatalogHub(r.Context())
+	if rawHub := strings.TrimSpace(r.URL.Query().Get("hub")); rawHub != "" {
+		hub = domain.LookupTradeHub(rawHub)
+	}
+
+	jp, dailyVol, err := h.svc.LookupItemPriceForHub(r.Context(), hub, name)
 	if err != nil {
 		h.writeJSON(w, http.StatusNotFound, map[string]any{"error": err.Error()})
 		return
 	}
 
 	batchQty := parseIntDefault(r.URL.Query().Get("batch_qty"), 10)
-	sdeMatCost, hasSDE := h.svc.EstimateSDEMaterialCost(r.Context(), jp.TypeID, batchQty, nil)
+	sdeMatCost, hasSDE := h.svc.EstimateSDEMaterialCostForHub(r.Context(), hub, jp.TypeID, batchQty, nil)
+	pi := h.svc.GetItemPriceIntelligenceForHub(r.Context(), hub, jp.TypeID, jp.LowestSell, jp.HighestBuy, sdeMatCost, batchQty)
 
 	h.writeJSON(w, http.StatusOK, map[string]any{
-		"type_id":           jp.TypeID,
-		"lowest_sell":       jp.LowestSell,
-		"highest_buy":       jp.HighestBuy,
-		"daily_volume":      dailyVol,
-		"sde_has_blueprint": hasSDE,
-		"sde_material_cost": sdeMatCost,
+		"hub_key":                hub.Key,
+		"hub_name":               hub.Name,
+		"type_id":                jp.TypeID,
+		"lowest_sell":            jp.LowestSell,
+		"highest_buy":            jp.HighestBuy,
+		"daily_volume":           dailyVol,
+		"sde_has_blueprint":      hasSDE,
+		"sde_material_cost":      sdeMatCost,
+		"low_7d":                 pi.Low7d,
+		"avg_7d":                 pi.Avg7d,
+		"high_7d":                pi.High7d,
+		"break_even_price":       pi.BreakEvenPrice,
+		"recommended_sell_price": pi.RecommendedSellPrice,
+		"recommendation_note":    pi.RecommendationNote,
+		"price_regime":           pi.PriceRegime,
 	})
 }
 
@@ -780,6 +927,9 @@ func (h *Handlers) HandleSaveSettings(w http.ResponseWriter, r *http.Request) {
 		cfg.SystemCostIndex = parseFloatForm(r, "system_cost_index", existing.SystemCostIndex)
 		cfg.FreightCostPerM3 = parseFloatForm(r, "freight_cost_per_m3", existing.FreightCostPerM3)
 		cfg.FacilityTaxPercent = parseFloatForm(r, "facility_tax_percent", existing.FacilityTaxPercent)
+		if rawHub := strings.TrimSpace(r.FormValue("default_trade_hub")); rawHub != "" {
+			cfg.DefaultTradeHub = domain.LookupTradeHub(rawHub).Key
+		}
 		if r.Form.Has("auto_price_sync_interval_minutes") {
 			cfg.AutoPriceSyncEnabled = r.FormValue("auto_price_sync_enabled") == "on" || r.FormValue("auto_price_sync_enabled") == "true"
 			cfg.AutoPriceSyncIntervalMinutes = domain.ClampPriceSyncInterval(parseIntForm(r, "auto_price_sync_interval_minutes", existing.AutoPriceSyncIntervalMinutes))

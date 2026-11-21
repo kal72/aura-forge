@@ -19,14 +19,19 @@ func (tr *TemplRenderer) RenderDashboard(w http.ResponseWriter, r *http.Request,
 	return DashboardPage(data).Render(r.Context(), w)
 }
 
-func (tr *TemplRenderer) RenderCatalog(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, items []domain.MarketItem, summary service.CatalogSummary, category, status, search, sortBy string, importRes *domain.ImportResult) error {
+func (tr *TemplRenderer) RenderCatalog(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, hub domain.TradeHub, items []domain.MarketItem, summary service.CatalogSummary, category, status, search, sortBy string, importRes *domain.ImportResult) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	return CatalogPage(mode, items, summary, category, status, search, sortBy, importRes).Render(r.Context(), w)
+	return CatalogPage(mode, hub, items, summary, category, status, search, sortBy, importRes).Render(r.Context(), w)
 }
 
-func (tr *TemplRenderer) RenderCatalogTable(w http.ResponseWriter, r *http.Request, items []domain.MarketItem) error {
+func (tr *TemplRenderer) RenderCatalogTable(w http.ResponseWriter, r *http.Request, hub domain.TradeHub, items []domain.MarketItem) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	return CatalogTable(items).Render(r.Context(), w)
+	return CatalogTable(hub, items).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderCatalogRecommendations(w http.ResponseWriter, r *http.Request, res *service.CatalogRecommendResult) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return CatalogRecommendationsPartial(res).Render(r.Context(), w)
 }
 
 func (tr *TemplRenderer) RenderCalculator(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, input domain.ProfitCalcInput, result *domain.ProfitCalcResult, calcErr string, blueprints []domain.SDEBlueprint) error {

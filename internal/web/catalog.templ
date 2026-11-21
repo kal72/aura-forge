@@ -41,14 +41,24 @@ func catalogProfitClass(val float64) string {
 	return "text-slate-300"
 }
 
-templ CatalogPage(mode service.ModeInfo, items []domain.MarketItem, summary service.CatalogSummary, category, status, search, sortBy string, importRes *domain.ImportResult) {
+templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.MarketItem, summary service.CatalogSummary, category, status, search, sortBy string, importRes *domain.ImportResult) {
 	@Layout("Catalog & Trap Guard", "catalog", mode) {
 		<div
 			class="space-y-6"
 			x-data="{
 				showAdd: false,
-				showImport: false,
 				showEdit: false,
+				showSDEModal: false,
+				sdeLoading: false,
+				sdeQuery: '',
+				sdeCat: '',
+				sdeTech: 0,
+				sdePage: 1,
+				sdeTotal: 0,
+				sdeTotalPages: 1,
+				sdeCategories: [],
+				sdeItems: [],
+				sdeTimer: null,
 				editItem: {
 					id: 0,
 					name: '',
@@ -79,30 +89,99 @@ templ CatalogPage(mode service.ModeInfo, items []domain.MarketItem, summary serv
 						is_manufacturable: true
 					}, item);
 					this.showEdit = true;
+				},
+				openSDEPicker() {
+					this.showSDEModal = true;
+					this.fetchSDE(1);
+				},
+				debounceSDE() {
+					clearTimeout(this.sdeTimer);
+					this.sdeTimer = setTimeout(() => this.fetchSDE(1), 220);
+				},
+				async fetchSDE(page) {
+					this.sdeLoading = true;
+					this.sdePage = page;
+					try {
+						const params = new URLSearchParams({
+							q: this.sdeQuery,
+							category: this.sdeCat,
+							tech: String(this.sdeTech),
+							page: String(page),
+							limit: '24'
+						});
+						const r = await fetch('/calculator/blueprints/search?' + params.toString());
+						if (r.ok) {
+							const d = await r.json();
+							this.sdeItems = d.items || [];
+							this.sdeTotal = d.total || 0;
+							this.sdeTotalPages = d.total_pages || 1;
+							if (d.categories && d.categories.length) this.sdeCategories = d.categories;
+						}
+					} finally {
+						this.sdeLoading = false;
+					}
+				},
+				pickSDEBlueprint(bp) {
+					this.showSDEModal = false;
+					this.showAdd = true;
+					window.dispatchEvent(new CustomEvent('catalog-pick-sde', { detail: bp }));
 				}
 			}"
 			@open-catalog-edit.window="openEdit($event.detail)"
-			@keydown.escape.window="showEdit = false"
+			@keydown.escape.window="showEdit = false; showSDEModal = false"
 		>
-			<!-- Header & Primary Actions -->
+			<!-- Header & Focused Actions -->
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-white">Catalog &amp; Trap Guard Advisor</h1>
-					<p class="text-xs text-slate-300/80 mt-0.5">Live Jita pricing, Official CCP SDE auto-BOM material costs, 7d fake price-spike detection, and beginner trap protection.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">Live <strong class="text-amber-200">{ hub.Name }</strong> pricing ({ hub.RegionName }), Official CCP SDE auto-BOM material costs, 7d fake price-spike detection, and beginner trap protection.</p>
 				</div>
 				<div class="flex flex-wrap gap-2">
-					<button type="button" @click="showAdd = !showAdd; showImport = false" class="rounded-lg bg-amber-400 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer">
+					<button
+						type="button"
+						hx-post="/catalog/recommend"
+						hx-target="#catalog-recommend-panel"
+						hx-swap="innerHTML"
+						hx-indicator="#rec-spinner"
+						class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/50 bg-emerald-500/20 px-3.5 py-2 text-xs font-bold text-emerald-100 hover:bg-emerald-500/35 transition cursor-pointer"
+					>
+						<span>Recommend for My Capital</span>
+						<span id="rec-spinner" class="htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-emerald-200 border-t-transparent"></span>
+					</button>
+					<button type="button" @click="showAdd = !showAdd" class="rounded-lg bg-amber-400 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer">
 						+ Add Item
 					</button>
-					<button type="button" @click="showImport = !showImport; showAdd = false" class="rounded-lg border border-sky-400/40 bg-sky-500/15 px-3 py-2 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition cursor-pointer">
-						Bulk Paste / CSV
+					<button type="button" hx-post="/esi/sync-prices" hx-swap="none" class="rounded-lg border border-amber-400/45 bg-amber-500/15 px-3.5 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer">
+						Sync { hub.Name } + SDE BOM
 					</button>
-					<button type="button" hx-post="/esi/sync-prices" hx-swap="none" class="rounded-lg border border-amber-400/45 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer">
-						Sync Jita + SDE BOM
-					</button>
-					<button type="button" hx-post="/catalog/sample" hx-swap="none" class="rounded-lg border border-emerald-400/40 bg-emerald-500/15 px-3 py-2 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 transition cursor-pointer">
-						Load Sample Data
-					</button>
+				</div>
+			</div>
+
+			<!-- Primary Trade Hub Switcher (Jita | Amarr | Dodixie | Rens | Hek) -->
+			<div class="tactical-panel rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+				<div class="flex items-center gap-2 text-xs">
+					<span class="font-mono text-[10px] font-bold uppercase tracking-wider text-violet-300">Target Trade Hub:</span>
+					<span class="text-slate-300">All catalog prices, SDE BOM costs, 7d spike checks, and recommendations use</span>
+					<strong class="text-amber-200">{ hub.Name }</strong>
+					<span id="hub-switch-spinner" class="htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-amber-300 border-t-transparent"></span>
+				</div>
+				<div class="inline-flex flex-wrap rounded-lg border border-violet-400/30 bg-slate-950/70 p-0.5 gap-0.5">
+					for _, th := range domain.MajorTradeHubs {
+						<form hx-post="/catalog/hub" hx-swap="none" hx-indicator="#hub-switch-spinner" class="inline">
+							<input type="hidden" name="hub" value={ th.Key }/>
+							<button
+								type="submit"
+								class={ func() string {
+									if th.Key == hub.Key {
+										return "rounded-md bg-amber-400 px-3 py-1 text-[11px] font-extrabold text-slate-950 shadow-xs cursor-pointer"
+									}
+									return "rounded-md px-3 py-1 text-[11px] font-semibold text-slate-300 hover:text-white hover:bg-slate-800/70 transition cursor-pointer"
+								}() }
+							>
+								{ th.Name }
+							</button>
+						</form>
+					}
 				</div>
 			</div>
 
@@ -154,7 +233,10 @@ templ CatalogPage(mode service.ModeInfo, items []domain.MarketItem, summary serv
 				</div>
 			}
 
-			<!-- Add Item Manual Panel (Auto-Fill Public ESI + SDE BOM) -->
+			<!-- Auto-Recommend Starter Catalog Target Panel -->
+			<div id="catalog-recommend-panel"></div>
+
+			<!-- Add Item Panel (Pick from CCP SDE + Auto-Fill Public ESI, 7d Range & Recommended Sell) -->
 			<div
 				x-cloak
 				x-show="showAdd"
@@ -162,38 +244,84 @@ templ CatalogPage(mode service.ModeInfo, items []domain.MarketItem, summary serv
 				class="tactical-panel rounded-xl p-5 space-y-4"
 				x-data="{
 					newName: '',
+					newCategory: 'Drones',
 					batchQty: 10,
 					jitaSell: 0,
 					jitaBuy: 0,
 					matCost: 0,
 					dailyVol: 100,
 					lookupMsg: '',
+					priceIntel: null,
+					fmtISK(v) {
+						const n = Number(v) || 0;
+						if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B ISK';
+						if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M ISK';
+						if (n >= 1e3) return (n / 1e3).toFixed(2) + 'K ISK';
+						return n.toFixed(2) + ' ISK';
+					},
+					mapSDECategory(cat) {
+						const c = (cat || '').toLowerCase();
+						if (c.includes('drone')) return 'Drones';
+						if (c.includes('ammo') || c.includes('charge') || c.includes('missile')) return 'Ammunition';
+						if (c.includes('ship') || c.includes('frigate') || c.includes('cruiser') || c.includes('destroyer') || c.includes('battleship') || c.includes('industrial')) return 'Ships';
+						if (c.includes('rig')) return 'Rigs';
+						if (c.includes('module') || c.includes('turret') || c.includes('launcher')) return 'Modules';
+						if (c.includes('component') || c.includes('reaction')) return 'Components';
+						if (c.includes('commodit') || c.includes('planetary')) return 'Commodities';
+						return 'Other';
+					},
+					applySDEBlueprint(bp) {
+						if (!bp) return;
+						this.newName = bp.product_name || bp.name || '';
+						this.newCategory = this.mapSDECategory(bp.category);
+						const perRun = Number(bp.product_qty_per_run) || 1;
+						this.batchQty = perRun >= 100 ? perRun : perRun * 10;
+						this.autoFillESI();
+					},
 					async autoFillESI() {
 						if (!this.newName) return;
-						this.lookupMsg = 'Fetching live Jita price & CCP SDE BOM...';
+						this.lookupMsg = 'Fetching live Jita price, 7d range & CCP SDE BOM...';
+						this.priceIntel = null;
 						try {
 							const r = await fetch('/esi/lookup?name=' + encodeURIComponent(this.newName) + '&batch_qty=' + encodeURIComponent(this.batchQty || 10));
 							const d = await r.json();
 							if (!r.ok) { this.lookupMsg = d.error || 'Item not found in Public ESI'; return; }
-							if (d.lowest_sell > 0) this.jitaSell = d.lowest_sell;
+							if (d.recommended_sell_price > 0) {
+								this.jitaSell = d.recommended_sell_price;
+							} else if (d.lowest_sell > 0) {
+								this.jitaSell = d.lowest_sell;
+							}
 							if (d.highest_buy > 0) this.jitaBuy = d.highest_buy;
 							if (d.daily_volume > 0) this.dailyVol = Math.round(d.daily_volume);
 							if (d.sde_has_blueprint && d.sde_material_cost > 0) {
 								this.matCost = d.sde_material_cost;
-								this.lookupMsg = 'TypeID #' + d.type_id + ' • Jita Sell: ' + Number(d.lowest_sell).toLocaleString() + ' ISK • SDE BOM Cost: ' + Number(d.sde_material_cost).toLocaleString() + ' ISK';
+							}
+							this.priceIntel = d;
+							if (d.sde_has_blueprint && d.sde_material_cost > 0) {
+								this.lookupMsg = 'TypeID #' + d.type_id + ' • Recommended Sell applied • SDE BOM Cost: ' + this.fmtISK(d.sde_material_cost);
 							} else {
-								this.lookupMsg = 'TypeID #' + d.type_id + ' • Jita Sell: ' + Number(d.lowest_sell).toLocaleString() + ' ISK • Vol: ' + Number(d.daily_volume).toLocaleString() + '/day';
+								this.lookupMsg = 'TypeID #' + d.type_id + ' • Live Jita range & Recommended Sell loaded • Vol: ' + Number(d.daily_volume).toLocaleString() + '/day';
 							}
 						} catch (e) { this.lookupMsg = 'Failed to reach Public ESI'; }
 					}
 				}"
+				@catalog-pick-sde.window="applySDEBlueprint($event.detail)"
 			>
-				<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Add Candidate Item (Auto-Fill Public ESI + SDE BOM)</h2>
+				<div class="flex flex-wrap items-center justify-between gap-2">
+					<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Add Candidate Item (Pick from SDE or Auto-Fill ESI)</h2>
+					<button
+						type="button"
+						@click="openSDEPicker()"
+						class="rounded-lg border border-violet-400/50 bg-violet-500/20 px-3 py-1.5 text-xs font-bold text-violet-100 hover:bg-violet-500/35 transition cursor-pointer"
+					>
+						Browse SDE Blueprints
+					</button>
+				</div>
 				<form hx-post="/catalog/items" hx-target="#catalog-table" hx-swap="outerHTML" @htmx:after-request="showAdd = false" class="grid grid-cols-1 gap-3 sm:grid-cols-3">
 					<div class="sm:col-span-2">
 						<label class="block text-[11px] font-mono uppercase text-slate-300">Item Name (Exact EVE Online Name)</label>
 						<div class="mt-1 flex gap-2">
-							<input type="text" name="name" x-model="newName" required placeholder="Hobgoblin I" class="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"/>
+							<input type="text" name="name" x-model="newName" required placeholder="Hobgoblin I (or click Browse SDE Blueprints)" class="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"/>
 							<button type="button" @click="autoFillESI()" class="rounded-lg border border-amber-400/45 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer shrink-0">
 								Auto-Fill ESI + BOM
 							</button>
@@ -202,7 +330,7 @@ templ CatalogPage(mode service.ModeInfo, items []domain.MarketItem, summary serv
 					</div>
 					<div>
 						<label class="block text-[11px] font-mono uppercase text-slate-300">Category</label>
-						<select name="category" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white">
+						<select name="category" x-model="newCategory" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white">
 							<option value="Drones">Drones</option>
 							<option value="Ammunition">Ammunition</option>
 							<option value="Ships">Ships</option>
@@ -218,13 +346,81 @@ templ CatalogPage(mode service.ModeInfo, items []domain.MarketItem, summary serv
 						<input type="number" name="batch_output_qty" x-model="batchQty" min="1" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 					</div>
 					<div>
-						<label class="block text-[11px] font-mono uppercase text-slate-300">Jita Sell Price / Unit (ISK)</label>
+						<label class="block text-[11px] font-mono uppercase text-slate-300">{ hub.Name } Sell Price / Unit (ISK)</label>
 						<input type="number" step="0.01" name="estimated_jita_sell" x-model="jitaSell" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						<input type="hidden" name="estimated_jita_buy" :value="jitaBuy"/>
 					</div>
 					<div>
 						<label class="block text-[11px] font-mono uppercase text-slate-300">Material Cost / Batch (0 = Auto SDE)</label>
 						<input type="number" step="0.01" name="material_cost" x-model="matCost" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+
+					<!-- Live Hub Price Intelligence & Recommended Sell Price Card -->
+					<div x-show="priceIntel" x-cloak class="sm:col-span-3 rounded-xl border border-violet-400/35 bg-slate-950/75 p-4 space-y-3">
+						<div class="flex flex-wrap items-center justify-between gap-2">
+							<div class="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-300">
+								{ hub.Name } Price Intelligence &amp; Recommended Sell Price
+							</div>
+							<span
+								class="rounded-md border px-2 py-0.5 font-mono text-[10px] font-bold"
+								:class="priceIntel && priceIntel.price_regime === 'COMPETITIVE'
+									? 'border-emerald-400/45 bg-emerald-500/20 text-emerald-200'
+									: (priceIntel && priceIntel.price_regime === 'SPIKE'
+										? 'border-amber-400/50 bg-amber-500/20 text-amber-200'
+										: 'border-rose-400/50 bg-rose-500/20 text-rose-200')"
+								x-text="priceIntel ? priceIntel.price_regime : ''"
+							></span>
+						</div>
+
+						<!-- 6-Metric Price Strip -->
+						<div class="grid grid-cols-2 gap-2 sm:grid-cols-6 font-mono text-xs">
+							<div class="rounded-lg border border-slate-800 bg-slate-900/80 p-2">
+								<div class="text-[9px] uppercase text-slate-400">Highest Buy</div>
+								<div class="mt-0.5 font-semibold text-sky-300" x-text="priceIntel ? fmtISK(priceIntel.highest_buy) : '—'"></div>
+							</div>
+							<div class="rounded-lg border border-slate-800 bg-slate-900/80 p-2">
+								<div class="text-[9px] uppercase text-slate-400">7d Lowest</div>
+								<div class="mt-0.5 font-semibold text-emerald-300" x-text="priceIntel && priceIntel.low_7d > 0 ? fmtISK(priceIntel.low_7d) : '—'"></div>
+							</div>
+							<div class="rounded-lg border border-slate-800 bg-slate-900/80 p-2">
+								<div class="text-[9px] uppercase text-slate-400">7d Average</div>
+								<div class="mt-0.5 font-semibold text-white" x-text="priceIntel && priceIntel.avg_7d > 0 ? fmtISK(priceIntel.avg_7d) : '—'"></div>
+							</div>
+							<div class="rounded-lg border border-slate-800 bg-slate-900/80 p-2">
+								<div class="text-[9px] uppercase text-slate-400">7d Highest</div>
+								<div class="mt-0.5 font-semibold text-rose-300" x-text="priceIntel && priceIntel.high_7d > 0 ? fmtISK(priceIntel.high_7d) : '—'"></div>
+							</div>
+							<div class="rounded-lg border border-slate-800 bg-slate-900/80 p-2">
+								<div class="text-[9px] uppercase text-slate-400">Live Lowest Sell</div>
+								<div class="mt-0.5 font-semibold text-amber-200" x-text="priceIntel ? fmtISK(priceIntel.lowest_sell) : '—'"></div>
+							</div>
+							<div class="rounded-lg border border-slate-800 bg-slate-900/80 p-2">
+								<div class="text-[9px] uppercase text-slate-400">Break-Even Floor</div>
+								<div class="mt-0.5 font-semibold text-violet-300" x-text="priceIntel && priceIntel.break_even_price > 0 ? fmtISK(priceIntel.break_even_price) : '—'"></div>
+							</div>
+						</div>
+
+						<!-- Recommended Sell Callout + Quick Apply Buttons -->
+						<div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3 py-2.5">
+							<div class="space-y-0.5">
+								<div class="text-xs font-bold text-white">
+									Recommended Sell Price:
+									<span class="font-mono text-emerald-300 ml-1" x-text="priceIntel && priceIntel.recommended_sell_price > 0 ? fmtISK(priceIntel.recommended_sell_price) : '—'"></span>
+								</div>
+								<div class="text-[11px] text-slate-300" x-text="priceIntel ? priceIntel.recommendation_note : ''"></div>
+							</div>
+							<div class="flex flex-wrap gap-1.5 shrink-0">
+								<button type="button" @click="if (priceIntel && priceIntel.recommended_sell_price > 0) jitaSell = priceIntel.recommended_sell_price" class="rounded-md bg-emerald-400 px-2.5 py-1 text-[11px] font-bold text-slate-950 hover:bg-emerald-300 cursor-pointer">
+									Use Recommended
+								</button>
+								<button type="button" @click="if (priceIntel && priceIntel.avg_7d > 0) jitaSell = priceIntel.avg_7d" class="rounded-md border border-slate-600 bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-slate-200 hover:border-amber-300/60 cursor-pointer">
+									Use 7d Avg
+								</button>
+								<button type="button" @click="if (priceIntel && priceIntel.lowest_sell > 0) jitaSell = priceIntel.lowest_sell" class="rounded-md border border-slate-600 bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-slate-200 hover:border-amber-300/60 cursor-pointer">
+									Use Lowest Sell
+								</button>
+							</div>
+						</div>
 					</div>
 					<div>
 						<label class="block text-[11px] font-mono uppercase text-slate-300">Extra Setup Cost (BPC / Decryptor)</label>
@@ -251,24 +447,35 @@ templ CatalogPage(mode service.ModeInfo, items []domain.MarketItem, summary serv
 				</form>
 			</div>
 
-			<!-- Bulk Paste / CSV Importer Panel -->
-			<div x-cloak x-show="showImport" x-transition class="tactical-panel rounded-xl p-5 space-y-3">
-				<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">Bulk Paste / CSV Importer (Supports K/M/B &amp; %)</h2>
-				<p class="text-xs text-slate-400">Paste TSV/CSV rows (columns: <code class="text-sky-300">Item Name | Sell Price | Material Cost | Daily Volume | Batch Qty</code>).</p>
-				<form method="POST" action="/catalog/import" class="space-y-3">
-					<textarea name="bulk_text" rows="5" placeholder="Hobgoblin II&#9;720K&#9;14.2M&#9;12.5K&#9;30&#10;Rifter&#9;680K&#9;4.6M&#9;950&#9;10" class="w-full rounded-lg border border-slate-700 bg-slate-950 p-3 font-mono text-xs text-slate-200 focus:border-sky-400 focus:outline-none"></textarea>
-					<div class="flex flex-wrap items-center justify-between gap-3">
-						<label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
-							<input type="checkbox" name="enrich_esi" checked class="rounded bg-slate-800 border-slate-600"/>
-							Auto-enrich Jita price &amp; daily volume from Public ESI
-						</label>
-						<div class="flex gap-2">
-							<button type="button" @click="showImport = false" class="rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-300 cursor-pointer">Close</button>
-							<button type="submit" class="rounded-lg bg-sky-500 px-4 py-1.5 text-xs font-bold text-slate-950 hover:bg-sky-400 cursor-pointer">Run Import</button>
-						</div>
+			<!-- Empty-Catalog Starter Hint (Only visible when Catalog has 0 items total) -->
+			if summary.TotalCount == 0 {
+				<div class="tactical-panel rounded-xl border border-violet-400/30 p-5 flex flex-wrap items-center justify-between gap-4">
+					<div>
+						<div class="text-sm font-bold text-white">Your Catalog is Empty</div>
+						<p class="text-xs text-slate-300/80 mt-0.5">
+							Add items via <strong>Opportunity Scanner</strong>, <strong>Marketplace</strong>, <strong>Blueprint Calculator</strong>, or click <strong>+ Add Item → Browse SDE Blueprints</strong>.
+						</p>
 					</div>
-				</form>
-			</div>
+					<div class="flex flex-wrap gap-2">
+						<button
+							type="button"
+							hx-post="/catalog/recommend"
+							hx-target="#catalog-recommend-panel"
+							hx-swap="innerHTML"
+							hx-indicator="#rec-spinner"
+							class="rounded-lg bg-emerald-400 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-emerald-300 transition cursor-pointer"
+						>
+							Recommend for My Capital
+						</button>
+						<button type="button" @click="openSDEPicker()" class="rounded-lg border border-violet-400/45 bg-violet-500/20 px-3.5 py-2 text-xs font-bold text-violet-100 hover:bg-violet-500/35 transition cursor-pointer">
+							Browse SDE Blueprints
+						</button>
+						<button type="button" hx-post="/catalog/sample" hx-swap="none" class="rounded-lg border border-slate-600 bg-slate-900/60 px-3 py-2 text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer">
+							Try Starter Sample Data
+						</button>
+					</div>
+				</div>
+			}
 
 			<!-- Filter & Sort Bar (HTMX Live Filtering) -->
 			<form
@@ -313,7 +520,86 @@ templ CatalogPage(mode service.ModeInfo, items []domain.MarketItem, summary serv
 			</form>
 
 			<!-- Catalog Table -->
-			@CatalogTable(items)
+			@CatalogTable(hub, items)
+
+			<!-- SDE Blueprint Picker Modal -->
+			<div x-cloak x-show="showSDEModal" class="fixed inset-0 z-[90] bg-slate-950/75 backdrop-blur-sm" @click="showSDEModal = false"></div>
+			<div x-cloak x-show="showSDEModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-none">
+				<div class="tactical-panel w-full max-w-4xl max-h-[86vh] flex flex-col rounded-2xl border border-violet-400/45 bg-[#121329]/95 shadow-2xl pointer-events-auto overflow-hidden">
+					<div class="flex items-center justify-between gap-3 border-b border-violet-400/20 px-5 py-4">
+						<div>
+							<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Pick Blueprint from Official CCP SDE</h2>
+							<p class="text-[11px] text-slate-400 mt-0.5">Select any product blueprint to auto-fill its name, category, batch output, live Jita price, and SDE BOM cost.</p>
+						</div>
+						<button type="button" @click="showSDEModal = false" class="rounded-lg border border-slate-700 px-2.5 py-1 text-xs text-slate-300 hover:text-white cursor-pointer">✕</button>
+					</div>
+
+					<!-- Search & Filters -->
+					<div class="border-b border-violet-400/15 bg-slate-950/40 px-5 py-3 space-y-2.5">
+						<div class="flex flex-wrap gap-2">
+							<input
+								type="text"
+								x-model="sdeQuery"
+								@input="debounceSDE()"
+								placeholder="Search blueprint or product name (e.g. Hobgoblin, Drake, Antimatter, Raitaru)..."
+								class="flex-1 min-w-[220px] rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white focus:border-amber-300/70 focus:outline-none"
+							/>
+							<div class="inline-flex rounded-lg border border-slate-700 bg-slate-900 p-0.5 text-[11px] font-mono">
+								<button type="button" @click="sdeTech = 0; fetchSDE(1)" :class="sdeTech === 0 ? 'bg-amber-400 text-slate-950 font-bold' : 'text-slate-300'" class="rounded px-2.5 py-1 cursor-pointer">All</button>
+								<button type="button" @click="sdeTech = 1; fetchSDE(1)" :class="sdeTech === 1 ? 'bg-sky-400 text-slate-950 font-bold' : 'text-slate-300'" class="rounded px-2.5 py-1 cursor-pointer">T1</button>
+								<button type="button" @click="sdeTech = 2; fetchSDE(1)" :class="sdeTech === 2 ? 'bg-amber-400 text-slate-950 font-bold' : 'text-slate-300'" class="rounded px-2.5 py-1 cursor-pointer">T2</button>
+								<button type="button" @click="sdeTech = 3; fetchSDE(1)" :class="sdeTech === 3 ? 'bg-violet-400 text-slate-950 font-bold' : 'text-slate-300'" class="rounded px-2.5 py-1 cursor-pointer">T3</button>
+							</div>
+						</div>
+						<div class="flex flex-wrap gap-1.5" x-show="sdeCategories.length > 0">
+							<button type="button" @click="sdeCat = ''; fetchSDE(1)" :class="sdeCat === '' ? 'bg-violet-600 text-white border-violet-400' : 'bg-slate-900/70 text-slate-300 border-slate-700'" class="rounded-md border px-2 py-0.5 text-[10px] font-semibold cursor-pointer">All Categories</button>
+							<template x-for="c in sdeCategories" :key="c">
+								<button type="button" @click="sdeCat = c; fetchSDE(1)" :class="sdeCat === c ? 'bg-violet-600 text-white border-violet-400' : 'bg-slate-900/70 text-slate-300 border-slate-700 hover:text-white'" class="rounded-md border px-2 py-0.5 text-[10px] font-semibold cursor-pointer" x-text="c"></button>
+							</template>
+						</div>
+					</div>
+
+					<!-- Results Grid -->
+					<div class="flex-1 overflow-y-auto p-4">
+						<div x-show="sdeLoading" class="py-12 text-center text-xs font-mono text-amber-300">Loading blueprints...</div>
+						<div x-show="!sdeLoading && sdeItems.length === 0" class="py-12 text-center text-xs text-slate-400">No blueprints match your search filter.</div>
+						<div x-show="!sdeLoading && sdeItems.length > 0" class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+							<template x-for="bp in sdeItems" :key="bp.blueprint_type_id">
+								<button
+									type="button"
+									@click="pickSDEBlueprint(bp)"
+									class="flex items-center gap-2.5 rounded-xl border border-violet-400/20 bg-slate-900/70 p-2.5 text-left hover:border-amber-300/60 hover:bg-violet-500/15 transition cursor-pointer"
+								>
+									<img
+										:src="'https://images.evetech.net/types/' + bp.product_type_id + '/icon?size=64'"
+										:alt="bp.product_name"
+										loading="lazy"
+										class="h-8 w-8 shrink-0 rounded-lg border border-violet-400/25 bg-slate-950 p-0.5 object-contain"
+										onerror="this.style.display='none'"
+									/>
+									<div class="min-w-0 flex-1">
+										<div class="truncate text-xs font-bold text-white" x-text="bp.product_name"></div>
+										<div class="mt-0.5 flex items-center gap-1.5 text-[10px] font-mono text-slate-400">
+											<span class="rounded bg-slate-800 px-1 text-amber-300" x-text="'T' + (bp.tech_level || 1)"></span>
+											<span class="truncate" x-text="bp.category"></span>
+											<span x-text="'×' + bp.product_qty_per_run"></span>
+										</div>
+									</div>
+								</button>
+							</template>
+						</div>
+					</div>
+
+					<!-- Pagination Footer -->
+					<div class="flex items-center justify-between border-t border-violet-400/20 bg-slate-950/60 px-5 py-3 text-xs font-mono text-slate-300">
+						<span x-text="sdeTotal.toLocaleString() + ' blueprints found • Page ' + sdePage + ' of ' + sdeTotalPages"></span>
+						<div class="flex gap-2">
+							<button type="button" @click="if (sdePage > 1) fetchSDE(sdePage - 1)" :disabled="sdePage <= 1" class="rounded-lg border border-slate-700 px-3 py-1 disabled:opacity-40 hover:border-amber-300/60 cursor-pointer">Prev</button>
+							<button type="button" @click="if (sdePage < sdeTotalPages) fetchSDE(sdePage + 1)" :disabled="sdePage >= sdeTotalPages" class="rounded-lg border border-slate-700 px-3 py-1 disabled:opacity-40 hover:border-amber-300/60 cursor-pointer">Next</button>
+						</div>
+					</div>
+				</div>
+			</div>
 
 			<!-- Edit Item Modal -->
 			<div x-cloak x-show="showEdit" class="fixed inset-0 z-[90] bg-slate-950/75 backdrop-blur-sm" @click="showEdit = false"></div>
@@ -388,12 +674,12 @@ templ CatalogPage(mode service.ModeInfo, items []domain.MarketItem, summary serv
 	}
 }
 
-templ CatalogTable(items []domain.MarketItem) {
+templ CatalogTable(hub domain.TradeHub, items []domain.MarketItem) {
 	<div id="catalog-table" class="tactical-panel rounded-xl overflow-hidden">
 		if len(items) == 0 {
 			<div class="p-10 text-center space-y-2">
 				<div class="text-sm font-semibold text-slate-200">No items match the current catalog filter.</div>
-				<div class="text-xs text-slate-400">Click <strong>+ Add Item</strong>, <strong>Load Sample Data</strong>, or <strong>Bulk Paste / CSV</strong> to populate your manufacturing catalog.</div>
+				<div class="text-xs text-slate-400">Click <strong>Recommend for My Capital</strong> or <strong>+ Add Item</strong> (with <strong>Browse SDE Blueprints</strong>) to populate your { hub.Name } catalog.</div>
 			</div>
 		} else {
 			<div class="overflow-x-auto">
@@ -401,7 +687,7 @@ templ CatalogTable(items []domain.MarketItem) {
 					<thead class="border-b border-violet-400/20 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400">
 						<tr>
 							<th class="px-4 py-3">Item &amp; Badges</th>
-							<th class="px-3 py-3 text-right">Jita Sell / Buy</th>
+							<th class="px-3 py-3 text-right">{ hub.Name } Sell / Buy</th>
 							<th class="px-3 py-3 text-right">Daily Vol / Batch</th>
 							<th class="px-3 py-3 text-right">Material Cost</th>
 							<th class="px-3 py-3 text-right">Est. Profit / ROI</th>
@@ -534,8 +820,8 @@ templ CatalogTable(items []domain.MarketItem) {
 											Calc
 										</a>
 										<a
-											href={ templ.SafeURL("/marketplace?hub=jita&q=" + url.QueryEscape(it.Name)) }
-											title="Inspect Live Order Book in Marketplace"
+											href={ templ.SafeURL("/marketplace?hub=" + hub.Key + "&q=" + url.QueryEscape(it.Name)) }
+											title={ "Inspect Live Order Book in " + hub.Name + " Marketplace" }
 											class="rounded border border-sky-400/35 bg-sky-500/15 px-2 py-1 text-[11px] font-semibold text-sky-200 hover:bg-sky-500/30 transition"
 										>
 											Market
@@ -559,4 +845,127 @@ templ CatalogTable(items []domain.MarketItem) {
 			</div>
 		}
 	</div>
+}
+
+templ CatalogRecommendationsPartial(res *service.CatalogRecommendResult) {
+	if res == nil {
+		<div class="tactical-panel rounded-xl p-4 text-xs text-rose-300">Unable to generate starter recommendations.</div>
+	} else {
+		<div class="tactical-panel rounded-2xl border border-emerald-400/35 p-5 space-y-4">
+			<div class="flex flex-wrap items-start justify-between gap-3">
+				<div>
+					<div class="flex flex-wrap items-center gap-2">
+						<span class="rounded-md border border-emerald-400/45 bg-emerald-500/20 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-200">
+							BEGINNER AUTO-RECOMMEND • { res.Hub.Name }
+						</span>
+						<span class="font-mono text-xs text-slate-300">
+							Capital: <strong class="text-white">{ FormatISK(res.AvailableCapital) }</strong>
+						</span>
+					</div>
+					<h2 class="mt-1.5 text-sm font-bold text-white">{ res.CapitalPhase }</h2>
+					<p class="text-[11px] text-slate-400 mt-0.5">
+						Ranked live against { res.Hub.Name } ({ res.Hub.RegionName }) prices, 7d range, CCP SDE BOM cost, and Trap Guard (auto-sized to ≤35% capital per batch).
+					</p>
+				</div>
+				<div class="flex flex-wrap items-center gap-2">
+					if res.ViableCount > 0 {
+						<form hx-post="/catalog/recommend/apply" hx-swap="none">
+							<input type="hidden" name="mode" value="all_viable"/>
+							<button type="submit" class="rounded-lg bg-emerald-400 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-emerald-300 transition cursor-pointer">
+								+ Add All Viable ({ fmt.Sprintf("%d", res.ViableCount) })
+							</button>
+						</form>
+					}
+					<button type="button" onclick="document.getElementById('catalog-recommend-panel').innerHTML = ''" class="rounded-lg border border-slate-700 px-2.5 py-1.5 text-xs text-slate-300 hover:text-white cursor-pointer">
+						Close
+					</button>
+				</div>
+			</div>
+
+			if len(res.Items) == 0 {
+				<div class="rounded-xl border border-slate-800 bg-slate-900/70 p-6 text-center text-xs text-slate-400">
+					No SDE starter blueprints found yet. Make sure Official CCP SDE is imported in <strong>Settings</strong>.
+				</div>
+			} else {
+				<div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+					for _, rec := range res.Items {
+						<div class="flex flex-col justify-between gap-3 rounded-xl border border-violet-400/25 bg-slate-950/75 p-3.5 hover:border-amber-300/45 transition">
+							<div class="space-y-2">
+								<div class="flex items-start justify-between gap-2">
+									<div class="flex items-center gap-2 min-w-0">
+										<img
+											src={ EVEItemIconURL(rec.TypeID, 64) }
+											alt={ rec.Name }
+											loading="lazy"
+											class="h-8 w-8 shrink-0 rounded-lg border border-violet-400/30 bg-slate-900 p-0.5 object-contain"
+											onerror="this.style.display='none'"
+										/>
+										<div class="min-w-0">
+											<div class="truncate text-xs font-bold text-white">{ rec.Name }</div>
+											<div class="text-[10px] font-mono text-slate-400">
+												{ fmt.Sprintf("T%d • %s • %d u/batch", rec.TechLevel, rec.Category, rec.BatchOutputQty) }
+											</div>
+										</div>
+									</div>
+									<span class={ "shrink-0 rounded px-1.5 py-0.5 font-mono text-[9px] font-bold " + TrapBadgeClass(rec.TrapStatus) }>
+										{ TrapStatusLabel(rec.TrapStatus) }
+									</span>
+								</div>
+
+								<p class="text-[10.5px] text-slate-300 leading-snug">{ rec.BeginnerReason }</p>
+
+								<div class="grid grid-cols-2 gap-1.5 rounded-lg border border-slate-800 bg-slate-900/70 p-2 font-mono text-[10px]">
+									<div>
+										<div class="text-slate-500">Batch Cost</div>
+										<div class="text-slate-200 font-semibold">{ FormatISK(rec.MaterialCost) }</div>
+									</div>
+									<div class="text-right">
+										<div class="text-slate-500">Est. Profit / ROI</div>
+										<div class={ "font-bold " + catalogProfitClass(rec.NetProfit) }>
+											{ FormatISK(rec.NetProfit) } ({ FormatPercent(rec.ROIPercent) })
+										</div>
+									</div>
+									<div>
+										<div class="text-slate-500">Rec. Sell / u</div>
+										<div class="text-emerald-300 font-semibold">{ FormatISK(rec.RecommendedSell) }</div>
+									</div>
+									<div class="text-right">
+										<div class="text-slate-500">Daily Vol</div>
+										<div class="text-sky-300 font-semibold">{ FormatVolume(rec.DailyVolume) }</div>
+									</div>
+								</div>
+								if rec.Avg7d > 0 {
+									<div class="text-[9.5px] font-mono text-slate-400">
+										{ fmt.Sprintf("7d: Low %s • Avg %s • High %s", FormatISK(rec.Low7d), FormatISK(rec.Avg7d), FormatISK(rec.High7d)) }
+									</div>
+								}
+							</div>
+
+							<div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-800/80">
+								<a
+									href={ templ.SafeURL("/marketplace?hub=" + res.Hub.Key + "&q=" + url.QueryEscape(rec.Name)) }
+									class="text-[10px] font-mono text-sky-300 hover:text-sky-200"
+								>
+									{ res.Hub.Name } Order Book →
+								</a>
+								if rec.AlreadyInCatalog {
+									<span class="rounded border border-slate-700 bg-slate-800/80 px-2 py-1 font-mono text-[10px] text-slate-400">
+										In Catalog
+									</span>
+								} else {
+									<form hx-post="/catalog/recommend/apply" hx-swap="none">
+										<input type="hidden" name="mode" value="single"/>
+										<input type="hidden" name="type_id" value={ fmt.Sprintf("%d", rec.TypeID) }/>
+										<button type="submit" class="rounded-md border border-amber-400/50 bg-amber-500/20 px-2.5 py-1 text-[10px] font-bold text-amber-200 hover:bg-amber-500/35 transition cursor-pointer">
+											+ Add to Catalog
+										</button>
+									</form>
+								}
+							</div>
+						</div>
+					}
+				</div>
+			}
+		</div>
+	}
 }

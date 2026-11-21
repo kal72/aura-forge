@@ -116,8 +116,11 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			// Catalog & Bulk Importer
 			r.Route("/catalog", func(r chi.Router) {
 				r.Get("/", h.HandleCatalog)
+				r.Post("/hub", h.HandleSetCatalogHub)
 				r.Post("/items", h.HandleSaveCatalogItem)
 				r.Delete("/items/{id}", h.HandleDeleteCatalogItem)
+				r.Post("/recommend", h.HandleCatalogRecommend)
+				r.Post("/recommend/apply", h.HandleCatalogRecommendApply)
 				r.Post("/import", h.HandleBulkImport)
 				r.Post("/sample", h.HandleLoadSampleData)
 			})

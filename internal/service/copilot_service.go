@@ -505,12 +505,14 @@ func (s *CopilotService) SyncJitaPrices(ctx context.Context) (int, error) {
 		typeIDs = append(typeIDs, id)
 	}
 
-	prices, err := s.market.GetJitaPrices(ctx, typeIDs)
+	settings, _ := s.GetSettings(ctx)
+	hub := settings.ActiveTradeHub()
+
+	prices, err := s.fetchHubPrices(ctx, hub, typeIDs)
 	if err != nil {
-		return 0, fmt.Errorf("fetching Jita prices: %w", err)
+		return 0, fmt.Errorf("fetching %s prices: %w", hub.Name, err)
 	}
 
-	settings, _ := s.GetSettings(ctx)
 	_, availCap, _ := s.resolveProfileAndCapital(ctx, *settings)
 
 	updatedCount := 0
@@ -527,20 +529,20 @@ func (s *CopilotService) SyncJitaPrices(ctx context.Context) (int, error) {
 			}
 			updatedCount++
 		}
-		if avg7, avg30, vErr := s.market.GetDailyVolume(ctx, items[i].TypeID); vErr == nil {
+		if avg7, avg30 := s.fetchHubDailyVolume(ctx, hub, items[i].TypeID); avg7 > 0 || avg30 > 0 {
 			items[i].DailyVolume = avg7
 			items[i].Volume30d = avg30
 		}
 
-		// Auto-recompute MaterialCost from Official CCP SDE BOM if blueprint exists
+		// Auto-recompute MaterialCost from Official CCP SDE BOM at the active trade hub
 		if items[i].IsManufacturable {
-			if sdeCost, ok := s.EstimateSDEMaterialCost(ctx, items[i].TypeID, items[i].BatchOutputQty, prices); ok {
+			if sdeCost, ok := s.EstimateSDEMaterialCostForHub(ctx, hub, items[i].TypeID, items[i].BatchOutputQty, prices); ok {
 				items[i].MaterialCost = sdeCost
 				items[i].TrapAnalysis.BOMSyncedFromSDE = true
 			}
 		}
 
-		avg7dPrice := s.fetchCatalogAvg7dPrice(ctx, items[i].TypeID)
+		_, avg7dPrice, _ := s.fetchHub7dRange(ctx, hub, items[i].TypeID)
 		items[i].TrapAnalysis = domain.EvaluateTrapGuardWithHistory(items[i], *settings, availCap, avg7dPrice)
 	}
 
