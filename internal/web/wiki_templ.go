@@ -221,6 +221,17 @@ var eveWikiEntries = []wikiEntry{
 	// 2. MARKET & TRADING
 	{
 		Category:   "market",
+		Term:       "Reading the Marketplace Order Book (Sell Walls, Depth Bars & Cumulative Qty)",
+		BadgeText:  "ORDER BOOK",
+		BadgeClass: "border-amber-400/45 bg-amber-500/20 text-amber-200 font-bold",
+		WhereUsed:  "Marketplace (/marketplace)",
+		DescEN:     "The Marketplace Order Book lists the Top 20 cheapest Sell Orders (amber) and Top 20 highest Buy Orders (blue) with shaded depth bars and Cum. Qty (cumulative units stacked up to that price level). A sudden jump in the amber depth bar signals a 'Sell Wall' — a giant competitor order sitting at one price that can block your sales for days. Always check Net Flip Margin (after 2× Broker Fee + Sales Tax) rather than Gross Spread alone, and click any row in the 5-Hub Comparison table to switch hubs immediately.",
+		DescID:     "Order Book di Marketplace menampilkan 20 Sell Order termurah (amber) dan 20 Buy Order tertinggi (biru) lengkap dengan visual Depth Bar serta Cum. Qty (total tumpukan unit sampai level harga tersebut). Lonjakan mendadak pada bar amber menandakan 'Sell Wall' — tembok jual raksasa milik kompetitor yang bisa menahan barang Anda tidak laku berhari-hari. Selalu perhatikan Net Flip Margin (setelah 2× Broker Fee + Sales Tax) bukan cuma Gross Spread kotor, dan klik baris mana saja di tabel 5 Trade Hub untuk langsung memeriksa Order Book hub tersebut.",
+		TipEN:      "Use the 1-click 'Copy Price' button on Recommended Buy/Sell Order prices in Marketplace to paste exact 4-sig-fig EVE ticks straight into the game.",
+		TipID:      "Gunakan tombol 'Copy Price' 1-klik pada Recommended Buy/Sell Order di Marketplace untuk langsung menempelkan harga 4 angka penting EVE ke dalam game.",
+	},
+	{
+		Category:   "market",
 		Term:       "Jita Price Range (7d Low / Avg / High) & Recommended Sell Price",
 		BadgeText:  "PRICING GUIDE",
 		BadgeClass: "border-emerald-400/45 bg-emerald-500/20 text-emerald-200 font-bold",
@@ -557,12 +568,12 @@ var eveWikiEntries = []wikiEntry{
 	},
 	{
 		Category:   "industry",
-		Term:       "Official CCP SDE (JSONL) 1-Click Import & Blueprint Catalog",
+		Term:       "Official CCP SDE (JSONL) 1-Click Import & Full Market Catalog",
 		BadgeText:  "FULL SDE",
 		BadgeClass: "border-amber-400/50 bg-amber-500/20 text-amber-200 font-bold",
-		WhereUsed:  "Settings → Official EVE Online SDE & Calculator → Browse Catalog",
-		DescEN:     "EVE Online's Public ESI API does not provide blueprint recipes — all recipes come from CCP's official Static Data Export (JSONL archive at developers.eveonline.com/static-data/). Go to Settings and click 'Import Full Official CCP SDE' to load all ~5,000+ Manufacturing & Reaction blueprints into PostgreSQL with 0 ESI calls, then browse them via the categorized, paginated Blueprint Catalog Popup in Calculator.",
-		DescID:     "Public API ESI EVE Online tidak menyediakan resep blueprint — seluruh resep berasal dari Static Data Export resmi CCP (arsip JSONL di developers.eveonline.com/static-data/). Buka Settings lalu klik 'Import Full Official CCP SDE' untuk memuat seluruh ~5.000+ blueprint Manufacturing & Reaction ke PostgreSQL (0 call ESI), lalu cari lewat Popup Katalog Blueprint berkategori & berpaginasi di Calculator.",
+		WhereUsed:  "Settings → Official EVE Online SDE, Calculator & Marketplace → Browse by Type",
+		DescEN:     "CCP's official Static Data Export (JSONL archive at developers.eveonline.com/static-data/) powers both ~5,000+ Manufacturing/Reaction blueprints and 100% of published tradable EVE Market items (~16,000–18,000 items including Ships, Modules, Ammunition, Blueprints, Minerals, Ore & Ice, PI, Implants, Skills, Structures, PLEX & SKINs). Click 'Import Full Official CCP SDE' in Settings once (0 ESI calls), then browse every item offline-fast by Type/Category & Sub-Group in Marketplace or Calculator.",
+		DescID:     "Static Data Export resmi CCP (arsip JSONL di developers.eveonline.com/static-data/) memuat ~5.000+ blueprint Manufacturing/Reaction sekaligus 100% item yang bisa diperjualbelikan di Market EVE (~16.000–18.000 item termasuk Ships, Modules, Ammunition, Blueprints, Minerals, Ore & Ice, PI, Implants, Skills, Structures, PLEX & SKINs). Klik 'Import Full Official CCP SDE' di Settings sekali saja (0 call ESI), lalu jelajahi semua item per Kategori & Sub-Group secara instan di Marketplace maupun Calculator.",
 		TipEN:      "Re-sync the Official CCP SDE in Settings whenever CCP releases a major game expansion to get new ships and updated recipes.",
 		TipID:      "Lakukan Re-Sync Official CCP SDE di Settings setiap kali CCP merilis ekspansi besar untuk mendapatkan kapal baru dan resep terbaru.",
 	},
@@ -715,7 +726,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(searchBlob)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 762, Col: 30}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 773, Col: 30}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -728,7 +739,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs("matches('" + item.Category + "', $el.dataset.search)")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 763, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 774, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -741,7 +752,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(item.Term)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 768, Col: 73}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 779, Col: 73}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -776,7 +787,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(item.BadgeText)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 770, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 781, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
@@ -789,7 +800,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(item.WhereUsed)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 774, Col: 24}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 785, Col: 24}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
@@ -802,7 +813,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 777, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 788, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -815,7 +826,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 780, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 791, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -828,7 +839,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 786, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 797, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
@@ -841,7 +852,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 787, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 798, Col: 56}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {

@@ -83,9 +83,31 @@ type MarketplaceSnapshot struct {
 	AvgDailyVolume7d  float64                `json:"avg_daily_volume_7d"`
 	AvgDailyVolume30d float64                `json:"avg_daily_volume_30d"`
 	EstimatedDailyISK float64                `json:"estimated_daily_isk"`
-	SellOrders        []MarketOrderBookEntry `json:"sell_orders"`
-	BuyOrders         []MarketOrderBookEntry `json:"buy_orders"`
-	History           []MarketHistoryPoint   `json:"history"`
-	HubComparisons    []HubPriceSummary      `json:"hub_comparisons"`
-	UpdatedAt         time.Time              `json:"updated_at"`
+
+	// v2 Trading & Price Intelligence
+	Avg7dPrice           float64  `json:"avg_7d_price"`
+	Low7dPrice           float64  `json:"low_7d_price"`
+	High7dPrice          float64  `json:"high_7d_price"`
+	Change7dPct          float64  `json:"change_7d_pct"`
+	PriceSignal          string   `json:"price_signal"` // CHEAP | FAIR | HIGH | SPIKE
+	RoundTripFeePct      float64  `json:"round_trip_fee_pct"`
+	NetFlipProfitUnit    float64  `json:"net_flip_profit_unit"`
+	NetFlipMarginPct     float64  `json:"net_flip_margin_pct"`
+	RecommendedBuyOrder  float64  `json:"recommended_buy_order"`
+	RecommendedSellOrder float64  `json:"recommended_sell_order"`
+	BestArbOriginHub     TradeHub `json:"best_arb_origin_hub"`
+	BestArbDestHub       TradeHub `json:"best_arb_dest_hub"`
+	BestArbOriginSell    float64  `json:"best_arb_origin_sell"`
+	BestArbDestSell      float64  `json:"best_arb_dest_sell"`
+	BestArbNetMarginPct  float64  `json:"best_arb_net_margin_pct"`
+	HasBlueprint         bool     `json:"has_blueprint"`
+	BlueprintTypeID      int32    `json:"blueprint_type_id"`
+	EstCraftUnitCost     float64  `json:"est_craft_unit_cost"`
+	CraftSavingsPct      float64  `json:"craft_savings_pct"`
+
+	SellOrders     []MarketOrderBookEntry `json:"sell_orders"`
+	BuyOrders      []MarketOrderBookEntry `json:"buy_orders"`
+	History        []MarketHistoryPoint   `json:"history"`
+	HubComparisons []HubPriceSummary      `json:"hub_comparisons"`
+	UpdatedAt      time.Time              `json:"updated_at"`
 }

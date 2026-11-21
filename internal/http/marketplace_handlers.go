@@ -15,7 +15,7 @@ func (h *Handlers) HandleMarketplace(w http.ResponseWriter, r *http.Request) {
 	query := strings.TrimSpace(r.URL.Query().Get("q"))
 	hubKey := strings.TrimSpace(r.URL.Query().Get("hub"))
 	if hubKey == "" {
-		hubKey = "jita"
+		hubKey = h.svc.ActiveCatalogHub(r.Context()).Key
 	}
 
 	var (
@@ -43,7 +43,7 @@ func (h *Handlers) HandleMarketplaceSearch(w http.ResponseWriter, r *http.Reques
 	query := strings.TrimSpace(r.URL.Query().Get("q"))
 	hubKey := strings.TrimSpace(r.URL.Query().Get("hub"))
 	if hubKey == "" {
-		hubKey = "jita"
+		hubKey = h.svc.ActiveCatalogHub(r.Context()).Key
 	}
 
 	snap, err := h.svc.GetMarketplaceSnapshot(r.Context(), query, hubKey, true)
@@ -59,10 +59,33 @@ func (h *Handlers) HandleMarketplaceSearch(w http.ResponseWriter, r *http.Reques
 	_ = h.renderer.RenderMarketplaceResults(w, r, snap, errMsg)
 }
 
+// HandleMarketplaceAutocomplete returns fast local SDE type matches (0 ESI calls) for the search box.
+func (h *Handlers) HandleMarketplaceAutocomplete(w http.ResponseWriter, r *http.Request) {
+	q := strings.TrimSpace(r.URL.Query().Get("q"))
+	items := h.svc.SearchMarketplaceTypes(r.Context(), q, 12)
+	h.writeJSON(w, http.StatusOK, items)
+}
+
+// HandleMarketplaceBrowse returns paginated EVE market items grouped by category & sub-group from local PostgreSQL sde_types (0 ESI calls).
+func (h *Handlers) HandleMarketplaceBrowse(w http.ResponseWriter, r *http.Request) {
+	q := strings.TrimSpace(r.URL.Query().Get("q"))
+	category := strings.TrimSpace(r.URL.Query().Get("category"))
+	groupName := strings.TrimSpace(r.URL.Query().Get("group"))
+	page := parseIntDefault(r.URL.Query().Get("page"), 1)
+	limit := parseIntDefault(r.URL.Query().Get("limit"), 24)
+
+	res, err := h.svc.BrowseMarketplaceTypes(r.Context(), q, category, groupName, page, limit)
+	if err != nil {
+		h.writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+	h.writeJSON(w, http.StatusOK, res)
+}
+
 // HandleMarketplaceAddCatalog adds an item inspected in Marketplace directly into Catalog & Trap Guard.
 func (h *Handlers) HandleMarketplaceAddCatalog(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Form tidak valid", http.StatusBadRequest)
+		http.Error(w, "Invalid form payload", http.StatusBadRequest)
 		return
 	}
 

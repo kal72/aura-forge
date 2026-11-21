@@ -120,6 +120,12 @@ type SDEExtendedRepository interface {
 	SaveSDEMetadata(ctx context.Context, meta *SDEMetadata) error
 }
 
+// SDETypeSearchRepository is an optional extension on SDERepository for fast local Marketplace autocomplete & type browsing.
+type SDETypeSearchRepository interface {
+	SearchTypes(ctx context.Context, query string, limit int) ([]SDEType, error)
+	BrowseTypesPaged(ctx context.Context, query, category, groupName string, page, pageSize int) (*MarketTypePageResult, error)
+}
+
 // NetWorthRepository specifies storage operations for daily Net Worth tracking snapshots.
 type NetWorthRepository interface {
 	ListSnapshots(ctx context.Context, limit int) ([]NetWorthSnapshot, error)

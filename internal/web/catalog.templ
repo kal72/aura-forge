@@ -523,8 +523,8 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 			@CatalogTable(hub, items)
 
 			<!-- SDE Blueprint Picker Modal -->
-			<div x-cloak x-show="showSDEModal" class="fixed inset-0 z-[90] bg-slate-950/75 backdrop-blur-sm" @click="showSDEModal = false"></div>
-			<div x-cloak x-show="showSDEModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-none">
+			<div x-cloak x-show="showSDEModal" style="margin-top: 0;" class="fixed inset-0 z-[90] bg-slate-950/75 backdrop-blur-sm" @click="showSDEModal = false"></div>
+			<div x-cloak x-show="showSDEModal" style="margin-top: 0;" class="fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-none">
 				<div class="tactical-panel w-full max-w-4xl max-h-[86vh] flex flex-col rounded-2xl border border-violet-400/45 bg-[#121329]/95 shadow-2xl pointer-events-auto overflow-hidden">
 					<div class="flex items-center justify-between gap-3 border-b border-violet-400/20 px-5 py-4">
 						<div>
@@ -602,8 +602,8 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 			</div>
 
 			<!-- Edit Item Modal -->
-			<div x-cloak x-show="showEdit" class="fixed inset-0 z-[90] bg-slate-950/75 backdrop-blur-sm" @click="showEdit = false"></div>
-			<div x-cloak x-show="showEdit" class="fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-none">
+			<div x-cloak x-show="showEdit" style="margin-top: 0;" class="fixed inset-0 z-[90] bg-slate-950/75 backdrop-blur-sm" @click="showEdit = false"></div>
+			<div x-cloak x-show="showEdit" style="margin-top: 0;" class="fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-none">
 				<div class="tactical-panel w-full max-w-2xl rounded-2xl border border-violet-400/40 bg-[#121329]/95 p-6 shadow-2xl pointer-events-auto space-y-4">
 					<div class="flex items-center justify-between border-b border-violet-400/20 pb-3">
 						<div>

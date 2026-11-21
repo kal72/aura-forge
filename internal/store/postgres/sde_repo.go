@@ -59,6 +59,161 @@ func (r *SDERepo) SearchBlueprints(ctx context.Context, query, category string, 
 	return out, rows.Err()
 }
 
+// SearchTypes searches sde_types for instant local Marketplace autocomplete (0 ESI calls).
+// Prioritizes exact/prefix matches and non-blueprint tradable items first.
+func (r *SDERepo) SearchTypes(ctx context.Context, query string, limit int) ([]domain.SDEType, error) {
+	query = strings.TrimSpace(query)
+	if len(query) < 2 {
+		return []domain.SDEType{}, nil
+	}
+	if limit <= 0 || limit > 30 {
+		limit = 12
+	}
+
+	rows, err := r.pool.Query(ctx, `
+		SELECT type_id, name, group_name, category, volume_m3, portion_size
+		FROM sde_types
+		WHERE LOWER(name) LIKE '%' || LOWER($1) || '%'
+		ORDER BY
+			CASE WHEN LOWER(name) = LOWER($1) THEN 0
+			     WHEN LOWER(name) LIKE LOWER($1) || '%' THEN 1
+			     ELSE 2 END ASC,
+			CASE WHEN LOWER(name) LIKE '%blueprint%' THEN 1 ELSE 0 END ASC,
+			LENGTH(name) ASC,
+			name ASC
+		LIMIT $2
+	`, query, limit)
+	if err != nil {
+		return nil, fmt.Errorf("searching sde_types: %w", err)
+	}
+	defer rows.Close()
+
+	out := make([]domain.SDEType, 0, limit)
+	for rows.Next() {
+		var t domain.SDEType
+		if err := rows.Scan(&t.TypeID, &t.Name, &t.GroupName, &t.Category, &t.VolumeM3, &t.PortionSize); err != nil {
+			return nil, fmt.Errorf("scanning sde_type: %w", err)
+		}
+		out = append(out, t)
+	}
+	return out, rows.Err()
+}
+
+// BrowseTypesPaged queries sde_types with optional search query, category, and group_name filters,
+// returning paginated results along with category counts and sub-group facets (0 ESI calls).
+func (r *SDERepo) BrowseTypesPaged(ctx context.Context, query, category, groupName string, page, pageSize int) (*domain.MarketTypePageResult, error) {
+	query = strings.TrimSpace(query)
+	category = strings.TrimSpace(category)
+	groupName = strings.TrimSpace(groupName)
+	if page < 1 {
+		page = 1
+	}
+	if pageSize <= 0 || pageSize > 60 {
+		pageSize = 24
+	}
+
+	// 1. Total matching items
+	var total int
+	err := r.pool.QueryRow(ctx, `
+		SELECT COUNT(*)
+		FROM sde_types
+		WHERE ($1 = '' OR LOWER(name) LIKE '%' || LOWER($1) || '%' OR LOWER(group_name) LIKE '%' || LOWER($1) || '%')
+		  AND ($2 = '' OR LOWER(category) = LOWER($2))
+		  AND ($3 = '' OR LOWER(group_name) = LOWER($3))
+	`, query, category, groupName).Scan(&total)
+	if err != nil {
+		return nil, fmt.Errorf("counting sde_types: %w", err)
+	}
+
+	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
+	if totalPages < 1 {
+		totalPages = 1
+	}
+	if page > totalPages {
+		page = totalPages
+	}
+	offset := (page - 1) * pageSize
+
+	// 2. Paginated item rows
+	rows, err := r.pool.Query(ctx, `
+		SELECT type_id, name, group_name, category, volume_m3, portion_size
+		FROM sde_types
+		WHERE ($1 = '' OR LOWER(name) LIKE '%' || LOWER($1) || '%' OR LOWER(group_name) LIKE '%' || LOWER($1) || '%')
+		  AND ($2 = '' OR LOWER(category) = LOWER($2))
+		  AND ($3 = '' OR LOWER(group_name) = LOWER($3))
+		ORDER BY
+			CASE WHEN $1 <> '' AND LOWER(name) LIKE LOWER($1) || '%' THEN 0 ELSE 1 END ASC,
+			name ASC
+		LIMIT $4 OFFSET $5
+	`, query, category, groupName, pageSize, offset)
+	if err != nil {
+		return nil, fmt.Errorf("browsing sde_types: %w", err)
+	}
+	defer rows.Close()
+
+	items := make([]domain.SDEType, 0, pageSize)
+	for rows.Next() {
+		var t domain.SDEType
+		if err := rows.Scan(&t.TypeID, &t.Name, &t.GroupName, &t.Category, &t.VolumeM3, &t.PortionSize); err != nil {
+			return nil, fmt.Errorf("scanning sde_type browse row: %w", err)
+		}
+		items = append(items, t)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	// 3. Category facet counts across all sde_types
+	catRows, err := r.pool.Query(ctx, `
+		SELECT category, COUNT(*) AS cnt
+		FROM sde_types
+		WHERE category <> ''
+		GROUP BY category
+		ORDER BY cnt DESC, category ASC
+	`)
+	categories := make([]domain.CategoryCount, 0, 16)
+	if err == nil {
+		defer catRows.Close()
+		for catRows.Next() {
+			var cc domain.CategoryCount
+			if catRows.Scan(&cc.Category, &cc.Count) == nil {
+				categories = append(categories, cc)
+			}
+		}
+	}
+
+	// 4. Sub-group facet list when a specific category is selected
+	groups := make([]string, 0, 32)
+	if category != "" {
+		gRows, gErr := r.pool.Query(ctx, `
+			SELECT DISTINCT group_name
+			FROM sde_types
+			WHERE LOWER(category) = LOWER($1) AND group_name <> ''
+			ORDER BY group_name ASC
+			LIMIT 200
+		`, category)
+		if gErr == nil {
+			defer gRows.Close()
+			for gRows.Next() {
+				var g string
+				if gRows.Scan(&g) == nil {
+					groups = append(groups, g)
+				}
+			}
+		}
+	}
+
+	return &domain.MarketTypePageResult{
+		Items:      items,
+		Total:      total,
+		Page:       page,
+		PageSize:   pageSize,
+		TotalPages: totalPages,
+		Categories: categories,
+		Groups:     groups,
+	}, nil
+}
+
 func (r *SDERepo) GetBlueprintByID(ctx context.Context, blueprintTypeID int32) (*domain.SDEBlueprint, error) {
 	var bp domain.SDEBlueprint
 	err := r.pool.QueryRow(ctx, `

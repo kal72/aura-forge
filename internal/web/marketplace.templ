@@ -13,16 +13,7 @@ func buildHistorySparklinePoints(history []domain.MarketHistoryPoint) string {
 	if len(history) < 2 {
 		return ""
 	}
-	minVal := math.MaxFloat64
-	maxVal := 0.0
-	for _, h := range history {
-		if h.Average > 0 && h.Average < minVal {
-			minVal = h.Average
-		}
-		if h.Average > maxVal {
-			maxVal = h.Average
-		}
-	}
+	minVal, maxVal := historyMinMax(history)
 	if maxVal <= 0 || minVal == math.MaxFloat64 {
 		return ""
 	}
@@ -44,6 +35,37 @@ func buildHistorySparklinePoints(history []domain.MarketHistoryPoint) string {
 		pts = append(pts, fmt.Sprintf("%.1f,%.1f", x, y))
 	}
 	return strings.Join(pts, " ")
+}
+
+func historyMinMax(history []domain.MarketHistoryPoint) (minVal, maxVal float64) {
+	minVal = math.MaxFloat64
+	for _, h := range history {
+		if h.Average > 0 && h.Average < minVal {
+			minVal = h.Average
+		}
+		if h.Average > maxVal {
+			maxVal = h.Average
+		}
+	}
+	if minVal == math.MaxFloat64 {
+		minVal = 0
+	}
+	return minVal, maxVal
+}
+
+func historyAvg30d(history []domain.MarketHistoryPoint) float64 {
+	sum := 0.0
+	cnt := 0
+	for _, h := range history {
+		if h.Average > 0 {
+			sum += h.Average
+			cnt++
+		}
+	}
+	if cnt == 0 {
+		return 0
+	}
+	return sum / float64(cnt)
 }
 
 func findBestHubPrices(hubs []domain.HubPriceSummary) (bestSell, bestBuy float64) {
@@ -86,44 +108,246 @@ func formatInt64(v int64) string {
 	return fmt.Sprintf("%d", v)
 }
 
+type orderDepthRow struct {
+	Order      domain.MarketOrderBookEntry
+	CumQty     int64
+	DepthPct   float64
+	TotalValue float64
+}
+
+func buildOrderDepthRows(orders []domain.MarketOrderBookEntry) []orderDepthRow {
+	rows := make([]orderDepthRow, 0, len(orders))
+	var cum int64
+	for _, o := range orders {
+		cum += int64(o.VolumeRemain)
+		rows = append(rows, orderDepthRow{
+			Order:      o,
+			CumQty:     cum,
+			TotalValue: o.Price * float64(o.VolumeRemain),
+		})
+	}
+	if cum > 0 {
+		for i := range rows {
+			rows[i].DepthPct = math.Min(100, (float64(rows[i].CumQty)/float64(cum))*100.0)
+		}
+	}
+	return rows
+}
+
+func marketplaceSignalClass(sig string) string {
+	switch sig {
+	case "SPIKE":
+		return "border-amber-400/60 bg-amber-500/25 text-amber-200"
+	case "HIGH":
+		return "border-rose-400/50 bg-rose-500/20 text-rose-200"
+	case "CHEAP":
+		return "border-emerald-400/50 bg-emerald-500/20 text-emerald-200"
+	default:
+		return "border-slate-500/40 bg-slate-700/35 text-slate-200"
+	}
+}
+
 templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, presets []service.MarketplacePreset, snap *domain.MarketplaceSnapshot, errMsg string) {
 	@Layout("Marketplace", "marketplace", mode) {
-		<div class="space-y-6" x-data={ fmt.Sprintf("{ isAdmin: %t }", mode.IsAdmin()) }>
+		<div
+			class="space-y-6"
+			x-data={ fmt.Sprintf(`{
+				isAdmin: %t,
+				queryText: %q,
+				selectedHub: %q,
+				suggestions: [],
+				showSuggest: false,
+				suggestTimer: null,
+				showBrowse: false,
+				browseLoading: false,
+				browseQuery: '',
+				browseCat: '',
+				browseGroup: '',
+				browsePage: 1,
+				browseTotal: 0,
+				browseTotalPages: 1,
+				browseCategories: [],
+				browseGroups: [],
+				browseItems: [],
+				browseTimer: null,
+				debounceSuggest() {
+					clearTimeout(this.suggestTimer);
+					const q = (this.queryText || '').trim();
+					if (q.length < 2) {
+						this.suggestions = [];
+						this.showSuggest = false;
+						return;
+					}
+					this.suggestTimer = setTimeout(async () => {
+						try {
+							const r = await fetch('/marketplace/autocomplete?q=' + encodeURIComponent(q));
+							if (r.ok) {
+								this.suggestions = await r.json();
+								this.showSuggest = this.suggestions.length > 0;
+							}
+						} catch (e) {}
+					}, 160);
+				},
+				openBrowseModal() {
+					this.showBrowse = true;
+					if (this.browseItems.length === 0) {
+						this.loadBrowse(1);
+					}
+				},
+				selectBrowseCat(cat) {
+					this.browseCat = cat;
+					this.browseGroup = '';
+					this.loadBrowse(1);
+				},
+				debounceBrowse() {
+					clearTimeout(this.browseTimer);
+					this.browseTimer = setTimeout(() => this.loadBrowse(1), 200);
+				},
+				async loadBrowse(page) {
+					this.browseLoading = true;
+					this.browsePage = page;
+					try {
+						const params = new URLSearchParams({
+							q: this.browseQuery,
+							category: this.browseCat,
+							group: this.browseGroup,
+							page: String(page),
+							limit: '24'
+						});
+						const r = await fetch('/marketplace/browse?' + params.toString());
+						if (r.ok) {
+							const d = await r.json();
+							this.browseItems = d.items || [];
+							this.browseTotal = d.total || 0;
+							this.browseTotalPages = d.total_pages || 1;
+							if (d.categories && d.categories.length) this.browseCategories = d.categories;
+							this.browseGroups = d.groups || [];
+						}
+					} finally {
+						this.browseLoading = false;
+					}
+				},
+				itemIconURL(it) {
+					if (!it || !it.type_id) return '';
+					const cat = (it.category || '').toLowerCase();
+					const name = (it.name || '').toLowerCase();
+					if (cat === 'blueprints' || name.endsWith(' blueprint') || name.endsWith(' reaction formula')) {
+						return 'https://images.evetech.net/types/' + it.type_id + '/bp?size=64';
+					}
+					return 'https://images.evetech.net/types/' + it.type_id + '/icon?size=64';
+				},
+				handleIconError(img, it) {
+					const step = img.dataset.fallbackStep || '0';
+					if (step === '0' && it && it.type_id) {
+						img.dataset.fallbackStep = '1';
+						img.src = img.src.includes('/bp?')
+							? 'https://images.evetech.net/types/' + it.type_id + '/icon?size=64'
+							: 'https://images.evetech.net/types/' + it.type_id + '/render?size=64';
+						return;
+					}
+					img.style.display = 'none';
+					if (img.nextElementSibling) img.nextElementSibling.style.display = 'flex';
+				},
+				pickBrowseItem(item) {
+					if (!item || !item.name) return;
+					this.showBrowse = false;
+					this.runSearch(item.name, this.selectedHub);
+				},
+				runSearch(name, hub) {
+					if (name) this.queryText = name;
+					if (hub) this.selectedHub = hub;
+					this.showSuggest = false;
+					const q = (this.queryText || '').trim();
+					if (!q) return;
+					htmx.ajax('GET', '/marketplace/search?q=' + encodeURIComponent(q) + '&hub=' + encodeURIComponent(this.selectedHub), {
+						target: '#marketplace-results',
+						swap: 'innerHTML',
+						indicator: '#mp-search-spinner'
+					});
+				},
+				copyPrice(val, label) {
+					if (!val) return;
+					navigator.clipboard.writeText(String(val)).then(() => {
+						window.dispatchEvent(new CustomEvent('showToast', { detail: { level: 'success', message: label + ' copied (' + Number(val).toLocaleString() + ' ISK)' } }));
+					});
+				}
+			}`, mode.IsAdmin(), query, hubKey) }
+			@keydown.escape.window="showBrowse = false"
+			@mp-switch-hub.window="runSearch($event.detail.name, $event.detail.hub)"
+			@mp-copy-price.window="copyPrice($event.detail.val, $event.detail.label)"
+		>
 			<!-- Header -->
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-white">New Eden Marketplace Browser</h1>
-					<p class="text-xs text-slate-300/80 mt-0.5">Explore live Order Books, 5-hub price comparisons (Jita, Amarr, Dodixie, Rens, Hek), and 30-day price history directly from Public ESI.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">Live SDE autocomplete, parallel 5-hub comparisons (Jita, Amarr, Dodixie, Rens, Hek), Net Flip &amp; Craft intelligence, and Order Book depth.</p>
 				</div>
 				<span class="rounded-full border border-emerald-400/35 bg-emerald-500/15 px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-emerald-200">
-					Public ESI • Cached PostgreSQL
+					Public ESI • Parallel Cached
 				</span>
 			</div>
 
 			<!-- Search & Trade Hub Filter Panel -->
-			<div class="tactical-panel rounded-xl p-5 space-y-4">
+			<div class="tactical-panel relative z-30 rounded-xl p-5 space-y-4">
 				<form
-					hx-get="/marketplace/search"
-					hx-target="#marketplace-results"
-					hx-swap="innerHTML"
-					hx-indicator="#mp-search-spinner"
+					@submit.prevent="runSearch(queryText, selectedHub)"
 					class="grid grid-cols-1 gap-3 sm:grid-cols-12"
 				>
-					<div class="sm:col-span-7">
-						<label class="block text-[10px] font-mono uppercase tracking-wider text-slate-300 mb-1">Exact EVE Online Item Name or Type ID</label>
-						<input
-							id="mp-query-input"
-							type="text"
-							name="q"
-							value={ query }
-							required
-							placeholder="e.g. PLEX, Tritanium, Hobgoblin II, Venture, Catalyst..."
-							class="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none"
-						/>
+					<div class="sm:col-span-7 relative" @click.outside="showSuggest = false">
+						<label class="block text-[10px] font-mono uppercase tracking-wider text-slate-300 mb-1">Search Any EVE Online Item (Live SDE Autocomplete, Browse Catalog, or Type ID)</label>
+						<div class="flex gap-2">
+							<input
+								id="mp-query-input"
+								type="text"
+								name="q"
+								x-model="queryText"
+								@input="debounceSuggest()"
+								@focus="if (suggestions.length > 0) showSuggest = true"
+								autocomplete="off"
+								required
+								placeholder="Type partial name e.g. hobgob, shield extender, venture, plex..."
+								class="flex-1 min-w-0 rounded-lg border border-slate-700 bg-slate-900/90 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none"
+							/>
+							<button
+								type="button"
+								@click="openBrowseModal()"
+								class="shrink-0 rounded-lg border border-violet-400/50 bg-violet-500/20 px-3.5 py-2.5 text-xs font-bold text-violet-100 hover:bg-violet-500/35 hover:border-amber-300/60 transition cursor-pointer"
+							>
+								Browse Catalog
+							</button>
+						</div>
+						<!-- Live Autocomplete Dropdown -->
+						<div
+							x-cloak
+							x-show="showSuggest && suggestions.length > 0"
+							class="absolute left-0 right-0 top-full z-50 mt-1 max-h-72 overflow-y-auto rounded-xl border border-violet-400/40 bg-[#121329]/95 shadow-2xl backdrop-blur"
+						>
+							<template x-for="item in suggestions" :key="item.type_id + '-' + item.name">
+								<button
+									type="button"
+									@click="runSearch(item.name, selectedHub)"
+									class="flex w-full items-center gap-2.5 border-b border-violet-400/10 px-3 py-2 text-left hover:bg-violet-500/20 transition cursor-pointer"
+								>
+									<img
+										x-show="item.type_id > 0"
+										:src="itemIconURL(item)"
+										:alt="item.name"
+										class="h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950 object-contain"
+										@error="handleIconError($el, item)"
+									/>
+									<div style="display:none" class="h-6 w-6 shrink-0 items-center justify-center rounded border border-violet-400/25 bg-slate-900 font-mono text-[8px] font-bold text-violet-300" x-text="(item.category || 'EV').slice(0,2).toUpperCase()"></div>
+									<div class="min-w-0 flex-1">
+										<div class="truncate text-xs font-semibold text-white" x-text="item.name"></div>
+										<div class="text-[10px] font-mono text-slate-400" x-text="(item.category || 'Item') + (item.group_name ? ' • ' + item.group_name : '')"></div>
+									</div>
+									<span x-show="item.type_id > 0" class="font-mono text-[10px] text-slate-500" x-text="'#' + item.type_id"></span>
+								</button>
+							</template>
+						</div>
 					</div>
 					<div class="sm:col-span-3">
 						<label class="block text-[10px] font-mono uppercase tracking-wider text-slate-300 mb-1">Primary Trade Hub</label>
-						<select name="hub" class="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2.5 text-sm text-white">
+						<select name="hub" x-model="selectedHub" @change="if ((queryText || '').trim()) runSearch(queryText, selectedHub)" class="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2.5 text-sm text-white">
 							for _, h := range domain.MajorTradeHubs {
 								<option value={ h.Key } selected?={ hubKey == h.Key }>{ h.Name } ({ h.RegionName })</option>
 							}
@@ -140,17 +364,14 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 					</div>
 				</form>
 
-				<!-- 1-Click Popular Item Presets -->
+				<!-- 1-Click Popular Item Presets (Always respects selectedHub!) -->
 				<div class="flex flex-wrap items-center gap-1.5 pt-1 border-t border-violet-400/15">
 					<span class="text-[10px] font-mono uppercase tracking-wider text-slate-400 mr-1">Quick:</span>
 					for _, p := range presets {
 						<button
 							type="button"
-							hx-get={ "/marketplace/search?q=" + p.Name + "&hub=" + hubKey }
-							hx-target="#marketplace-results"
-							hx-swap="innerHTML"
-							hx-indicator="#mp-search-spinner"
-							onclick={ templ.ComponentScript{Call: fmt.Sprintf("document.getElementById('mp-query-input').value=%q", p.Name)} }
+							data-name={ p.Name }
+							@click="runSearch($el.dataset.name, selectedHub)"
 							class="rounded-md border border-violet-400/30 bg-violet-500/15 px-2.5 py-1 text-[11px] font-medium text-violet-100 hover:border-amber-300/50 hover:bg-amber-400/15 hover:text-amber-200 transition cursor-pointer"
 						>
 							{ p.Name }
@@ -163,6 +384,114 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 			<div id="marketplace-results">
 				@MarketplaceResultsPartial(snap, errMsg)
 			</div>
+
+			<!-- EVE Online Market Catalog Modal Popup (0 ESI calls — local PostgreSQL sde_types) -->
+			<template x-teleport="body">
+				<div x-cloak x-show="showBrowse" class="fixed inset-0 z-[100] flex items-center justify-center p-4" style="margin-top: 0;">
+					<div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" @click="showBrowse = false"></div>
+					<div class="relative z-10 tactical-panel w-full max-w-5xl max-h-[88vh] flex flex-col rounded-2xl border border-violet-400/45 bg-[#121329]/95 shadow-2xl overflow-hidden">
+					<!-- Modal Header -->
+					<div class="flex items-center justify-between gap-3 border-b border-violet-400/20 px-5 py-4">
+						<div>
+							<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">EVE Online Market Catalog (Browse by Type)</h2>
+							<p class="text-[11px] text-slate-400 mt-0.5">Browse all published CCP SDE market items by category &amp; sub-group (0 ESI calls) — click any item to inspect its live Order Book.</p>
+						</div>
+						<button type="button" @click="showBrowse = false" class="rounded-lg border border-slate-700 px-2.5 py-1 text-xs text-slate-300 hover:text-white cursor-pointer">✕</button>
+					</div>
+
+					<!-- Search, Sub-Group & Category Pills -->
+					<div class="border-b border-violet-400/15 bg-slate-950/40 px-5 py-3.5 space-y-3">
+						<div class="grid grid-cols-1 gap-2.5 sm:grid-cols-12">
+							<div class="sm:col-span-7">
+								<input
+									type="text"
+									x-model="browseQuery"
+									@input="debounceBrowse()"
+									placeholder="Search item or group (e.g. Scourge, Blueprint, Frigate, Shield, Veldspar, PLEX)..."
+									class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none"
+								/>
+							</div>
+							<div class="sm:col-span-5">
+								<select
+									x-model="browseGroup"
+									@change="loadBrowse(1)"
+									:disabled="browseGroups.length === 0"
+									class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white disabled:opacity-50"
+								>
+									<option value="" x-text="browseCat ? 'All Sub-Groups in ' + browseCat : 'Select a Category to filter Sub-Groups'"></option>
+									<template x-for="g in browseGroups" :key="g">
+										<option :value="g" x-text="g"></option>
+									</template>
+								</select>
+							</div>
+						</div>
+
+						<!-- Category Pills -->
+						<div class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
+							<button
+								type="button"
+								@click="selectBrowseCat('')"
+								:class="browseCat === '' ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold' : 'bg-slate-900/70 text-slate-300 border-slate-700 hover:text-white'"
+								class="rounded-md border px-2.5 py-1 text-[10.5px] transition cursor-pointer"
+							>
+								All Types
+							</button>
+							<template x-for="c in browseCategories" :key="c.category">
+								<button
+									type="button"
+									@click="selectBrowseCat(c.category)"
+									:class="browseCat === c.category ? 'bg-violet-600 text-white border-violet-300 font-bold' : 'bg-slate-900/70 text-slate-300 border-slate-700 hover:text-white'"
+									class="rounded-md border px-2.5 py-1 text-[10.5px] transition cursor-pointer"
+								>
+									<span x-text="c.category"></span>
+									<span class="ml-1 font-mono text-[9.5px] opacity-75" x-text="'(' + c.count.toLocaleString() + ')'"></span>
+								</button>
+							</template>
+						</div>
+					</div>
+
+					<!-- Scrollable Results Grid -->
+					<div class="flex-1 overflow-y-auto p-4">
+						<div x-show="browseLoading" class="py-12 text-center text-xs font-mono text-amber-300">Loading market items...</div>
+						<div x-show="!browseLoading && browseItems.length === 0" class="py-12 text-center text-xs text-slate-400">
+							No items match this filter. Try another category or run <strong>Re-Sync Official CCP SDE</strong> in Settings to load all ~16,000+ market items.
+						</div>
+						<div x-show="!browseLoading && browseItems.length > 0" class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+							<template x-for="it in browseItems" :key="it.type_id + '-' + it.name">
+								<button
+									type="button"
+									@click="pickBrowseItem(it)"
+									class="flex items-center gap-2.5 rounded-xl border border-violet-400/20 bg-slate-900/75 p-2.5 text-left hover:border-amber-300/60 hover:bg-violet-500/15 transition cursor-pointer"
+								>
+									<img
+										x-show="it.type_id > 0"
+										:src="itemIconURL(it)"
+										:alt="it.name"
+										loading="lazy"
+										class="h-8 w-8 shrink-0 rounded-lg border border-violet-400/25 bg-slate-950 p-0.5 object-contain"
+										@error="handleIconError($el, it)"
+									/>
+									<div style="display:none" class="h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-violet-400/25 bg-slate-900 font-mono text-[9px] font-bold text-violet-300" x-text="(it.category || 'EV').slice(0,2).toUpperCase()"></div>
+									<div class="min-w-0 flex-1">
+										<div class="truncate text-xs font-bold text-white" x-text="it.name"></div>
+										<div class="mt-0.5 truncate font-mono text-[10px] text-slate-400" x-text="(it.group_name || it.category || 'Item') + (it.volume_m3 > 0 ? ' • ' + it.volume_m3 + ' m³' : '')"></div>
+									</div>
+								</button>
+							</template>
+						</div>
+					</div>
+
+					<!-- Pagination Footer -->
+					<div class="flex items-center justify-between border-t border-violet-400/20 bg-slate-950/60 px-5 py-3 text-xs font-mono text-slate-300">
+						<span x-text="browseTotal.toLocaleString() + ' items found • Page ' + browsePage + ' of ' + browseTotalPages"></span>
+						<div class="flex gap-2">
+							<button type="button" @click="if (browsePage > 1) loadBrowse(browsePage - 1)" :disabled="browsePage <= 1" class="rounded-lg border border-slate-700 px-3 py-1 disabled:opacity-40 hover:border-amber-300/60 cursor-pointer">Prev</button>
+							<button type="button" @click="if (browsePage < browseTotalPages) loadBrowse(browsePage + 1)" :disabled="browsePage >= browseTotalPages" class="rounded-lg border border-slate-700 px-3 py-1 disabled:opacity-40 hover:border-amber-300/60 cursor-pointer">Next</button>
+						</div>
+					</div>
+				</div>
+				</div>
+			</template>
 		</div>
 	}
 }
@@ -175,17 +504,28 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 		</div>
 	} else if snap == nil {
 		<div class="tactical-panel rounded-xl p-10 text-center space-y-2">
-			<div class="text-sm font-semibold text-white">Select a popular preset above or enter any EVE Online item name</div>
-			<div class="text-xs text-slate-300/80">Instantly inspect Top 20 Sell/Buy Order Books, 5-hub price comparisons, and 30-day price history from Public ESI.</div>
+			<div class="text-sm font-semibold text-white">Start typing any EVE Online item name above or click a Quick preset</div>
+			<div class="text-xs text-slate-300/80">Instantly inspect Top 20 Sell/Buy Order Books with Sell Wall depth bars, parallel 5-hub arbitrage comparison, Net Station Flip profit, and 30-day price history.</div>
 		</div>
 	} else {
 		<div class="space-y-6">
 			<!-- Item Title Banner + 1-Click Actions -->
 			<div class="tactical-panel rounded-xl p-5 flex flex-wrap items-center justify-between gap-4">
 				<div class="flex items-center gap-3.5">
-					<img src={ EVEItemIconURL(snap.TypeID, 64) } alt={ snap.TypeName } class="h-12 w-12 shrink-0 rounded-lg border border-amber-300/45 bg-slate-950/80 p-0.5 shadow-[0_0_16px_rgba(251,191,36,0.2)] object-contain" onerror="this.style.display='none'"/>
+					<img
+						src={ func() string {
+							low := strings.ToLower(snap.TypeName)
+							if strings.HasSuffix(low, " blueprint") || strings.HasSuffix(low, " reaction formula") {
+								return fmt.Sprintf("https://images.evetech.net/types/%d/bp?size=64", snap.TypeID)
+							}
+							return EVEItemIconURL(snap.TypeID, 64)
+						}() }
+						alt={ snap.TypeName }
+						class="h-12 w-12 shrink-0 rounded-lg border border-amber-300/45 bg-slate-950/80 p-0.5 shadow-[0_0_16px_rgba(251,191,36,0.2)] object-contain"
+						onerror="if(!this.dataset.fb){this.dataset.fb='1';this.src=this.src.replace('/icon?','/render?');}else{this.style.display='none';}"
+					/>
 					<div>
-						<div class="flex flex-wrap items-center gap-2.5">
+						<div class="flex flex-wrap items-center gap-2">
 							<h2 class="text-xl font-bold text-white">{ snap.TypeName }</h2>
 							<span class="rounded border border-violet-400/35 bg-violet-500/20 px-2 py-0.5 font-mono text-[10px] text-violet-200">
 								TypeID #{ fmt.Sprintf("%d", snap.TypeID) }
@@ -193,9 +533,17 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 							<span class="rounded border border-amber-400/35 bg-amber-500/15 px-2 py-0.5 font-mono text-[10px] text-amber-200">
 								{ snap.SelectedHub.Name } ({ snap.SelectedHub.RegionName })
 							</span>
+							if snap.Avg7dPrice > 0 {
+								<span class={ "rounded border px-2 py-0.5 font-mono text-[10px] font-bold " + marketplaceSignalClass(snap.PriceSignal) }>
+									{ fmt.Sprintf("%s (%+.1f%% vs 7d)", snap.PriceSignal, snap.Change7dPct) }
+								</span>
+							}
 						</div>
 						<div class="text-[11px] font-mono text-slate-400 mt-1">
 							Updated: { snap.UpdatedAt.Format("15:04:05") } • { fmt.Sprintf("%d sell orders • %d buy orders", snap.SellOrdersCount, snap.BuyOrdersCount) }
+							if snap.Avg7dPrice > 0 {
+								<span> • 7d Range: { FormatISK(snap.Low7dPrice) } – { FormatISK(snap.High7dPrice) } (Avg { FormatISK(snap.Avg7dPrice) })</span>
+							}
 						</div>
 					</div>
 				</div>
@@ -215,16 +563,25 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 							+ Add to Catalog
 						</button>
 					</form>
-					<a
-						href="/calculator"
-						class="rounded-lg border border-sky-400/40 bg-sky-500/15 px-3.5 py-2 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition"
-					>
-						Open in Calculator →
-					</a>
+					if snap.HasBlueprint {
+						<a
+							href="/calculator?mode=blueprint"
+							class="rounded-lg border border-amber-400/45 bg-amber-500/15 px-3.5 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition"
+						>
+							Craft in Blueprint Calculator →
+						</a>
+					} else {
+						<a
+							href="/calculator"
+							class="rounded-lg border border-sky-400/40 bg-sky-500/15 px-3.5 py-2 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition"
+						>
+							Open in Calculator →
+						</a>
+					}
 				</div>
 			</div>
 
-			<!-- 4 KPI Cards -->
+			<!-- 4 Primary KPI Cards -->
 			<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
 				<div class="tactical-panel rounded-xl p-4">
 					<div class="text-[10px] font-mono uppercase tracking-wider text-amber-300/85">Lowest Sell ({ snap.SelectedHub.Name })</div>
@@ -237,9 +594,13 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 					<div class="mt-0.5 text-[11px] font-mono text-slate-400">Demand: { formatInt64(snap.TotalBuyVolume) } units</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-emerald-300/85">Spread (Sell − Buy)</div>
-					<div class="mt-1 text-xl font-mono font-bold text-emerald-200">{ FormatPercent(snap.SpreadPercent) }</div>
-					<div class="mt-0.5 text-[11px] font-mono text-slate-400">{ FormatISK(snap.SpreadISK) } / unit</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-emerald-300/85">Net Flip Margin (After { FormatPercent(snap.RoundTripFeePct) } Fees)</div>
+					<div class={ "mt-1 text-xl font-mono font-bold " + profitColor(snap.NetFlipMarginPct) }>
+						{ FormatPercent(snap.NetFlipMarginPct) }
+					</div>
+					<div class="mt-0.5 text-[11px] font-mono text-slate-400">
+						{ FormatISK(snap.NetFlipProfitUnit) }/u • Gross Spd { FormatPercent(snap.SpreadPercent) }
+					</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
 					<div class="text-[10px] font-mono uppercase tracking-wider text-violet-300/85">Daily Volume (7d Avg)</div>
@@ -248,12 +609,100 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 				</div>
 			</div>
 
-			<!-- Multi-Hub Comparison Table -->
+			<!-- v2 Trading & Pricing Intelligence Banner -->
+			<div class="grid grid-cols-1 gap-3 lg:grid-cols-3">
+				<!-- Recommended Order Prices (with 1-click Copy) -->
+				<div class="tactical-panel rounded-xl p-4 flex flex-col justify-between gap-2">
+					<div class="text-[10px] font-mono font-bold uppercase tracking-wider text-sky-300">Recommended Order Prices (EVE 4-Sig-Fig)</div>
+					<div class="grid grid-cols-2 gap-2 font-mono text-xs">
+						<div class="rounded-lg border border-sky-400/25 bg-slate-950/60 p-2">
+							<div class="text-[9px] uppercase text-slate-400">Place Buy Order</div>
+							<div class="mt-0.5 font-bold text-sky-200">{ FormatISK(snap.RecommendedBuyOrder) }</div>
+							if snap.RecommendedBuyOrder > 0 {
+								<button
+									type="button"
+									data-val={ fmt.Sprintf("%.2f", snap.RecommendedBuyOrder) }
+									@click="$dispatch('mp-copy-price', { val: $el.dataset.val, label: 'Buy Order Price' })"
+									class="mt-1 text-[9.5px] text-sky-300 hover:text-white underline cursor-pointer"
+								>
+									Copy Price
+								</button>
+							}
+						</div>
+						<div class="rounded-lg border border-amber-400/25 bg-slate-950/60 p-2">
+							<div class="text-[9px] uppercase text-slate-400">Place Sell Order</div>
+							<div class="mt-0.5 font-bold text-amber-200">{ FormatISK(snap.RecommendedSellOrder) }</div>
+							if snap.RecommendedSellOrder > 0 {
+								<button
+									type="button"
+									data-val={ fmt.Sprintf("%.2f", snap.RecommendedSellOrder) }
+									@click="$dispatch('mp-copy-price', { val: $el.dataset.val, label: 'Sell Order Price' })"
+									class="mt-1 text-[9.5px] text-amber-300 hover:text-white underline cursor-pointer"
+								>
+									Copy Price
+								</button>
+							}
+						</div>
+					</div>
+				</div>
+
+				<!-- Best 5-Hub Arbitrage Route -->
+				<div class="tactical-panel rounded-xl p-4 flex flex-col justify-between gap-2">
+					<div class="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-300">Best Inter-Hub Arbitrage (5 Hubs)</div>
+					if snap.BestArbOriginSell > 0 && snap.BestArbDestSell > 0 {
+						<div class="space-y-1">
+							<div class="text-xs font-bold text-white">
+								Buy <span class="text-emerald-300">{ snap.BestArbOriginHub.Name }</span>
+								<span class="mx-1 text-slate-500">→</span>
+								Sell <span class="text-amber-300">{ snap.BestArbDestHub.Name }</span>
+							</div>
+							<div class="font-mono text-[11px] text-slate-300">
+								{ FormatISK(snap.BestArbOriginSell) } → { FormatISK(snap.BestArbDestSell) }
+							</div>
+							<div class={ "font-mono text-xs font-bold " + profitColor(snap.BestArbNetMarginPct) }>
+								{ fmt.Sprintf("%+.2f%% net margin (before freight)", snap.BestArbNetMarginPct) }
+							</div>
+						</div>
+					} else {
+						<div class="text-xs text-slate-400">Insufficient multi-hub sell orders to calculate arbitrage spread.</div>
+					}
+				</div>
+
+				<!-- SDE Manufacturing Craft Cost vs Buy -->
+				<div class="tactical-panel rounded-xl p-4 flex flex-col justify-between gap-2">
+					<div class="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-300">CCP SDE Craft vs. Market Buy</div>
+					if snap.HasBlueprint && snap.EstCraftUnitCost > 0 {
+						<div class="space-y-1">
+							<div class="flex items-baseline justify-between font-mono text-xs">
+								<span class="text-slate-400">Est. BOM Craft / u:</span>
+								<strong class="text-white">{ FormatISK(snap.EstCraftUnitCost) }</strong>
+							</div>
+							<div class="flex items-baseline justify-between font-mono text-xs">
+								<span class="text-slate-400">Market Sell / u:</span>
+								<strong class="text-amber-200">{ FormatISK(snap.LowestSell) }</strong>
+							</div>
+							<div class={ "font-mono text-xs font-bold " + profitColor(snap.CraftSavingsPct) }>
+								if snap.CraftSavingsPct > 0 {
+									{ fmt.Sprintf("Crafting saves %.1f%% vs buying (before taxes/SCI)", snap.CraftSavingsPct) }
+								} else {
+									{ fmt.Sprintf("Buying is %.1f%% cheaper than crafting", -snap.CraftSavingsPct) }
+								}
+							</div>
+						</div>
+					} else if snap.HasBlueprint {
+						<div class="text-xs text-slate-300">Blueprint available in SDE — open <strong>Blueprint Calculator</strong> for exact ME/TE &amp; recursive tree cost.</div>
+					} else {
+						<div class="text-xs text-slate-400">Non-manufacturable commodity, raw material, or faction drop (trade/haul only).</div>
+					}
+				</div>
+			</div>
+
+			<!-- Multi-Hub Comparison Table (Clickable rows to switch Order Book Hub!) -->
 			if len(snap.HubComparisons) > 0 {
 				{{ bestSell, bestBuy := findBestHubPrices(snap.HubComparisons) }}
 				<div class="tactical-panel rounded-xl overflow-hidden">
-					<div class="px-5 py-3.5 border-b border-violet-400/20 flex items-center justify-between">
-						<h3 class="text-xs font-bold uppercase tracking-wider text-amber-300">5 Major Trade Hub Comparison (Arbitrage &amp; Spread)</h3>
+					<div class="px-5 py-3.5 border-b border-violet-400/20 flex flex-wrap items-center justify-between gap-2">
+						<h3 class="text-xs font-bold uppercase tracking-wider text-amber-300">5 Major Trade Hub Comparison (Click Any Hub Row to Inspect Its Order Book)</h3>
 						<span class="text-[10px] font-mono text-slate-400">Green = Lowest Sell • Blue = Highest Buy</span>
 					</div>
 					<div class="overflow-x-auto">
@@ -270,10 +719,18 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 							</thead>
 							<tbody class="divide-y divide-violet-400/15 font-mono">
 								for _, h := range snap.HubComparisons {
-									<tr class={ "hover:bg-white/5 " + func() string { if h.Hub.Key == snap.SelectedHub.Key { return "bg-violet-500/10" }; return "" }() }>
+									<tr
+										data-name={ snap.TypeName }
+										data-hub={ h.Hub.Key }
+										@click="$dispatch('mp-switch-hub', { name: $el.dataset.name, hub: $el.dataset.hub })"
+										class={ "hover:bg-violet-500/15 transition cursor-pointer " + func() string { if h.Hub.Key == snap.SelectedHub.Key { return "bg-violet-500/15 ring-1 ring-inset ring-amber-400/35" }; return "" }() }
+									>
 										<td class="px-4 py-2.5 font-sans">
 											<span class="font-semibold text-white">{ h.Hub.Name }</span>
 											<span class="ml-1.5 text-[10px] text-slate-400">{ h.Hub.RegionName }</span>
+											if h.Hub.Key == snap.SelectedHub.Key {
+												<span class="ml-1.5 rounded bg-amber-400/20 px-1.5 py-0.2 font-mono text-[9px] font-bold text-amber-200">VIEWING</span>
+											}
 										</td>
 										<td class="px-4 py-2.5 text-right">
 											if h.LowestSell > 0 {
@@ -314,19 +771,27 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 				</div>
 			}
 
-			<!-- 30-Day Price History Trend -->
+			<!-- 30-Day Price History Trend with Axis Labels -->
 			if len(snap.History) > 0 {
 				{{ sparkPoints := buildHistorySparklinePoints(snap.History) }}
+				{{ min30, max30 := historyMinMax(snap.History) }}
+				{{ avg30 := historyAvg30d(snap.History) }}
 				<div class="tactical-panel rounded-xl p-5 space-y-4">
 					<div class="flex flex-wrap items-center justify-between gap-2">
 						<h3 class="text-xs font-bold uppercase tracking-wider text-violet-200">30-Day Average Price Trend ({ snap.SelectedHub.RegionName })</h3>
-						<span class="text-[11px] font-mono text-slate-400">
-							Avg 30d Vol: { formatInt64(int64(snap.AvgDailyVolume30d)) } u/day
-						</span>
+						<div class="flex flex-wrap items-center gap-3 text-[11px] font-mono text-slate-300">
+							<span>30d Low: <strong class="text-emerald-300">{ FormatISK(min30) }</strong></span>
+							<span>30d Avg: <strong class="text-amber-200">{ FormatISK(avg30) }</strong></span>
+							<span>30d High: <strong class="text-rose-300">{ FormatISK(max30) }</strong></span>
+							<span class="text-slate-400">Avg Vol: { formatInt64(int64(snap.AvgDailyVolume30d)) }/d</span>
+						</div>
 					</div>
 					if sparkPoints != "" {
-						<div class="rounded-lg border border-violet-400/20 bg-slate-950/50 p-3">
+						<div class="rounded-lg border border-violet-400/20 bg-slate-950/50 p-3 space-y-1.5">
 							<svg viewBox="0 0 560 110" class="w-full h-28 overflow-visible" preserveAspectRatio="none">
+								<line x1="0" y1="12" x2="560" y2="12" stroke="rgba(148,163,184,0.18)" stroke-dasharray="4 4"></line>
+								<line x1="0" y1="55" x2="560" y2="55" stroke="rgba(148,163,184,0.15)" stroke-dasharray="4 4"></line>
+								<line x1="0" y1="98" x2="560" y2="98" stroke="rgba(148,163,184,0.18)" stroke-dasharray="4 4"></line>
 								<polyline
 									fill="none"
 									stroke="#fbbf24"
@@ -336,6 +801,11 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 									points={ sparkPoints }
 								></polyline>
 							</svg>
+							<div class="flex items-center justify-between font-mono text-[10px] text-slate-400">
+								<span>{ snap.History[0].Date }</span>
+								<span>30-Day Regional Daily Average</span>
+								<span>{ snap.History[len(snap.History)-1].Date }</span>
+							</div>
 						</div>
 					}
 					<div class="overflow-x-auto">
@@ -365,32 +835,39 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 				</div>
 			}
 
-			<!-- Live Order Book Split View: Sell Orders vs Buy Orders -->
+			<!-- Live Order Book Split View with Visual Depth Bars & Cumulative Qty -->
+			{{ sellDepth := buildOrderDepthRows(snap.SellOrders) }}
+			{{ buyDepth := buildOrderDepthRows(snap.BuyOrders) }}
 			<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 				<!-- Top Sell Orders -->
 				<div class="tactical-panel rounded-xl overflow-hidden">
 					<div class="px-5 py-3 border-b border-amber-400/20 flex items-center justify-between">
-						<h3 class="text-xs font-bold uppercase tracking-wider text-amber-300">Top Sell Orders (Lowest)</h3>
-						<span class="text-[10px] font-mono text-slate-400">{ fmt.Sprintf("Showing top %d", len(snap.SellOrders)) }</span>
+						<h3 class="text-xs font-bold uppercase tracking-wider text-amber-300">Top Sell Orders (Lowest — Watch for Sell Walls)</h3>
+						<span class="text-[10px] font-mono text-slate-400">{ fmt.Sprintf("Top %d", len(sellDepth)) }</span>
 					</div>
-					if len(snap.SellOrders) == 0 {
-						<div class="p-6 text-center text-xs text-slate-400">No active sell orders at this hub.</div>
+					if len(sellDepth) == 0 {
+						<div class="p-6 text-center text-xs text-slate-400">No active sell orders at { snap.SelectedHub.Name }.</div>
 					} else {
 						<div class="overflow-x-auto">
 							<table class="w-full text-left text-xs font-mono">
 								<thead class="bg-slate-950/50 text-[10px] uppercase text-slate-400 border-b border-violet-400/15">
 									<tr>
 										<th class="px-4 py-2">Price (ISK)</th>
-										<th class="px-4 py-2 text-right">Qty Remain</th>
-										<th class="px-4 py-2 text-right">Total Value</th>
+										<th class="px-3 py-2 text-right">Qty</th>
+										<th class="px-3 py-2 text-right">Cum. Qty</th>
+										<th class="px-4 py-2 text-right">Order Value</th>
 									</tr>
 								</thead>
 								<tbody class="divide-y divide-violet-400/10">
-									for _, o := range snap.SellOrders {
-										<tr class="hover:bg-white/5">
-											<td class="px-4 py-2 font-semibold text-amber-200">{ FormatISK(o.Price) }</td>
-											<td class="px-4 py-2 text-right text-slate-200">{ fmt.Sprintf("%d", o.VolumeRemain) }</td>
-											<td class="px-4 py-2 text-right text-slate-400">{ FormatISK(o.Price * float64(o.VolumeRemain)) }</td>
+									for _, row := range sellDepth {
+										<tr
+											style={ fmt.Sprintf("background: linear-gradient(to left, rgba(251, 191, 36, 0.13) %.1f%%, transparent %.1f%%);", row.DepthPct, row.DepthPct) }
+											class="hover:bg-white/5"
+										>
+											<td class="px-4 py-2 font-semibold text-amber-200">{ FormatISK(row.Order.Price) }</td>
+											<td class="px-3 py-2 text-right text-slate-200">{ formatInt64(int64(row.Order.VolumeRemain)) }</td>
+											<td class="px-3 py-2 text-right text-slate-400">{ formatInt64(row.CumQty) }</td>
+											<td class="px-4 py-2 text-right text-slate-300">{ FormatISK(row.TotalValue) }</td>
 										</tr>
 									}
 								</tbody>
@@ -402,27 +879,32 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 				<!-- Top Buy Orders -->
 				<div class="tactical-panel rounded-xl overflow-hidden">
 					<div class="px-5 py-3 border-b border-sky-400/20 flex items-center justify-between">
-						<h3 class="text-xs font-bold uppercase tracking-wider text-sky-300">Top Buy Orders (Highest)</h3>
-						<span class="text-[10px] font-mono text-slate-400">{ fmt.Sprintf("Showing top %d", len(snap.BuyOrders)) }</span>
+						<h3 class="text-xs font-bold uppercase tracking-wider text-sky-300">Top Buy Orders (Highest — Instant Demand)</h3>
+						<span class="text-[10px] font-mono text-slate-400">{ fmt.Sprintf("Top %d", len(buyDepth)) }</span>
 					</div>
-					if len(snap.BuyOrders) == 0 {
-						<div class="p-6 text-center text-xs text-slate-400">No active buy orders at this hub.</div>
+					if len(buyDepth) == 0 {
+						<div class="p-6 text-center text-xs text-slate-400">No active buy orders at { snap.SelectedHub.Name }.</div>
 					} else {
 						<div class="overflow-x-auto">
 							<table class="w-full text-left text-xs font-mono">
 								<thead class="bg-slate-950/50 text-[10px] uppercase text-slate-400 border-b border-violet-400/15">
 									<tr>
 										<th class="px-4 py-2">Price (ISK)</th>
-										<th class="px-4 py-2 text-right">Qty Wanted</th>
-										<th class="px-4 py-2 text-right">Total Value</th>
+										<th class="px-3 py-2 text-right">Qty</th>
+										<th class="px-3 py-2 text-right">Cum. Qty</th>
+										<th class="px-4 py-2 text-right">Order Value</th>
 									</tr>
 								</thead>
 								<tbody class="divide-y divide-violet-400/10">
-									for _, o := range snap.BuyOrders {
-										<tr class="hover:bg-white/5">
-											<td class="px-4 py-2 font-semibold text-sky-200">{ FormatISK(o.Price) }</td>
-											<td class="px-4 py-2 text-right text-slate-200">{ fmt.Sprintf("%d", o.VolumeRemain) }</td>
-											<td class="px-4 py-2 text-right text-slate-400">{ FormatISK(o.Price * float64(o.VolumeRemain)) }</td>
+									for _, row := range buyDepth {
+										<tr
+											style={ fmt.Sprintf("background: linear-gradient(to left, rgba(56, 189, 248, 0.13) %.1f%%, transparent %.1f%%);", row.DepthPct, row.DepthPct) }
+											class="hover:bg-white/5"
+										>
+											<td class="px-4 py-2 font-semibold text-sky-200">{ FormatISK(row.Order.Price) }</td>
+											<td class="px-3 py-2 text-right text-slate-200">{ formatInt64(int64(row.Order.VolumeRemain)) }</td>
+											<td class="px-3 py-2 text-right text-slate-400">{ formatInt64(row.CumQty) }</td>
+											<td class="px-4 py-2 text-right text-slate-300">{ FormatISK(row.TotalValue) }</td>
 										</tr>
 									}
 								</tbody>

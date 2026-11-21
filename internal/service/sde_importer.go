@@ -286,13 +286,14 @@ type ccpGroupRow struct {
 }
 
 type ccpTypeRow struct {
-	Key         int32           `json:"_key"`
-	GroupID     int32           `json:"groupID"`
-	Name        localizedString `json:"name"`
-	Volume      float64         `json:"volume"`
-	PortionSize int             `json:"portionSize"`
-	MetaGroupID int             `json:"metaGroupID"`
-	Published   bool            `json:"published"`
+	Key           int32           `json:"_key"`
+	GroupID       int32           `json:"groupID"`
+	MarketGroupID int32           `json:"marketGroupID"`
+	Name          localizedString `json:"name"`
+	Volume        float64         `json:"volume"`
+	PortionSize   int             `json:"portionSize"`
+	MetaGroupID   int             `json:"metaGroupID"`
+	Published     bool            `json:"published"`
 }
 
 type ccpBlueprintMaterial struct {
@@ -358,10 +359,12 @@ func ParseCCPSDEZip(zipPath string) ([]domain.SDEType, []domain.SDEBlueprint, ma
 	}
 
 	// 1. Categories (optional fallback if missing)
+	rawCatNames := make(map[int32]string, 64)
 	catNames := make(map[int32]string, 64)
 	_ = readLines("categories.jsonl", func(line []byte) {
 		var row ccpCategoryRow
 		if json.Unmarshal(line, &row) == nil && row.Key > 0 {
+			rawCatNames[row.Key] = strings.TrimSpace(string(row.Name))
 			catNames[row.Key] = normalizeSDECategory(string(row.Name))
 		}
 	})
@@ -484,15 +487,29 @@ func ParseCCPSDEZip(zipPath string) ([]domain.SDEType, []domain.SDEBlueprint, ma
 		return nil, nil, nil, 0, err
 	}
 
-	// Build sde_types slice for all referenced product & material types
+	// Include 100% of published tradable EVE Market items (marketGroupID > 0) + published blueprints
+	// so Marketplace Autocomplete and Browse by Type cover every single market item in New Eden.
+	for tid, t := range typeInfo {
+		if !t.Published || strings.TrimSpace(string(t.Name)) == "" {
+			continue
+		}
+		if t.MarketGroupID > 0 {
+			neededTypeIDs[tid] = struct{}{}
+			continue
+		}
+		if gm, ok := groups[t.GroupID]; ok {
+			if strings.EqualFold(rawCatNames[gm.CategoryID], "Blueprint") {
+				neededTypeIDs[tid] = struct{}{}
+			}
+		}
+	}
+
+	// Build sde_types slice for all blueprint products/materials + all published market items
 	types := make([]domain.SDEType, 0, len(neededTypeIDs))
 	for tid := range neededTypeIDs {
 		t := typeInfo[tid]
 		gm := groups[t.GroupID]
-		cat := catNames[gm.CategoryID]
-		if cat == "" {
-			cat = "Other"
-		}
+		cat := normalizeMarketTypeCategory(rawCatNames[gm.CategoryID], gm.Name)
 		portion := t.PortionSize
 		if portion <= 0 {
 			portion = 1
@@ -508,6 +525,51 @@ func ParseCCPSDEZip(zipPath string) ([]domain.SDEType, []domain.SDEBlueprint, ma
 	}
 
 	return types, blueprints, materials, totalMatLines, nil
+}
+
+func normalizeMarketTypeCategory(rawCat, groupName string) string {
+	gLower := strings.ToLower(strings.TrimSpace(groupName))
+	switch strings.ToLower(strings.TrimSpace(rawCat)) {
+	case "ship":
+		return "Ships"
+	case "module":
+		if strings.Contains(gLower, "rig") {
+			return "Rigs"
+		}
+		return "Modules"
+	case "charge":
+		return "Ammunition"
+	case "drone":
+		return "Drones"
+	case "blueprint":
+		return "Blueprints"
+	case "material":
+		return "Minerals & Materials"
+	case "asteroid":
+		return "Ore & Ice"
+	case "commodity", "planetary commodities", "planetary resources", "planetary industry":
+		return "Commodities & PI"
+	case "implant":
+		return "Implants & Boosters"
+	case "skill":
+		return "Skills"
+	case "structure", "structure module":
+		return "Structures"
+	case "skins", "apparel":
+		return "SKINs & Apparel"
+	case "deployable":
+		return "Deployables"
+	case "fighter":
+		return "Fighters"
+	case "subsystem":
+		return "Subsystems"
+	case "accessories", "special edition assets", "plex":
+		return "Commodities & PI"
+	case "":
+		return "Other"
+	default:
+		return strings.TrimSpace(rawCat)
+	}
 }
 
 func normalizeSDECategory(raw string) string {

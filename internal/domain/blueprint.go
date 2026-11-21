@@ -18,6 +18,23 @@ type SDEMetadata struct {
 	UpdatedAt       time.Time `json:"updated_at"`
 }
 
+// CategoryCount pairs a normalized EVE category name with its item count in sde_types.
+type CategoryCount struct {
+	Category string `json:"category"`
+	Count    int    `json:"count"`
+}
+
+// MarketTypePageResult holds paginated SDE market item browse results plus category & group facets.
+type MarketTypePageResult struct {
+	Items      []SDEType       `json:"items"`
+	Total      int             `json:"total"`
+	Page       int             `json:"page"`
+	PageSize   int             `json:"page_size"`
+	TotalPages int             `json:"total_pages"`
+	Categories []CategoryCount `json:"categories"`
+	Groups     []string        `json:"groups"`
+}
+
 // BlueprintPageResult holds paginated blueprint search results plus available categories for the Modal Popup.
 type BlueprintPageResult struct {
 	Items      []SDEBlueprint `json:"items"`
