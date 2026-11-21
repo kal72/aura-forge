@@ -44,3 +44,21 @@ func TestBuildPIRecipeTree_RoboticsShowsRecursiveInputsAndPlanets(t *testing.T) 
 		t.Fatalf("expected positive Robotics factory profit, got cycle=%.2f monthly=%.2f", res.NetProfitPerCycle, res.EstMonthlyISK)
 	}
 }
+
+func TestBuildPlanetCatalog_All8PlanetsWithResourcesAndSinglePlanetP2(t *testing.T) {
+	catalog := domain.BuildPlanetCatalog()
+	if len(catalog) != 8 {
+		t.Fatalf("expected 8 planet types, got %d", len(catalog))
+	}
+	for _, pl := range catalog {
+		if pl.PlanetTypeID <= 0 {
+			t.Fatalf("planet %s missing official TypeID", pl.PlanetType)
+		}
+		if len(pl.P0Resources) != 5 || len(pl.P1Products) != 5 {
+			t.Fatalf("planet %s expected 5 P0 and 5 P1, got P0=%d P1=%d", pl.PlanetType, len(pl.P0Resources), len(pl.P1Products))
+		}
+		if len(pl.SinglePlanetP2) == 0 {
+			t.Fatalf("planet %s expected at least 1 single-planet P2 product", pl.PlanetType)
+		}
+	}
+}

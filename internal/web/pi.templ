@@ -65,6 +65,7 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 			x-data="{
 				tab: 'explorer',
 				tierFilter: 'ALL',
+				planetFilter: 'ALL',
 				searchQ: '',
 				pocoTax: 5.0,
 				selectedID: 0,
@@ -73,6 +74,11 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 					if (this.tierFilter !== 'ALL' && tier !== this.tierFilter) return false;
 					if (!this.searchQ.trim()) return true;
 					return name.toLowerCase().includes(this.searchQ.trim().toLowerCase());
+				},
+				openTree(id) {
+					this.selectedID = id;
+					this.tab = 'explorer';
+					htmx.ajax('GET', '/pi/tree?type_id=' + id + '&poco_tax=' + this.pocoTax, { target: '#pi-tree-panel', swap: 'innerHTML', indicator: '#pi-tree-spinner' });
 				}
 			}"
 		>
@@ -80,7 +86,7 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-white">Planetary Industry (PI) Hub</h1>
-					<p class="text-xs text-slate-300/80 mt-0.5">Browse all 68 P1–P4 PI items, inspect full recursive recipe trees &amp; source planets, scan live Jita margins, and track colony extractor timers.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">Browse all 68 P1–P4 PI items, explore the 8-planet resource catalog, inspect recursive recipe trees, scan live Jita margins, and track colony timers.</p>
 				</div>
 
 				<div class="inline-flex flex-wrap rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur">
@@ -91,6 +97,14 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 						class="rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
 					>
 						P1–P4 Recipe Tree
+					</button>
+					<button
+						type="button"
+						@click="tab = 'planets'"
+						:class="tab === 'planets' ? 'bg-violet-500 text-white shadow-sm' : 'text-slate-300 hover:text-white'"
+						class="rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
+					>
+						Planet Catalog (8)
 					</button>
 					<button
 						type="button"
@@ -178,7 +192,117 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 				</div>
 			</div>
 
-			<!-- TAB 2: PI PROFIT SCANNER (BY TIER P1–P4) -->
+			<!-- TAB 2: PLANET CATALOG (8 COLONIZABLE PLANETS + LARGE RESOURCE ICONS) -->
+			<div x-cloak x-show="tab === 'planets'" class="space-y-5">
+				{{ planetCatalog := domain.BuildPlanetCatalog() }}
+				<div class="tactical-panel rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
+					<div>
+						<h2 class="text-sm font-bold uppercase tracking-wider text-violet-200">New Eden Planet &amp; Resource Catalog</h2>
+						<p class="text-xs text-slate-300/80 mt-0.5">Each planet yields 5 Raw P0 resources (→ 5 Basic P1) and supports self-contained Single-Planet P2 factories. Click any P1 or P2 icon to open its live Recipe Tree.</p>
+					</div>
+					<div class="flex flex-wrap gap-1.5">
+						<button type="button" @click="planetFilter = 'ALL'" :class="planetFilter === 'ALL' ? 'bg-violet-600 text-white border-violet-400' : 'bg-slate-900/60 text-slate-300 border-slate-700'" class="rounded-lg border px-2.5 py-1 font-mono text-[10px] font-bold cursor-pointer">ALL (8)</button>
+						for _, pl := range planetCatalog {
+							<button type="button" @click={ fmt.Sprintf("planetFilter = %q", pl.PlanetType) } :class={ fmt.Sprintf("planetFilter === %q ? 'bg-amber-400 text-slate-950 border-amber-300' : 'bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white'", pl.PlanetType) } class="rounded-lg border px-2.5 py-1 font-mono text-[10px] font-bold cursor-pointer">
+								{ pl.PlanetType }
+							</button>
+						}
+					</div>
+				</div>
+
+				<div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+					for _, pl := range planetCatalog {
+						<div
+							x-show={ fmt.Sprintf("planetFilter === 'ALL' || planetFilter === %q", pl.PlanetType) }
+							class="tactical-panel rounded-xl p-5 space-y-4"
+						>
+							<!-- Planet Header with Large 64x64 Official EVE Planet Icon -->
+							<div class="flex items-start gap-4 border-b border-violet-400/20 pb-4">
+								<img
+									src={ EVEItemIconURL(pl.PlanetTypeID, 128) }
+									alt={ pl.PlanetType + " Planet" }
+									loading="lazy"
+									class="h-16 w-16 shrink-0 rounded-xl border border-amber-300/45 bg-slate-950/90 p-1 shadow-[0_0_20px_rgba(139,92,246,0.3)] object-cover"
+									onerror="this.style.display='none'"
+								/>
+								<div class="space-y-1">
+									<div class="flex items-center gap-2">
+										<h3 class="text-lg font-bold text-white">{ pl.PlanetType } Planet</h3>
+										<span class={ "rounded-md border px-2 py-0.5 font-mono text-[10px] font-bold " + planetBadgeClass(pl.PlanetType) }>
+											5 P0 / 5 P1
+										</span>
+									</div>
+									<p class="text-xs text-slate-300/85 leading-relaxed">{ pl.Description }</p>
+								</div>
+							</div>
+
+							<!-- 5 Raw P0 -> P1 Resource Tiles with Large 40x40 Icons -->
+							<div class="space-y-2">
+								<div class="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-300">Raw Resources (P0) → Basic Products (P1)</div>
+								<div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+									for i, p0 := range pl.P0Resources {
+										{{ p1 := pl.P1Products[i] }}
+										<button
+											type="button"
+											@click={ fmt.Sprintf("openTree(%d)", p1.TypeID) }
+											class="flex items-center gap-3 rounded-lg border border-violet-400/20 bg-slate-950/50 p-2.5 text-left hover:border-amber-300/50 hover:bg-white/5 transition cursor-pointer"
+										>
+											<img
+												src={ EVEItemIconURL(p0.TypeID, 64) }
+												alt={ p0.Name }
+												loading="lazy"
+												class="h-10 w-10 shrink-0 rounded-lg border border-slate-700 bg-slate-900 p-0.5 object-contain"
+												onerror="this.style.display='none'"
+											/>
+											<div class="min-w-0 flex-1">
+												<div class="text-xs font-bold text-white truncate">{ p0.Name }</div>
+												<div class="mt-0.5 flex items-center gap-1.5 text-[11px] text-emerald-300">
+													<span class="text-slate-500">→</span>
+													<img
+														src={ EVEItemIconURL(p1.TypeID, 32) }
+														alt={ p1.Name }
+														loading="lazy"
+														class="h-5 w-5 shrink-0 rounded border border-emerald-400/30 bg-slate-950 object-contain"
+														onerror="this.style.display='none'"
+													/>
+													<span class="font-medium truncate">{ p1.Name }</span>
+												</div>
+											</div>
+										</button>
+									}
+								</div>
+							</div>
+
+							<!-- Single-Planet P2 Products (100% Self-Contained on 1 Planet!) -->
+							<div class="space-y-2 pt-2 border-t border-violet-400/15">
+								<div class="text-[10px] font-mono font-bold uppercase tracking-wider text-sky-300">
+									Single-Planet P2 Factories ({ fmt.Sprintf("%d", len(pl.SinglePlanetP2)) } Self-Contained Options)
+								</div>
+								<div class="flex flex-wrap gap-2">
+									for _, p2 := range pl.SinglePlanetP2 {
+										<button
+											type="button"
+											@click={ fmt.Sprintf("openTree(%d)", p2.TypeID) }
+											class="inline-flex items-center gap-2 rounded-lg border border-sky-400/30 bg-sky-500/10 px-2.5 py-1.5 text-xs font-semibold text-sky-100 hover:border-amber-300/60 hover:bg-amber-400/15 hover:text-amber-100 transition cursor-pointer"
+										>
+											<img
+												src={ EVEItemIconURL(p2.TypeID, 64) }
+												alt={ p2.Name }
+												loading="lazy"
+												class="h-9 w-9 shrink-0 rounded-md border border-sky-400/35 bg-slate-950/90 object-contain"
+												onerror="this.style.display='none'"
+											/>
+											<span>{ p2.Name }</span>
+										</button>
+									}
+								</div>
+							</div>
+						</div>
+					}
+				</div>
+			</div>
+
+			<!-- TAB 3: PI PROFIT SCANNER (BY TIER P1–P4) -->
 			<div x-cloak x-show="tab === 'scanner'" class="space-y-5">
 				<div class="tactical-panel rounded-xl p-5 space-y-4">
 					<div>

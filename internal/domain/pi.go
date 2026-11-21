@@ -134,6 +134,95 @@ func (c PIColony) StatusLabel(now time.Time) (status string, remaining string) {
 // AllPlanetTypes lists the 8 EVE Online colonizable planet types.
 var AllPlanetTypes = []string{"Barren", "Temperate", "Lava", "Plasma", "Gas", "Oceanic", "Storm", "Ice"}
 
+// PlanetCatalogEntry summarizes a colonizable EVE planet type with its official icon TypeID,
+// P0 raw resources, P1 basic commodities, and self-contained Single-Planet P2 products.
+type PlanetCatalogEntry struct {
+	PlanetType     string        `json:"planet_type"`
+	PlanetTypeID   int32         `json:"planet_type_id"`
+	Description    string        `json:"description"`
+	P0Resources    []PICommodity `json:"p0_resources"`
+	P1Products     []PICommodity `json:"p1_products"`
+	SinglePlanetP2 []PICommodity `json:"single_planet_p2"`
+}
+
+var planetTypeMeta = []struct {
+	name   string
+	typeID int32
+	desc   string
+}{
+	{"Barren", 2016, "Versatile all-rounder for metals, water, biofuels, and beginner single-planet P2 factories (Mechanical Parts, Biocells, Water-Cooled CPU)."},
+	{"Temperate", 11, "Rich organic planet ideal for Industrial Fibers, Proteins, Biofuels, Livestock, Polytextiles, and Fertilizer."},
+	{"Lava", 2015, "Industrial powerhouse for Heavy Metals, Silicon, Chiral Structures, Consumer Electronics, and Miniature Electronics."},
+	{"Plasma", 2063, "High-value metal & crystal planet — one of the best single-planet hubs for Mechanical Parts, Enriched Uranium, and Construction Blocks."},
+	{"Gas", 13, "Primary source of Reactive Gas, Noble Gas, Ionic Solutions, and Suspended Plasma — essential for Coolant, Oxides, and Rocket Fuel."},
+	{"Oceanic", 2014, "Abundant aqueous and biological resources for Biomass, Proteins, Biofuels, Viral Agent, and Genetically Enhanced Livestock."},
+	{"Storm", 2017, "Energy-rich planet combining Aqueous Liquids, Ionic Solutions, Noble Gas, and Suspended Plasma for Coolant, Superconductors, and Synthetic Oil."},
+	{"Ice", 12, "Cold extraction planet providing Aqueous Liquids, Heavy Metals, Noble Gas, Microorganisms, and Planktic Colonies for Supertensile Plastics & Test Cultures."},
+}
+
+// BuildPlanetCatalog returns all 8 colonizable EVE planet types along with their P0 resources,
+// P1 products, and self-contained Single-Planet P2 products.
+func BuildPlanetCatalog() []PlanetCatalogEntry {
+	// Map P0 TypeID -> its P1 commodity
+	p1ByP0 := make(map[int32]PICommodity)
+	for _, c := range piCatalogList {
+		if c.Tier == PITierP1 && len(c.Inputs) == 1 {
+			p1ByP0[c.Inputs[0].TypeID] = c
+		}
+	}
+
+	out := make([]PlanetCatalogEntry, 0, len(planetTypeMeta))
+	for _, meta := range planetTypeMeta {
+		p0s := make([]PICommodity, 0, 5)
+		p1s := make([]PICommodity, 0, 5)
+		p1Set := make(map[int32]struct{}, 5)
+
+		for _, c := range piCatalogList {
+			if c.Tier != PITierP0 {
+				continue
+			}
+			for _, pl := range c.SourcePlanets {
+				if pl == meta.name {
+					p0s = append(p0s, c)
+					if p1, ok := p1ByP0[c.TypeID]; ok {
+						p1s = append(p1s, p1)
+						p1Set[p1.TypeID] = struct{}{}
+					}
+					break
+				}
+			}
+		}
+
+		// Find P2 commodities where ALL direct P1 inputs are produced on this single planet
+		singleP2 := make([]PICommodity, 0)
+		for _, c := range piCatalogList {
+			if c.Tier != PITierP2 || len(c.Inputs) == 0 {
+				continue
+			}
+			allHere := true
+			for _, req := range c.Inputs {
+				if _, ok := p1Set[req.TypeID]; !ok {
+					allHere = false
+					break
+				}
+			}
+			if allHere {
+				singleP2 = append(singleP2, c)
+			}
+		}
+
+		out = append(out, PlanetCatalogEntry{
+			PlanetType:     meta.name,
+			PlanetTypeID:   meta.typeID,
+			Description:    meta.desc,
+			P0Resources:    p0s,
+			P1Products:     p1s,
+			SinglePlanetP2: singleP2,
+		})
+	}
+	return out
+}
+
 // Complete official EVE Online Planetary Industry Catalog (P0 -> P4).
 var piCatalogList = []PICommodity{
 	// === P0 RAW RESOURCES (15) ===
@@ -147,7 +236,7 @@ var piCatalogList = []PICommodity{
 	{TypeID: 2305, Name: "Autotrophs", Tier: PITierP0, BaseValueISK: 5, SourcePlanets: []string{"Temperate"}},
 	{TypeID: 2306, Name: "Non-CS Crystals", Tier: PITierP0, BaseValueISK: 5, SourcePlanets: []string{"Lava", "Plasma"}},
 	{TypeID: 2307, Name: "Felsic Magma", Tier: PITierP0, BaseValueISK: 5, SourcePlanets: []string{"Lava"}},
-	{TypeID: 2308, Name: "Suspended Plasma", Tier: PITierP0, BaseValueISK: 5, SourcePlanets: []string{"Gas", "Lava", "Plasma", "Storm"}},
+	{TypeID: 2308, Name: "Suspended Plasma", Tier: PITierP0, BaseValueISK: 5, SourcePlanets: []string{"Lava", "Plasma", "Storm"}},
 	{TypeID: 2309, Name: "Ionic Solutions", Tier: PITierP0, BaseValueISK: 5, SourcePlanets: []string{"Gas", "Storm"}},
 	{TypeID: 2310, Name: "Noble Gas", Tier: PITierP0, BaseValueISK: 5, SourcePlanets: []string{"Gas", "Ice", "Storm"}},
 	{TypeID: 2311, Name: "Reactive Gas", Tier: PITierP0, BaseValueISK: 5, SourcePlanets: []string{"Gas"}},
