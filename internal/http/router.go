@@ -54,6 +54,9 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 		// Dashboard
 		r.Get("/", h.HandleDashboard)
 
+		// Built-in EVE Online Wiki & UI Color Guide (accessible via Topbar)
+		r.Get("/wiki", h.HandleWikiPage)
+
 		// Live EVE Marketplace Browser (Public ESI)
 		r.Route("/marketplace", func(r chi.Router) {
 			r.Get("/", h.HandleMarketplace)

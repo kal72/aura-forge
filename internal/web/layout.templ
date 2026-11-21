@@ -351,6 +351,23 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 						</div>
 
 						<div class="flex items-center gap-2">
+							<!-- Built-in EVE Wiki & UI Guide Shortcut (Topbar only, not in sidebar) -->
+							<a
+								href="/wiki"
+								title="EVE Online Glossary &amp; UI Color Guide"
+								class={ "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition " + func() string {
+									if activeNav == "wiki" {
+										return "border-amber-300/60 bg-amber-400/20 text-amber-200"
+									}
+									return "border-violet-400/35 bg-violet-950/50 text-violet-100 hover:bg-violet-900/60"
+								}() }
+							>
+								<svg class="h-4 w-4 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+								</svg>
+								<span class="hidden sm:inline">Wiki</span>
+							</a>
+
 							<!-- Day / Night Card Theme Toggle -->
 							<button
 								type="button"

@@ -40,6 +40,7 @@ type Renderer interface {
 	RenderInvention(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings) error
 	RenderInventionResult(w http.ResponseWriter, r *http.Request, res *domain.InventionOptimizationResult, errMsg string) error
 	RenderMakeVsBuyResult(w http.ResponseWriter, r *http.Request, res *domain.MakeVsBuyResult, errMsg string) error
+	RenderWiki(w http.ResponseWriter, r *http.Request, mode service.ModeInfo) error
 }
 
 // Handlers exposes all HTTP and HTMX endpoints for aura-forge.

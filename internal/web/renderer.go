@@ -138,3 +138,8 @@ func (tr *TemplRenderer) RenderMakeVsBuyResult(w http.ResponseWriter, r *http.Re
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	return MakeVsBuyResultPartial(res, errMsg).Render(r.Context(), w)
 }
+
+func (tr *TemplRenderer) RenderWiki(w http.ResponseWriter, r *http.Request, mode service.ModeInfo) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return WikiPage(mode).Render(r.Context(), w)
+}
