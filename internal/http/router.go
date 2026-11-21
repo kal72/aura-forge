@@ -61,6 +61,14 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.Post("/add-catalog", h.HandleMarketplaceAddCatalog)
 		})
 
+		// Opportunity Scanner (Manufacturing ISK/hr, Station Trading, Inter-Hub Arbitrage)
+		r.Route("/scanner", func(r chi.Router) {
+			r.Get("/", h.HandleScannerPage)
+			r.Post("/manufacturing", h.HandleScanManufacturing)
+			r.Post("/station-trading", h.HandleScanStationTrading)
+			r.Post("/arbitrage", h.HandleScanArbitrage)
+		})
+
 		// Catalog & Bulk Importer
 		r.Route("/catalog", func(r chi.Router) {
 			r.Get("/", h.HandleCatalog)
@@ -79,10 +87,12 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.Post("/check-undercuts", h.HandleCheckUndercuts)
 		})
 
-		// Net Profit, Tax & Break-Even Calculator
+		// Net Profit, Tax & Break-Even Calculator (Manual Mode + Blueprint SDE Mode)
 		r.Route("/calculator", func(r chi.Router) {
 			r.Get("/", h.HandleCalculator)
 			r.Post("/compute", h.HandleCalculatorCompute)
+			r.Post("/blueprint/compute", h.HandleBlueprintCompute)
+			r.Post("/blueprint/save-catalog", h.HandleBlueprintSaveCatalog)
 		})
 
 		// Smart Capital Allocator

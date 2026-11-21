@@ -18,8 +18,9 @@ type Renderer interface {
 	RenderDashboard(w http.ResponseWriter, r *http.Request, data *service.DashboardSummary) error
 	RenderCatalog(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, items []domain.MarketItem, category, status, search string, importRes *domain.ImportResult) error
 	RenderCatalogTable(w http.ResponseWriter, r *http.Request, items []domain.MarketItem) error
-	RenderCalculator(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, input domain.ProfitCalcInput, result *domain.ProfitCalcResult, calcErr string) error
+	RenderCalculator(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, input domain.ProfitCalcInput, result *domain.ProfitCalcResult, calcErr string, blueprints []domain.SDEBlueprint) error
 	RenderCalculatorResult(w http.ResponseWriter, r *http.Request, input domain.ProfitCalcInput, result *domain.ProfitCalcResult, calcErr string) error
+	RenderBlueprintResult(w http.ResponseWriter, r *http.Request, result *domain.BlueprintCalcResult, errMsg string) error
 	RenderAllocator(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, cfg domain.AllocationConfig, result *domain.AllocationResult, allocErr string) error
 	RenderAllocatorResult(w http.ResponseWriter, r *http.Request, result *domain.AllocationResult, allocErr string) error
 	RenderPlanner(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, data *service.PlannerViewData) error
@@ -31,6 +32,10 @@ type Renderer interface {
 	RenderUsers(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, users []domain.AppUser, flashMsg string, flashErr string) error
 	RenderMarketplace(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, query string, hubKey string, presets []service.MarketplacePreset, snap *domain.MarketplaceSnapshot, errMsg string) error
 	RenderMarketplaceResults(w http.ResponseWriter, r *http.Request, snap *domain.MarketplaceSnapshot, errMsg string) error
+	RenderScanner(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings) error
+	RenderScannerManufacturing(w http.ResponseWriter, r *http.Request, results []domain.ManufacturingOpportunity, errMsg string) error
+	RenderScannerStationTrading(w http.ResponseWriter, r *http.Request, results []domain.StationTradeOpportunity, errMsg string) error
+	RenderScannerArbitrage(w http.ResponseWriter, r *http.Request, results []domain.ArbitrageOpportunity, errMsg string) error
 }
 
 // Handlers exposes all HTTP and HTMX endpoints for aura-forge.
@@ -351,7 +356,8 @@ func (h *Handlers) HandleCalculator(w http.ResponseWriter, r *http.Request) {
 
 	if h.renderer != nil {
 		mode := h.svc.GetModeInfo(r.Context())
-		_ = h.renderer.RenderCalculator(w, r, mode, *settings, defaultIn, &res, errMsg)
+		blueprints, _ := h.svc.SearchBlueprints(r.Context(), "", "", 100)
+		_ = h.renderer.RenderCalculator(w, r, mode, *settings, defaultIn, &res, errMsg, blueprints)
 		return
 	}
 	h.writeJSON(w, http.StatusOK, res)

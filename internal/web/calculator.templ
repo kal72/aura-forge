@@ -7,35 +7,62 @@ import (
 	"aura-forge/internal/service"
 )
 
-templ CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input domain.ProfitCalcInput, result *domain.ProfitCalcResult, calcErr string) {
+templ CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input domain.ProfitCalcInput, result *domain.ProfitCalcResult, calcErr string, blueprints []domain.SDEBlueprint) {
 	@Layout("Profit & Break-Even Calculator", "calculator", mode) {
 		<div
 			class="space-y-6"
 			x-data={ fmt.Sprintf(`{
+				calcMode: 'manual',
 				itemName: %q,
 				sellPrice: %g,
 				lookupStatus: '',
+				bpFilter: '',
 				async lookupESI() {
 					if (!this.itemName) return;
-					this.lookupStatus = 'Mencari di Public ESI...';
+					this.lookupStatus = 'Looking up Public ESI...';
 					try {
 						const res = await fetch('/esi/lookup?name=' + encodeURIComponent(this.itemName));
 						const data = await res.json();
-						if (!res.ok) { this.lookupStatus = data.error || 'Tidak ditemukan'; return; }
+						if (!res.ok) { this.lookupStatus = data.error || 'Item not found'; return; }
 						if (data.lowest_sell > 0) this.sellPrice = data.lowest_sell;
-						this.lookupStatus = 'Jita Sell: ' + Number(data.lowest_sell).toLocaleString() + ' ISK | Vol: ' + Number(data.daily_volume).toLocaleString() + '/hari';
+						this.lookupStatus = 'Jita Sell: ' + Number(data.lowest_sell).toLocaleString() + ' ISK | Vol: ' + Number(data.daily_volume).toLocaleString() + '/day';
 					} catch (e) {
-						this.lookupStatus = 'Gagal terhubung ke Public ESI';
+						this.lookupStatus = 'Failed to reach Public ESI';
 					}
 				}
 			}`, input.ItemName, input.UnitSellPrice) }
 		>
-			<div>
-				<h1 class="text-2xl font-bold tracking-tight text-white">Net Profit, Tax &amp; Break-Even Calculator</h1>
-				<p class="text-xs text-slate-400 mt-0.5">Hitung margin bersih setelah Broker Fee, Sales Tax, Relist Fee, System Cost Index (SCI), dan Biaya Angkut secara real-time.</p>
+			<!-- Header & Dual-Mode Switcher -->
+			<div class="flex flex-wrap items-center justify-between gap-4">
+				<div>
+					<h1 class="text-2xl font-bold tracking-tight text-white">Net Profit, Tax &amp; Break-Even Calculator</h1>
+					<p class="text-xs text-slate-300/80 mt-0.5">Calculate true margins after Broker Fee, Sales Tax, Relist Fee, System Cost Index (SCI), and Freight — in Manual Mode or EVE SDE Blueprint Mode.</p>
+				</div>
+
+				<!-- Dual-Mode Switcher: Manual Mode (Preserved) | Blueprint SDE Mode (NEW) -->
+				<div class="inline-flex rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur">
+					<button
+						type="button"
+						@click="calcMode = 'manual'"
+						:class="calcMode === 'manual' ? 'bg-violet-600 text-white shadow-sm' : 'text-slate-300 hover:text-white'"
+						class="rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
+					>
+						Manual Mode
+					</button>
+					<button
+						type="button"
+						@click="calcMode = 'blueprint'"
+						:class="calcMode === 'blueprint' ? 'bg-amber-400 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'"
+						class="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
+					>
+						<span>Blueprint SDE Mode</span>
+						<span class="rounded bg-slate-950/20 px-1.5 py-0.5 font-mono text-[9px] uppercase">Auto BOM</span>
+					</button>
+				</div>
 			</div>
 
-			<div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+			<!-- MODE 1: MANUAL MODE (Preserved 100% Intact) -->
+			<div x-show="calcMode === 'manual'" class="grid grid-cols-1 gap-6 lg:grid-cols-12">
 				<!-- Input Form -->
 				<div class="tactical-panel rounded-xl p-5 lg:col-span-6">
 					<form
@@ -45,68 +72,188 @@ templ CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input 
 						class="grid grid-cols-1 gap-3 sm:grid-cols-2"
 					>
 						<div class="sm:col-span-2">
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Nama Item (Auto-Fill Harga Jita via Public ESI)</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Item Name (Auto-Fill Jita Price via Public ESI)</label>
 							<div class="mt-1 flex gap-2">
 								<input type="text" name="item_name" x-model="itemName" class="flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-sky-400 focus:outline-none"/>
 								<button type="button" @click="lookupESI()" class="rounded-md border border-sky-500/40 bg-sky-500/15 px-3 py-2 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 cursor-pointer">
-									Cek Jita ESI
+									Check Jita ESI
 								</button>
 							</div>
 							<div x-show="lookupStatus" x-text="lookupStatus" class="mt-1 text-[11px] font-mono text-sky-300"></div>
 						</div>
 
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Output Qty / Batch</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Output Qty / Batch</label>
 							<input type="number" name="output_qty" value={ fmt.Sprintf("%d", input.OutputQty) } min="1" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Harga Jual / Unit (ISK)</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Unit Sell Price (ISK)</label>
 							<input type="number" step="0.01" name="unit_sell_price" x-model="sellPrice" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Biaya Bahan / Batch (ISK)</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Material Cost / Batch (ISK)</label>
 							<input type="number" step="0.01" name="material_cost" value={ fmt.Sprintf("%.2f", input.MaterialCost) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Biaya Ekstra BPC / Decryptor</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Extra BPC / Decryptor Cost</label>
 							<input type="number" step="0.01" name="extra_setup_cost" value={ fmt.Sprintf("%.2f", input.ExtraSetupCost) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">System Cost Index (Desimal, mis. 0.045)</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">System Cost Index (e.g. 0.045)</label>
 							<input type="number" step="0.0001" name="system_cost_index" value={ fmt.Sprintf("%.4f", input.SystemCostIndex) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Biaya Angkut / Freight (ISK)</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Freight Cost (ISK)</label>
 							<input type="number" step="0.01" name="freight_cost" value={ fmt.Sprintf("%.2f", input.FreightCost) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Broker Fee (%)</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Broker Fee (%)</label>
 							<input type="number" step="0.01" name="broker_fee_percent" value={ fmt.Sprintf("%.2f", input.BrokerFeePercent) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Sales Tax (%)</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Sales Tax (%)</label>
 							<input type="number" step="0.01" name="sales_tax_percent" value={ fmt.Sprintf("%.2f", input.SalesTaxPercent) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Estimasi Jumlah Relist</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Estimated Relists</label>
 							<input type="number" name="estimated_relists" value={ fmt.Sprintf("%d", input.EstimatedRelists) } min="0" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Target Batches / Week</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Target Batches / Week</label>
 							<input type="number" name="batches_per_week" value={ fmt.Sprintf("%d", input.BatchesPerWeek) } min="1" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
 
 						<div class="sm:col-span-2 pt-2">
 							<button type="submit" class="w-full rounded-md bg-sky-500 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer">
-								Hitung Analisis Profit Real-Time
+								Calculate Manual Profit
 							</button>
 						</div>
 					</form>
 				</div>
 
-				<!-- Real-Time Result Panel -->
+				<!-- Real-Time Manual Result Panel -->
 				<div id="calc-result-panel" class="tactical-panel rounded-xl p-5 lg:col-span-6">
 					@CalculatorResultPartial(input, result, calcErr)
+				</div>
+			</div>
+
+			<!-- MODE 2: BLUEPRINT SDE MODE (NEW — Auto BOM + Live Jita Cost + ISK/Hour) -->
+			<div x-cloak x-show="calcMode === 'blueprint'" class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+				<!-- Blueprint Input Form -->
+				<div class="tactical-panel rounded-xl p-5 lg:col-span-5 space-y-4">
+					<div class="flex items-center justify-between border-b border-violet-400/20 pb-3">
+						<div>
+							<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">EVE SDE Blueprint Engine</h2>
+							<p class="text-[11px] text-slate-300/80 mt-0.5">Auto-calculates ME/TE Bill of Materials, live Jita build cost, build time, and ISK/Hour per slot.</p>
+						</div>
+						<span class="rounded border border-emerald-400/35 bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] text-emerald-200">
+							{ fmt.Sprintf("%d BPs", len(blueprints)) }
+						</span>
+					</div>
+
+					<form
+						hx-post="/calculator/blueprint/compute"
+						hx-target="#bp-result-panel"
+						hx-swap="innerHTML"
+						hx-indicator="#bp-calc-spinner"
+						class="grid grid-cols-1 gap-3 sm:grid-cols-2"
+					>
+						<div class="sm:col-span-2">
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Select Blueprint</label>
+							<select name="blueprint_type_id" required class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white">
+								if len(blueprints) == 0 {
+									<option value="">No SDE blueprints loaded yet</option>
+								} else {
+									for _, bp := range blueprints {
+										<option value={ fmt.Sprintf("%d", bp.BlueprintTypeID) }>
+											{ fmt.Sprintf("[%s] %s (%d/run)", bp.Category, bp.ProductName, bp.ProductQtyPerRun) }
+										</option>
+									}
+								}
+							</select>
+						</div>
+
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Runs</label>
+							<input type="number" name="runs" value="10" min="1" max="10000" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Material Pricing</label>
+							<select name="material_price_source" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white">
+								<option value="jita_sell">Jita Lowest Sell (Instant Buy)</option>
+								<option value="jita_buy">Jita Highest Buy (Buy Orders)</option>
+							</select>
+						</div>
+
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">ME Level (0–10%)</label>
+							<input type="number" name="me" value="10" min="0" max="10" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">TE Level (0–20%)</label>
+							<input type="number" name="te" value="20" min="0" max="20" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+
+						<div class="sm:col-span-2">
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Manufacturing Structure</label>
+							<select name="structure_key" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white">
+								for _, st := range domain.DefaultStructureProfiles {
+									<option value={ st.Key }>{ st.Name }</option>
+								}
+							</select>
+						</div>
+
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Sell Price Override (0 = Live Jita)</label>
+							<input type="number" step="0.01" name="product_sell_override" value="0" min="0" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Extra BPC / Setup Cost (ISK)</label>
+							<input type="number" step="0.01" name="extra_setup_cost" value="0" min="0" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">System Cost Index</label>
+							<input type="number" step="0.0001" name="system_cost_index" value={ fmt.Sprintf("%.4f", settings.SystemCostIndex) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Freight (ISK / m³)</label>
+							<input type="number" step="0.01" name="freight_cost_per_m3" value={ fmt.Sprintf("%.2f", settings.FreightCostPerM3) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Broker Fee (%)</label>
+							<input type="number" step="0.01" name="broker_fee_percent" value={ fmt.Sprintf("%.2f", settings.BrokerFeePercent) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Sales Tax (%)</label>
+							<input type="number" step="0.01" name="sales_tax_percent" value={ fmt.Sprintf("%.2f", settings.SalesTaxPercent) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Estimated Relists</label>
+							<input type="number" name="estimated_relists" value="1" min="0" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Batches / Week</label>
+							<input type="number" name="batches_per_week" value="4" min="1" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+						</div>
+
+						<div class="sm:col-span-2 pt-2">
+							<button
+								type="submit"
+								class="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-amber-400 py-2.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer"
+							>
+								<span id="bp-calc-spinner" class="htmx-indicator h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent"></span>
+								<span>Calculate Live Blueprint Profit</span>
+							</button>
+						</div>
+					</form>
+				</div>
+
+				<!-- Blueprint SDE Result Panel -->
+				<div id="bp-result-panel" class="tactical-panel rounded-xl p-5 lg:col-span-7">
+					@BlueprintResultPartial(nil, "")
 				</div>
 			</div>
 		</div>
@@ -116,16 +263,16 @@ templ CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input 
 templ CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCalcResult, errMsg string) {
 	if errMsg != "" {
 		<div class="rounded-lg border border-rose-500/40 bg-rose-950/40 p-4 text-xs text-rose-200">
-			<strong>Error Perhitungan:</strong> { errMsg }
+			<strong>Calculation Error:</strong> { errMsg }
 		</div>
 	} else if res != nil {
 		<div class="space-y-4">
 			<div class="flex items-center justify-between">
-				<h2 class="text-sm font-bold uppercase tracking-wider text-white">Hasil Kalkulasi: { input.ItemName }</h2>
+				<h2 class="text-sm font-bold uppercase tracking-wider text-white">Calculation Result: { input.ItemName }</h2>
 				if res.IsProfitable {
 					<span class="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-0.5 font-mono text-[11px] font-bold text-emerald-300">PROFITABLE</span>
 				} else {
-					<span class="rounded-full border border-rose-500/40 bg-rose-500/20 px-2.5 py-0.5 font-mono text-[11px] font-bold text-rose-300">RUGI BERSIH</span>
+					<span class="rounded-full border border-rose-500/40 bg-rose-500/20 px-2.5 py-0.5 font-mono text-[11px] font-bold text-rose-300">NET LOSS</span>
 				}
 			</div>
 
@@ -135,7 +282,7 @@ templ CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCa
 					<div class={ "mt-1 text-lg font-bold font-mono " + profitColor(res.NetProfitPerBatch) }>{ FormatISK(res.NetProfitPerBatch) }</div>
 				</div>
 				<div class="rounded-lg border border-slate-800 bg-slate-900/70 p-3">
-					<div class="text-[10px] font-mono uppercase text-slate-400">Proyeksi Profit Mingguan</div>
+					<div class="text-[10px] font-mono uppercase text-slate-400">Weekly Projected Profit</div>
 					<div class={ "mt-1 text-lg font-bold font-mono " + profitColor(res.WeeklyNetProfit) }>{ FormatISK(res.WeeklyNetProfit) }</div>
 				</div>
 				<div class="rounded-lg border border-slate-800 bg-slate-900/70 p-3">
@@ -150,12 +297,131 @@ templ CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCa
 
 			<div class="rounded-lg border border-slate-800 bg-slate-950/60 p-3.5 text-xs space-y-1.5 font-mono">
 				<div class="flex justify-between"><span class="text-slate-400">Gross Revenue</span><span class="text-white">{ FormatISKExact(res.GrossRevenue) }</span></div>
-				<div class="flex justify-between"><span class="text-slate-400">Total Biaya Langsung (Bahan + BPC + SCI + Freight)</span><span class="text-slate-200">-{ FormatISKExact(res.TotalDirectCost) }</span></div>
+				<div class="flex justify-between"><span class="text-slate-400">Total Direct Cost (Materials + BPC + SCI + Freight)</span><span class="text-slate-200">-{ FormatISKExact(res.TotalDirectCost) }</span></div>
 				<div class="flex justify-between"><span class="text-slate-400">Job Install Cost (SCI)</span><span class="text-slate-400">{ FormatISKExact(res.JobInstallCost) }</span></div>
 				<div class="flex justify-between"><span class="text-slate-400">Broker Fee + Sales Tax + Relist</span><span class="text-rose-300">-{ FormatISKExact(res.TotalMarketFees) }</span></div>
 				<div class="border-t border-slate-800 pt-1.5 flex justify-between font-bold">
-					<span class="text-slate-300">Total Biaya Aktual</span>
+					<span class="text-slate-300">Total Actual Cost</span>
 					<span class="text-white">{ FormatISKExact(res.TotalActualCost) }</span>
+				</div>
+			</div>
+		</div>
+	}
+}
+
+templ BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) {
+	if errMsg != "" {
+		<div class="rounded-lg border border-rose-500/40 bg-rose-950/40 p-4 text-xs text-rose-200">
+			<strong>Blueprint Calculation Error:</strong> { errMsg }
+		</div>
+	} else if res == nil {
+		<div class="flex flex-col items-center justify-center py-12 text-center space-y-2">
+			<div class="text-sm font-semibold text-white">Select a Blueprint &amp; Click "Calculate Live Blueprint Profit"</div>
+			<p class="text-xs text-slate-300/80 max-w-md">
+				Aura-Forge will automatically compute ME-adjusted material quantities, fetch live Jita material &amp; product prices from Public ESI, estimate build duration &amp; ISK/Hour, and generate an EVE Multibuy list.
+			</p>
+		</div>
+	} else {
+		<div class="space-y-4" x-data="{ copied: false }">
+			<!-- Title & Status -->
+			<div class="flex flex-wrap items-center justify-between gap-2">
+				<div>
+					<h2 class="text-base font-bold text-white">{ res.Blueprint.ProductName }</h2>
+					<div class="text-[11px] font-mono text-slate-400">
+						{ fmt.Sprintf("%dx Runs (%d units) • ME %d%% / TE %d%% • %s", res.Runs, res.TotalOutputQty, res.ME, res.TE, res.Structure.Name) }
+					</div>
+				</div>
+				<div class="flex items-center gap-2">
+					if res.Profit.IsProfitable {
+						<span class="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-0.5 font-mono text-[11px] font-bold text-emerald-300">PROFITABLE</span>
+					} else {
+						<span class="rounded-full border border-rose-500/40 bg-rose-500/20 px-2.5 py-0.5 font-mono text-[11px] font-bold text-rose-300">NET LOSS</span>
+					}
+					<form hx-post="/calculator/blueprint/save-catalog" hx-swap="none">
+						<input type="hidden" name="product_type_id" value={ fmt.Sprintf("%d", res.Blueprint.ProductTypeID) }/>
+						<input type="hidden" name="product_name" value={ res.Blueprint.ProductName }/>
+						<input type="hidden" name="category" value={ res.Blueprint.Category }/>
+						<input type="hidden" name="output_qty" value={ fmt.Sprintf("%d", res.TotalOutputQty) }/>
+						<input type="hidden" name="unit_sell_price" value={ fmt.Sprintf("%.2f", res.ProductUnitSellPrice) }/>
+						<input type="hidden" name="unit_buy_price" value={ fmt.Sprintf("%.2f", res.ProductUnitBuyPrice) }/>
+						<input type="hidden" name="material_cost" value={ fmt.Sprintf("%.2f", res.TotalMaterialCost) }/>
+						<button type="submit" class="rounded-md bg-emerald-500 px-3 py-1 text-[11px] font-bold text-slate-950 hover:bg-emerald-400 transition cursor-pointer">
+							+ Save to Catalog
+						</button>
+					</form>
+				</div>
+			</div>
+
+			<!-- 4 KPI Cards -->
+			<div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+				<div class="rounded-lg border border-slate-800 bg-slate-900/75 p-3">
+					<div class="text-[10px] font-mono uppercase text-slate-400">Net Profit</div>
+					<div class={ "mt-1 text-base font-bold font-mono " + profitColor(res.Profit.NetProfitPerBatch) }>{ FormatISK(res.Profit.NetProfitPerBatch) }</div>
+					<div class="text-[10px] font-mono text-slate-400">ROI: { FormatPercent(res.Profit.ROIPercent) }</div>
+				</div>
+				<div class="rounded-lg border border-slate-800 bg-slate-900/75 p-3">
+					<div class="text-[10px] font-mono uppercase text-amber-300/80">ISK / Hour (Slot)</div>
+					<div class={ "mt-1 text-base font-bold font-mono " + profitColor(res.ISKPerHour) }>{ FormatISK(res.ISKPerHour) }/h</div>
+					<div class="text-[10px] font-mono text-slate-400">Build: { res.DurationFormatted }</div>
+				</div>
+				<div class="rounded-lg border border-slate-800 bg-slate-900/75 p-3">
+					<div class="text-[10px] font-mono uppercase text-sky-300/80">Jita Unit Sell</div>
+					<div class="mt-1 text-base font-bold font-mono text-sky-200">{ FormatISK(res.ProductUnitSellPrice) }</div>
+					<div class="text-[10px] font-mono text-slate-400">Break-Even: { FormatISK(res.Profit.BreakEvenUnitPrice) }</div>
+				</div>
+				<div class="rounded-lg border border-slate-800 bg-slate-900/75 p-3">
+					<div class="text-[10px] font-mono uppercase text-violet-300/80">Total Material Cost</div>
+					<div class="mt-1 text-base font-bold font-mono text-white">{ FormatISK(res.TotalMaterialCost) }</div>
+					<div class="text-[10px] font-mono text-slate-400">{ fmt.Sprintf("%.1f m³", res.TotalMaterialVolumeM3) }</div>
+				</div>
+			</div>
+
+			<!-- Live BOM Table -->
+			<div class="rounded-lg border border-violet-400/20 bg-slate-950/55 overflow-hidden">
+				<div class="px-3.5 py-2 border-b border-violet-400/15 flex items-center justify-between">
+					<span class="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-300">ME-Adjusted Bill of Materials</span>
+					<button
+						type="button"
+						@click="navigator.clipboard.writeText($refs.bpMultibuy.value); copied = true; setTimeout(() => copied = false, 2000)"
+						class="rounded border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-[10px] font-mono font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer"
+					>
+						<span x-show="!copied">Copy EVE Multibuy</span>
+						<span x-cloak x-show="copied">Copied!</span>
+					</button>
+				</div>
+				<textarea x-ref="bpMultibuy" class="hidden" readonly>{ res.MultibuyText }</textarea>
+				<div class="overflow-x-auto">
+					<table class="w-full text-left text-xs font-mono">
+						<thead class="text-[10px] uppercase text-slate-400 border-b border-violet-400/15">
+							<tr>
+								<th class="px-3.5 py-2">Material</th>
+								<th class="px-3 py-2 text-right">Qty (ME { fmt.Sprintf("%d%%", res.ME) })</th>
+								<th class="px-3 py-2 text-right">Unit Price</th>
+								<th class="px-3.5 py-2 text-right">Total Cost</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-violet-400/10">
+							for _, m := range res.Materials {
+								<tr class="hover:bg-white/5">
+									<td class="px-3.5 py-1.5 font-sans text-slate-100">{ m.MaterialName }</td>
+									<td class="px-3 py-1.5 text-right text-slate-200">{ fmt.Sprintf("%d", m.AdjustedQty) }</td>
+									<td class="px-3 py-1.5 text-right text-slate-400">{ FormatISKExact(m.UnitPrice) }</td>
+									<td class="px-3.5 py-1.5 text-right text-amber-200">{ FormatISKExact(m.TotalCost) }</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<!-- Financial Breakdown -->
+			<div class="rounded-lg border border-slate-800 bg-slate-950/60 p-3.5 text-xs space-y-1.5 font-mono">
+				<div class="flex justify-between"><span class="text-slate-400">Gross Revenue ({ fmt.Sprintf("%d units", res.TotalOutputQty) })</span><span class="text-white">{ FormatISKExact(res.Profit.GrossRevenue) }</span></div>
+				<div class="flex justify-between"><span class="text-slate-400">Materials + Freight ({ FormatISKExact(res.FreightCost) }) + SCI ({ FormatISKExact(res.Profit.JobInstallCost) })</span><span class="text-slate-200">-{ FormatISKExact(res.Profit.TotalDirectCost) }</span></div>
+				<div class="flex justify-between"><span class="text-slate-400">Market Fees (Broker + Sales Tax + Relist)</span><span class="text-rose-300">-{ FormatISKExact(res.Profit.TotalMarketFees) }</span></div>
+				<div class="border-t border-slate-800 pt-1.5 flex justify-between font-bold">
+					<span class="text-slate-300">Weekly Projected Profit</span>
+					<span class={ profitColor(res.Profit.WeeklyNetProfit) }>{ FormatISKExact(res.Profit.WeeklyNetProfit) }</span>
 				</div>
 			</div>
 		</div>

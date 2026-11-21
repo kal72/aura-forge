@@ -46,6 +46,7 @@ func main() {
 		settingsRepo domain.SettingsRepository
 		cacheRepo    domain.ESICacheRepository
 		userRepo     domain.UserRepository
+		sdeRepo      domain.SDERepository
 	)
 
 	db, err := postgres.NewDB(ctx, cfg.DatabaseURL)
@@ -62,6 +63,7 @@ func main() {
 		settingsRepo = postgres.NewSettingsRepo(db.Pool)
 		cacheRepo = postgres.NewCacheRepo(db.Pool)
 		userRepo = postgres.NewUserRepo(db.Pool)
+		sdeRepo = postgres.NewSDERepo(db.Pool)
 	}
 
 	// Initialize Application Auth & seed initial Admin account if database has no users yet
@@ -95,6 +97,7 @@ func main() {
 		charSync,
 		ssoClient,
 	)
+	copilotSvc.SetSDERepository(sdeRepo)
 
 	router := apphttp.NewRouterWithAuth(copilotSvc, authSvc, web.NewRenderer())
 

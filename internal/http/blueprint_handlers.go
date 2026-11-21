@@ -1,0 +1,117 @@
+package http
+
+import (
+	"net/http"
+	"strconv"
+	"strings"
+
+	"aura-forge/internal/domain"
+)
+
+// HandleBlueprintCompute calculates an SDE Blueprint BOM, live Jita material/product prices, build time, ISK/hour, and profit.
+func (h *Handlers) HandleBlueprintCompute(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	settings, _ := h.svc.GetSettings(r.Context())
+	bpID, _ := strconv.ParseInt(strings.TrimSpace(r.FormValue("blueprint_type_id")), 10, 32)
+
+	in := domain.BlueprintCalcInput{
+		BlueprintTypeID:     int32(bpID),
+		Runs:                parseIntDefault(r.FormValue("runs"), 1),
+		ME:                  parseIntDefault(r.FormValue("me"), 10),
+		TE:                  parseIntDefault(r.FormValue("te"), 20),
+		StructureKey:        strings.TrimSpace(r.FormValue("structure_key")),
+		MaterialPriceSource: strings.TrimSpace(r.FormValue("material_price_source")),
+		ProductSellOverride: parseFloatDefault(r.FormValue("product_sell_override"), 0),
+		ExtraSetupCost:      parseFloatDefault(r.FormValue("extra_setup_cost"), 0),
+		SystemCostIndex:     parseFloatDefault(r.FormValue("system_cost_index"), settings.SystemCostIndex),
+		FacilityTaxPercent:  parseFloatDefault(r.FormValue("facility_tax_percent"), settings.FacilityTaxPercent),
+		FreightCostPerM3:    parseFloatDefault(r.FormValue("freight_cost_per_m3"), settings.FreightCostPerM3),
+		BrokerFeePercent:    parseFloatDefault(r.FormValue("broker_fee_percent"), settings.BrokerFeePercent),
+		SalesTaxPercent:     parseFloatDefault(r.FormValue("sales_tax_percent"), settings.SalesTaxPercent),
+		RelistFeePercent:    settings.RelistFeePercent,
+		EstimatedRelists:    parseIntDefault(r.FormValue("estimated_relists"), 1),
+		BatchesPerWeek:      parseIntDefault(r.FormValue("batches_per_week"), 4),
+	}
+
+	res, err := h.svc.CalculateBlueprintProfit(r.Context(), in)
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
+
+	if h.renderer != nil {
+		_ = h.renderer.RenderBlueprintResult(w, r, res, errMsg)
+		return
+	}
+	if err != nil {
+		h.writeJSON(w, http.StatusBadRequest, map[string]string{"error": errMsg})
+		return
+	}
+	h.writeJSON(w, http.StatusOK, res)
+}
+
+// HandleBlueprintSaveCatalog saves an SDE blueprint calculation directly into Catalog & Trap Guard.
+func (h *Handlers) HandleBlueprintSaveCatalog(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	typeID, _ := strconv.ParseInt(strings.TrimSpace(r.FormValue("product_type_id")), 10, 32)
+	name := strings.TrimSpace(r.FormValue("product_name"))
+	category := strings.TrimSpace(r.FormValue("category"))
+	if category == "" {
+		category = "Other"
+	}
+
+	item := &domain.MarketItem{
+		TypeID:            int32(typeID),
+		Name:              name,
+		Category:          domain.ItemCategory(category),
+		BatchOutputQty:    parseIntDefault(r.FormValue("output_qty"), 1),
+		EstimatedJitaSell: parseFloatDefault(r.FormValue("unit_sell_price"), 0),
+		EstimatedJitaBuy:  parseFloatDefault(r.FormValue("unit_buy_price"), 0),
+		MaterialCost:      parseFloatDefault(r.FormValue("material_cost"), 0),
+		ExtraSetupCost:    parseFloatDefault(r.FormValue("extra_setup_cost"), 0),
+		DailyVolume:       100,
+		IsManufacturable:  true,
+	}
+
+	saved, err := h.svc.SaveCatalogItem(r.Context(), item)
+	if err != nil {
+		if IsHTMX(r) {
+			TriggerToast(w, "error", "Failed to save to Catalog: "+err.Error())
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if IsHTMX(r) {
+		TriggerToast(w, "success", "Blueprint output '"+saved.Name+"' saved to Catalog & Trap Guard.")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	http.Redirect(w, r, "/catalog", http.StatusFound)
+}
+
+func parseIntDefault(raw string, fallback int) int {
+	v, err := strconv.Atoi(strings.TrimSpace(raw))
+	if err != nil {
+		return fallback
+	}
+	return v
+}
+
+func parseFloatDefault(raw string, fallback float64) float64 {
+	v, err := strconv.ParseFloat(strings.TrimSpace(raw), 64)
+	if err != nil {
+		return fallback
+	}
+	return v
+}

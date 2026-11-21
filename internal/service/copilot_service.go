@@ -78,6 +78,7 @@ type CopilotService struct {
 	market   domain.MarketDataProvider
 	charSync domain.CharacterSyncProvider
 	sso      SSOAuthenticator
+	sde      domain.SDERepository
 }
 
 // NewCopilotService constructs a CopilotService via Dependency Inversion interfaces.

@@ -29,14 +29,19 @@ func (tr *TemplRenderer) RenderCatalogTable(w http.ResponseWriter, r *http.Reque
 	return CatalogTable(items).Render(r.Context(), w)
 }
 
-func (tr *TemplRenderer) RenderCalculator(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, input domain.ProfitCalcInput, result *domain.ProfitCalcResult, calcErr string) error {
+func (tr *TemplRenderer) RenderCalculator(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, input domain.ProfitCalcInput, result *domain.ProfitCalcResult, calcErr string, blueprints []domain.SDEBlueprint) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	return CalculatorPage(mode, settings, input, result, calcErr).Render(r.Context(), w)
+	return CalculatorPage(mode, settings, input, result, calcErr, blueprints).Render(r.Context(), w)
 }
 
 func (tr *TemplRenderer) RenderCalculatorResult(w http.ResponseWriter, r *http.Request, input domain.ProfitCalcInput, result *domain.ProfitCalcResult, calcErr string) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	return CalculatorResultPartial(input, result, calcErr).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderBlueprintResult(w http.ResponseWriter, r *http.Request, result *domain.BlueprintCalcResult, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return BlueprintResultPartial(result, errMsg).Render(r.Context(), w)
 }
 
 func (tr *TemplRenderer) RenderAllocator(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, cfg domain.AllocationConfig, result *domain.AllocationResult, allocErr string) error {
@@ -92,4 +97,24 @@ func (tr *TemplRenderer) RenderMarketplace(w http.ResponseWriter, r *http.Reques
 func (tr *TemplRenderer) RenderMarketplaceResults(w http.ResponseWriter, r *http.Request, snap *domain.MarketplaceSnapshot, errMsg string) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	return MarketplaceResultsPartial(snap, errMsg).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderScanner(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return ScannerPage(mode, settings).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderScannerManufacturing(w http.ResponseWriter, r *http.Request, results []domain.ManufacturingOpportunity, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return ScannerManufacturingPartial(results, errMsg).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderScannerStationTrading(w http.ResponseWriter, r *http.Request, results []domain.StationTradeOpportunity, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return ScannerStationTradingPartial(results, errMsg).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderScannerArbitrage(w http.ResponseWriter, r *http.Request, results []domain.ArbitrageOpportunity, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return ScannerArbitragePartial(results, errMsg).Render(r.Context(), w)
 }

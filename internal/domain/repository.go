@@ -89,6 +89,14 @@ type MarketBrowserProvider interface {
 	GetMarketHistory(ctx context.Context, regionID int32, typeID int32, days int) ([]MarketHistoryPoint, error)
 }
 
+// SDERepository specifies storage operations for EVE Online Static Data Export blueprints and materials.
+type SDERepository interface {
+	SearchBlueprints(ctx context.Context, query, category string, limit int) ([]SDEBlueprint, error)
+	GetBlueprintByID(ctx context.Context, blueprintTypeID int32) (*SDEBlueprint, error)
+	GetBlueprintMaterials(ctx context.Context, blueprintTypeID int32) ([]SDEMaterialRequirement, error)
+	UpsertSDEData(ctx context.Context, types []SDEType, blueprints []SDEBlueprint, materials map[int32][]SDEMaterialRequirement) error
+}
+
 // CharacterSyncProvider specifies operations to fetch authenticated character data via ESI OAuth2.
 type CharacterSyncProvider interface {
 	SyncWallet(ctx context.Context, token *EVEToken) (float64, error)
