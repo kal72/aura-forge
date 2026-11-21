@@ -153,9 +153,12 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 								x-show={ fmt.Sprintf("matchesItem(%q, %q)", string(item.Tier), item.Name) }
 								@click={ fmt.Sprintf("selectedID = %d; htmx.ajax('GET', '/pi/tree?type_id=%d&poco_tax=' + pocoTax, { target: '#pi-tree-panel', swap: 'innerHTML', indicator: '#pi-tree-spinner' })", item.TypeID, item.TypeID) }
 								:class={ fmt.Sprintf("selectedID === %d ? 'border-amber-300/60 bg-amber-400/15 text-white' : 'border-violet-400/15 bg-slate-950/40 text-slate-200 hover:bg-white/10'", item.TypeID) }
-								class="w-full flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-xs transition cursor-pointer"
+								class="w-full flex items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5 text-left text-xs transition cursor-pointer"
 							>
-								<span class="font-medium truncate">{ item.Name }</span>
+								<div class="flex items-center gap-2 min-w-0">
+									<img src={ EVEItemIconURL(item.TypeID, 32) } alt={ item.Name } loading="lazy" class="h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain" onerror="this.style.display='none'"/>
+									<span class="font-medium truncate">{ item.Name }</span>
+								</div>
 								<span class={ "shrink-0 rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold " + piTierBadgeClass(item.Tier) }>
 									{ string(item.Tier) }
 								</span>
@@ -309,8 +312,13 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 												<span class={ "inline-block rounded border px-2 py-0.5 font-mono text-[10px] " + planetBadgeClass(c.PlanetType) }>{ c.PlanetType }</span>
 											</td>
 											<td class="px-4 py-3">
-												<span class="font-medium text-white">{ c.ProductName }</span>
-												<span class={ "ml-1.5 rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold " + piTierBadgeClass(c.Tier) }>{ string(c.Tier) }</span>
+												<div class="flex items-center gap-2">
+													if c.ProductTypeID > 0 {
+														<img src={ EVEItemIconURL(c.ProductTypeID, 32) } alt={ c.ProductName } loading="lazy" class="h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain" onerror="this.style.display='none'"/>
+													}
+													<span class="font-medium text-white">{ c.ProductName }</span>
+													<span class={ "rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold " + piTierBadgeClass(c.Tier) }>{ string(c.Tier) }</span>
+												</div>
 											</td>
 											<td class="px-4 py-3 font-mono">
 												<span class={ "inline-block rounded border px-2 py-0.5 text-[10px] font-bold " + colonyStatusClass(st) }>{ st }</span>
@@ -351,14 +359,17 @@ templ PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) {
 			<!-- Selected Item Banner & Required Source Planets -->
 			<div class="tactical-panel rounded-xl p-5 space-y-3">
 				<div class="flex flex-wrap items-center justify-between gap-2">
-					<div class="flex items-center gap-2.5">
-						<h2 class="text-xl font-bold text-white">{ tree.Commodity.Name }</h2>
-						<span class={ "rounded border px-2 py-0.5 font-mono text-[10px] font-bold " + piTierBadgeClass(tree.Commodity.Tier) }>
-							{ string(tree.Commodity.Tier) }
-						</span>
-						<span class="font-mono text-[11px] text-slate-400">
-							{ fmt.Sprintf("%d units / %dm cycle", tree.Commodity.OutputQty, tree.Commodity.CycleMinutes) }
-						</span>
+					<div class="flex items-center gap-3">
+						<img src={ EVEItemIconURL(tree.Commodity.TypeID, 64) } alt={ tree.Commodity.Name } class="h-11 w-11 shrink-0 rounded-lg border border-amber-300/45 bg-slate-950/80 p-0.5 shadow-[0_0_16px_rgba(251,191,36,0.2)] object-contain" onerror="this.style.display='none'"/>
+						<div class="flex flex-wrap items-center gap-2">
+							<h2 class="text-xl font-bold text-white">{ tree.Commodity.Name }</h2>
+							<span class={ "rounded border px-2 py-0.5 font-mono text-[10px] font-bold " + piTierBadgeClass(tree.Commodity.Tier) }>
+								{ string(tree.Commodity.Tier) }
+							</span>
+							<span class="font-mono text-[11px] text-slate-400">
+								{ fmt.Sprintf("%d units / %dm cycle", tree.Commodity.OutputQty, tree.Commodity.CycleMinutes) }
+							</span>
+						</div>
 					</div>
 					if tree.MultibuyText != "" {
 						<button
@@ -428,6 +439,7 @@ templ PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) {
 								if node.Depth > 0 {
 									<span class="text-slate-500">└─</span>
 								}
+								<img src={ EVEItemIconURL(node.TypeID, 32) } alt={ node.Name } loading="lazy" class="h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain" onerror="this.style.display='none'"/>
 								<span class={ "rounded border px-1.5 py-0.5 text-[9px] font-bold " + piTierBadgeClass(node.Tier) }>
 									{ string(node.Tier) }
 								</span>
@@ -469,7 +481,12 @@ templ PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) {
 							<tbody class="divide-y divide-violet-400/10">
 								for _, p0 := range tree.P0Requirements {
 									<tr class="hover:bg-white/5">
-										<td class="px-4 py-2 font-semibold text-white">{ p0.Name }</td>
+										<td class="px-4 py-2">
+											<div class="flex items-center gap-2">
+												<img src={ EVEItemIconURL(p0.TypeID, 32) } alt={ p0.Name } loading="lazy" class="h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain" onerror="this.style.display='none'"/>
+												<span class="font-semibold text-white">{ p0.Name }</span>
+											</div>
+										</td>
 										<td class="px-4 py-2 text-right font-mono text-amber-200">{ fmt.Sprintf("%d", p0.TotalQuantity) }</td>
 										<td class="px-4 py-2">
 											<div class="flex flex-wrap gap-1">
@@ -514,8 +531,11 @@ templ PIScanPartial(rows []domain.PIProfitRow, tier string, errMsg string) {
 						for _, r := range rows {
 							<tr class="hover:bg-white/5">
 								<td class="px-4 py-2.5 font-sans">
-									<span class="font-semibold text-white">{ r.Name }</span>
-									<span class={ "ml-1.5 rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold " + piTierBadgeClass(r.Tier) }>{ string(r.Tier) }</span>
+									<div class="flex items-center gap-2">
+										<img src={ EVEItemIconURL(r.TypeID, 32) } alt={ r.Name } loading="lazy" class="h-7 w-7 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain" onerror="this.style.display='none'"/>
+										<span class="font-semibold text-white">{ r.Name }</span>
+										<span class={ "rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold " + piTierBadgeClass(r.Tier) }>{ string(r.Tier) }</span>
+									</div>
 								</td>
 								<td class="px-4 py-2.5 text-right text-amber-200">{ FormatISK(r.OutputUnitSell) }</td>
 								<td class="px-4 py-2.5 text-right text-slate-300">{ FormatISK(r.DirectInputCost + r.POCOTaxISK) }</td>

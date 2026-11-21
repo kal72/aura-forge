@@ -116,3 +116,25 @@ func NavLinkClass(activeNav, target string) string {
 	}
 	return "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium tracking-wide text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/70 border border-transparent transition"
 }
+
+// EVEItemIconURL returns the official CCP EVE Image Server icon URL for an inventory type_id.
+func EVEItemIconURL(typeID int32, size int) string {
+	if typeID <= 0 {
+		return ""
+	}
+	if size <= 0 {
+		size = 64
+	}
+	return fmt.Sprintf("https://images.evetech.net/types/%d/icon?size=%d", typeID, size)
+}
+
+// EVEBlueprintIconURL returns the official CCP EVE Image Server blueprint icon URL.
+func EVEBlueprintIconURL(bpTypeID int32, size int) string {
+	if bpTypeID <= 0 {
+		return ""
+	}
+	if size <= 0 {
+		size = 64
+	}
+	return fmt.Sprintf("https://images.evetech.net/types/%d/bp?size=%d", bpTypeID, size)
+}
