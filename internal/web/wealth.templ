@@ -1,0 +1,335 @@
+package web
+
+import (
+	"fmt"
+	"math"
+	"strings"
+	"time"
+
+	"aura-forge/internal/domain"
+	"aura-forge/internal/service"
+)
+
+func buildEquityCurvePoints(snaps []domain.NetWorthSnapshot) string {
+	if len(snaps) < 2 {
+		return ""
+	}
+	minVal := math.MaxFloat64
+	maxVal := 0.0
+	for _, s := range snaps {
+		if s.TotalNetWorth < minVal {
+			minVal = s.TotalNetWorth
+		}
+		if s.TotalNetWorth > maxVal {
+			maxVal = s.TotalNetWorth
+		}
+	}
+	if maxVal <= 0 || minVal == math.MaxFloat64 {
+		return ""
+	}
+	span := maxVal - minVal
+	if span == 0 {
+		span = 1
+	}
+
+	const width = 560.0
+	const height = 120.0
+	const padY = 14.0
+
+	pts := make([]string, 0, len(snaps))
+	stepX := width / float64(len(snaps)-1)
+	for i, s := range snaps {
+		x := float64(i) * stepX
+		norm := (s.TotalNetWorth - minVal) / span
+		y := (height - padY) - norm*(height-2*padY)
+		pts = append(pts, fmt.Sprintf("%.1f,%.1f", x, y))
+	}
+	return strings.Join(pts, " ")
+}
+
+func reverseSnapshots(snaps []domain.NetWorthSnapshot) []domain.NetWorthSnapshot {
+	out := make([]domain.NetWorthSnapshot, 0, len(snaps))
+	for i := len(snaps) - 1; i >= 0; i-- {
+		out = append(out, snaps[i])
+	}
+	return out
+}
+
+templ WealthPage(mode service.ModeInfo, summary *domain.WealthSummary) {
+	@Layout("Net Worth & 100B+ Roadmap", "wealth", mode) {
+		<div class="space-y-6" x-data="{ showSnapshotForm: false }">
+			<!-- Header -->
+			<div class="flex flex-wrap items-center justify-between gap-4">
+				<div>
+					<h1 class="text-2xl font-bold tracking-tight text-white">Net Worth Tracker &amp; 100B+ ISK Roadmap</h1>
+					<p class="text-xs text-slate-300/80 mt-0.5">Track total asset compounding (Wallet + Sell Orders + Escrow + Inventory + Active Jobs) and follow your capital-tier playbook.</p>
+				</div>
+				<div class="flex flex-wrap gap-2">
+					<button
+						type="button"
+						hx-post="/wealth/auto-snapshot"
+						hx-swap="none"
+						class="rounded-lg border border-emerald-400/40 bg-emerald-500/15 px-3.5 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-500/25 transition cursor-pointer"
+					>
+						Auto-Capture Today
+					</button>
+					<button
+						type="button"
+						@click="showSnapshotForm = !showSnapshotForm"
+						class="rounded-lg bg-amber-400 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer"
+					>
+						+ Record Manual Snapshot
+					</button>
+				</div>
+			</div>
+
+			<!-- Manual Snapshot Form -->
+			<div x-cloak x-show="showSnapshotForm" x-transition class="tactical-panel rounded-xl p-5 space-y-4">
+				<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Record Daily Net Worth Snapshot</h2>
+				<form hx-post="/wealth/snapshot" hx-swap="none" class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+					<div>
+						<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Date</label>
+						<input type="date" name="snapshot_date" value={ time.Now().Format("2006-01-02") } required class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Wallet Liquid (ISK)</label>
+						<input type="number" step="0.01" name="wallet_isk" value={ fmt.Sprintf("%.2f", summary.WalletISK) } class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Active Sell Orders (ISK)</label>
+						<input type="number" step="0.01" name="sell_orders_isk" value={ fmt.Sprintf("%.2f", summary.SellOrdersISK) } class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Buy Order Escrow (ISK)</label>
+						<input type="number" step="0.01" name="escrow_isk" value={ fmt.Sprintf("%.2f", summary.EscrowISK) } class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Hangar Inventory Value (ISK)</label>
+						<input type="number" step="0.01" name="inventory_isk" value={ fmt.Sprintf("%.2f", summary.InventoryISK) } class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Active Industry Jobs (ISK)</label>
+						<input type="number" step="0.01" name="active_jobs_isk" value={ fmt.Sprintf("%.2f", summary.ActiveJobsISK) } class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+					</div>
+					<div class="sm:col-span-2">
+						<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Note (Optional)</label>
+						<input type="text" name="note" placeholder="e.g. Sold 20x Rifter batch + Jita flips" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"/>
+					</div>
+					<div class="flex items-end justify-end gap-2">
+						<button type="button" @click="showSnapshotForm = false" class="rounded-lg border border-slate-600 px-3.5 py-2 text-xs text-slate-300 cursor-pointer">Cancel</button>
+						<button type="submit" class="rounded-lg bg-amber-400 px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 cursor-pointer">Save Snapshot</button>
+					</div>
+				</form>
+			</div>
+
+			<!-- 4 Top KPI Cards -->
+			<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase tracking-wider text-amber-300/85">Current Net Worth</div>
+					<div class="mt-1 text-2xl font-mono font-bold text-white">{ FormatISK(summary.CurrentNetWorth) }</div>
+					if summary.DailyChangeISK != 0 {
+						<div class={ "mt-0.5 text-[11px] font-mono " + profitColor(summary.DailyChangeISK) }>
+							{ fmt.Sprintf("%+.2f%% (%s vs prev)", summary.DailyChangePct, FormatISK(summary.DailyChangeISK)) }
+						</div>
+					} else {
+						<div class="mt-0.5 text-[11px] font-mono text-slate-400">Tier { fmt.Sprintf("%d", summary.CurrentPhase.TierNumber) }: { summary.CurrentPhase.Name }</div>
+					}
+				</div>
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase tracking-wider text-emerald-300/85">Liquid Wallet ISK</div>
+					<div class="mt-1 text-2xl font-mono font-bold text-emerald-200">{ FormatISK(summary.WalletISK) }</div>
+					<div class="mt-0.5 text-[11px] font-mono text-slate-400">Escrow: { FormatISK(summary.EscrowISK) }</div>
+				</div>
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase tracking-wider text-sky-300/85">Market &amp; Industry Capital</div>
+					<div class="mt-1 text-2xl font-mono font-bold text-sky-200">{ FormatISK(summary.SellOrdersISK + summary.ActiveJobsISK + summary.InventoryISK) }</div>
+					<div class="mt-0.5 text-[11px] font-mono text-slate-400">Orders { FormatISK(summary.SellOrdersISK) } • Jobs { FormatISK(summary.ActiveJobsISK) }</div>
+				</div>
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase tracking-wider text-violet-300/85">Next Milestone: { summary.NextMilestone.Label }</div>
+					<div class="mt-1 text-2xl font-mono font-bold text-amber-200">{ FormatPercent(summary.NextMilestone.ProgressPct) }</div>
+					<div class="mt-0.5 text-[11px] font-mono text-slate-400">Remaining: { FormatISK(summary.NextMilestone.Remaining) }</div>
+				</div>
+			</div>
+
+			<!-- 0 -> 100B+ Milestone Ladder -->
+			<div class="tactical-panel rounded-xl p-5 space-y-3">
+				<div class="flex flex-wrap items-center justify-between gap-2">
+					<h2 class="text-xs font-bold uppercase tracking-wider text-amber-300">Milestone Ladder (100M → 1B → 10B → 50B → 100B ISK)</h2>
+					<span class="text-[11px] font-mono text-slate-300">North Star Goal: 100B+ ISK</span>
+				</div>
+				<div class="grid grid-cols-1 gap-3 sm:grid-cols-5">
+					for _, m := range summary.Milestones {
+						<div class={ "rounded-lg border p-3 space-y-2 " + func() string { if m.Reached { return "border-emerald-400/45 bg-emerald-500/15" }; return "border-violet-400/25 bg-slate-950/45" }() }>
+							<div class="flex items-center justify-between">
+								<span class="font-mono text-xs font-bold text-white">{ m.Label }</span>
+								if m.Reached {
+									<span class="rounded bg-emerald-500/25 px-1.5 py-0.5 font-mono text-[9px] font-bold text-emerald-200">DONE</span>
+								} else {
+									<span class="font-mono text-[10px] text-amber-200">{ FormatPercent(m.ProgressPct) }</span>
+								}
+							</div>
+							<div class="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
+								<div class={ "h-full rounded-full " + func() string { if m.Reached { return "bg-emerald-400" }; return "bg-amber-400" }() } style={ fmt.Sprintf("width: %.1f%%", m.ProgressPct) }></div>
+							</div>
+						</div>
+					}
+				</div>
+			</div>
+
+			<!-- Equity Curve + Beginner Capital-Phase Playbook -->
+			<div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+				<!-- Equity Curve -->
+				<div class="tactical-panel rounded-xl p-5 lg:col-span-6 space-y-4">
+					<div class="flex items-center justify-between">
+						<h2 class="text-xs font-bold uppercase tracking-wider text-violet-200">Net Worth Equity Curve</h2>
+						<span class="text-[10px] font-mono text-slate-400">{ fmt.Sprintf("%d daily snapshots", len(summary.Snapshots)) }</span>
+					</div>
+					{{ curvePts := buildEquityCurvePoints(summary.Snapshots) }}
+					if curvePts != "" {
+						<div class="rounded-lg border border-violet-400/20 bg-slate-950/55 p-3">
+							<svg viewBox="0 0 560 120" class="w-full h-36 overflow-visible" preserveAspectRatio="none">
+								<polyline
+									fill="none"
+									stroke="#34d399"
+									stroke-width="2.5"
+									stroke-linejoin="round"
+									stroke-linecap="round"
+									points={ curvePts }
+								></polyline>
+							</svg>
+						</div>
+					} else {
+						<div class="rounded-lg border border-violet-400/20 bg-slate-950/45 p-8 text-center text-xs text-slate-300/80">
+							Record at least <strong>2 daily snapshots</strong> (click <strong>Auto-Capture Today</strong> each day) to render your compounding equity curve toward 100B+ ISK.
+						</div>
+					}
+
+					<!-- Top Realized Profit Contributors -->
+					<div class="pt-2 border-t border-violet-400/15 space-y-2">
+						<h3 class="text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-300">Top Profit Contributors (SOLD Batches)</h3>
+						if len(summary.TopProfitItems) == 0 {
+							<div class="text-xs text-slate-400">No SOLD batches recorded in Tracker yet. Mark completed batches as SOLD to see your top money-makers.</div>
+						} else {
+							<div class="overflow-x-auto">
+								<table class="w-full text-left text-xs font-mono">
+									<thead class="text-[10px] uppercase text-slate-400 border-b border-violet-400/15">
+										<tr>
+											<th class="py-1.5">Item</th>
+											<th class="py-1.5 text-right">Batches</th>
+											<th class="py-1.5 text-right">Realized Profit</th>
+											<th class="py-1.5 text-right">Avg ROI</th>
+										</tr>
+									</thead>
+									<tbody class="divide-y divide-violet-400/10">
+										for _, it := range summary.TopProfitItems {
+											<tr>
+												<td class="py-1.5 font-sans text-white font-medium">{ it.ItemName }</td>
+												<td class="py-1.5 text-right text-slate-300">{ fmt.Sprintf("%d", it.BatchesSold) }</td>
+												<td class={ "py-1.5 text-right font-bold " + profitColor(it.TotalProfit) }>{ FormatISK(it.TotalProfit) }</td>
+												<td class="py-1.5 text-right text-sky-300">{ FormatPercent(it.AvgROIPct) }</td>
+											</tr>
+										}
+									</tbody>
+								</table>
+							</div>
+						}
+					</div>
+				</div>
+
+				<!-- Beginner Capital-Phase Playbook -->
+				<div class="tactical-panel rounded-xl p-5 lg:col-span-6 space-y-4">
+					<div class="flex flex-wrap items-center justify-between gap-2 border-b border-violet-400/20 pb-3">
+						<div>
+							<div class="text-[10px] font-mono uppercase tracking-widest text-amber-300">Active Capital-Phase Playbook</div>
+							<h2 class="text-lg font-bold text-white">Tier { fmt.Sprintf("%d", summary.CurrentPhase.TierNumber) }: { summary.CurrentPhase.Name }</h2>
+						</div>
+						<span class="rounded-full border border-amber-400/40 bg-amber-500/15 px-3 py-1 font-mono text-[11px] font-bold text-amber-200">
+							{ summary.CurrentPhase.RangeLabel }
+						</span>
+					</div>
+
+					<p class="text-xs text-slate-200 leading-relaxed">{ summary.CurrentPhase.FocusSummary }</p>
+
+					<div class="space-y-2">
+						<h3 class="text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-300">Recommended Growth Actions</h3>
+						<ul class="space-y-1.5 text-xs text-slate-200 list-disc list-inside">
+							for _, st := range summary.CurrentPhase.Strategies {
+								<li>{ st }</li>
+							}
+						</ul>
+					</div>
+
+					<div class="space-y-2">
+						<h3 class="text-[11px] font-mono font-bold uppercase tracking-wider text-sky-300">Priority EVE Skills to Train</h3>
+						<ul class="space-y-1 text-xs text-slate-200 list-disc list-inside">
+							for _, sk := range summary.CurrentPhase.PrioritySkills {
+								<li>{ sk }</li>
+							}
+						</ul>
+					</div>
+
+					<div class="rounded-lg border border-rose-400/30 bg-rose-950/35 p-3 space-y-1.5">
+						<h3 class="text-[11px] font-mono font-bold uppercase tracking-wider text-rose-300">Capital Risk Guardrails</h3>
+						<ul class="space-y-1 text-xs text-rose-100/90 list-disc list-inside">
+							for _, rk := range summary.CurrentPhase.RiskRules {
+								<li>{ rk }</li>
+							}
+						</ul>
+					</div>
+				</div>
+			</div>
+
+			<!-- Historical Snapshots Ledger -->
+			if len(summary.Snapshots) > 0 {
+				<div class="tactical-panel rounded-xl overflow-hidden">
+					<div class="px-5 py-3 border-b border-violet-400/20">
+						<h3 class="text-xs font-bold uppercase tracking-wider text-slate-200">Daily Net Worth Ledger</h3>
+					</div>
+					<div class="overflow-x-auto">
+						<table class="w-full text-left text-xs font-mono">
+							<thead class="bg-slate-950/50 text-[10px] uppercase text-slate-400 border-b border-violet-400/15">
+								<tr>
+									<th class="px-4 py-2.5">Date</th>
+									<th class="px-4 py-2.5 text-right">Wallet</th>
+									<th class="px-4 py-2.5 text-right">Sell Orders</th>
+									<th class="px-4 py-2.5 text-right">Escrow</th>
+									<th class="px-4 py-2.5 text-right">Inventory</th>
+									<th class="px-4 py-2.5 text-right">Active Jobs</th>
+									<th class="px-4 py-2.5 text-right">Total Net Worth</th>
+									<th class="px-4 py-2.5">Note</th>
+									<th class="px-4 py-2.5 text-right">Action</th>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-violet-400/10">
+								for _, s := range reverseSnapshots(summary.Snapshots) {
+									<tr class="hover:bg-white/5">
+										<td class="px-4 py-2.5 text-white">{ s.SnapshotDate }</td>
+										<td class="px-4 py-2.5 text-right text-emerald-200">{ FormatISK(s.WalletISK) }</td>
+										<td class="px-4 py-2.5 text-right text-sky-200">{ FormatISK(s.SellOrdersISK) }</td>
+										<td class="px-4 py-2.5 text-right text-slate-300">{ FormatISK(s.EscrowISK) }</td>
+										<td class="px-4 py-2.5 text-right text-slate-300">{ FormatISK(s.InventoryISK) }</td>
+										<td class="px-4 py-2.5 text-right text-violet-200">{ FormatISK(s.ActiveJobsISK) }</td>
+										<td class="px-4 py-2.5 text-right font-bold text-amber-200">{ FormatISK(s.TotalNetWorth) }</td>
+										<td class="px-4 py-2.5 font-sans text-slate-400 max-w-[180px] truncate">{ s.Note }</td>
+										<td class="px-4 py-2.5 text-right">
+											<button
+												type="button"
+												hx-delete={ fmt.Sprintf("/wealth/snapshot/%d", s.ID) }
+												hx-confirm="Delete this Net Worth snapshot?"
+												hx-swap="none"
+												class="rounded border border-rose-400/35 bg-rose-500/15 px-2 py-0.5 text-[10px] font-sans font-semibold text-rose-200 hover:bg-rose-500/25 cursor-pointer"
+											>
+												Delete
+											</button>
+										</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			}
+		</div>
+	}
+}

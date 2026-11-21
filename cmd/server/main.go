@@ -47,6 +47,7 @@ func main() {
 		cacheRepo    domain.ESICacheRepository
 		userRepo     domain.UserRepository
 		sdeRepo      domain.SDERepository
+		wealthRepo   domain.NetWorthRepository
 	)
 
 	db, err := postgres.NewDB(ctx, cfg.DatabaseURL)
@@ -64,6 +65,7 @@ func main() {
 		cacheRepo = postgres.NewCacheRepo(db.Pool)
 		userRepo = postgres.NewUserRepo(db.Pool)
 		sdeRepo = postgres.NewSDERepo(db.Pool)
+		wealthRepo = postgres.NewWealthRepo(db.Pool)
 	}
 
 	// Initialize Application Auth & seed initial Admin account if database has no users yet
@@ -98,6 +100,7 @@ func main() {
 		ssoClient,
 	)
 	copilotSvc.SetSDERepository(sdeRepo)
+	copilotSvc.SetNetWorthRepository(wealthRepo)
 
 	router := apphttp.NewRouterWithAuth(copilotSvc, authSvc, web.NewRenderer())
 

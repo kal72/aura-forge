@@ -36,6 +36,10 @@ type Renderer interface {
 	RenderScannerManufacturing(w http.ResponseWriter, r *http.Request, results []domain.ManufacturingOpportunity, errMsg string) error
 	RenderScannerStationTrading(w http.ResponseWriter, r *http.Request, results []domain.StationTradeOpportunity, errMsg string) error
 	RenderScannerArbitrage(w http.ResponseWriter, r *http.Request, results []domain.ArbitrageOpportunity, errMsg string) error
+	RenderWealth(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, summary *domain.WealthSummary) error
+	RenderInvention(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings) error
+	RenderInventionResult(w http.ResponseWriter, r *http.Request, res *domain.InventionOptimizationResult, errMsg string) error
+	RenderMakeVsBuyResult(w http.ResponseWriter, r *http.Request, res *domain.MakeVsBuyResult, errMsg string) error
 }
 
 // Handlers exposes all HTTP and HTMX endpoints for aura-forge.

@@ -103,6 +103,21 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.Post("/to-batches", h.HandleAllocatorToBatches)
 		})
 
+		// Net Worth Tracker (0 -> 100B+ Milestone Curve) & Capital-Phase Advisor
+		r.Route("/wealth", func(r chi.Router) {
+			r.Get("/", h.HandleWealthPage)
+			r.Post("/snapshot", h.HandleSaveWealthSnapshot)
+			r.Post("/auto-snapshot", h.HandleAutoWealthSnapshot)
+			r.Delete("/snapshot/{id}", h.HandleDeleteWealthSnapshot)
+		})
+
+		// T2 Invention & Decryptor Optimizer + Make-vs-Buy Component Analyzer
+		r.Route("/invention", func(r chi.Router) {
+			r.Get("/", h.HandleInventionPage)
+			r.Post("/optimize", h.HandleInventionOptimize)
+			r.Post("/make-vs-buy", h.HandleMakeVsBuy)
+		})
+
 		// Weekly Production & Slot Planner
 		r.Route("/planner", func(r chi.Router) {
 			r.Get("/", h.HandlePlanner)

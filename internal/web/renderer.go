@@ -118,3 +118,23 @@ func (tr *TemplRenderer) RenderScannerArbitrage(w http.ResponseWriter, r *http.R
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	return ScannerArbitragePartial(results, errMsg).Render(r.Context(), w)
 }
+
+func (tr *TemplRenderer) RenderWealth(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, summary *domain.WealthSummary) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return WealthPage(mode, summary).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderInvention(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return InventionPage(mode, settings).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderInventionResult(w http.ResponseWriter, r *http.Request, res *domain.InventionOptimizationResult, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return InventionResultPartial(res, errMsg).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderMakeVsBuyResult(w http.ResponseWriter, r *http.Request, res *domain.MakeVsBuyResult, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return MakeVsBuyResultPartial(res, errMsg).Render(r.Context(), w)
+}

@@ -97,6 +97,13 @@ type SDERepository interface {
 	UpsertSDEData(ctx context.Context, types []SDEType, blueprints []SDEBlueprint, materials map[int32][]SDEMaterialRequirement) error
 }
 
+// NetWorthRepository specifies storage operations for daily Net Worth tracking snapshots.
+type NetWorthRepository interface {
+	ListSnapshots(ctx context.Context, limit int) ([]NetWorthSnapshot, error)
+	UpsertSnapshot(ctx context.Context, snap *NetWorthSnapshot) error
+	DeleteSnapshot(ctx context.Context, id int64) error
+}
+
 // CharacterSyncProvider specifies operations to fetch authenticated character data via ESI OAuth2.
 type CharacterSyncProvider interface {
 	SyncWallet(ctx context.Context, token *EVEToken) (float64, error)
