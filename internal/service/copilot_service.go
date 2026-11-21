@@ -17,14 +17,16 @@ type SSOAuthenticator interface {
 	ExchangeCode(ctx context.Context, code string) (*domain.EVEToken, error)
 }
 
-// ModeInfo describes the current operational mode (Public ESI Standard vs EVE SSO Connected).
+// ModeInfo describes the current operational mode (Public ESI Standard vs EVE SSO Connected)
+// along with the currently authenticated application user.
 type ModeInfo struct {
-	SSOEnabled    bool   `json:"sso_enabled"`
-	SSOConnected  bool   `json:"sso_connected"`
-	CharacterID   int64  `json:"character_id"`
-	CharacterName string `json:"character_name"`
-	ModeLabel     string `json:"mode_label"`
-	StatusHint    string `json:"status_hint"`
+	SSOEnabled    bool            `json:"sso_enabled"`
+	SSOConnected  bool            `json:"sso_connected"`
+	CharacterID   int64           `json:"character_id"`
+	CharacterName string          `json:"character_name"`
+	ModeLabel     string          `json:"mode_label"`
+	StatusHint    string          `json:"status_hint"`
+	CurrentUser   *domain.AppUser `json:"current_user,omitempty"`
 }
 
 // DashboardSummary aggregates top-level KPIs and daily assistant tasks.
@@ -101,14 +103,16 @@ func NewCopilotService(
 	}
 }
 
-// GetModeInfo inspects SSO config and stored character tokens.
+// GetModeInfo inspects SSO config, stored character tokens, and authenticated user context.
 func (s *CopilotService) GetModeInfo(ctx context.Context) ModeInfo {
+	currentUser := domain.AppUserFromContext(ctx)
 	ssoEnabled := s.sso != nil && s.sso.IsEnabled()
 	if !ssoEnabled {
 		return ModeInfo{
-			SSOEnabled: false,
-			ModeLabel:  "Public ESI Active",
-			StatusHint: "Optional: Isi ESI_CLIENT_ID & SECRET di .env untuk Auto-Sync Karakter",
+			SSOEnabled:  false,
+			ModeLabel:   "Public ESI Active",
+			StatusHint:  "Optional: Isi ESI_CLIENT_ID & SECRET di .env untuk Auto-Sync Karakter",
+			CurrentUser: currentUser,
 		}
 	}
 
@@ -121,15 +125,17 @@ func (s *CopilotService) GetModeInfo(ctx context.Context) ModeInfo {
 				CharacterName: tok.CharacterName,
 				ModeLabel:     "EVE SSO Connected",
 				StatusHint:    fmt.Sprintf("Terhubung sebagai %s", tok.CharacterName),
+				CurrentUser:   currentUser,
 			}
 		}
 	}
 
 	return ModeInfo{
-		SSOEnabled:   true,
+		SSOEnabled:  true,
 		SSOConnected: false,
-		ModeLabel:    "Public ESI Active",
-		StatusHint:   "EVE SSO Siap: Klik Login EVE SSO untuk menyinkronkan karakter",
+		ModeLabel:   "Public ESI Active",
+		StatusHint:  "EVE SSO Siap: Klik Integrasi EVE SSO untuk menyinkronkan karakter",
+		CurrentUser: currentUser,
 	}
 }
 

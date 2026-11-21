@@ -73,3 +73,23 @@ func (tr *TemplRenderer) RenderMineralTicker(w http.ResponseWriter, r *http.Requ
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	return MineralTickerPartial(minerals).Render(r.Context(), w)
 }
+
+func (tr *TemplRenderer) RenderLogin(w http.ResponseWriter, r *http.Request, errMsg string, username string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return LoginPage(errMsg, username).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderUsers(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, users []domain.AppUser, flashMsg string, flashErr string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return UsersPage(mode, users, flashMsg, flashErr).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderMarketplace(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, query string, hubKey string, presets []service.MarketplacePreset, snap *domain.MarketplaceSnapshot, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return MarketplacePage(mode, query, hubKey, presets, snap, errMsg).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderMarketplaceResults(w http.ResponseWriter, r *http.Request, snap *domain.MarketplaceSnapshot, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return MarketplaceResultsPartial(snap, errMsg).Render(r.Context(), w)
+}

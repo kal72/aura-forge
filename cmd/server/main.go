@@ -45,6 +45,7 @@ func main() {
 		charRepo     domain.CharacterRepository
 		settingsRepo domain.SettingsRepository
 		cacheRepo    domain.ESICacheRepository
+		userRepo     domain.UserRepository
 	)
 
 	db, err := postgres.NewDB(ctx, cfg.DatabaseURL)
@@ -60,6 +61,15 @@ func main() {
 		charRepo = postgres.NewCharacterRepo(db.Pool)
 		settingsRepo = postgres.NewSettingsRepo(db.Pool)
 		cacheRepo = postgres.NewCacheRepo(db.Pool)
+		userRepo = postgres.NewUserRepo(db.Pool)
+	}
+
+	// Initialize Application Auth & seed initial Admin account if database has no users yet
+	authSvc := service.NewAuthService(userRepo)
+	if created, seedErr := authSvc.EnsureDefaultAdmin(context.Background(), cfg.AdminUsername, cfg.AdminPassword); seedErr != nil {
+		log.Printf("[WARN] Failed seeding default admin account: %v", seedErr)
+	} else if created {
+		log.Printf("[INFO] Initial Admin account created (username=%q). Change password in User Management.", cfg.AdminUsername)
 	}
 
 	// Initialize ESI adapters (Public ESI always active; SSO optional)
@@ -86,7 +96,7 @@ func main() {
 		ssoClient,
 	)
 
-	router := apphttp.NewRouter(copilotSvc, web.NewRenderer())
+	router := apphttp.NewRouterWithAuth(copilotSvc, authSvc, web.NewRenderer())
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,

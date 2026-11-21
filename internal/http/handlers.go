@@ -27,6 +27,10 @@ type Renderer interface {
 	RenderRelistResult(w http.ResponseWriter, r *http.Request, res *domain.RelistGuardResult, errMsg string) error
 	RenderSettings(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, saved bool) error
 	RenderMineralTicker(w http.ResponseWriter, r *http.Request, minerals []service.MineralQuote) error
+	RenderLogin(w http.ResponseWriter, r *http.Request, errMsg string, username string) error
+	RenderUsers(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, users []domain.AppUser, flashMsg string, flashErr string) error
+	RenderMarketplace(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, query string, hubKey string, presets []service.MarketplacePreset, snap *domain.MarketplaceSnapshot, errMsg string) error
+	RenderMarketplaceResults(w http.ResponseWriter, r *http.Request, snap *domain.MarketplaceSnapshot, errMsg string) error
 }
 
 // Handlers exposes all HTTP and HTMX endpoints for aura-forge.

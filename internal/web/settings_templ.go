@@ -198,7 +198,7 @@ func SettingsPage(mode service.ModeInfo, settings domain.UserSettings, saved boo
 					return templ_7745c5c3_Err
 				}
 			} else if mode.SSOEnabled {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<div class=\"rounded-lg border border-sky-500/40 bg-sky-950/30 p-4 space-y-3\"><div class=\"text-sm font-bold text-sky-300\">Kredensial EVE SSO Terdeteksi di .env</div><p class=\"text-xs text-slate-300\">Klik tombol di bawah untuk login menggunakan akun EVE Online dan mengaktifkan Auto-Sync Karakter.</p><a href=\"/auth/login\" class=\"inline-block rounded-md bg-amber-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-amber-400 transition\">Login dengan EVE SSO →</a></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<div class=\"rounded-lg border border-sky-500/40 bg-sky-950/30 p-4 space-y-3\"><div class=\"text-sm font-bold text-sky-300\">Kredensial EVE SSO Terdeteksi di .env</div><p class=\"text-xs text-slate-300\">Klik tombol di bawah untuk mengintegrasikan karakter EVE Online Anda dan mengaktifkan Auto-Sync Wallet, Orders, Jobs, Blueprints &amp; Hangar.</p><a href=\"/auth/login\" class=\"inline-block rounded-md bg-amber-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-amber-400 transition\">Integrasi EVE SSO →</a></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

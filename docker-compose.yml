@@ -30,6 +30,8 @@ services:
       PORT: "8080"
       DATABASE_URL: "postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_password}@postgres:5432/${POSTGRES_DB:-aura_forge}?sslmode=disable"
       SESSION_SECRET: "${SESSION_SECRET:-aura-forge-development-secret-key-32bytes}"
+      ADMIN_USERNAME: "${ADMIN_USERNAME:-admin}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD:-admin123}"
       ESI_USER_AGENT: "${ESI_USER_AGENT:-aura-forge/1.0 (EVE Market & Industry Copilot; contact: pilot@new-eden.org)}"
       ESI_CLIENT_ID: "${ESI_CLIENT_ID:-}"
       ESI_CLIENT_SECRET: "${ESI_CLIENT_SECRET:-}"

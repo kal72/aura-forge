@@ -83,6 +83,12 @@ type MarketDataProvider interface {
 	GetSystemCostIndex(ctx context.Context, solarSystemID int32) (map[string]float64, error)
 }
 
+// MarketBrowserProvider is an optional Public ESI extension for full order book & multi-hub marketplace browsing.
+type MarketBrowserProvider interface {
+	GetRegionOrderBook(ctx context.Context, hub TradeHub, typeID int32, limit int) (sells []MarketOrderBookEntry, buys []MarketOrderBookEntry, summary HubPriceSummary, err error)
+	GetMarketHistory(ctx context.Context, regionID int32, typeID int32, days int) ([]MarketHistoryPoint, error)
+}
+
 // CharacterSyncProvider specifies operations to fetch authenticated character data via ESI OAuth2.
 type CharacterSyncProvider interface {
 	SyncWallet(ctx context.Context, token *EVEToken) (float64, error)
@@ -90,4 +96,23 @@ type CharacterSyncProvider interface {
 	SyncJobs(ctx context.Context, token *EVEToken) ([]CharacterJob, error)
 	SyncBlueprints(ctx context.Context, token *EVEToken) ([]CharacterBlueprint, error)
 	SyncAssets(ctx context.Context, token *EVEToken) ([]HangarAsset, error)
+}
+
+// UserRepository specifies storage operations for application users and login sessions.
+type UserRepository interface {
+	CountUsers(ctx context.Context) (int, error)
+	ListUsers(ctx context.Context) ([]AppUser, error)
+	GetUserByID(ctx context.Context, id int64) (*AppUser, error)
+	GetUserByUsername(ctx context.Context, username string) (*AppUser, error)
+	CreateUser(ctx context.Context, user *AppUser) error
+	UpdateUser(ctx context.Context, user *AppUser) error
+	UpdatePassword(ctx context.Context, id int64, passwordHash string) error
+	UpdateLastLogin(ctx context.Context, id int64, at time.Time) error
+	DeleteUser(ctx context.Context, id int64) error
+
+	CreateSession(ctx context.Context, session *AppSession) error
+	GetSessionWithUser(ctx context.Context, tokenHash string) (*AppSession, *AppUser, error)
+	DeleteSession(ctx context.Context, tokenHash string) error
+	DeleteSessionsByUser(ctx context.Context, userID int64) error
+	CleanExpiredSessions(ctx context.Context) error
 }

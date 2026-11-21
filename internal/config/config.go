@@ -11,6 +11,8 @@ type Config struct {
 	Port            string
 	DatabaseURL     string
 	SessionSecret   string
+	AdminUsername   string
+	AdminPassword   string
 	ESIUserAgent    string
 	ESIClientID     string
 	ESIClientSecret string
@@ -25,6 +27,8 @@ func Load() *Config {
 		Port:            getEnv("PORT", "8080"),
 		DatabaseURL:     getEnv("DATABASE_URL", "postgres://postgres:postgres_password@localhost:5432/aura_forge?sslmode=disable"),
 		SessionSecret:   getEnv("SESSION_SECRET", "aura-forge-default-secret-key-32bytes"),
+		AdminUsername:   strings.TrimSpace(getEnv("ADMIN_USERNAME", "admin")),
+		AdminPassword:   getEnv("ADMIN_PASSWORD", "admin123"),
 		ESIUserAgent:    getEnv("ESI_USER_AGENT", "aura-forge/1.0 (EVE Market & Industry Copilot; contact: pilot@new-eden.org)"),
 		ESIClientID:     strings.TrimSpace(getEnv("ESI_CLIENT_ID", "")),
 		ESIClientSecret: strings.TrimSpace(getEnv("ESI_CLIENT_SECRET", "")),
