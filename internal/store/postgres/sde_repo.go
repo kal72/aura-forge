@@ -76,6 +76,26 @@ func (r *SDERepo) GetBlueprintByID(ctx context.Context, blueprintTypeID int32) (
 	return &bp, nil
 }
 
+func (r *SDERepo) GetBlueprintByProductID(ctx context.Context, productTypeID int32) (*domain.SDEBlueprint, error) {
+	var bp domain.SDEBlueprint
+	err := r.pool.QueryRow(ctx, `
+		SELECT blueprint_type_id, name, product_type_id, product_name, product_qty_per_run, base_time_seconds, tech_level, category
+		FROM sde_blueprints
+		WHERE product_type_id = $1
+		LIMIT 1
+	`, productTypeID).Scan(
+		&bp.BlueprintTypeID, &bp.Name, &bp.ProductTypeID, &bp.ProductName,
+		&bp.ProductQtyPerRun, &bp.BaseTimeSeconds, &bp.TechLevel, &bp.Category,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("getting sde_blueprint by product %d: %w", productTypeID, err)
+	}
+	return &bp, nil
+}
+
 func (r *SDERepo) GetBlueprintMaterials(ctx context.Context, blueprintTypeID int32) ([]domain.SDEMaterialRequirement, error) {
 	rows, err := r.pool.Query(ctx, `
 		SELECT m.material_type_id, t.name, m.base_quantity, t.volume_m3

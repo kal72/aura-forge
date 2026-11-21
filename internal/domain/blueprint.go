@@ -69,8 +69,10 @@ type BlueprintCalcInput struct {
 	Runs                int     `json:"runs"`
 	ME                  int     `json:"me"` // 0..10
 	TE                  int     `json:"te"` // 0..20
-	StructureKey        string  `json:"structure_key"`
-	MaterialPriceSource string  `json:"material_price_source"` // "jita_sell" or "jita_buy"
+	StructureKey        string                     `json:"structure_key"`
+	HubKey              string                     `json:"hub_key"`               // jita | amarr | dodixie | rens | hek
+	MaterialPriceSource string                     `json:"material_price_source"` // "jita_sell" or "jita_buy"
+	MakeBuyOverrides    map[int32]IndustryDecision `json:"make_buy_overrides,omitempty"`
 	ProductSellOverride float64 `json:"product_sell_override"` // optional manual override; 0 = live Jita sell
 	ExtraSetupCost      float64 `json:"extra_setup_cost"`
 	SystemCostIndex     float64 `json:"system_cost_index"`
@@ -98,6 +100,7 @@ type BlueprintMaterialLine struct {
 type BlueprintCalcResult struct {
 	Blueprint                SDEBlueprint            `json:"blueprint"`
 	Structure                StructureProfile        `json:"structure"`
+	PriceHub                 TradeHub                `json:"price_hub"`
 	Runs                     int                     `json:"runs"`
 	ME                       int                     `json:"me"`
 	TE                       int                     `json:"te"`
@@ -115,6 +118,7 @@ type BlueprintCalcResult struct {
 	Profit                   ProfitCalcResult        `json:"profit"`
 	MultibuyText             string                  `json:"multibuy_text"`
 	LivePricesUsed           bool                    `json:"live_prices_used"`
+	IndustryTree             *IndustryTreeAnalysis   `json:"industry_tree,omitempty"`
 }
 
 // ComputeAdjustedMaterialQty applies EVE Online's official ME and structure material bonus formula.

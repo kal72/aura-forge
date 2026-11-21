@@ -108,6 +108,7 @@ type GlobalPriceSnapshotRepository interface {
 type SDERepository interface {
 	SearchBlueprints(ctx context.Context, query, category string, limit int) ([]SDEBlueprint, error)
 	GetBlueprintByID(ctx context.Context, blueprintTypeID int32) (*SDEBlueprint, error)
+	GetBlueprintByProductID(ctx context.Context, productTypeID int32) (*SDEBlueprint, error)
 	GetBlueprintMaterials(ctx context.Context, blueprintTypeID int32) ([]SDEMaterialRequirement, error)
 	UpsertSDEData(ctx context.Context, types []SDEType, blueprints []SDEBlueprint, materials map[int32][]SDEMaterialRequirement) error
 }

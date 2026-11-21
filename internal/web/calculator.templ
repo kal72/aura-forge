@@ -12,11 +12,36 @@ templ CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input 
 		<div
 			class="space-y-6"
 			x-data={ fmt.Sprintf(`{
-				calcMode: 'manual',
+				calcMode: new URLSearchParams(window.location.search).get('mode') === 'blueprint' ? 'blueprint' : 'manual',
 				itemName: %q,
 				sellPrice: %g,
 				lookupStatus: '',
 				bpFilter: '',
+				bpViewMode: 'details',
+				bpFlowDir: 'output-to-raw',
+				bpOverrides: '',
+				toggleMakeBuy(typeID, nextDecision) {
+					const map = {};
+					if (this.bpOverrides) {
+						this.bpOverrides.split(',').forEach(p => {
+							const kv = p.split(':');
+							if (kv.length === 2 && kv[0]) map[kv[0]] = kv[1];
+						});
+					}
+					map[String(typeID)] = nextDecision;
+					this.bpOverrides = Object.entries(map).map(([k, v]) => k + ':' + v).join(',');
+					this.$nextTick(() => {
+						const form = document.getElementById('bp-sde-form');
+						if (form) htmx.trigger(form, 'submit');
+					});
+				},
+				resetMakeBuyOverrides() {
+					this.bpOverrides = '';
+					this.$nextTick(() => {
+						const form = document.getElementById('bp-sde-form');
+						if (form) htmx.trigger(form, 'submit');
+					});
+				},
 				async lookupESI() {
 					if (!this.itemName) return;
 					this.lookupStatus = 'Looking up Public ESI...';
@@ -137,14 +162,14 @@ templ CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input 
 				</div>
 			</div>
 
-			<!-- MODE 2: BLUEPRINT SDE MODE (NEW — Auto BOM + Live Jita Cost + ISK/Hour) -->
-			<div x-cloak x-show="calcMode === 'blueprint'" class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+			<!-- MODE 2: BLUEPRINT SDE MODE (Recursive Industry Tree + Optimal Make-vs-Buy + 5 Trade Hubs) -->
+			<div x-cloak x-show="calcMode === 'blueprint'" class="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
 				<!-- Blueprint Input Form -->
 				<div class="tactical-panel rounded-xl p-5 lg:col-span-5 space-y-4">
 					<div class="flex items-center justify-between border-b border-violet-400/20 pb-3">
 						<div>
 							<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">EVE SDE Blueprint Engine</h2>
-							<p class="text-[11px] text-slate-300/80 mt-0.5">Auto-calculates ME/TE Bill of Materials, live Jita build cost, build time, and ISK/Hour per slot.</p>
+							<p class="text-[11px] text-slate-300/80 mt-0.5">Recursive multi-level BOM, Auto Make-vs-Buy optimizer, 5-hub live pricing, ISK/Hour, and Horizontal Tree Canvas.</p>
 						</div>
 						<span class="rounded border border-emerald-400/35 bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] text-emerald-200">
 							{ fmt.Sprintf("%d BPs", len(blueprints)) }
@@ -152,24 +177,43 @@ templ CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input 
 					</div>
 
 					<form
+						id="bp-sde-form"
 						hx-post="/calculator/blueprint/compute"
 						hx-target="#bp-result-panel"
 						hx-swap="innerHTML"
 						hx-indicator="#bp-calc-spinner"
 						class="grid grid-cols-1 gap-3 sm:grid-cols-2"
 					>
+						<input type="hidden" name="make_buy_overrides" x-model="bpOverrides"/>
+
 						<div class="sm:col-span-2">
-							<label class="block text-[11px] font-mono uppercase text-slate-300">Select Blueprint</label>
-							<select name="blueprint_type_id" required class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white">
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Select Blueprint (T1 / T2 / Components)</label>
+							<select name="blueprint_type_id" @change="bpOverrides = ''" required class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white">
 								if len(blueprints) == 0 {
 									<option value="">No SDE blueprints loaded yet</option>
 								} else {
 									for _, bp := range blueprints {
 										<option value={ fmt.Sprintf("%d", bp.BlueprintTypeID) }>
-											{ fmt.Sprintf("[%s] %s (%d/run)", bp.Category, bp.ProductName, bp.ProductQtyPerRun) }
+											{ fmt.Sprintf("[T%d • %s] %s (%d/run)", bp.TechLevel, bp.Category, bp.ProductName, bp.ProductQtyPerRun) }
 										</option>
 									}
 								}
+							</select>
+						</div>
+
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Price Hub</label>
+							<select name="hub_key" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-amber-200 font-semibold">
+								for _, h := range domain.MajorTradeHubs {
+									<option value={ h.Key }>{ h.Name } ({ h.RegionName })</option>
+								}
+							</select>
+						</div>
+						<div>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Material Pricing</label>
+							<select name="material_price_source" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white">
+								<option value="jita_sell">Hub Lowest Sell (Instant Buy)</option>
+								<option value="jita_buy">Hub Highest Buy (Buy Orders)</option>
 							</select>
 						</div>
 
@@ -178,23 +222,15 @@ templ CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input 
 							<input type="number" name="runs" value="10" min="1" max="10000" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-300">Material Pricing</label>
-							<select name="material_price_source" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white">
-								<option value="jita_sell">Jita Lowest Sell (Instant Buy)</option>
-								<option value="jita_buy">Jita Highest Buy (Buy Orders)</option>
-							</select>
-						</div>
-
-						<div>
 							<label class="block text-[11px] font-mono uppercase text-slate-300">ME Level (0–10%)</label>
 							<input type="number" name="me" value="10" min="0" max="10" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
+
 						<div>
 							<label class="block text-[11px] font-mono uppercase text-slate-300">TE Level (0–20%)</label>
 							<input type="number" name="te" value="20" min="0" max="20" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
-
-						<div class="sm:col-span-2">
+						<div>
 							<label class="block text-[11px] font-mono uppercase text-slate-300">Manufacturing Structure</label>
 							<select name="structure_key" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white">
 								for _, st := range domain.DefaultStructureProfiles {
@@ -322,19 +358,47 @@ templ BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) {
 			</p>
 		</div>
 	} else {
+		{{ hasTree := res.IndustryTree != nil }}
 		<div class="space-y-4" x-data="{ copied: false }">
-			<!-- Title & Status -->
+			<!-- Title, View Mode Switcher & Actions -->
 			<div class="flex flex-wrap items-center justify-between gap-2">
-				<div class="flex items-center gap-3">
+				<div class="flex items-center gap-3 min-w-0">
 					<img src={ EVEItemIconURL(res.Blueprint.ProductTypeID, 64) } alt={ res.Blueprint.ProductName } class="h-11 w-11 shrink-0 rounded-lg border border-amber-300/45 bg-slate-950/80 p-0.5 object-contain" onerror="this.style.display='none'"/>
-					<div>
-						<h2 class="text-base font-bold text-white">{ res.Blueprint.ProductName }</h2>
+					<div class="min-w-0">
+						<div class="flex items-center gap-2">
+							<h2 class="text-base font-bold text-white truncate">{ res.Blueprint.ProductName }</h2>
+							<span class="rounded border border-violet-400/40 bg-violet-500/20 px-1.5 py-0.5 font-mono text-[9.5px] font-bold text-violet-200">T{ fmt.Sprintf("%d", res.Blueprint.TechLevel) }</span>
+						</div>
 						<div class="text-[11px] font-mono text-slate-400">
-							{ fmt.Sprintf("%dx Runs (%d units) • ME %d%% / TE %d%% • %s", res.Runs, res.TotalOutputQty, res.ME, res.TE, res.Structure.Name) }
+							{ fmt.Sprintf("%dx Runs (%d units) • ME %d%% / TE %d%% • %s • %s", res.Runs, res.TotalOutputQty, res.ME, res.TE, res.Structure.Name, res.PriceHub.Name) }
 						</div>
 					</div>
 				</div>
-				<div class="flex items-center gap-2">
+
+				<div class="flex flex-wrap items-center gap-2 ml-auto">
+					if hasTree {
+						<div class="inline-flex rounded-lg border border-violet-400/35 bg-slate-950/75 p-0.5">
+							<button
+								type="button"
+								@click="bpViewMode = 'details'"
+								:class="bpViewMode === 'details' ? 'bg-violet-500 text-white shadow-xs' : 'text-slate-300 hover:text-white'"
+								class="rounded-md px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer"
+							>
+								Details &amp; Make/Buy
+							</button>
+							<button
+								type="button"
+								@click="bpViewMode = 'canvas'"
+								:class="bpViewMode === 'canvas' ? 'bg-amber-400 text-slate-950 shadow-xs' : 'text-slate-300 hover:text-white'"
+								class="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer"
+							>
+								<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M4 6h4v4H4V6zm12-2h4v4h-4V4zm0 12h4v4h-4v-4zM8 8h4m0 0V6h4m-4 2v10h4"></path>
+								</svg>
+								<span>Tree Canvas</span>
+							</button>
+						</div>
+					}
 					if res.Profit.IsProfitable {
 						<span class="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-0.5 font-mono text-[11px] font-bold text-emerald-300">PROFITABLE</span>
 					} else {
@@ -355,81 +419,394 @@ templ BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) {
 				</div>
 			</div>
 
-			<!-- 4 KPI Cards -->
-			<div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-				<div class="rounded-lg border border-slate-800 bg-slate-900/75 p-3">
-					<div class="text-[10px] font-mono uppercase text-slate-400">Net Profit</div>
-					<div class={ "mt-1 text-base font-bold font-mono " + profitColor(res.Profit.NetProfitPerBatch) }>{ FormatISK(res.Profit.NetProfitPerBatch) }</div>
-					<div class="text-[10px] font-mono text-slate-400">ROI: { FormatPercent(res.Profit.ROIPercent) }</div>
-				</div>
-				<div class="rounded-lg border border-slate-800 bg-slate-900/75 p-3">
-					<div class="text-[10px] font-mono uppercase text-amber-300/80">ISK / Hour (Slot)</div>
-					<div class={ "mt-1 text-base font-bold font-mono " + profitColor(res.ISKPerHour) }>{ FormatISK(res.ISKPerHour) }/h</div>
-					<div class="text-[10px] font-mono text-slate-400">Build: { res.DurationFormatted }</div>
-				</div>
-				<div class="rounded-lg border border-slate-800 bg-slate-900/75 p-3">
-					<div class="text-[10px] font-mono uppercase text-sky-300/80">Jita Unit Sell</div>
-					<div class="mt-1 text-base font-bold font-mono text-sky-200">{ FormatISK(res.ProductUnitSellPrice) }</div>
-					<div class="text-[10px] font-mono text-slate-400">Break-Even: { FormatISK(res.Profit.BreakEvenUnitPrice) }</div>
-				</div>
-				<div class="rounded-lg border border-slate-800 bg-slate-900/75 p-3">
-					<div class="text-[10px] font-mono uppercase text-violet-300/80">Total Material Cost</div>
-					<div class="mt-1 text-base font-bold font-mono text-white">{ FormatISK(res.TotalMaterialCost) }</div>
-					<div class="text-[10px] font-mono text-slate-400">{ fmt.Sprintf("%.1f m³", res.TotalMaterialVolumeM3) }</div>
-				</div>
-			</div>
-
-			<!-- Live BOM Table -->
-			<div class="rounded-lg border border-violet-400/20 bg-slate-950/55 overflow-hidden">
-				<div class="px-3.5 py-2 border-b border-violet-400/15 flex items-center justify-between">
-					<span class="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-300">ME-Adjusted Bill of Materials</span>
-					<button
-						type="button"
-						@click="navigator.clipboard.writeText($refs.bpMultibuy.value); copied = true; setTimeout(() => copied = false, 2000)"
-						class="rounded border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-[10px] font-mono font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer"
-					>
-						<span x-show="!copied">Copy EVE Multibuy</span>
-						<span x-cloak x-show="copied">Copied!</span>
-					</button>
-				</div>
-				<textarea x-ref="bpMultibuy" class="hidden" readonly>{ res.MultibuyText }</textarea>
-				<div class="overflow-x-auto">
-					<table class="w-full text-left text-xs font-mono">
-						<thead class="text-[10px] uppercase text-slate-400 border-b border-violet-400/15">
-							<tr>
-								<th class="px-3.5 py-2">Material</th>
-								<th class="px-3 py-2 text-right">Qty (ME { fmt.Sprintf("%d%%", res.ME) })</th>
-								<th class="px-3 py-2 text-right">Unit Price</th>
-								<th class="px-3.5 py-2 text-right">Total Cost</th>
-							</tr>
-						</thead>
-						<tbody class="divide-y divide-violet-400/10">
-							for _, m := range res.Materials {
-								<tr class="hover:bg-white/5">
-									<td class="px-3.5 py-1.5 font-sans text-slate-100">
-										<div class="flex items-center gap-2">
-											<img src={ EVEItemIconURL(m.MaterialTypeID, 32) } alt={ m.MaterialName } loading="lazy" class="h-5 w-5 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain" onerror="this.style.display='none'"/>
-											<span>{ m.MaterialName }</span>
-										</div>
-									</td>
-									<td class="px-3 py-1.5 text-right text-slate-200">{ fmt.Sprintf("%d", m.AdjustedQty) }</td>
-									<td class="px-3 py-1.5 text-right text-slate-400">{ FormatISKExact(m.UnitPrice) }</td>
-									<td class="px-3.5 py-1.5 text-right text-amber-200">{ FormatISKExact(m.TotalCost) }</td>
-								</tr>
+			<!-- MODE A: INTERACTIVE HORIZONTAL INDUSTRY TREE CANVAS (PAN, ZOOM, FLIP, EXPAND & MAKE/BUY TOGGLE) -->
+			if hasTree {
+				{{ canvas := BuildIndustryHorizontalCanvasLayout(res.IndustryTree.RootNode) }}
+				<div
+					x-cloak
+					x-show="bpViewMode === 'canvas'"
+					x-data={ fmt.Sprintf(`{
+						scale: 1,
+						tx: 20,
+						ty: 20,
+						dragging: false,
+						moved: false,
+						downX: 0,
+						downY: 0,
+						startX: 0,
+						startY: 0,
+						fullscreen: false,
+						cw: %d,
+						ch: %d,
+						focusedNodeID: '',
+						focusedTypeID: 0,
+						focusedName: '',
+						focusedDecision: '',
+						focusedCanToggle: false,
+						branchMap: %s,
+						init() {
+							this.$watch('bpViewMode', (v) => {
+								if (v === 'canvas') {
+									this.$nextTick(() => this.fitView());
+								}
+							});
+							if (this.bpViewMode === 'canvas') {
+								setTimeout(() => this.fitView(), 30);
 							}
-						</tbody>
-					</table>
-				</div>
-			</div>
+						},
+						fitView() {
+							const vp = this.$refs.indViewport;
+							if (!vp || vp.clientWidth === 0 || vp.clientHeight === 0) return;
+							const pad = 28;
+							const sx = (vp.clientWidth - pad) / this.cw;
+							const sy = (vp.clientHeight - pad) / this.ch;
+							const s = Math.max(0.35, Math.min(1.05, Math.min(sx, sy)));
+							this.scale = Math.round(s * 100) / 100;
+							this.tx = Math.max(16, Math.round((vp.clientWidth - this.cw * this.scale) / 2));
+							this.ty = Math.max(16, Math.round((vp.clientHeight - this.ch * this.scale) / 2));
+						},
+						resetView() { this.scale = 1; this.tx = 20; this.ty = 20; },
+						zoomIn() { this.scale = Math.min(2.0, Math.round((this.scale + 0.15) * 100) / 100); },
+						zoomOut() { this.scale = Math.max(0.3, Math.round((this.scale - 0.15) * 100) / 100); },
+						onWheel(e) {
+							const delta = e.deltaY < 0 ? 0.1 : -0.1;
+							this.scale = Math.max(0.3, Math.min(2.0, Math.round((this.scale + delta) * 100) / 100));
+						},
+						startDrag(e) {
+							this.dragging = true;
+							this.moved = false;
+							this.downX = e.clientX;
+							this.downY = e.clientY;
+							this.startX = e.clientX - this.tx;
+							this.startY = e.clientY - this.ty;
+						},
+						onDrag(e) {
+							if (!this.dragging) return;
+							if (Math.abs(e.clientX - this.downX) > 4 || Math.abs(e.clientY - this.downY) > 4) this.moved = true;
+							this.tx = e.clientX - this.startX;
+							this.ty = e.clientY - this.startY;
+						},
+						endDrag() { this.dragging = false; },
+						toggleFullscreen() {
+							this.fullscreen = !this.fullscreen;
+							this.$nextTick(() => this.fitView());
+						},
+						toggleFlowDir() {
+							this.bpFlowDir = this.bpFlowDir === 'output-to-raw' ? 'raw-to-output' : 'output-to-raw';
+						},
+						selectNode(nodeID, typeID, name, decision, canToggle) {
+							if (this.moved) return;
+							if (this.focusedNodeID === nodeID) {
+								this.clearFocus();
+								return;
+							}
+							this.focusedNodeID = nodeID;
+							this.focusedTypeID = typeID;
+							this.focusedName = name;
+							this.focusedDecision = decision;
+							this.focusedCanToggle = canToggle;
+						},
+						clearFocus() {
+							this.focusedNodeID = '';
+							this.focusedTypeID = 0;
+							this.focusedName = '';
+							this.focusedDecision = '';
+							this.focusedCanToggle = false;
+						},
+						isNodeInBranch(id) {
+							if (!this.focusedNodeID) return true;
+							const list = this.branchMap[this.focusedNodeID];
+							return Array.isArray(list) && list.includes(id);
+						},
+						isEdgeInBranch(fromID, toID) {
+							if (!this.focusedNodeID) return true;
+							const list = this.branchMap[this.focusedNodeID];
+							return Array.isArray(list) && list.includes(fromID) && list.includes(toID);
+						}
+					}`, canvas.Width, canvas.Height, canvas.BranchMapJSON) }
+					@mousemove.window="onDrag($event)"
+					@mouseup.window="endDrag()"
+					@keydown.escape.window="if (fullscreen) { fullscreen = false; $nextTick(() => fitView()); }"
+				>
+					<div x-cloak x-show="fullscreen" @click="toggleFullscreen()" class="fixed inset-0 z-[90] bg-slate-950/80 backdrop-blur-xs"></div>
 
-			<!-- Financial Breakdown -->
-			<div class="rounded-lg border border-slate-800 bg-slate-950/60 p-3.5 text-xs space-y-1.5 font-mono">
-				<div class="flex justify-between"><span class="text-slate-400">Gross Revenue ({ fmt.Sprintf("%d units", res.TotalOutputQty) })</span><span class="text-white">{ FormatISKExact(res.Profit.GrossRevenue) }</span></div>
-				<div class="flex justify-between"><span class="text-slate-400">Materials + Freight ({ FormatISKExact(res.FreightCost) }) + SCI ({ FormatISKExact(res.Profit.JobInstallCost) })</span><span class="text-slate-200">-{ FormatISKExact(res.Profit.TotalDirectCost) }</span></div>
-				<div class="flex justify-between"><span class="text-slate-400">Market Fees (Broker + Sales Tax + Relist)</span><span class="text-rose-300">-{ FormatISKExact(res.Profit.TotalMarketFees) }</span></div>
-				<div class="border-t border-slate-800 pt-1.5 flex justify-between font-bold">
-					<span class="text-slate-300">Weekly Projected Profit</span>
-					<span class={ profitColor(res.Profit.WeeklyNetProfit) }>{ FormatISKExact(res.Profit.WeeklyNetProfit) }</span>
+					<div
+						:class="fullscreen ? 'fixed inset-4 z-[100] flex flex-col shadow-2xl border-amber-400/55 bg-[#0b0e1f]' : 'rounded-xl border border-violet-400/30 bg-[#0b0e1f]/90'"
+						class="rounded-xl overflow-hidden border"
+					>
+						<!-- Canvas Toolbar -->
+						<div class="flex flex-wrap items-center justify-between gap-2 border-b border-violet-400/20 bg-slate-950/90 px-4 py-2.5">
+							<div class="flex flex-wrap items-center gap-2 text-xs">
+								<span class="font-bold uppercase tracking-wider text-amber-300">{ res.Blueprint.ProductName } — Make/Buy Tree</span>
+								<span class="hidden md:inline font-mono text-[10px] text-slate-400">Drag to pan • Scroll to zoom • Click node to highlight or toggle MAKE/BUY</span>
+							</div>
+							<div class="flex flex-wrap items-center gap-1.5 font-mono text-[11px]">
+								<button type="button" @click="toggleFlowDir()" class="inline-flex items-center gap-1 rounded border border-sky-400/40 bg-sky-500/15 px-2.5 py-1 text-sky-200 hover:bg-sky-500/25 cursor-pointer">
+									<span x-text="bpFlowDir === 'output-to-raw' ? 'Output → Raw' : 'Raw → Output'">Output → Raw</span>
+								</button>
+								<button type="button" @click="zoomOut()" class="rounded border border-slate-700 bg-slate-900 px-2 py-1 text-slate-200 hover:text-white cursor-pointer">−</button>
+								<span class="min-w-[44px] text-center text-amber-200" x-text="Math.round(scale * 100) + '%'">100%</span>
+								<button type="button" @click="zoomIn()" class="rounded border border-slate-700 bg-slate-900 px-2 py-1 text-slate-200 hover:text-white cursor-pointer">+</button>
+								<button type="button" @click="fitView()" class="rounded border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-violet-200 hover:bg-violet-500/25 cursor-pointer">Fit</button>
+								<button type="button" @click="resetView()" class="rounded border border-slate-700 bg-slate-900 px-2 py-1 text-slate-300 hover:text-white cursor-pointer">1:1</button>
+								<button type="button" @click="toggleFullscreen()" class="rounded border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-amber-200 hover:bg-amber-500/25 cursor-pointer">
+									<span x-show="!fullscreen">Expand</span>
+									<span x-cloak x-show="fullscreen">Exit Full</span>
+								</button>
+							</div>
+						</div>
+
+						<!-- Viewport -->
+						<div
+							x-ref="indViewport"
+							@mousedown.prevent="startDrag($event)"
+							@click="if (!moved && $event.target === $refs.indViewport) clearFocus()"
+							@wheel.prevent="onWheel($event)"
+							:class="[dragging ? 'cursor-grabbing' : 'cursor-grab', fullscreen ? 'flex-1 min-h-0' : 'h-[520px]']"
+							class="relative w-full overflow-hidden select-none bg-[#0a0d1c]"
+							style="background-image: radial-gradient(rgba(167, 139, 250, 0.16) 1px, transparent 1px); background-size: 22px 22px;"
+						>
+							<div
+								class="absolute top-0 left-0 origin-top-left will-change-transform"
+								:style="`width: ${cw}px; height: ${ch}px; transform: translate3d(${tx}px, ${ty}px, 0) scale(${scale});`"
+							>
+								<svg width={ fmt.Sprintf("%d", canvas.Width) } height={ fmt.Sprintf("%d", canvas.Height) } viewBox={ fmt.Sprintf("0 0 %d %d", canvas.Width, canvas.Height) } class="pointer-events-none absolute inset-0" fill="none">
+									for _, edge := range canvas.Edges {
+										<path
+											:d={ fmt.Sprintf("bpFlowDir === 'output-to-raw' ? %q : %q", edge.PathD, edge.RevPathD) }
+											:stroke={ fmt.Sprintf("focusedNodeID && isEdgeInBranch(%q, %q) ? '#fbbf24' : %q", edge.FromID, edge.ToID, indCanvasEdgeStroke(edge.Decision)) }
+											:stroke-width={ fmt.Sprintf("focusedNodeID && isEdgeInBranch(%q, %q) ? 3 : 2", edge.FromID, edge.ToID) }
+											:opacity={ fmt.Sprintf("isEdgeInBranch(%q, %q) ? 1 : 0.18", edge.FromID, edge.ToID) }
+											stroke-linecap="round"
+										></path>
+									}
+								</svg>
+
+								for _, n := range canvas.Nodes {
+									<div
+										@click.stop={ fmt.Sprintf("selectNode(%q, %d, %q, %q, %t)", n.NodeID, n.TypeID, n.Name, string(n.Decision), n.CanToggleMake) }
+										:class={ fmt.Sprintf("[focusedNodeID === %q ? 'ring-2 ring-amber-300 shadow-[0_0_24px_rgba(251,191,36,0.45)]' : '', isNodeInBranch(%q) ? 'opacity-100' : 'opacity-25']", n.NodeID, n.NodeID) }
+										:style={ fmt.Sprintf("`left: ${bpFlowDir === 'output-to-raw' ? %d : %d}px; top: %dpx; width: %dpx; min-height: %dpx;`", n.X, n.RevX, n.Y, n.Width, n.Height) }
+										class={ "absolute rounded-xl border px-2.5 py-2 flex items-center gap-2.5 backdrop-blur-xs transition-all duration-150 cursor-pointer hover:border-amber-300/80 " + indCanvasNodeBorderClass(n.Decision, n.IsRoot) }
+									>
+										<img src={ EVEItemIconURL(n.TypeID, 64) } alt={ n.Name } draggable="false" class="h-10 w-10 shrink-0 rounded-lg border border-violet-400/30 bg-slate-950/90 p-0.5 object-contain pointer-events-none" onerror="this.style.display='none'"/>
+										<div class="min-w-0 flex-1">
+											<div class="flex items-center justify-between gap-1">
+												<span class={ "rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold leading-none " + indDecisionBadgeClass(n.Decision) }>
+													{ string(n.Decision) }
+												</span>
+												<span class="font-mono text-[10.5px] font-bold text-amber-200">×{ fmt.Sprintf("%d", n.Quantity) }</span>
+											</div>
+											<div class="mt-1 text-xs font-semibold text-white truncate" title={ n.Name }>{ n.Name }</div>
+											<div class="mt-0.5 font-mono text-[10px] text-slate-300">{ FormatISK(n.ActiveCost) }</div>
+										</div>
+									</div>
+								}
+							</div>
+
+							<!-- Floating Focused Branch Bar with 1-Click MAKE/BUY Override -->
+							<div x-cloak x-show="focusedNodeID !== ''" @mousedown.stop class="absolute bottom-3 left-3 z-10 flex flex-wrap items-center gap-2 rounded-xl border border-amber-400/45 bg-slate-950/95 backdrop-blur px-3 py-2 text-xs shadow-xl">
+								<span class="font-mono text-[10px] uppercase text-amber-300">Focused:</span>
+								<span class="font-semibold text-white" x-text="focusedName"></span>
+								<button
+									type="button"
+									x-show="focusedCanToggle"
+									@click="toggleMakeBuy(focusedTypeID, focusedDecision === 'MAKE' ? 'BUY' : 'MAKE')"
+									class="rounded-md border border-emerald-400/50 bg-emerald-500/20 px-2.5 py-1 font-mono text-[10px] font-bold text-emerald-200 hover:bg-emerald-500/30 cursor-pointer"
+									x-text="focusedDecision === 'MAKE' ? 'Switch to BUY' : 'Switch to MAKE'"
+								></button>
+								<button type="button" @click="clearFocus()" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 font-mono text-[10px] text-slate-300 hover:text-white cursor-pointer">Clear</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			}
+
+			<!-- MODE B: DETAILS, 3-SCENARIO OPTIMAL MAKE/BUY & SUB-JOB QUEUE -->
+			<div x-show="bpViewMode === 'details'" class="space-y-4">
+				<!-- 4 KPI Cards -->
+				<div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+					<div class="rounded-lg border border-slate-800 bg-slate-900/75 p-3">
+						<div class="text-[10px] font-mono uppercase text-slate-400">Net Profit</div>
+						<div class={ "mt-1 text-base font-bold font-mono " + profitColor(res.Profit.NetProfitPerBatch) }>{ FormatISK(res.Profit.NetProfitPerBatch) }</div>
+						<div class="text-[10px] font-mono text-slate-400">ROI: { FormatPercent(res.Profit.ROIPercent) }</div>
+					</div>
+					<div class="rounded-lg border border-slate-800 bg-slate-900/75 p-3">
+						<div class="text-[10px] font-mono uppercase text-amber-300/80">ISK / Hour (Slot)</div>
+						<div class={ "mt-1 text-base font-bold font-mono " + profitColor(res.ISKPerHour) }>{ FormatISK(res.ISKPerHour) }/h</div>
+						<div class="text-[10px] font-mono text-slate-400">Build: { res.DurationFormatted }</div>
+					</div>
+					<div class="rounded-lg border border-slate-800 bg-slate-900/75 p-3">
+						<div class="text-[10px] font-mono uppercase text-sky-300/80">{ res.PriceHub.Name } Sell</div>
+						<div class="mt-1 text-base font-bold font-mono text-sky-200">{ FormatISK(res.ProductUnitSellPrice) }</div>
+						<div class="text-[10px] font-mono text-slate-400">Break-Even: { FormatISK(res.Profit.BreakEvenUnitPrice) }</div>
+					</div>
+					<div class="rounded-lg border border-slate-800 bg-slate-900/75 p-3">
+						<div class="text-[10px] font-mono uppercase text-violet-300/80">Optimal Build Cost</div>
+						<div class="mt-1 text-base font-bold font-mono text-white">{ FormatISK(res.TotalMaterialCost) }</div>
+						<div class="text-[10px] font-mono text-slate-400">{ fmt.Sprintf("%.1f m³", res.TotalMaterialVolumeM3) }</div>
+					</div>
+				</div>
+
+				<!-- 3-Scenario Optimal Make-vs-Buy Savings Banner (for Multi-Level / T2 Blueprints) -->
+				if hasTree && res.IndustryTree.HasSubBlueprints {
+					<div class="rounded-xl border border-emerald-400/35 bg-emerald-950/25 p-3.5 space-y-2.5">
+						<div class="flex flex-wrap items-center justify-between gap-2">
+							<div class="flex items-center gap-2">
+								<span class="rounded border border-emerald-400/50 bg-emerald-500/20 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-200">MULTI-LEVEL MAKE vs BUY</span>
+								if res.IndustryTree.OptimalSavingsISK > 0 {
+									<span class="text-xs font-semibold text-emerald-200">
+										Saving <strong class="font-mono">{ FormatISK(res.IndustryTree.OptimalSavingsISK) }</strong> ({ fmt.Sprintf("%.1f%%", res.IndustryTree.OptimalSavingsPct) }) vs Buying Direct Inputs
+									</span>
+								} else {
+									<span class="text-xs text-slate-300">Buying direct inputs is currently optimal for this hub's prices.</span>
+								}
+							</div>
+							if len(res.IndustryTree.ActiveOverrides) > 0 {
+								<button type="button" @click="resetMakeBuyOverrides()" class="rounded border border-amber-400/40 bg-amber-500/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer">
+									Reset Auto-Optimal
+								</button>
+							}
+						</div>
+						<div class="grid grid-cols-3 gap-2 font-mono text-[11px]">
+							<div class="rounded-lg border border-slate-700/70 bg-slate-950/60 p-2">
+								<div class="text-[9.5px] uppercase text-slate-400">Buy All Direct</div>
+								<div class="font-bold text-slate-200 mt-0.5">{ FormatISK(res.IndustryTree.BuyAllDirectCost) }</div>
+							</div>
+							<div class="rounded-lg border border-slate-700/70 bg-slate-950/60 p-2">
+								<div class="text-[9.5px] uppercase text-slate-400">Make Everything</div>
+								<div class="font-bold text-slate-200 mt-0.5">{ FormatISK(res.IndustryTree.MakeAllCost) }</div>
+							</div>
+							<div class="rounded-lg border border-emerald-400/45 bg-emerald-500/15 p-2">
+								<div class="text-[9.5px] uppercase text-emerald-300">Active Optimal Plan</div>
+								<div class="font-bold text-emerald-200 mt-0.5">{ FormatISK(res.IndustryTree.OptimalCost) }</div>
+							</div>
+						</div>
+					</div>
+				}
+
+				<!-- Recursive BOM & Make-vs-Buy Table -->
+				<div class="rounded-lg border border-violet-400/20 bg-slate-950/55 overflow-hidden">
+					<div class="px-3.5 py-2 border-b border-violet-400/15 flex flex-wrap items-center justify-between gap-2">
+						<span class="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-300">
+							if hasTree && res.IndustryTree.HasSubBlueprints {
+								Recursive Bill of Materials &amp; Make/Buy Controls
+							} else {
+								ME-Adjusted Bill of Materials
+							}
+						</span>
+						<button
+							type="button"
+							@click="navigator.clipboard.writeText($refs.bpMultibuy.value); copied = true; setTimeout(() => copied = false, 2000)"
+							class="rounded border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-[10px] font-mono font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer"
+						>
+							<span x-show="!copied">Copy Optimal EVE Multibuy</span>
+							<span x-cloak x-show="copied">Copied!</span>
+						</button>
+					</div>
+					<textarea x-ref="bpMultibuy" class="hidden" readonly>{ res.MultibuyText }</textarea>
+					<div class="overflow-x-auto">
+						<table class="w-full text-left text-xs font-mono">
+							<thead class="text-[10px] uppercase text-slate-400 border-b border-violet-400/15">
+								<tr>
+									<th class="px-3.5 py-2">Material / Sub-Component</th>
+									<th class="px-2 py-2 text-right">Qty</th>
+									<th class="px-2 py-2 text-right">BUY Cost</th>
+									<th class="px-2 py-2 text-right">MAKE Cost</th>
+									<th class="px-3.5 py-2 text-right">Decision</th>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-violet-400/10">
+								if hasTree {
+									for _, n := range res.IndustryTree.FlatNodes {
+										if n.Depth > 0 {
+											<tr class="hover:bg-white/5">
+												<td class="px-3.5 py-1.5 font-sans text-slate-100">
+													<div class="flex items-center gap-2" style={ fmt.Sprintf("padding-left: %dpx", (n.Depth-1)*16) }>
+														if n.Depth > 1 {
+															<span class="font-mono text-slate-500">└─</span>
+														}
+														<img src={ EVEItemIconURL(n.TypeID, 32) } alt={ n.Name } loading="lazy" class="h-5 w-5 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain" onerror="this.style.display='none'"/>
+														<span class="truncate">{ n.Name }</span>
+													</div>
+												</td>
+												<td class="px-2 py-1.5 text-right text-slate-200">{ fmt.Sprintf("%d", n.Quantity) }</td>
+												<td class="px-2 py-1.5 text-right text-slate-300">{ FormatISK(n.BuyCost) }</td>
+												<td class="px-2 py-1.5 text-right">
+													if n.BlueprintID > 0 {
+														<span class={ func() string {
+															if n.MakeCost < n.BuyCost {
+																return "text-emerald-300 font-semibold"
+															}
+															return "text-slate-400"
+														}() }>{ FormatISK(n.MakeCost) }</span>
+													} else {
+														<span class="text-slate-600">—</span>
+													}
+												</td>
+												<td class="px-3.5 py-1.5 text-right">
+													if n.BlueprintID > 0 {
+														<button
+															type="button"
+															@click={ fmt.Sprintf("toggleMakeBuy(%d, %q)", n.TypeID, func() string {
+																if n.ActiveDecision == domain.DecisionMake {
+																	return "BUY"
+																}
+																return "MAKE"
+															}()) }
+															title="Click to override MAKE ↔ BUY for this component"
+															class={ "inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-bold cursor-pointer hover:brightness-125 transition " + indDecisionBadgeClass(n.ActiveDecision) }
+														>
+															<span>{ string(n.ActiveDecision) }</span>
+															<span class="opacity-70">⇄</span>
+														</button>
+													} else {
+														<span class="rounded border border-slate-600/40 bg-slate-800/60 px-1.5 py-0.5 text-[9.5px] text-slate-400">RAW</span>
+													}
+												</td>
+											</tr>
+										}
+									}
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+				<!-- Bottom-Up Sub-Job Execution Queue (when sub-blueprints are set to MAKE) -->
+				if hasTree && len(res.IndustryTree.SubJobs) > 1 {
+					<div class="rounded-lg border border-sky-400/25 bg-slate-950/55 overflow-hidden">
+						<div class="px-3.5 py-2 border-b border-sky-400/15 flex items-center justify-between text-[11px] font-mono">
+							<span class="font-bold uppercase tracking-wider text-sky-300">Manufacturing Sub-Job Execution Order</span>
+							<span class="text-slate-400">Total Job Time: <strong class="text-white">{ res.IndustryTree.TotalSubJobLabel }</strong></span>
+						</div>
+						<div class="divide-y divide-violet-400/10 text-xs font-mono">
+							for _, job := range res.IndustryTree.SubJobs {
+								<div class="px-3.5 py-2 flex flex-wrap items-center justify-between gap-2 hover:bg-white/5">
+									<div class="flex items-center gap-2 font-sans">
+										<span class="flex h-5 w-5 items-center justify-center rounded-full bg-sky-500/20 font-mono text-[10px] font-bold text-sky-300">{ fmt.Sprintf("%d", job.StepOrder) }</span>
+										<img src={ EVEItemIconURL(job.ProductTypeID, 32) } alt={ job.ProductName } loading="lazy" class="h-5 w-5 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain" onerror="this.style.display='none'"/>
+										<span class="font-semibold text-white">{ job.ProductName }</span>
+										<span class="font-mono text-[11px] text-amber-200">{ fmt.Sprintf("%d runs (%d units)", job.Runs, job.OutputQty) }</span>
+									</div>
+									<div class="text-[11px] text-slate-400">
+										{ job.DurationLabel } • Fee: <span class="text-slate-200">{ FormatISK(job.JobInstallCost) }</span>
+									</div>
+								</div>
+							}
+						</div>
+					</div>
+				}
+
+				<!-- Financial Breakdown -->
+				<div class="rounded-lg border border-slate-800 bg-slate-950/60 p-3.5 text-xs space-y-1.5 font-mono">
+					<div class="flex justify-between"><span class="text-slate-400">Gross Revenue ({ fmt.Sprintf("%d units", res.TotalOutputQty) })</span><span class="text-white">{ FormatISKExact(res.Profit.GrossRevenue) }</span></div>
+					<div class="flex justify-between"><span class="text-slate-400">Materials + Freight ({ FormatISKExact(res.FreightCost) }) + SCI ({ FormatISKExact(res.Profit.JobInstallCost) })</span><span class="text-slate-200">-{ FormatISKExact(res.Profit.TotalDirectCost) }</span></div>
+					<div class="flex justify-between"><span class="text-slate-400">Market Fees (Broker + Sales Tax + Relist)</span><span class="text-rose-300">-{ FormatISKExact(res.Profit.TotalMarketFees) }</span></div>
+					<div class="border-t border-slate-800 pt-1.5 flex justify-between font-bold">
+						<span class="text-slate-300">Weekly Projected Profit</span>
+						<span class={ profitColor(res.Profit.WeeklyNetProfit) }>{ FormatISKExact(res.Profit.WeeklyNetProfit) }</span>
+					</div>
 				</div>
 			</div>
 		</div>

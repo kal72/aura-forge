@@ -48,14 +48,14 @@ func InventionPage(mode service.ModeInfo, settings domain.UserSettings) templ.Co
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\" x-data=\"{ tab: &#39;decryptor&#39; }\"><!-- Header & Tab Switcher --><div class=\"flex flex-wrap items-center justify-between gap-4\"><div><h1 class=\"text-2xl font-bold tracking-tight text-white\">T2 Invention &amp; Make-vs-Buy Engine</h1><p class=\"text-xs text-slate-300/80 mt-0.5\">Scale from 1B to 100B+ ISK by optimizing all 9 T2 Decryptor strategies with live Jita ESI prices and auditing intermediate component Make-vs-Buy costs.</p></div><div class=\"inline-flex rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur\"><button type=\"button\" @click=\"tab = &#39;decryptor&#39;\" :class=\"tab === &#39;decryptor&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">T2 Decryptor Optimizer</button> <button type=\"button\" @click=\"tab = &#39;makebuy&#39;\" :class=\"tab === &#39;makebuy&#39; ? &#39;bg-sky-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">Make-vs-Buy Analyzer</button></div></div><!-- TAB 1: T2 DECRYPTOR OPTIMIZER --><div x-show=\"tab === &#39;decryptor&#39;\" class=\"space-y-5\"><div class=\"tactical-panel rounded-xl p-5 space-y-4\"><div class=\"flex flex-wrap items-center justify-between gap-2\"><div><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">9-Decryptor Live Profit Matrix</h2><p class=\"text-xs text-slate-300/80 mt-0.5\">Fetches live Jita prices for all 8 Decryptors, required Datacores, and the T2 product from Public ESI to pick the single most profitable Decryptor.</p></div><span class=\"text-[10px] font-mono text-slate-400\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\" x-data=\"{ tab: &#39;decryptor&#39; }\"><!-- Header & Tab Switcher --><div class=\"flex flex-wrap items-center justify-between gap-4\"><div><h1 class=\"text-2xl font-bold tracking-tight text-white\">T2 Invention &amp; Make-vs-Buy Engine</h1><p class=\"text-xs text-slate-300/80 mt-0.5\">Scale from 1B to 100B+ ISK by optimizing all 9 T2 Decryptor strategies with live Jita ESI prices and auditing intermediate component Make-vs-Buy costs.</p></div><div class=\"inline-flex rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur\"><button type=\"button\" @click=\"tab = &#39;decryptor&#39;\" :class=\"tab === &#39;decryptor&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">T2 Decryptor Optimizer</button> <button type=\"button\" @click=\"tab = &#39;makebuy&#39;\" :class=\"tab === &#39;makebuy&#39; ? &#39;bg-sky-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">Make-vs-Buy Analyzer</button> <a href=\"/calculator?mode=blueprint\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide text-emerald-300 hover:bg-emerald-500/15 transition\">Recursive T2 Tree →</a></div></div><!-- TAB 1: T2 DECRYPTOR OPTIMIZER --><div x-show=\"tab === &#39;decryptor&#39;\" class=\"space-y-5\"><div class=\"tactical-panel rounded-xl p-5 space-y-4\"><div class=\"flex flex-wrap items-center justify-between gap-2\"><div><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">9-Decryptor Live Profit Matrix</h2><p class=\"text-xs text-slate-300/80 mt-0.5\">Fetches live Jita prices for all 8 Decryptors, required Datacores, and the T2 product from Public ESI to pick the single most profitable Decryptor.</p></div><span class=\"text-[10px] font-mono text-slate-400\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Broker %.2f%% • Tax %.2f%%", settings.BrokerFeePercent, settings.SalesTaxPercent))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 49, Col: 105}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 55, Col: 105}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -73,7 +73,7 @@ func InventionPage(mode service.ModeInfo, settings domain.UserSettings) templ.Co
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(p.Key)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 64, Col: 30}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 70, Col: 30}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -86,7 +86,7 @@ func InventionPage(mode service.ModeInfo, settings domain.UserSettings) templ.Co
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("[%s] %s", p.Category, p.ProductName))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 64, Col: 84}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 70, Col: 84}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -104,7 +104,7 @@ func InventionPage(mode service.ModeInfo, settings domain.UserSettings) templ.Co
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.4f", settings.SystemCostIndex))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 116, Col: 215}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 122, Col: 215}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -117,7 +117,7 @@ func InventionPage(mode service.ModeInfo, settings domain.UserSettings) templ.Co
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f%%", settings.FacilityTaxPercent))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 116, Col: 285}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 122, Col: 285}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -166,7 +166,7 @@ func InventionResultPartial(res *domain.InventionOptimizationResult, errMsg stri
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 161, Col: 94}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 167, Col: 94}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -184,7 +184,7 @@ func InventionResultPartial(res *domain.InventionOptimizationResult, errMsg stri
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(res.Preset.ProductTypeID, 64))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 167, Col: 60}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 173, Col: 60}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -197,7 +197,7 @@ func InventionResultPartial(res *domain.InventionOptimizationResult, errMsg stri
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(res.Preset.ProductName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 167, Col: 91}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 173, Col: 91}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -210,7 +210,7 @@ func InventionResultPartial(res *domain.InventionOptimizationResult, errMsg stri
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(res.BestScenario.Decryptor.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 170, Col: 88}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 176, Col: 88}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -223,7 +223,7 @@ func InventionResultPartial(res *domain.InventionOptimizationResult, errMsg stri
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%s • Live Jita Sell: %s • Datacores/Try: %s", res.Preset.ProductName, FormatISK(res.ProductSellPrice), FormatISK(res.DatacoreCostPerTry)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 172, Col: 163}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 178, Col: 163}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -258,7 +258,7 @@ func InventionResultPartial(res *domain.InventionOptimizationResult, errMsg stri
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.BestScenario.NetProfitPerUnit))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 179, Col: 137}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 185, Col: 137}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
@@ -293,7 +293,7 @@ func InventionResultPartial(res *domain.InventionOptimizationResult, errMsg stri
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.BestScenario.NetProfitPerBPC))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 183, Col: 135}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 189, Col: 135}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -306,7 +306,7 @@ func InventionResultPartial(res *domain.InventionOptimizationResult, errMsg stri
 			var templ_7745c5c3_Var20 string
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.1f%% • ME %d / %d runs", res.BestScenario.SuccessChancePct, res.BestScenario.ResultME, res.BestScenario.ResultRuns))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 187, Col: 186}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 193, Col: 186}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 			if templ_7745c5c3_Err != nil {
@@ -352,7 +352,7 @@ func InventionResultPartial(res *domain.InventionOptimizationResult, errMsg stri
 					var templ_7745c5c3_Var23 string
 					templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(sc.Decryptor.TypeID, 32))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 214, Col: 62}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 220, Col: 62}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 					if templ_7745c5c3_Err != nil {
@@ -365,7 +365,7 @@ func InventionResultPartial(res *domain.InventionOptimizationResult, errMsg stri
 					var templ_7745c5c3_Var24 string
 					templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(sc.Decryptor.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 214, Col: 88}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 220, Col: 88}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 					if templ_7745c5c3_Err != nil {
@@ -383,7 +383,7 @@ func InventionResultPartial(res *domain.InventionOptimizationResult, errMsg stri
 				var templ_7745c5c3_Var25 string
 				templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(sc.Decryptor.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 216, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 222, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 				if templ_7745c5c3_Err != nil {
@@ -406,7 +406,7 @@ func InventionResultPartial(res *domain.InventionOptimizationResult, errMsg stri
 				var templ_7745c5c3_Var26 string
 				templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.1f%%", sc.SuccessChancePct))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 222, Col: 101}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 228, Col: 101}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 				if templ_7745c5c3_Err != nil {
@@ -419,7 +419,7 @@ func InventionResultPartial(res *domain.InventionOptimizationResult, errMsg stri
 				var templ_7745c5c3_Var27 string
 				templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d%% / %d%% / %dr", sc.ResultME, sc.ResultTE, sc.ResultRuns))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 223, Col: 134}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 229, Col: 134}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 				if templ_7745c5c3_Err != nil {
@@ -432,7 +432,7 @@ func InventionResultPartial(res *domain.InventionOptimizationResult, errMsg stri
 				var templ_7745c5c3_Var28 string
 				templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(sc.DecryptorPrice))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 224, Col: 89}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 230, Col: 89}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 				if templ_7745c5c3_Err != nil {
@@ -445,7 +445,7 @@ func InventionResultPartial(res *domain.InventionOptimizationResult, errMsg stri
 				var templ_7745c5c3_Var29 string
 				templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(sc.InventionCostPerUnit))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 225, Col: 95}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 231, Col: 95}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 				if templ_7745c5c3_Err != nil {
@@ -458,7 +458,7 @@ func InventionResultPartial(res *domain.InventionOptimizationResult, errMsg stri
 				var templ_7745c5c3_Var30 string
 				templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(sc.TotalCostPerUnit))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 226, Col: 91}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 232, Col: 91}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 				if templ_7745c5c3_Err != nil {
@@ -493,7 +493,7 @@ func InventionResultPartial(res *domain.InventionOptimizationResult, errMsg stri
 				var templ_7745c5c3_Var33 string
 				templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(sc.NetProfitPerUnit))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 227, Col: 126}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 233, Col: 126}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 				if templ_7745c5c3_Err != nil {
@@ -528,7 +528,7 @@ func InventionResultPartial(res *domain.InventionOptimizationResult, errMsg stri
 				var templ_7745c5c3_Var36 string
 				templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(sc.NetProfitPerBPC))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 229, Col: 104}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 235, Col: 104}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 				if templ_7745c5c3_Err != nil {
@@ -541,7 +541,7 @@ func InventionResultPartial(res *domain.InventionOptimizationResult, errMsg stri
 				var templ_7745c5c3_Var37 string
 				templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(sc.ROIPercent))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 230, Col: 75}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 236, Col: 75}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 				if templ_7745c5c3_Err != nil {
@@ -590,7 +590,7 @@ func MakeVsBuyResultPartial(res *domain.MakeVsBuyResult, errMsg string) templ.Co
 			var templ_7745c5c3_Var39 string
 			templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 244, Col: 101}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 250, Col: 101}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 			if templ_7745c5c3_Err != nil {
@@ -608,7 +608,7 @@ func MakeVsBuyResultPartial(res *domain.MakeVsBuyResult, errMsg string) templ.Co
 			var templ_7745c5c3_Var40 string
 			templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%dx %s", res.Quantity, res.ComponentName))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 249, Col: 134}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 255, Col: 134}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 			if templ_7745c5c3_Err != nil {
@@ -621,7 +621,7 @@ func MakeVsBuyResultPartial(res *domain.MakeVsBuyResult, errMsg string) templ.Co
 			var templ_7745c5c3_Var41 string
 			templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs(res.Recommendation)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 250, Col: 74}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 256, Col: 74}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
 			if templ_7745c5c3_Err != nil {
@@ -639,7 +639,7 @@ func MakeVsBuyResultPartial(res *domain.MakeVsBuyResult, errMsg string) templ.Co
 				var templ_7745c5c3_Var42 string
 				templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(res.SavingsPercent))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 254, Col: 46}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 260, Col: 46}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 				if templ_7745c5c3_Err != nil {
@@ -657,7 +657,7 @@ func MakeVsBuyResultPartial(res *domain.MakeVsBuyResult, errMsg string) templ.Co
 				var templ_7745c5c3_Var43 string
 				templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(res.SavingsPercent))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 258, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 264, Col: 56}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 				if templ_7745c5c3_Err != nil {
@@ -675,7 +675,7 @@ func MakeVsBuyResultPartial(res *domain.MakeVsBuyResult, errMsg string) templ.Co
 			var templ_7745c5c3_Var44 string
 			templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.TotalBuyCost))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 266, Col: 85}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 272, Col: 85}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 			if templ_7745c5c3_Err != nil {
@@ -688,7 +688,7 @@ func MakeVsBuyResultPartial(res *domain.MakeVsBuyResult, errMsg string) templ.Co
 			var templ_7745c5c3_Var45 string
 			templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.TotalMakeCost))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 270, Col: 84}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 276, Col: 84}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 			if templ_7745c5c3_Err != nil {
@@ -701,7 +701,7 @@ func MakeVsBuyResultPartial(res *domain.MakeVsBuyResult, errMsg string) templ.Co
 			var templ_7745c5c3_Var46 string
 			templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISKExact(res.JobInstallTotal))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 275, Col: 177}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 281, Col: 177}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
 			if templ_7745c5c3_Err != nil {
@@ -736,7 +736,7 @@ func MakeVsBuyResultPartial(res *domain.MakeVsBuyResult, errMsg string) templ.Co
 			var templ_7745c5c3_Var49 string
 			templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISKExact(res.SavingsISK))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 278, Col: 81}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 284, Col: 81}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var49))
 			if templ_7745c5c3_Err != nil {

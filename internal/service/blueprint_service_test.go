@@ -29,6 +29,16 @@ func (s *stubSDERepo) GetBlueprintByID(_ context.Context, id int32) (*domain.SDE
 	return &bp, nil
 }
 
+func (s *stubSDERepo) GetBlueprintByProductID(_ context.Context, productID int32) (*domain.SDEBlueprint, error) {
+	for _, bp := range s.bps {
+		if bp.ProductTypeID == productID {
+			cp := bp
+			return &cp, nil
+		}
+	}
+	return nil, nil
+}
+
 func (s *stubSDERepo) GetBlueprintMaterials(_ context.Context, id int32) ([]domain.SDEMaterialRequirement, error) {
 	return s.mats[id], nil
 }

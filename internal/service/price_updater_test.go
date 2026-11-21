@@ -51,6 +51,10 @@ func (s *stubPriceSDE) GetBlueprintByID(ctx context.Context, blueprintTypeID int
 	return nil, nil
 }
 
+func (s *stubPriceSDE) GetBlueprintByProductID(ctx context.Context, productTypeID int32) (*domain.SDEBlueprint, error) {
+	return nil, nil
+}
+
 func (s *stubPriceSDE) GetBlueprintMaterials(ctx context.Context, blueprintTypeID int32) ([]domain.SDEMaterialRequirement, error) {
 	return s.mats[blueprintTypeID], nil
 }

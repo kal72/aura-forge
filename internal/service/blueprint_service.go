@@ -20,8 +20,9 @@ func (s *CopilotService) SearchBlueprints(ctx context.Context, query, category s
 	return s.sde.SearchBlueprints(ctx, query, category, limit)
 }
 
-// CalculateBlueprintProfit loads an SDE blueprint and its BOM, fetches live Jita material/product prices via Public ESI,
-// and computes ME/TE-adjusted build cost, duration, ISK/hour, net profit, and EVE Multibuy text.
+// CalculateBlueprintProfit loads an SDE blueprint and recursively expands all sub-blueprints (up to depth 5),
+// fetches live trade-hub prices (cache-first, 4-worker bounded) for every unique TypeID in the tree,
+// and computes ME/TE-adjusted BOM, Optimal Make-vs-Buy decisions, consolidated Multibuy, Sub-Job Queue, ISK/hour, and profit.
 func (s *CopilotService) CalculateBlueprintProfit(ctx context.Context, in domain.BlueprintCalcInput) (*domain.BlueprintCalcResult, error) {
 	if s.sde == nil {
 		return nil, fmt.Errorf("EVE SDE blueprint database is not available")
@@ -69,26 +70,56 @@ func (s *CopilotService) CalculateBlueprintProfit(ctx context.Context, in domain
 		}
 	}
 
-	// Collect unique TypeIDs (product + all materials) for batch Jita Public ESI lookup
-	seen := make(map[int32]struct{}, len(reqs)+1)
-	typeIDs := make([]int32, 0, len(reqs)+1)
+	hub := domain.LookupTradeHub(in.HubKey)
+	in.HubKey = hub.Key
+
+	// Recursively load sub-blueprints and their materials from PostgreSQL SDE (0 ESI calls)
+	bpsByProduct := make(map[int32]domain.SDEBlueprint)
+	matsByBP := map[int32][]domain.SDEMaterialRequirement{
+		bp.BlueprintTypeID: reqs,
+	}
+
+	seenTypeIDs := make(map[int32]struct{}, len(reqs)*2+4)
+	typeIDs := make([]int32, 0, len(reqs)*2+4)
 	addID := func(id int32) {
 		if id <= 0 {
 			return
 		}
-		if _, ok := seen[id]; !ok {
-			seen[id] = struct{}{}
+		if _, ok := seenTypeIDs[id]; !ok {
+			seenTypeIDs[id] = struct{}{}
 			typeIDs = append(typeIDs, id)
 		}
 	}
 	addID(bp.ProductTypeID)
-	for _, r := range reqs {
-		addID(r.MaterialTypeID)
-	}
 
+	visitedProduct := map[int32]bool{bp.ProductTypeID: true}
+	var expandMaterials func(list []domain.SDEMaterialRequirement, depth int)
+	expandMaterials = func(list []domain.SDEMaterialRequirement, depth int) {
+		for _, r := range list {
+			addID(r.MaterialTypeID)
+			if depth >= 5 || visitedProduct[r.MaterialTypeID] {
+				continue
+			}
+			subBP, subErr := s.sde.GetBlueprintByProductID(ctx, r.MaterialTypeID)
+			if subErr != nil || subBP == nil {
+				continue
+			}
+			subMats, mErr := s.sde.GetBlueprintMaterials(ctx, subBP.BlueprintTypeID)
+			if mErr != nil || len(subMats) == 0 {
+				continue
+			}
+			visitedProduct[r.MaterialTypeID] = true
+			bpsByProduct[r.MaterialTypeID] = *subBP
+			matsByBP[subBP.BlueprintTypeID] = subMats
+			expandMaterials(subMats, depth+1)
+		}
+	}
+	expandMaterials(reqs, 1)
+
+	// Fetch live trade-hub prices for every unique TypeID in the recursive tree (cache-first, 4-worker bounded)
 	prices := make(map[int32]domain.JitaPrice)
 	if s.market != nil && len(typeIDs) > 0 {
-		if fetched, pErr := s.market.GetJitaPrices(ctx, typeIDs); pErr == nil && fetched != nil {
+		if fetched, pErr := s.fetchHubPrices(ctx, hub, typeIDs); pErr == nil && fetched != nil {
 			prices = fetched
 		}
 	}
@@ -97,5 +128,47 @@ func (s *CopilotService) CalculateBlueprintProfit(ctx context.Context, in domain
 	if err != nil {
 		return nil, err
 	}
+	res.PriceHub = hub
+
+	// Evaluate Recursive Industry Tree & Optimal Make-vs-Buy
+	tree := domain.EvaluateIndustryTree(*bp, bpsByProduct, matsByBP, prices, in)
+	res.IndustryTree = tree
+
+	// When sub-blueprints exist, recompute headline KPIs & Multibuy using the active Optimal Make/Buy plan
+	if tree != nil && tree.HasSubBlueprints {
+		// OptimalCost already includes sub-job + root job install fees; subtract root job fee to pass clean material cost to CalculateProfit
+		optMaterialCost := domain.RoundISK(tree.OptimalCost - tree.RootNode.JobInstallCost)
+		if optMaterialCost < 0 {
+			optMaterialCost = 0
+		}
+		res.TotalMaterialCost = optMaterialCost
+		res.TotalMaterialVolumeM3 = tree.OptimalVolumeM3
+		res.FreightCost = domain.RoundISK(tree.OptimalVolumeM3 * in.FreightCostPerM3)
+		res.MultibuyText = tree.OptimalMultibuy
+
+		profitIn := domain.ProfitCalcInput{
+			ItemName:           bp.ProductName,
+			OutputQty:          res.TotalOutputQty,
+			UnitSellPrice:      res.ProductUnitSellPrice,
+			MaterialCost:       optMaterialCost,
+			ExtraSetupCost:     in.ExtraSetupCost,
+			SystemCostIndex:    in.SystemCostIndex,
+			FacilityTaxPercent: in.FacilityTaxPercent,
+			FreightCost:        res.FreightCost,
+			BrokerFeePercent:   in.BrokerFeePercent,
+			SalesTaxPercent:    in.SalesTaxPercent,
+			RelistFeePercent:   in.RelistFeePercent,
+			EstimatedRelists:   in.EstimatedRelists,
+			BatchesPerWeek:     in.BatchesPerWeek,
+		}
+		if optProfit, pErr := domain.CalculateProfit(profitIn); pErr == nil {
+			res.Profit = optProfit
+			if res.EstimatedDurationSeconds > 0 {
+				hours := float64(res.EstimatedDurationSeconds) / 3600.0
+				res.ISKPerHour = domain.RoundISK(optProfit.NetProfitPerBatch / hours)
+			}
+		}
+	}
+
 	return &res, nil
 }

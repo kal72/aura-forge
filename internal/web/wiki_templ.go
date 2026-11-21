@@ -368,6 +368,17 @@ var eveWikiEntries = []wikiEntry{
 	},
 	{
 		Category:   "invention",
+		Term:       "Recursive Industry Tree, MAKE/BUY Override & Optimal Multibuy",
+		BadgeText:  "MAKE / BUY TREE",
+		BadgeClass: "border-emerald-400/50 bg-emerald-500/20 text-emerald-200 font-bold",
+		WhereUsed:  "Profit Calculator → Blueprint SDE Mode",
+		DescEN:     "Automatically expands multi-level T2 blueprints (e.g. Hobgoblin II → Hobgoblin I + R.A.M.-Robotics + Photon Microprocessor → Minerals/Moon) and compares BUY vs MAKE at every branch across 5 Trade Hubs. You can override any node (MAKE ⇄ BUY) in the table or on the interactive Horizontal Tree Canvas, and the Optimal EVE Multibuy and Sub-Job Execution Queue update instantly.",
+		DescID:     "Otomatis memecah blueprint T2 bertingkat (mis. Hobgoblin II → Hobgoblin I + R.A.M.-Robotics + Photon Microprocessor → Mineral/Moon) dan membandingkan biaya BUY vs MAKE di setiap cabang untuk 5 Trade Hub. Anda bisa klik override (MAKE ⇄ BUY) di tabel maupun langsung di Horizontal Tree Canvas, dan Optimal EVE Multibuy serta urutan Sub-Job langsung menyesuaikan.",
+		TipEN:      "Use the 3-scenario banner (Buy All vs Make Everything vs Active Optimal Plan) to see exact ISK savings before committing manufacturing slots.",
+		TipID:      "Gunakan banner perbandingan 3 skenario (Buy All vs Make Everything vs Active Optimal Plan) untuk melihat penghematan ISK nyata sebelum memakai slot manufaktur.",
+	},
+	{
+		Category:   "invention",
 		Term:       "Capital-Phase Tiers (0 → 100B+ ISK)",
 		BadgeText:  "ROADMAP",
 		BadgeClass: "border-violet-400/40 bg-violet-500/20 text-violet-200",
@@ -482,7 +493,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs("matches(" + `'` + item.Category + `'` + ", " + "`" + strings.ReplaceAll(searchBlob, "`", "") + "`" + ")")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 523, Col: 120}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 534, Col: 120}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -495,7 +506,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(item.Term)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 528, Col: 73}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 539, Col: 73}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -530,7 +541,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(item.BadgeText)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 530, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 541, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -543,7 +554,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(item.WhereUsed)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 534, Col: 24}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 545, Col: 24}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
@@ -556,7 +567,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 537, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 548, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
@@ -569,7 +580,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 540, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 551, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -582,7 +593,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 546, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 557, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -595,7 +606,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 547, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 558, Col: 56}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
