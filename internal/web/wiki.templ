@@ -88,14 +88,36 @@ var eveWikiEntries = []wikiEntry{
 	},
 	{
 		Category:   "colors",
-		Term:       "CHEAP / HIGH / HOT Market Pulse Badges & 7d Sparkline",
-		BadgeText:  "CHEAP / HOT / HIGH",
+		Term:       "CHEAP / FAIR / HIGH Market Pulse Price Badges & 7d Sparkline",
+		BadgeText:  "CHEAP / FAIR / HIGH",
+		BadgeClass: "border-emerald-400/45 bg-emerald-500/20 text-emerald-200 font-bold",
+		WhereUsed:  "Dashboard → Live Market Pulse (Minerals, Gas, PI, Macro, Hot Blueprints)",
+		DescEN:     "Compares live Lowest Sell against the 7-day ESI Market History average (shown alongside the 7d Sparkline). CHEAP (green, ≤ -3%) means the item is discounted below its 7d average; FAIR (slate/neutral, between -3% and +3%) means the price is normal and aligned with its 7d average; HIGH (red/rose, ≥ +3%) means the price is elevated above its 7d average.",
+		DescID:     "Membandingkan Lowest Sell live terhadap rata-rata 7 hari ESI Market History (ditampilkan bersama grafik mini 7d Sparkline). CHEAP (hijau, ≤ -3%) berarti harga sedang murah/diskon di bawah rata-rata 7 hari; FAIR (abu-abu/netral, antara -3% hingga +3%) berarti harga normal/wajar sesuai rata-rata 7 hari; HIGH (merah/rose, ≥ +3%) berarti harga sedang mahal/tinggi di atas rata-rata 7 hari.",
+		TipEN:      "Buy raw materials when they are CHEAP or FAIR, avoid overpaying when materials are HIGH, and sell your finished goods when they hit HIGH.",
+		TipID:      "Beli bahan baku saat status CHEAP atau FAIR, hindari beli bahan saat HIGH, dan jual produk jadi Anda saat harganya menyentuh HIGH.",
+	},
+	{
+		Category:   "colors",
+		Term:       "HOT Badge (7d vs 30d Volume Surge)",
+		BadgeText:  "HOT",
 		BadgeClass: "border-amber-400/50 bg-amber-500/20 text-amber-200 font-bold",
-		WhereUsed:  "Dashboard → Live Market Pulse",
-		DescEN:     "Compares live Lowest Sell against the 7-day ESI Market History average (and 7d vs 30d volume). CHEAP (green, ≤-3%) flags discounted materials; HIGH (red, ≥+3%) flags elevated prices; HOT (amber, ≥1.25× volume surge) flags items being bought up rapidly.",
-		DescID:     "Membandingkan Lowest Sell live terhadap rata-rata 7 hari ESI Market History (serta volume 7d vs 30d). CHEAP (hijau, ≤-3%) berarti bahan sedang murah; HIGH (merah, ≥+3%) harga sedang naik tinggi; HOT (amber, lonjakan volume ≥1.25×) barang sedang diborong pasar.",
-		TipEN:      "Stockpile CHEAP minerals and manufacture HOT or rising blueprints to maximize your ISK/hour.",
-		TipID:      "Stok mineral saat status CHEAP dan produksi blueprint berstatus HOT atau harga naik untuk memaksimalkan ISK/jam.",
+		WhereUsed:  "Dashboard → Live Market Pulse (Hot Blueprints & Benchmarks)",
+		DescEN:     "Flags items whose 7-day average daily trading volume is at least 1.25× higher than their 30-day average. This signals sudden demand spikes — players are actively buying up stock faster than usual.",
+		DescID:     "Menandai item yang rata-rata volume transaksi 7 harinya minimal 1.25× lebih tinggi dari rata-rata 30 hari. Ini sinyal lonjakan permintaan — pemain sedang aktif memborong barang tersebut lebih cepat dari biasanya.",
+		TipEN:      "Combine HOT demand with HIGH price on Hot Blueprints to pick fast-selling, high-margin manufacturing jobs.",
+		TipID:      "Gabungkan sinyal HOT (permintaan melonjak) dengan harga HIGH di tab Hot Blueprints untuk memilih proyek manufaktur yang cepat laku dan margin tinggi.",
+	},
+	{
+		Category:   "colors",
+		Term:       "ADMIN vs. USER Role Badges (Access Control)",
+		BadgeText:  "ADMIN / USER",
+		BadgeClass: "border-violet-400/45 bg-violet-500/20 text-violet-200 font-bold",
+		WhereUsed:  "Topbar User Chip & User Management",
+		DescEN:     "ADMIN accounts have full access to personal business ledgers (Catalog, Capital Allocator, Weekly Planner, Batch Tracker, Net Worth), PI Colonies, Settings, SDE Import, EVE SSO, and User Management. USER accounts get a clean Research & Simulator Workspace (Research Dashboard, Live Market Pulse, Opportunity Scanner, Marketplace, Profit Calculator, T2 Invention, PI Markets/Tree/Planets, and Wiki) with read-only access to shared SDE & market data.",
+		DescID:     "Akun ADMIN memiliki akses penuh ke pembukuan bisnis pribadi (Catalog, Capital Allocator, Weekly Planner, Batch Tracker, Net Worth), My Colonies PI, Settings, Import SDE, EVE SSO, dan User Management. Akun USER mendapatkan ruang Riset & Simulasi yang bersih (Research Dashboard, Live Market Pulse, Opportunity Scanner, Marketplace, Profit Calculator, T2 Invention, PI Markets/Tree/Planets, dan Wiki) tanpa dapat mengubah data bisnis milik admin.",
+		TipEN:      "Only administrators can create new accounts or promote roles via Sidebar → User Management.",
+		TipID:      "Hanya admin yang dapat membuat akun baru atau mengubah role pengguna melalui menu Sidebar → User Management.",
 	},
 
 	// 2. MARKET & TRADING
@@ -464,8 +486,11 @@ templ WikiPage(mode service.ModeInfo) {
 				},
 				matches(category, text) {
 					if (this.cat !== 'all' && this.cat !== category) return false;
-					if (!this.q.trim()) return true;
-					return text.toLowerCase().includes(this.q.trim().toLowerCase());
+					const query = this.q.trim().toLowerCase();
+					if (!query) return true;
+					const haystack = (text || '').toLowerCase();
+					const tokens = query.split(/\s+/).filter(Boolean);
+					return tokens.every(tok => haystack.includes(tok));
 				}
 			}"
 		>
@@ -508,7 +533,7 @@ templ WikiPage(mode service.ModeInfo) {
 					<input
 						type="text"
 						x-model="q"
-						:placeholder="lang === 'en' ? 'Search terms or colors (e.g. green, yellow, spread, ME, SCI, undercut, decryptor)...' : 'Cari istilah atau warna (mis. hijau, kuning, spread, ME, SCI, undercut, decryptor)...'"
+						:placeholder="lang === 'en' ? 'Search terms or badges (e.g. cheap, fair, high, hot, spread, ME, SCI, undercut, decryptor)...' : 'Cari istilah atau badge (mis. cheap, fair, high, hot, spread, ME, SCI, undercut, decryptor)...'"
 						class="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none"
 					/>
 				</div>
@@ -542,7 +567,8 @@ templ WikiPage(mode service.ModeInfo) {
 				for _, item := range eveWikiEntries {
 					{{ searchBlob := strings.ToLower(item.Term + " " + item.BadgeText + " " + item.WhereUsed + " " + item.DescEN + " " + item.DescID + " " + item.TipEN + " " + item.TipID) }}
 					<div
-						x-show={ "matches(" + `'` + item.Category + `'` + ", " + "`" + strings.ReplaceAll(searchBlob, "`", "") + "`" + ")" }
+						data-search={ searchBlob }
+						x-show={ "matches('" + item.Category + "', $el.dataset.search)" }
 						class="tactical-panel rounded-xl p-5 flex flex-col justify-between gap-3"
 					>
 						<div class="space-y-2.5">

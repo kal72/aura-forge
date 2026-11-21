@@ -96,14 +96,36 @@ var eveWikiEntries = []wikiEntry{
 	},
 	{
 		Category:   "colors",
-		Term:       "CHEAP / HIGH / HOT Market Pulse Badges & 7d Sparkline",
-		BadgeText:  "CHEAP / HOT / HIGH",
+		Term:       "CHEAP / FAIR / HIGH Market Pulse Price Badges & 7d Sparkline",
+		BadgeText:  "CHEAP / FAIR / HIGH",
+		BadgeClass: "border-emerald-400/45 bg-emerald-500/20 text-emerald-200 font-bold",
+		WhereUsed:  "Dashboard → Live Market Pulse (Minerals, Gas, PI, Macro, Hot Blueprints)",
+		DescEN:     "Compares live Lowest Sell against the 7-day ESI Market History average (shown alongside the 7d Sparkline). CHEAP (green, ≤ -3%) means the item is discounted below its 7d average; FAIR (slate/neutral, between -3% and +3%) means the price is normal and aligned with its 7d average; HIGH (red/rose, ≥ +3%) means the price is elevated above its 7d average.",
+		DescID:     "Membandingkan Lowest Sell live terhadap rata-rata 7 hari ESI Market History (ditampilkan bersama grafik mini 7d Sparkline). CHEAP (hijau, ≤ -3%) berarti harga sedang murah/diskon di bawah rata-rata 7 hari; FAIR (abu-abu/netral, antara -3% hingga +3%) berarti harga normal/wajar sesuai rata-rata 7 hari; HIGH (merah/rose, ≥ +3%) berarti harga sedang mahal/tinggi di atas rata-rata 7 hari.",
+		TipEN:      "Buy raw materials when they are CHEAP or FAIR, avoid overpaying when materials are HIGH, and sell your finished goods when they hit HIGH.",
+		TipID:      "Beli bahan baku saat status CHEAP atau FAIR, hindari beli bahan saat HIGH, dan jual produk jadi Anda saat harganya menyentuh HIGH.",
+	},
+	{
+		Category:   "colors",
+		Term:       "HOT Badge (7d vs 30d Volume Surge)",
+		BadgeText:  "HOT",
 		BadgeClass: "border-amber-400/50 bg-amber-500/20 text-amber-200 font-bold",
-		WhereUsed:  "Dashboard → Live Market Pulse",
-		DescEN:     "Compares live Lowest Sell against the 7-day ESI Market History average (and 7d vs 30d volume). CHEAP (green, ≤-3%) flags discounted materials; HIGH (red, ≥+3%) flags elevated prices; HOT (amber, ≥1.25× volume surge) flags items being bought up rapidly.",
-		DescID:     "Membandingkan Lowest Sell live terhadap rata-rata 7 hari ESI Market History (serta volume 7d vs 30d). CHEAP (hijau, ≤-3%) berarti bahan sedang murah; HIGH (merah, ≥+3%) harga sedang naik tinggi; HOT (amber, lonjakan volume ≥1.25×) barang sedang diborong pasar.",
-		TipEN:      "Stockpile CHEAP minerals and manufacture HOT or rising blueprints to maximize your ISK/hour.",
-		TipID:      "Stok mineral saat status CHEAP dan produksi blueprint berstatus HOT atau harga naik untuk memaksimalkan ISK/jam.",
+		WhereUsed:  "Dashboard → Live Market Pulse (Hot Blueprints & Benchmarks)",
+		DescEN:     "Flags items whose 7-day average daily trading volume is at least 1.25× higher than their 30-day average. This signals sudden demand spikes — players are actively buying up stock faster than usual.",
+		DescID:     "Menandai item yang rata-rata volume transaksi 7 harinya minimal 1.25× lebih tinggi dari rata-rata 30 hari. Ini sinyal lonjakan permintaan — pemain sedang aktif memborong barang tersebut lebih cepat dari biasanya.",
+		TipEN:      "Combine HOT demand with HIGH price on Hot Blueprints to pick fast-selling, high-margin manufacturing jobs.",
+		TipID:      "Gabungkan sinyal HOT (permintaan melonjak) dengan harga HIGH di tab Hot Blueprints untuk memilih proyek manufaktur yang cepat laku dan margin tinggi.",
+	},
+	{
+		Category:   "colors",
+		Term:       "ADMIN vs. USER Role Badges (Access Control)",
+		BadgeText:  "ADMIN / USER",
+		BadgeClass: "border-violet-400/45 bg-violet-500/20 text-violet-200 font-bold",
+		WhereUsed:  "Topbar User Chip & User Management",
+		DescEN:     "ADMIN accounts have full access to personal business ledgers (Catalog, Capital Allocator, Weekly Planner, Batch Tracker, Net Worth), PI Colonies, Settings, SDE Import, EVE SSO, and User Management. USER accounts get a clean Research & Simulator Workspace (Research Dashboard, Live Market Pulse, Opportunity Scanner, Marketplace, Profit Calculator, T2 Invention, PI Markets/Tree/Planets, and Wiki) with read-only access to shared SDE & market data.",
+		DescID:     "Akun ADMIN memiliki akses penuh ke pembukuan bisnis pribadi (Catalog, Capital Allocator, Weekly Planner, Batch Tracker, Net Worth), My Colonies PI, Settings, Import SDE, EVE SSO, dan User Management. Akun USER mendapatkan ruang Riset & Simulasi yang bersih (Research Dashboard, Live Market Pulse, Opportunity Scanner, Marketplace, Profit Calculator, T2 Invention, PI Markets/Tree/Planets, dan Wiki) tanpa dapat mengubah data bisnis milik admin.",
+		TipEN:      "Only administrators can create new accounts or promote roles via Sidebar → User Management.",
+		TipID:      "Hanya admin yang dapat membuat akun baru atau mengubah role pengguna melalui menu Sidebar → User Management.",
 	},
 
 	// 2. MARKET & TRADING
@@ -491,144 +513,157 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\" x-data=\"{\n\t\t\t\tlang: localStorage.getItem(&#39;af-wiki-lang&#39;) || &#39;en&#39;,\n\t\t\t\tcat: &#39;all&#39;,\n\t\t\t\tq: &#39;&#39;,\n\t\t\t\tsetLang(l) {\n\t\t\t\t\tthis.lang = l;\n\t\t\t\t\tlocalStorage.setItem(&#39;af-wiki-lang&#39;, l);\n\t\t\t\t},\n\t\t\t\tmatches(category, text) {\n\t\t\t\t\tif (this.cat !== &#39;all&#39; &amp;&amp; this.cat !== category) return false;\n\t\t\t\t\tif (!this.q.trim()) return true;\n\t\t\t\t\treturn text.toLowerCase().includes(this.q.trim().toLowerCase());\n\t\t\t\t}\n\t\t\t}\"><!-- Header & EN | ID Language Toggle --><div class=\"flex flex-wrap items-center justify-between gap-4\"><div><h1 class=\"text-2xl font-bold tracking-tight text-white\">EVE Online Wiki &amp; UI Color Guide</h1><p class=\"text-xs text-slate-300/80 mt-0.5\" x-show=\"lang === &#39;en&#39;\">Beginner-friendly reference for every EVE Online term, UI color indicator, badge, and daily workflow inside aura-forge.</p><p x-cloak class=\"text-xs text-slate-300/80 mt-0.5\" x-show=\"lang === &#39;id&#39;\">Panduan ramah pemula untuk semua istilah EVE Online, arti warna/badge di UI, dan alur kerja harian di dalam aura-forge.</p></div><!-- EN | ID Toggle (Default EN per AGENTS.md, instant ID switch for beginner learning) --><div class=\"inline-flex rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur\"><button type=\"button\" @click=\"setLang(&#39;en&#39;)\" :class=\"lang === &#39;en&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3 py-1.5 text-xs font-extrabold tracking-wider transition cursor-pointer\">EN</button> <button type=\"button\" @click=\"setLang(&#39;id&#39;)\" :class=\"lang === &#39;id&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3 py-1.5 text-xs font-extrabold tracking-wider transition cursor-pointer\">ID</button></div></div><!-- Search & Category Filter Bar --><div class=\"tactical-panel rounded-xl p-4 space-y-3\"><div class=\"relative\"><input type=\"text\" x-model=\"q\" :placeholder=\"lang === &#39;en&#39; ? &#39;Search terms or colors (e.g. green, yellow, spread, ME, SCI, undercut, decryptor)...&#39; : &#39;Cari istilah atau warna (mis. hijau, kuning, spread, ME, SCI, undercut, decryptor)...&#39;\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900/90 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none\"></div><div class=\"flex flex-wrap gap-1.5\"><button type=\"button\" @click=\"cat = &#39;all&#39;\" :class=\"cat === &#39;all&#39; ? &#39;bg-violet-600 text-white border-violet-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">All Topics</button> <button type=\"button\" @click=\"cat = &#39;colors&#39;\" :class=\"cat === &#39;colors&#39; ? &#39;bg-emerald-500 text-slate-950 border-emerald-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Colors &amp; Badges</button> <button type=\"button\" @click=\"cat = &#39;market&#39;\" :class=\"cat === &#39;market&#39; ? &#39;bg-sky-500 text-slate-950 border-sky-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Market &amp; Trading</button> <button type=\"button\" @click=\"cat = &#39;industry&#39;\" :class=\"cat === &#39;industry&#39; ? &#39;bg-amber-400 text-slate-950 border-amber-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Industry &amp; Blueprints</button> <button type=\"button\" @click=\"cat = &#39;pi&#39;\" :class=\"cat === &#39;pi&#39; ? &#39;bg-teal-400 text-slate-950 border-teal-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Planetary Industry (PI)</button> <button type=\"button\" @click=\"cat = &#39;invention&#39;\" :class=\"cat === &#39;invention&#39; ? &#39;bg-violet-500 text-white border-violet-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">T2 Invention &amp; Scaling</button> <button type=\"button\" @click=\"cat = &#39;workflow&#39;\" :class=\"cat === &#39;workflow&#39; ? &#39;bg-emerald-400 text-slate-950 border-emerald-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Daily Beginner Workflow</button></div></div><!-- Wiki Cards Grid --><div class=\"grid grid-cols-1 gap-4 md:grid-cols-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\" x-data=\"{\n\t\t\t\tlang: localStorage.getItem(&#39;af-wiki-lang&#39;) || &#39;en&#39;,\n\t\t\t\tcat: &#39;all&#39;,\n\t\t\t\tq: &#39;&#39;,\n\t\t\t\tsetLang(l) {\n\t\t\t\t\tthis.lang = l;\n\t\t\t\t\tlocalStorage.setItem(&#39;af-wiki-lang&#39;, l);\n\t\t\t\t},\n\t\t\t\tmatches(category, text) {\n\t\t\t\t\tif (this.cat !== &#39;all&#39; &amp;&amp; this.cat !== category) return false;\n\t\t\t\t\tconst query = this.q.trim().toLowerCase();\n\t\t\t\t\tif (!query) return true;\n\t\t\t\t\tconst haystack = (text || &#39;&#39;).toLowerCase();\n\t\t\t\t\tconst tokens = query.split(/\\s+/).filter(Boolean);\n\t\t\t\t\treturn tokens.every(tok =&gt; haystack.includes(tok));\n\t\t\t\t}\n\t\t\t}\"><!-- Header & EN | ID Language Toggle --><div class=\"flex flex-wrap items-center justify-between gap-4\"><div><h1 class=\"text-2xl font-bold tracking-tight text-white\">EVE Online Wiki &amp; UI Color Guide</h1><p class=\"text-xs text-slate-300/80 mt-0.5\" x-show=\"lang === &#39;en&#39;\">Beginner-friendly reference for every EVE Online term, UI color indicator, badge, and daily workflow inside aura-forge.</p><p x-cloak class=\"text-xs text-slate-300/80 mt-0.5\" x-show=\"lang === &#39;id&#39;\">Panduan ramah pemula untuk semua istilah EVE Online, arti warna/badge di UI, dan alur kerja harian di dalam aura-forge.</p></div><!-- EN | ID Toggle (Default EN per AGENTS.md, instant ID switch for beginner learning) --><div class=\"inline-flex rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur\"><button type=\"button\" @click=\"setLang(&#39;en&#39;)\" :class=\"lang === &#39;en&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3 py-1.5 text-xs font-extrabold tracking-wider transition cursor-pointer\">EN</button> <button type=\"button\" @click=\"setLang(&#39;id&#39;)\" :class=\"lang === &#39;id&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3 py-1.5 text-xs font-extrabold tracking-wider transition cursor-pointer\">ID</button></div></div><!-- Search & Category Filter Bar --><div class=\"tactical-panel rounded-xl p-4 space-y-3\"><div class=\"relative\"><input type=\"text\" x-model=\"q\" :placeholder=\"lang === &#39;en&#39; ? &#39;Search terms or badges (e.g. cheap, fair, high, hot, spread, ME, SCI, undercut, decryptor)...&#39; : &#39;Cari istilah atau badge (mis. cheap, fair, high, hot, spread, ME, SCI, undercut, decryptor)...&#39;\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900/90 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none\"></div><div class=\"flex flex-wrap gap-1.5\"><button type=\"button\" @click=\"cat = &#39;all&#39;\" :class=\"cat === &#39;all&#39; ? &#39;bg-violet-600 text-white border-violet-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">All Topics</button> <button type=\"button\" @click=\"cat = &#39;colors&#39;\" :class=\"cat === &#39;colors&#39; ? &#39;bg-emerald-500 text-slate-950 border-emerald-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Colors &amp; Badges</button> <button type=\"button\" @click=\"cat = &#39;market&#39;\" :class=\"cat === &#39;market&#39; ? &#39;bg-sky-500 text-slate-950 border-sky-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Market &amp; Trading</button> <button type=\"button\" @click=\"cat = &#39;industry&#39;\" :class=\"cat === &#39;industry&#39; ? &#39;bg-amber-400 text-slate-950 border-amber-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Industry &amp; Blueprints</button> <button type=\"button\" @click=\"cat = &#39;pi&#39;\" :class=\"cat === &#39;pi&#39; ? &#39;bg-teal-400 text-slate-950 border-teal-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Planetary Industry (PI)</button> <button type=\"button\" @click=\"cat = &#39;invention&#39;\" :class=\"cat === &#39;invention&#39; ? &#39;bg-violet-500 text-white border-violet-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">T2 Invention &amp; Scaling</button> <button type=\"button\" @click=\"cat = &#39;workflow&#39;\" :class=\"cat === &#39;workflow&#39; ? &#39;bg-emerald-400 text-slate-950 border-emerald-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Daily Beginner Workflow</button></div></div><!-- Wiki Cards Grid --><div class=\"grid grid-cols-1 gap-4 md:grid-cols-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, item := range eveWikiEntries {
 				searchBlob := strings.ToLower(item.Term + " " + item.BadgeText + " " + item.WhereUsed + " " + item.DescEN + " " + item.DescID + " " + item.TipEN + " " + item.TipID)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div x-show=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div data-search=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var3 string
-				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs("matches(" + `'` + item.Category + `'` + ", " + "`" + strings.ReplaceAll(searchBlob, "`", "") + "`" + ")")
+				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(searchBlob)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 545, Col: 120}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 570, Col: 30}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" class=\"tactical-panel rounded-xl p-5 flex flex-col justify-between gap-3\"><div class=\"space-y-2.5\"><div class=\"flex flex-wrap items-start justify-between gap-2\"><h2 class=\"text-sm font-bold text-white leading-snug\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" x-show=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var4 string
-				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(item.Term)
+				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs("matches('" + item.Category + "', $el.dataset.search)")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 550, Col: 73}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 571, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</h2>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" class=\"tactical-panel rounded-xl p-5 flex flex-col justify-between gap-3\"><div class=\"space-y-2.5\"><div class=\"flex flex-wrap items-start justify-between gap-2\"><h2 class=\"text-sm font-bold text-white leading-snug\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var5 = []any{"shrink-0 rounded-md border px-2 py-0.5 font-mono text-[10px] " + item.BadgeClass}
-				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var5...)
+				var templ_7745c5c3_Var5 string
+				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(item.Term)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 576, Col: 73}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<span class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</h2>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var6 string
-				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var5).String())
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1, Col: 0}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+				var templ_7745c5c3_Var6 = []any{"shrink-0 rounded-md border px-2 py-0.5 font-mono text-[10px] " + item.BadgeClass}
+				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var6...)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<span class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var7 string
-				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(item.BadgeText)
+				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var6).String())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 552, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1, Col: 0}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</span></div><div class=\"text-[10px] font-mono uppercase tracking-wider text-violet-300/80\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var8 string
-				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(item.WhereUsed)
+				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(item.BadgeText)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 556, Col: 24}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 578, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div><p x-show=\"lang === &#39;en&#39;\" class=\"text-xs text-slate-200 leading-relaxed\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</span></div><div class=\"text-[10px] font-mono uppercase tracking-wider text-violet-300/80\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var9 string
-				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescEN)
+				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(item.WhereUsed)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 559, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 582, Col: 24}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</p><p x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-xs text-slate-200 leading-relaxed\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div><p x-show=\"lang === &#39;en&#39;\" class=\"text-xs text-slate-200 leading-relaxed\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var10 string
-				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescID)
+				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 562, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 585, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</p></div><div class=\"rounded-lg border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-100/95\"><span class=\"font-mono font-bold text-amber-300 mr-1\">PRO TIP:</span> <span x-show=\"lang === &#39;en&#39;\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</p><p x-cloak x-show=\"lang === &#39;id&#39;\" class=\"text-xs text-slate-200 leading-relaxed\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var11 string
-				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipEN)
+				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 568, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 588, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</span> <span x-cloak x-show=\"lang === &#39;id&#39;\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</p></div><div class=\"rounded-lg border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-100/95\"><span class=\"font-mono font-bold text-amber-300 mr-1\">PRO TIP:</span> <span x-show=\"lang === &#39;en&#39;\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var12 string
-				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipID)
+				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 569, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 594, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</span></div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</span> <span x-cloak x-show=\"lang === &#39;id&#39;\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var13 string
+				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipID)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 595, Col: 56}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span></div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
