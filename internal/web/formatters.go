@@ -83,6 +83,22 @@ func TrapBadgeClass(status domain.TrapStatus) string {
 	}
 }
 
+// TrapStatusLabel returns a concise English UI label for TrapStatus while preserving database enum values.
+func TrapStatusLabel(status domain.TrapStatus) string {
+	switch status {
+	case domain.TrapStatusLayak:
+		return "VIABLE"
+	case domain.TrapStatusWaspadaModal:
+		return "CAPITAL RISK"
+	case domain.TrapStatusWaspadaNiche:
+		return "WATCHLIST"
+	case domain.TrapStatusJebakan:
+		return "TRAP"
+	default:
+		return string(status)
+	}
+}
+
 // BatchStatusBadgeClass returns Tailwind badge styles for BatchStatus.
 func BatchStatusBadgeClass(status domain.BatchStatus) string {
 	switch status {

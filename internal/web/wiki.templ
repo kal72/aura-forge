@@ -120,6 +120,96 @@ var eveWikiEntries = []wikiEntry{
 		TipID:      "Hanya admin yang dapat membuat akun baru atau mengubah role pengguna melalui menu Sidebar → User Management.",
 	},
 
+	// 1B. CAPITAL, KPIS & TRACKING
+	{
+		Category:   "capital",
+		Term:       "Available Capital vs. Locked Capital vs. Realized Profit",
+		BadgeText:  "DASHBOARD KPI",
+		BadgeClass: "border-emerald-400/45 bg-emerald-500/20 text-emerald-200 font-bold",
+		WhereUsed:  "Dashboard → Top Financial KPI Cards & Smart Capital Allocator",
+		DescEN:     "Available Capital is your liquid ISK ready to deploy into new manufacturing runs or trade orders (sourced from Settings → Manual Starting Capital or your live EVE Wallet when EVE SSO is connected). Locked Capital is ISK currently tied up in active batches (DRAFT, IN_PRODUCTION, LISTED) waiting to finish or sell. Realized Profit is your cumulative net ISK profit already banked from SOLD batches.",
+		DescID:     "Available Capital adalah dana ISK likuid yang siap dipakai untuk membeli bahan baku atau memulai batch baru (bersumber dari Manual Starting Capital di Settings atau Wallet EVE live jika EVE SSO aktif). Locked Capital adalah modal yang sedang terkunci di batch aktif (DRAFT, IN_PRODUCTION, LISTED) yang belum terjual. Realized Profit adalah total profit bersih nyata yang sudah masuk dari seluruh batch berstatus SOLD.",
+		TipEN:      "Keep at least 10%–15% of Available Capital as Cash Buffer so you never run out of ISK for Broker Fees, SCI job costs, or order relisting.",
+		TipID:      "Sisakan minimal 10%–15% dari Available Capital sebagai Cash Buffer agar tidak pernah kehabisan ISK untuk Broker Fee, biaya job SCI, atau relist order.",
+	},
+	{
+		Category:   "capital",
+		Term:       "Slot Capacity (MFG & Science / Invention Slots)",
+		BadgeText:  "SLOTS",
+		BadgeClass: "border-sky-400/45 bg-sky-500/20 text-sky-200 font-bold",
+		WhereUsed:  "Dashboard, Weekly Planner, Settings",
+		DescEN:     "Every EVE character has a hard limit on how many Manufacturing (MFG) jobs and Science/Invention jobs can run simultaneously (shown as Used / Total). Weekly Planner checks whether your planned batches fit inside your weekly slot hours or trigger an OVER CAPACITY warning.",
+		DescID:     "Setiap karakter EVE punya batas jumlah pekerjaan Manufacturing (MFG) dan Science/Invention yang bisa berjalan bersamaan (ditampilkan sebagai Terpakai / Total). Weekly Planner otomatis mengecek apakah rencana produksi Anda muat dalam kapasitas jam slot mingguan atau memicu peringatan OVER CAPACITY.",
+		TipEN:      "Train Mass Production, Advanced Mass Production, Laboratory Operation, and Advanced Laboratory Operation to multiply your parallel ISK/hour.",
+		TipID:      "Latih skill Mass Production, Advanced Mass Production, dan Laboratory Operation agar bisa menjalankan lebih banyak job paralel sekaligus.",
+	},
+	{
+		Category:   "capital",
+		Term:       "4-Bucket Capital Allocation (Fast Cashflow, Mid-Tier, High ROI, Cash Buffer)",
+		BadgeText:  "ALLOCATOR",
+		BadgeClass: "border-amber-400/45 bg-amber-500/20 text-amber-200 font-bold",
+		WhereUsed:  "Smart Capital Allocator (/allocator)",
+		DescEN:     "Splits your Available Capital across 4 risk-balanced buckets: Fast Cashflow (high-volume quick sellers to keep ISK rotating daily), Mid-Tier (balanced profit & turnover), High ROI (higher-margin items that take longer to sell), and Cash Buffer (mandatory ≥10% reserve for taxes, SCI, and relist fees).",
+		DescID:     "Membagi Available Capital ke 4 keranjang berimbang: Fast Cashflow (item bervolume tinggi & cepat laku untuk perputaran kas harian), Mid-Tier (seimbang antara margin & kecepatan laku), High ROI (margin besar dengan waktu jual lebih santai), dan Cash Buffer (cadangan wajib ≥10% untuk pajak, SCI, dan biaya relist).",
+		TipEN:      "Use the 1-click button in Allocator to send your balanced plan directly to Weekly Planner or create Draft Batches in Tracker.",
+		TipID:      "Gunakan tombol 1-klik di Allocator untuk langsung mengirim alokasi ke Weekly Planner atau membuat Draft Batches di Tracker.",
+	},
+	{
+		Category:   "capital",
+		Term:       "ROI % vs. Net Margin % vs. Break-Even Price",
+		BadgeText:  "PROFIT METRICS",
+		BadgeClass: "border-emerald-400/40 bg-emerald-500/15 text-emerald-200 font-bold",
+		WhereUsed:  "Calculator, Opportunity Scanner, Allocator, Tracker",
+		DescEN:     "ROI % (Return on Investment) = Net Profit ÷ Total Production Cost — measures how fast your invested ISK grows per cycle. Net Margin % = Net Profit ÷ Gross Sell Revenue — measures how much buffer you have before price drops turn a profit into a loss. Break-Even Price is the exact minimum unit sell price where net profit equals 0 ISK after all taxes and fees.",
+		DescID:     "ROI % (Return on Investment) = Net Profit ÷ Total Biaya Produksi — mengukur seberapa cepat modal Anda bertumbuh tiap siklus. Net Margin % = Net Profit ÷ Pendapatan Kotor — mengukur ketebalan bantalan margin sebelum turun harga membuat rugi. Break-Even Price adalah harga jual minimum per unit agar balik modal (0 ISK rugi) setelah semua pajak dan biaya.",
+		TipEN:      "For fast-moving T1 items, even a 10–15% ROI compounds dramatically if your batch sells within 24–48 hours.",
+		TipID:      "Untuk item T1 yang cepat laku, ROI 10–15% pun bertumbuh sangat cepat jika batch terjual dalam 24–48 jam.",
+	},
+	{
+		Category:   "capital",
+		Term:       "Trap Guard Advisor (VIABLE vs. WATCHLIST vs. TRAP, Price Spike & SDE BOM)",
+		BadgeText:  "TRAP GUARD",
+		BadgeClass: "border-rose-400/45 bg-rose-500/20 text-rose-200 font-bold",
+		WhereUsed:  "Catalog & Trap Guard Advisor, Dashboard",
+		DescEN:     "Automatically evaluates every item in your Catalog using live Jita prices and Official CCP SDE BOM material costs (SDE BOM badge). Flags risky traps: Non-Manufacturable drops, Rare BPC without setup cost, Net Loss / Thin Margin, Capital Lock-Up (>50% capital), Slow Movers, and PRICE SPIKE TRAP (when live Jita Sell jumps ≥+25% above its 7-day average).",
+		DescID:     "Otomatis mengevaluasi setiap item di Catalog menggunakan harga Jita live dan biaya bahan BOM CCP SDE (badge SDE BOM). Menandai jebakan berisiko: item non-manufaktur, BPC langka tanpa harga BPC, rugi bersih/margin tipis, Capital Lock-Up (>50% modal), Slow Mover, serta PRICE SPIKE TRAP (jika harga jual Jita melonjak ≥+25% di atas rata-rata 7 hari).",
+		TipEN:      "Smart Capital Allocator automatically excludes all TRAP items so your ISK only goes into VIABLE candidates — and you can click Edit on any row to add BPC costs or adjust batch size.",
+		TipID:      "Smart Capital Allocator otomatis menyaring semua item TRAP sehingga modal Anda hanya masuk ke kandidat VIABLE — Anda juga bisa klik Edit pada baris mana saja untuk mengisi harga BPC atau mengubah ukuran batch.",
+	},
+	{
+		Category:   "capital",
+		Term:       "Batch Lifecycle (DRAFT → IN_PRODUCTION → LISTED → SOLD / SLOW_MOVER)",
+		BadgeText:  "BATCH STATUS",
+		BadgeClass: "border-violet-400/45 bg-violet-500/20 text-violet-200 font-bold",
+		WhereUsed:  "Order & Batch Tracker (/tracker)",
+		DescEN:     "Tracks every production batch from planning to profit: DRAFT (planned, not started yet), IN_PRODUCTION (currently building in EVE industry slots), LISTED (on the market as an active Sell Order — monitored by Undercut Guard), SOLD (completed and counted in Realized Profit), and SLOW_MOVER (flagged when stock sits unsold too long).",
+		DescID:     "Melacak setiap batch produksi dari rencana hingga cair jadi profit: DRAFT (baru direncanakan), IN_PRODUCTION (sedang diproduksi di slot EVE), LISTED (sudah dipasang sebagai Sell Order di market — dipantau Undercut Guard), SOLD (laku terjual & masuk ke Realized Profit), dan SLOW_MOVER (ditandai jika terlalu lama tidak laku).",
+		TipEN:      "Always move batches to SOLD once filled so your Dashboard Locked Capital frees up and Realized Profit updates accurately.",
+		TipID:      "Selalu ubah status batch ke SOLD begitu terjual agar Locked Capital di Dashboard berkurang dan Realized Profit tercatat akurat.",
+	},
+	{
+		Category:   "capital",
+		Term:       "Net Worth Breakdown & Milestone Ladder (100M → 100B+ ISK)",
+		BadgeText:  "NET WORTH",
+		BadgeClass: "border-amber-400/45 bg-amber-500/20 text-amber-200 font-bold",
+		WhereUsed:  "Net Worth & 100B+ Roadmap (/wealth)",
+		DescEN:     "Your true Net Worth is the sum of 5 pillars: Liquid Wallet ISK + Active Sell Orders + Buy Order Escrow + Hangar Inventory Value + Active Industry Jobs. The Milestone Ladder tracks your compounding progress across 100M → 1B → 10B → 50B → 100B+ ISK.",
+		DescID:     "Total Net Worth sejati adalah gabungan 5 pilar aset: Liquid Wallet ISK + Active Sell Orders + Buy Order Escrow + Nilai Inventory Hangar + Active Industry Jobs. Milestone Ladder melacak progres compounding Anda dari 100M → 1B → 10B → 50B → 100B+ ISK.",
+		TipEN:      "Never judge progress by Wallet ISK alone — active industrialists often hold 70–85% of their wealth in Sell Orders and Industry Jobs.",
+		TipID:      "Jangan hanya melihat saldo Wallet — industrialis aktif umumnya memiliki 70–85% kekayaan dalam bentuk Sell Orders dan Industry Jobs.",
+	},
+	{
+		Category:   "capital",
+		Term:       "Public ESI Mode vs. Optional EVE Online SSO",
+		BadgeText:  "ESI / SSO",
+		BadgeClass: "border-sky-400/40 bg-sky-500/15 text-sky-200 font-bold",
+		WhereUsed:  "Topbar Mode Badge & Settings → EVE Online SSO",
+		DescEN:     "aura-forge works 100% out-of-the-box in Public ESI Mode (no EVE login needed) for live 5-hub market prices, 30-day history, SCI, and blueprints. EVE Online SSO (OAuth2) is optional plug-and-play: when configured in .env, admins can link their EVE character to auto-sync live Wallet balance, active orders, and industry jobs.",
+		DescID:     "aura-forge berjalan 100% langsung di mode Public ESI (tanpa login EVE) untuk harga live 5 hub, histori 30 hari, SCI, dan blueprint. EVE Online SSO (OAuth2) bersifat opsional: jika dikonfigurasi di .env, admin dapat menautkan karakter EVE untuk sinkronisasi otomatis saldo Wallet, order aktif, dan job industri.",
+		TipEN:      "All Public ESI calls are protected by PostgreSQL caching (esi_cache), ETag/304, singleflight deduplication, and error-limit guards.",
+		TipID:      "Seluruh panggilan Public ESI dilindungi cache PostgreSQL (esi_cache), ETag/304, deduplikasi singleflight, dan proteksi error-limit.",
+	},
+
 	// 2. MARKET & TRADING
 	{
 		Category:   "market",
@@ -336,6 +426,17 @@ var eveWikiEntries = []wikiEntry{
 	},
 	{
 		Category:   "industry",
+		Term:       "Freight Cost (ISK / m³) & Cargo Volume (m³)",
+		BadgeText:  "LOGISTICS",
+		BadgeClass: "border-sky-400/35 bg-sky-500/15 text-sky-200",
+		WhereUsed:  "Settings, Calculator, Opportunity Scanner, Weekly Planner",
+		DescEN:     "Measures the physical space (in cubic meters, m³) your minerals or finished products occupy and the hauling cost per m³ (e.g., Red Frog / PushX courier rates or your own hauler time). Deducting freight ensures you don't overestimate profits when manufacturing outside Jita or doing Inter-Hub Arbitrage.",
+		DescID:     "Mengukur volume ruang fisik (dalam meter kubik, m³) bahan baku atau produk jadi serta biaya angkut per m³ (mis. tarif kurir Red Frog/PushX atau biaya angkut sendiri). Memasukkan Freight Cost mencegah Anda salah hitung profit saat produksi di luar Jita atau melakukan Inter-Hub Arbitrage.",
+		TipEN:      "Compressed ore and T2 modules have tiny m³ volume compared to raw minerals — always check Total Cargo Volume in Weekly Planner before hauling.",
+		TipID:      "Item jadi T2 dan compressed ore jauh lebih ringkas (m³ kecil) dibanding mineral mentah — selalu cek Total Volume Kargo di Weekly Planner sebelum mengangkut.",
+	},
+	{
+		Category:   "industry",
 		Term:       "Gas Cloud Materials (Fullerites & Mykoserocin)",
 		BadgeText:  "GAS / REACTIONS",
 		BadgeClass: "border-teal-400/45 bg-teal-500/20 text-teal-200 font-bold",
@@ -543,6 +644,9 @@ templ WikiPage(mode service.ModeInfo) {
 					</button>
 					<button type="button" @click="cat = 'colors'" :class="cat === 'colors' ? 'bg-emerald-500 text-slate-950 border-emerald-400' : 'bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white'" class="rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer">
 						Colors &amp; Badges
+					</button>
+					<button type="button" @click="cat = 'capital'" :class="cat === 'capital' ? 'bg-amber-300 text-slate-950 border-amber-200' : 'bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white'" class="rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer">
+						Capital &amp; KPIs
 					</button>
 					<button type="button" @click="cat = 'market'" :class="cat === 'market' ? 'bg-sky-500 text-slate-950 border-sky-400' : 'bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white'" class="rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer">
 						Market &amp; Trading

@@ -16,7 +16,7 @@ import (
 // Renderer defines the UI rendering contract implemented by Templ views in internal/web.
 type Renderer interface {
 	RenderDashboard(w http.ResponseWriter, r *http.Request, data *service.DashboardSummary) error
-	RenderCatalog(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, items []domain.MarketItem, category, status, search string, importRes *domain.ImportResult) error
+	RenderCatalog(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, items []domain.MarketItem, summary service.CatalogSummary, category, status, search, sortBy string, importRes *domain.ImportResult) error
 	RenderCatalogTable(w http.ResponseWriter, r *http.Request, items []domain.MarketItem) error
 	RenderCalculator(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, input domain.ProfitCalcInput, result *domain.ProfitCalcResult, calcErr string, blueprints []domain.SDEBlueprint) error
 	RenderCalculatorResult(w http.ResponseWriter, r *http.Request, input domain.ProfitCalcInput, result *domain.ProfitCalcResult, calcErr string) error
@@ -94,10 +94,11 @@ func (h *Handlers) HandleCatalog(w http.ResponseWriter, r *http.Request) {
 	category := r.URL.Query().Get("category")
 	status := r.URL.Query().Get("status")
 	search := r.URL.Query().Get("q")
+	sortBy := r.URL.Query().Get("sort")
 
-	items, err := h.svc.ListCatalog(r.Context(), category, status, search)
+	items, summary, err := h.svc.ListCatalogSorted(r.Context(), category, status, search, sortBy)
 	if err != nil {
-		http.Error(w, "Gagal memuat catalog: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to load catalog: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -107,7 +108,7 @@ func (h *Handlers) HandleCatalog(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		mode := h.svc.GetModeInfo(r.Context())
-		_ = h.renderer.RenderCatalog(w, r, mode, items, category, status, search, nil)
+		_ = h.renderer.RenderCatalog(w, r, mode, items, summary, category, status, search, sortBy, nil)
 		return
 	}
 	h.writeJSON(w, http.StatusOK, items)
@@ -116,11 +117,19 @@ func (h *Handlers) HandleCatalog(w http.ResponseWriter, r *http.Request) {
 // HandleSaveCatalogItem creates or updates an item in the catalog.
 func (h *Handlers) HandleSaveCatalogItem(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Form tidak valid", http.StatusBadRequest)
+		http.Error(w, "Invalid form payload", http.StatusBadRequest)
 		return
 	}
 
+	var id int64
+	if rawID := strings.TrimSpace(r.FormValue("id")); rawID != "" {
+		if parsed, err := strconv.ParseInt(rawID, 10, 64); err == nil && parsed > 0 {
+			id = parsed
+		}
+	}
+
 	item := &domain.MarketItem{
+		ID:                    id,
 		Name:                  strings.TrimSpace(r.FormValue("name")),
 		Category:              domain.ItemCategory(r.FormValue("category")),
 		EstimatedJitaSell:     parseFloatForm(r, "estimated_jita_sell", 0),
@@ -141,7 +150,7 @@ func (h *Handlers) HandleSaveCatalogItem(w http.ResponseWriter, r *http.Request)
 	saved, err := h.svc.SaveCatalogItem(r.Context(), item)
 	if err != nil {
 		if IsHTMX(r) {
-			TriggerToast(w, "error", "Gagal menyimpan item: "+err.Error())
+			TriggerToast(w, "error", "Failed to save item: "+err.Error())
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -150,8 +159,17 @@ func (h *Handlers) HandleSaveCatalogItem(w http.ResponseWriter, r *http.Request)
 	}
 
 	if IsHTMX(r) {
-		TriggerToast(w, "success", fmt.Sprintf("Item %s disimpan (%s).", saved.Name, saved.TrapAnalysis.Status))
-		items, _ := h.svc.ListCatalog(r.Context(), "", "", "")
+		action := "saved"
+		if id > 0 {
+			action = "updated"
+		}
+		TriggerToast(w, "success", fmt.Sprintf("Item %s %s (%s).", saved.Name, action, saved.TrapAnalysis.Status))
+		if id > 0 {
+			w.Header().Set("HX-Refresh", "true")
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		items, _, _ := h.svc.ListCatalogSorted(r.Context(), "", "", "", "")
 		if h.renderer != nil {
 			_ = h.renderer.RenderCatalogTable(w, r, items)
 			return
@@ -164,7 +182,7 @@ func (h *Handlers) HandleSaveCatalogItem(w http.ResponseWriter, r *http.Request)
 func (h *Handlers) HandleDeleteCatalogItem(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil || id <= 0 {
-		http.Error(w, "ID item tidak valid", http.StatusBadRequest)
+		http.Error(w, "Invalid item ID", http.StatusBadRequest)
 		return
 	}
 	if err := h.svc.DeleteCatalogItem(r.Context(), id); err != nil {
@@ -172,8 +190,8 @@ func (h *Handlers) HandleDeleteCatalogItem(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	if IsHTMX(r) {
-		TriggerToast(w, "info", "Item dihapus dari catalog.")
-		items, _ := h.svc.ListCatalog(r.Context(), "", "", "")
+		TriggerToast(w, "info", "Item removed from catalog.")
+		items, _, _ := h.svc.ListCatalogSorted(r.Context(), "", "", "", "")
 		if h.renderer != nil {
 			_ = h.renderer.RenderCatalogTable(w, r, items)
 			return
@@ -185,7 +203,7 @@ func (h *Handlers) HandleDeleteCatalogItem(w http.ResponseWriter, r *http.Reques
 // HandleBulkImport parses pasted TSV/CSV table data and enriches with Public ESI if enabled.
 func (h *Handlers) HandleBulkImport(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Form tidak valid", http.StatusBadRequest)
+		http.Error(w, "Invalid form payload", http.StatusBadRequest)
 		return
 	}
 	rawText := r.FormValue("bulk_text")
@@ -194,7 +212,7 @@ func (h *Handlers) HandleBulkImport(w http.ResponseWriter, r *http.Request) {
 	res, err := h.svc.ImportBulkItems(r.Context(), rawText, enrichESI)
 	if err != nil {
 		if IsHTMX(r) {
-			TriggerToast(w, "error", "Import gagal: "+err.Error())
+			TriggerToast(w, "error", "Bulk import failed: "+err.Error())
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -203,11 +221,11 @@ func (h *Handlers) HandleBulkImport(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if IsHTMX(r) {
-		TriggerToast(w, "success", fmt.Sprintf("Import selesai: %d sukses, %d error.", res.SuccessCount, res.ErrorCount))
-		items, _ := h.svc.ListCatalog(r.Context(), "", "", "")
+		TriggerToast(w, "success", fmt.Sprintf("Import complete: %d succeeded, %d errors.", res.SuccessCount, res.ErrorCount))
+		items, summary, _ := h.svc.ListCatalogSorted(r.Context(), "", "", "", "")
 		if h.renderer != nil {
 			mode := h.svc.GetModeInfo(r.Context())
-			_ = h.renderer.RenderCatalog(w, r, mode, items, "", "", "", res)
+			_ = h.renderer.RenderCatalog(w, r, mode, items, summary, "", "", "", "", res)
 			return
 		}
 	}
@@ -291,11 +309,12 @@ func (h *Handlers) HandleSyncSCI(w http.ResponseWriter, r *http.Request) {
 	h.writeJSON(w, http.StatusOK, map[string]any{"solar_system_id": systemID, "manufacturing_sci": sci})
 }
 
-// HandleLookupItemESI resolves an item name and returns its Jita sell/buy price & daily volume.
+// HandleLookupItemESI resolves an item name and returns its Jita sell/buy price, daily volume,
+// and optional Official CCP SDE BOM material cost for the requested batch_qty.
 func (h *Handlers) HandleLookupItemESI(w http.ResponseWriter, r *http.Request) {
 	name := strings.TrimSpace(r.URL.Query().Get("name"))
 	if name == "" {
-		http.Error(w, "parameter name wajib diisi", http.StatusBadRequest)
+		http.Error(w, "name query parameter is required", http.StatusBadRequest)
 		return
 	}
 	jp, dailyVol, err := h.svc.LookupItemPriceESI(r.Context(), name)
@@ -303,11 +322,17 @@ func (h *Handlers) HandleLookupItemESI(w http.ResponseWriter, r *http.Request) {
 		h.writeJSON(w, http.StatusNotFound, map[string]any{"error": err.Error()})
 		return
 	}
+
+	batchQty := parseIntDefault(r.URL.Query().Get("batch_qty"), 10)
+	sdeMatCost, hasSDE := h.svc.EstimateSDEMaterialCost(r.Context(), jp.TypeID, batchQty, nil)
+
 	h.writeJSON(w, http.StatusOK, map[string]any{
-		"type_id":      jp.TypeID,
-		"lowest_sell":  jp.LowestSell,
-		"highest_buy":  jp.HighestBuy,
-		"daily_volume": dailyVol,
+		"type_id":           jp.TypeID,
+		"lowest_sell":       jp.LowestSell,
+		"highest_buy":       jp.HighestBuy,
+		"daily_volume":      dailyVol,
+		"sde_has_blueprint": hasSDE,
+		"sde_material_cost": sdeMatCost,
 	})
 }
 

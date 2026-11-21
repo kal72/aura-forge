@@ -380,13 +380,31 @@ func (s *CopilotService) ListCatalog(ctx context.Context, categoryFilter, status
 	return filtered, nil
 }
 
-// SaveCatalogItem evaluates TrapGuard and saves a MarketItem.
+// SaveCatalogItem evaluates TrapGuard (including optional SDE BOM cost & 7d spike check) and saves a MarketItem.
 func (s *CopilotService) SaveCatalogItem(ctx context.Context, item *domain.MarketItem) (*domain.MarketItem, error) {
 	if item == nil || strings.TrimSpace(item.Name) == "" {
 		return nil, fmt.Errorf("item name is required")
 	}
 	if item.BatchOutputQty <= 0 {
 		item.BatchOutputQty = 1
+	}
+
+	// Preserve existing metadata on edit when unchanged
+	if item.ID > 0 && s.items != nil {
+		if existing, err := s.items.GetItemByID(ctx, item.ID); err == nil && existing != nil {
+			if item.TypeID == 0 {
+				item.TypeID = existing.TypeID
+			}
+			if item.Volume30d == 0 {
+				item.Volume30d = existing.Volume30d
+			}
+			if item.ProductionTimeSeconds <= 0 {
+				item.ProductionTimeSeconds = existing.ProductionTimeSeconds
+			}
+			if item.TrapAnalysis.Avg7dPrice == 0 {
+				item.TrapAnalysis.Avg7dPrice = existing.TrapAnalysis.Avg7dPrice
+			}
+		}
 	}
 
 	// Attempt Public ESI type_id resolution if missing
@@ -398,9 +416,22 @@ func (s *CopilotService) SaveCatalogItem(ctx context.Context, item *domain.Marke
 		}
 	}
 
+	// Auto-populate MaterialCost from Official CCP SDE BOM when left blank (0)
+	if item.MaterialCost <= 0 && item.TypeID > 0 && item.IsManufacturable {
+		if sdeCost, ok := s.EstimateSDEMaterialCost(ctx, item.TypeID, item.BatchOutputQty, nil); ok {
+			item.MaterialCost = sdeCost
+			item.TrapAnalysis.BOMSyncedFromSDE = true
+		}
+	}
+
+	avg7dPrice := item.TrapAnalysis.Avg7dPrice
+	if avg7dPrice <= 0 && item.TypeID > 0 {
+		avg7dPrice = s.fetchCatalogAvg7dPrice(ctx, item.TypeID)
+	}
+
 	settings, _ := s.GetSettings(ctx)
 	_, availCap, _ := s.resolveProfileAndCapital(ctx, *settings)
-	item.TrapAnalysis = domain.EvaluateTrapGuard(*item, *settings, availCap)
+	item.TrapAnalysis = domain.EvaluateTrapGuardWithHistory(*item, *settings, availCap, avg7dPrice)
 
 	if s.items != nil {
 		if err := s.items.SaveItem(ctx, item); err != nil {
@@ -451,12 +482,27 @@ func (s *CopilotService) SyncJitaPrices(ctx context.Context) (int, error) {
 		}
 	}
 
-	// 2. Collect valid TypeIDs
-	typeIDs := make([]int32, 0, len(items))
+	// 2. Collect valid product TypeIDs + all unique SDE BOM material TypeIDs for 1 batched price lookup
+	typeIDSet := make(map[int32]struct{}, len(items)*2)
 	for _, it := range items {
 		if it.TypeID > 0 {
-			typeIDs = append(typeIDs, it.TypeID)
+			typeIDSet[it.TypeID] = struct{}{}
+			if s.sde != nil && it.IsManufacturable {
+				if bp, bpErr := s.sde.GetBlueprintByProductID(ctx, it.TypeID); bpErr == nil && bp != nil {
+					if mats, mErr := s.sde.GetBlueprintMaterials(ctx, bp.BlueprintTypeID); mErr == nil {
+						for _, m := range mats {
+							if m.MaterialTypeID > 0 {
+								typeIDSet[m.MaterialTypeID] = struct{}{}
+							}
+						}
+					}
+				}
+			}
 		}
+	}
+	typeIDs := make([]int32, 0, len(typeIDSet))
+	for id := range typeIDSet {
+		typeIDs = append(typeIDs, id)
 	}
 
 	prices, err := s.market.GetJitaPrices(ctx, typeIDs)
@@ -485,7 +531,17 @@ func (s *CopilotService) SyncJitaPrices(ctx context.Context) (int, error) {
 			items[i].DailyVolume = avg7
 			items[i].Volume30d = avg30
 		}
-		items[i].TrapAnalysis = domain.EvaluateTrapGuard(items[i], *settings, availCap)
+
+		// Auto-recompute MaterialCost from Official CCP SDE BOM if blueprint exists
+		if items[i].IsManufacturable {
+			if sdeCost, ok := s.EstimateSDEMaterialCost(ctx, items[i].TypeID, items[i].BatchOutputQty, prices); ok {
+				items[i].MaterialCost = sdeCost
+				items[i].TrapAnalysis.BOMSyncedFromSDE = true
+			}
+		}
+
+		avg7dPrice := s.fetchCatalogAvg7dPrice(ctx, items[i].TypeID)
+		items[i].TrapAnalysis = domain.EvaluateTrapGuardWithHistory(items[i], *settings, availCap, avg7dPrice)
 	}
 
 	if err := s.items.BatchUpsertItems(ctx, items); err != nil {

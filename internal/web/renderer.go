@@ -19,9 +19,9 @@ func (tr *TemplRenderer) RenderDashboard(w http.ResponseWriter, r *http.Request,
 	return DashboardPage(data).Render(r.Context(), w)
 }
 
-func (tr *TemplRenderer) RenderCatalog(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, items []domain.MarketItem, category, status, search string, importRes *domain.ImportResult) error {
+func (tr *TemplRenderer) RenderCatalog(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, items []domain.MarketItem, summary service.CatalogSummary, category, status, search, sortBy string, importRes *domain.ImportResult) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	return CatalogPage(mode, items, category, status, search, importRes).Render(r.Context(), w)
+	return CatalogPage(mode, items, summary, category, status, search, sortBy, importRes).Render(r.Context(), w)
 }
 
 func (tr *TemplRenderer) RenderCatalogTable(w http.ResponseWriter, r *http.Request, items []domain.MarketItem) error {

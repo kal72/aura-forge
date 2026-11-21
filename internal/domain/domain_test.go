@@ -144,6 +144,22 @@ func TestEvaluateTrapGuard_DetectsAllTraps(t *testing.T) {
 	if r5.Status != domain.TrapStatusLayak || r5.RiskLevel != domain.RiskLow {
 		t.Errorf("expected LAYAK_PRODUKSI (LOW), got %+v", r5)
 	}
+	if r5.EstimatedNetProfit <= 0 || r5.EstimatedMarginPct <= 0 || r5.EstimatedROIPct <= 0 {
+		t.Errorf("expected positive estimated profit/margin/ROI in TrapReport, got profit=%.2f margin=%.2f roi=%.2f",
+			r5.EstimatedNetProfit, r5.EstimatedMarginPct, r5.EstimatedROIPct)
+	}
+
+	// 6. Fake Price Spike Trap (+35% above 7d average -> WASPADA_NICHE + IsPriceSpike)
+	r6 := domain.EvaluateTrapGuardWithHistory(goodItem, settings, capital, 60.0) // 85 vs 60 = +41.7%
+	if !r6.IsPriceSpike || r6.Status != domain.TrapStatusWaspadaNiche || r6.PriceSpikePct < 25.0 {
+		t.Errorf("expected PRICE SPIKE trap (+41.7%% -> WASPADA_NICHE), got %+v", r6)
+	}
+
+	// 7. Normal price vs 7d average (+5% -> stays LAYAK_PRODUKSI, no spike)
+	r7 := domain.EvaluateTrapGuardWithHistory(goodItem, settings, capital, 81.0)
+	if r7.IsPriceSpike || r7.Status != domain.TrapStatusLayak {
+		t.Errorf("expected normal price (+4.9%%) to stay LAYAK_PRODUKSI without spike, got %+v", r7)
+	}
 }
 
 func TestAllocateCapital_FourBucketsAndGuardClauses(t *testing.T) {

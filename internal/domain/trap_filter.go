@@ -15,6 +15,8 @@ const (
 	MaxSingleBatchCapitalRatio = 0.50
 	// MinDailyVolumeRatio defines minimum daily Jita volume relative to 1 batch output.
 	MinDailyVolumeRatio = 1.0
+	// MaxSafePriceSpikePercent defines the threshold above 7-day average sell price that flags a fake price spike trap.
+	MaxSafePriceSpikePercent = 25.0
 )
 
 var rareBPCKeywords = []string{
@@ -61,11 +63,19 @@ func DetectNonManufacturable(item MarketItem) bool {
 
 // EvaluateTrapGuard inspects a candidate MarketItem against market rules, liquidity, and available capital.
 func EvaluateTrapGuard(item MarketItem, settings UserSettings, availableCapital float64) TrapReport {
+	return EvaluateTrapGuardWithHistory(item, settings, availableCapital, item.TrapAnalysis.Avg7dPrice)
+}
+
+// EvaluateTrapGuardWithHistory evaluates a MarketItem including optional 7-day ESI Market History
+// average price to detect manipulated Jita price spikes alongside standard trap checks.
+func EvaluateTrapGuardWithHistory(item MarketItem, settings UserSettings, availableCapital float64, avg7dPrice float64) TrapReport {
 	report := TrapReport{
-		Status:      TrapStatusLayak,
-		RiskLevel:   RiskLow,
-		Reasons:     make([]string, 0),
-		EvaluatedAt: time.Now(),
+		Status:           TrapStatusLayak,
+		RiskLevel:        RiskLow,
+		Reasons:          make([]string, 0),
+		Avg7dPrice:       avg7dPrice,
+		BOMSyncedFromSDE: item.TrapAnalysis.BOMSyncedFromSDE,
+		EvaluatedAt:      time.Now(),
 	}
 
 	if availableCapital <= 0 {
@@ -77,7 +87,7 @@ func EvaluateTrapGuard(item MarketItem, settings UserSettings, availableCapital 
 		report.IsNonManufacturable = true
 		report.Status = TrapStatusJebakan
 		report.RiskLevel = RiskHigh
-		report.Reasons = append(report.Reasons, "NON-MANUFAKTUR: Item ini adalah komoditas mentah / Compressed Ice, bukan hasil manufaktur blueprint.")
+		report.Reasons = append(report.Reasons, "NON-MANUFACTURABLE: Raw commodity or compressed ice — cannot be manufactured from a blueprint.")
 	}
 
 	// 2. Check Rare BPC Trap
@@ -85,10 +95,10 @@ func EvaluateTrapGuard(item MarketItem, settings UserSettings, availableCapital 
 		report.IsBPCJebakan = true
 		report.Status = TrapStatusJebakan
 		report.RiskLevel = RiskCritical
-		report.Reasons = append(report.Reasons, "JEBAKAN BPC LANGKA: Item membutuhkan BPC khusus (Faction/Deadspace/Storyline/Officer/Abyssal), tetapi biaya ExtraSetupCost masih 0 ISK.")
+		report.Reasons = append(report.Reasons, "RARE BPC TRAP: Requires a Faction/Deadspace/Storyline/Officer/Abyssal BPC, but ExtraSetupCost is still 0 ISK.")
 	}
 
-	// 3. Calculate Net Profit
+	// 3. Calculate Net Profit, Margin %, and ROI %
 	outputQty := item.BatchOutputQty
 	if outputQty <= 0 {
 		outputQty = 1
@@ -111,19 +121,23 @@ func EvaluateTrapGuard(item MarketItem, settings UserSettings, availableCapital 
 
 	calcRes, err := CalculateProfit(calcIn)
 	if err == nil {
+		report.EstimatedNetProfit = calcRes.NetProfitPerBatch
+		report.EstimatedMarginPct = calcRes.NetMarginPercent
+		report.EstimatedROIPct = calcRes.ROIPercent
+
 		// Check negative or tiny profit
 		if !calcRes.IsProfitable {
 			report.IsProfitReceh = true
 			report.Status = TrapStatusJebakan
 			report.RiskLevel = RiskCritical
-			report.Reasons = append(report.Reasons, fmt.Sprintf("RUGI BERSIH: Estimasi Net Profit negatif (%.2f ISK) setelah pajak & broker fee.", calcRes.NetProfitPerBatch))
+			report.Reasons = append(report.Reasons, fmt.Sprintf("NET LOSS: Estimated profit is negative (%.0f ISK) after Jita taxes, SCI, and broker fees.", calcRes.NetProfitPerBatch))
 		} else if calcRes.NetProfitPerBatch < MinAcceptableBatchProfitISK || calcRes.NetMarginPercent < MinAcceptableMarginPercent {
 			report.IsProfitReceh = true
 			if report.Status != TrapStatusJebakan {
 				report.Status = TrapStatusWaspadaNiche
 				report.RiskLevel = maxRisk(report.RiskLevel, RiskMedium)
 			}
-			report.Reasons = append(report.Reasons, fmt.Sprintf("PROFIT RECEH: Net profit %.0f ISK (margin %.2f%%) terlalu tipis dibanding biaya slot & risiko relist.", calcRes.NetProfitPerBatch, calcRes.NetMarginPercent))
+			report.Reasons = append(report.Reasons, fmt.Sprintf("THIN MARGIN: Net profit %.0f ISK (%.2f%% margin) is too thin to absorb relist fees or undercuts.", calcRes.NetProfitPerBatch, calcRes.NetMarginPercent))
 		}
 
 		// 4. Check Capital Lock-Up
@@ -134,14 +148,14 @@ func EvaluateTrapGuard(item MarketItem, settings UserSettings, availableCapital 
 					report.Status = TrapStatusWaspadaModal
 					report.RiskLevel = maxRisk(report.RiskLevel, RiskHigh)
 				}
-				report.Reasons = append(report.Reasons, fmt.Sprintf("MODAL TIDAK CUKUP: Biaya bahan %.0f ISK melebihi kas tersedia (%.0f ISK).", calcRes.TotalDirectCost, availableCapital))
+				report.Reasons = append(report.Reasons, fmt.Sprintf("INSUFFICIENT CAPITAL: Direct batch cost %.0f ISK exceeds available capital (%.0f ISK).", calcRes.TotalDirectCost, availableCapital))
 			} else if calcRes.TotalDirectCost > availableCapital*MaxSingleBatchCapitalRatio {
 				report.IsModalLockup = true
 				if report.Status != TrapStatusJebakan {
 					report.Status = TrapStatusWaspadaModal
 					report.RiskLevel = maxRisk(report.RiskLevel, RiskMedium)
 				}
-				report.Reasons = append(report.Reasons, fmt.Sprintf("LOCK-UP MODAL: Satu batch mengunci %.1f%% dari total kas tersedia (batas aman 50%%).", (calcRes.TotalDirectCost/availableCapital)*100.0))
+				report.Reasons = append(report.Reasons, fmt.Sprintf("CAPITAL LOCK-UP: One batch locks %.1f%% of available capital (safe cap: 50%%).", (calcRes.TotalDirectCost/availableCapital)*100.0))
 			}
 		}
 	}
@@ -156,10 +170,26 @@ func EvaluateTrapGuard(item MarketItem, settings UserSettings, availableCapital 
 		} else if report.Status != TrapStatusJebakan {
 			report.RiskLevel = maxRisk(report.RiskLevel, RiskHigh)
 		}
-		report.Reasons = append(report.Reasons, fmt.Sprintf("SLOW MOVER: Volume harian Jita (%.1f unit/hari) terlalu rendah dibanding output batch (%d unit).", item.DailyVolume, outputQty))
+		report.Reasons = append(report.Reasons, fmt.Sprintf("SLOW MOVER: Daily Jita volume (%.1f u/day) is lower than 1 batch output (%d u).", item.DailyVolume, outputQty))
 	}
 
-	// 6. Generate Human-Readable Recommendation
+	// 6. Check Fake Price Spike Trap (Live Lowest Sell >= +25% above 7d average)
+	if avg7dPrice > 0 && item.EstimatedJitaSell > 0 {
+		spikePct := ((item.EstimatedJitaSell - avg7dPrice) / avg7dPrice) * 100.0
+		report.PriceSpikePct = spikePct
+		if spikePct >= MaxSafePriceSpikePercent {
+			report.IsPriceSpike = true
+			if report.Status == TrapStatusLayak {
+				report.Status = TrapStatusWaspadaNiche
+				report.RiskLevel = maxRisk(report.RiskLevel, RiskMedium)
+			} else if report.Status != TrapStatusJebakan {
+				report.RiskLevel = maxRisk(report.RiskLevel, RiskHigh)
+			}
+			report.Reasons = append(report.Reasons, fmt.Sprintf("PRICE SPIKE TRAP: Live Jita Sell is +%.1f%% above its 7-day average — margin may collapse before your batch sells.", spikePct))
+		}
+	}
+
+	// 7. Generate Human-Readable Recommendation
 	report.Recommendation = buildTrapRecommendation(report)
 
 	return report
@@ -182,20 +212,23 @@ func buildTrapRecommendation(r TrapReport) string {
 	switch r.Status {
 	case TrapStatusJebakan:
 		if r.IsBPCJebakan {
-			return "HINDARI atau masukkan harga beli BPC asli ke kolom ExtraSetupCost sebelum menghitung ulang profit."
+			return "AVOID or edit this item to include the real BPC contract price in ExtraSetupCost before re-evaluating."
 		}
 		if r.IsNonManufacturable {
-			return "HINDARI untuk manufaktur. Gunakan item ini hanya untuk trading/hauling jika memang diinginkan."
+			return "AVOID for manufacturing. Use this item only for station trading or inter-hub hauling."
 		}
-		return "HINDARI PRODUKSI: Item berisiko rugi bersih setelah pajak Jita dan broker fee."
+		return "AVOID PRODUCTION: Projected net loss after Jita taxes, SCI, and broker fees."
 	case TrapStatusWaspadaModal:
-		return "TUNDA HINGGA MODAL CUKUP: Produksi item Fast Cashflow terlebih dahulu sampai modal aman (<50% kas per batch)."
+		return "HOLD UNTIL CAPITAL GROWS: Build fast-cashflow items first until one batch uses <50% of available capital."
 	case TrapStatusWaspadaNiche:
-		if r.IsSlowMover {
-			return "PRODUKSI TERBATAS: Jalankan maksimal 1 batch kecil dan pantau persaingan harga Jita agar tidak nyangkut."
+		if r.IsPriceSpike {
+			return "VERIFY ORDER BOOK FIRST: Live Jita price spiked sharply vs 7d average — check Marketplace before buying materials."
 		}
-		return "OPTIMASI BIAYA: Beli bahan baku via Buy Order atau tingkatkan ME blueprint untuk menaikkan margin."
+		if r.IsSlowMover {
+			return "LIMITED PRODUCTION: Run at most 1 small batch and monitor Jita competition closely to avoid stuck stock."
+		}
+		return "OPTIMIZE COST: Buy materials via Jita Buy Orders or manufacture in a rigged Raitaru to lift margins."
 	default:
-		return "LAYAK PRODUKSI: Margin sehat, likuiditas Jita memadai, dan aman untuk kapasitas modal saat ini."
+		return "VIABLE TO BUILD: Healthy net margin, strong Jita liquidity, and safe for your current capital."
 	}
 }

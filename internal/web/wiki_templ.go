@@ -128,6 +128,96 @@ var eveWikiEntries = []wikiEntry{
 		TipID:      "Hanya admin yang dapat membuat akun baru atau mengubah role pengguna melalui menu Sidebar → User Management.",
 	},
 
+	// 1B. CAPITAL, KPIS & TRACKING
+	{
+		Category:   "capital",
+		Term:       "Available Capital vs. Locked Capital vs. Realized Profit",
+		BadgeText:  "DASHBOARD KPI",
+		BadgeClass: "border-emerald-400/45 bg-emerald-500/20 text-emerald-200 font-bold",
+		WhereUsed:  "Dashboard → Top Financial KPI Cards & Smart Capital Allocator",
+		DescEN:     "Available Capital is your liquid ISK ready to deploy into new manufacturing runs or trade orders (sourced from Settings → Manual Starting Capital or your live EVE Wallet when EVE SSO is connected). Locked Capital is ISK currently tied up in active batches (DRAFT, IN_PRODUCTION, LISTED) waiting to finish or sell. Realized Profit is your cumulative net ISK profit already banked from SOLD batches.",
+		DescID:     "Available Capital adalah dana ISK likuid yang siap dipakai untuk membeli bahan baku atau memulai batch baru (bersumber dari Manual Starting Capital di Settings atau Wallet EVE live jika EVE SSO aktif). Locked Capital adalah modal yang sedang terkunci di batch aktif (DRAFT, IN_PRODUCTION, LISTED) yang belum terjual. Realized Profit adalah total profit bersih nyata yang sudah masuk dari seluruh batch berstatus SOLD.",
+		TipEN:      "Keep at least 10%–15% of Available Capital as Cash Buffer so you never run out of ISK for Broker Fees, SCI job costs, or order relisting.",
+		TipID:      "Sisakan minimal 10%–15% dari Available Capital sebagai Cash Buffer agar tidak pernah kehabisan ISK untuk Broker Fee, biaya job SCI, atau relist order.",
+	},
+	{
+		Category:   "capital",
+		Term:       "Slot Capacity (MFG & Science / Invention Slots)",
+		BadgeText:  "SLOTS",
+		BadgeClass: "border-sky-400/45 bg-sky-500/20 text-sky-200 font-bold",
+		WhereUsed:  "Dashboard, Weekly Planner, Settings",
+		DescEN:     "Every EVE character has a hard limit on how many Manufacturing (MFG) jobs and Science/Invention jobs can run simultaneously (shown as Used / Total). Weekly Planner checks whether your planned batches fit inside your weekly slot hours or trigger an OVER CAPACITY warning.",
+		DescID:     "Setiap karakter EVE punya batas jumlah pekerjaan Manufacturing (MFG) dan Science/Invention yang bisa berjalan bersamaan (ditampilkan sebagai Terpakai / Total). Weekly Planner otomatis mengecek apakah rencana produksi Anda muat dalam kapasitas jam slot mingguan atau memicu peringatan OVER CAPACITY.",
+		TipEN:      "Train Mass Production, Advanced Mass Production, Laboratory Operation, and Advanced Laboratory Operation to multiply your parallel ISK/hour.",
+		TipID:      "Latih skill Mass Production, Advanced Mass Production, dan Laboratory Operation agar bisa menjalankan lebih banyak job paralel sekaligus.",
+	},
+	{
+		Category:   "capital",
+		Term:       "4-Bucket Capital Allocation (Fast Cashflow, Mid-Tier, High ROI, Cash Buffer)",
+		BadgeText:  "ALLOCATOR",
+		BadgeClass: "border-amber-400/45 bg-amber-500/20 text-amber-200 font-bold",
+		WhereUsed:  "Smart Capital Allocator (/allocator)",
+		DescEN:     "Splits your Available Capital across 4 risk-balanced buckets: Fast Cashflow (high-volume quick sellers to keep ISK rotating daily), Mid-Tier (balanced profit & turnover), High ROI (higher-margin items that take longer to sell), and Cash Buffer (mandatory ≥10% reserve for taxes, SCI, and relist fees).",
+		DescID:     "Membagi Available Capital ke 4 keranjang berimbang: Fast Cashflow (item bervolume tinggi & cepat laku untuk perputaran kas harian), Mid-Tier (seimbang antara margin & kecepatan laku), High ROI (margin besar dengan waktu jual lebih santai), dan Cash Buffer (cadangan wajib ≥10% untuk pajak, SCI, dan biaya relist).",
+		TipEN:      "Use the 1-click button in Allocator to send your balanced plan directly to Weekly Planner or create Draft Batches in Tracker.",
+		TipID:      "Gunakan tombol 1-klik di Allocator untuk langsung mengirim alokasi ke Weekly Planner atau membuat Draft Batches di Tracker.",
+	},
+	{
+		Category:   "capital",
+		Term:       "ROI % vs. Net Margin % vs. Break-Even Price",
+		BadgeText:  "PROFIT METRICS",
+		BadgeClass: "border-emerald-400/40 bg-emerald-500/15 text-emerald-200 font-bold",
+		WhereUsed:  "Calculator, Opportunity Scanner, Allocator, Tracker",
+		DescEN:     "ROI % (Return on Investment) = Net Profit ÷ Total Production Cost — measures how fast your invested ISK grows per cycle. Net Margin % = Net Profit ÷ Gross Sell Revenue — measures how much buffer you have before price drops turn a profit into a loss. Break-Even Price is the exact minimum unit sell price where net profit equals 0 ISK after all taxes and fees.",
+		DescID:     "ROI % (Return on Investment) = Net Profit ÷ Total Biaya Produksi — mengukur seberapa cepat modal Anda bertumbuh tiap siklus. Net Margin % = Net Profit ÷ Pendapatan Kotor — mengukur ketebalan bantalan margin sebelum turun harga membuat rugi. Break-Even Price adalah harga jual minimum per unit agar balik modal (0 ISK rugi) setelah semua pajak dan biaya.",
+		TipEN:      "For fast-moving T1 items, even a 10–15% ROI compounds dramatically if your batch sells within 24–48 hours.",
+		TipID:      "Untuk item T1 yang cepat laku, ROI 10–15% pun bertumbuh sangat cepat jika batch terjual dalam 24–48 jam.",
+	},
+	{
+		Category:   "capital",
+		Term:       "Trap Guard Advisor (VIABLE vs. WATCHLIST vs. TRAP, Price Spike & SDE BOM)",
+		BadgeText:  "TRAP GUARD",
+		BadgeClass: "border-rose-400/45 bg-rose-500/20 text-rose-200 font-bold",
+		WhereUsed:  "Catalog & Trap Guard Advisor, Dashboard",
+		DescEN:     "Automatically evaluates every item in your Catalog using live Jita prices and Official CCP SDE BOM material costs (SDE BOM badge). Flags risky traps: Non-Manufacturable drops, Rare BPC without setup cost, Net Loss / Thin Margin, Capital Lock-Up (>50% capital), Slow Movers, and PRICE SPIKE TRAP (when live Jita Sell jumps ≥+25% above its 7-day average).",
+		DescID:     "Otomatis mengevaluasi setiap item di Catalog menggunakan harga Jita live dan biaya bahan BOM CCP SDE (badge SDE BOM). Menandai jebakan berisiko: item non-manufaktur, BPC langka tanpa harga BPC, rugi bersih/margin tipis, Capital Lock-Up (>50% modal), Slow Mover, serta PRICE SPIKE TRAP (jika harga jual Jita melonjak ≥+25% di atas rata-rata 7 hari).",
+		TipEN:      "Smart Capital Allocator automatically excludes all TRAP items so your ISK only goes into VIABLE candidates — and you can click Edit on any row to add BPC costs or adjust batch size.",
+		TipID:      "Smart Capital Allocator otomatis menyaring semua item TRAP sehingga modal Anda hanya masuk ke kandidat VIABLE — Anda juga bisa klik Edit pada baris mana saja untuk mengisi harga BPC atau mengubah ukuran batch.",
+	},
+	{
+		Category:   "capital",
+		Term:       "Batch Lifecycle (DRAFT → IN_PRODUCTION → LISTED → SOLD / SLOW_MOVER)",
+		BadgeText:  "BATCH STATUS",
+		BadgeClass: "border-violet-400/45 bg-violet-500/20 text-violet-200 font-bold",
+		WhereUsed:  "Order & Batch Tracker (/tracker)",
+		DescEN:     "Tracks every production batch from planning to profit: DRAFT (planned, not started yet), IN_PRODUCTION (currently building in EVE industry slots), LISTED (on the market as an active Sell Order — monitored by Undercut Guard), SOLD (completed and counted in Realized Profit), and SLOW_MOVER (flagged when stock sits unsold too long).",
+		DescID:     "Melacak setiap batch produksi dari rencana hingga cair jadi profit: DRAFT (baru direncanakan), IN_PRODUCTION (sedang diproduksi di slot EVE), LISTED (sudah dipasang sebagai Sell Order di market — dipantau Undercut Guard), SOLD (laku terjual & masuk ke Realized Profit), dan SLOW_MOVER (ditandai jika terlalu lama tidak laku).",
+		TipEN:      "Always move batches to SOLD once filled so your Dashboard Locked Capital frees up and Realized Profit updates accurately.",
+		TipID:      "Selalu ubah status batch ke SOLD begitu terjual agar Locked Capital di Dashboard berkurang dan Realized Profit tercatat akurat.",
+	},
+	{
+		Category:   "capital",
+		Term:       "Net Worth Breakdown & Milestone Ladder (100M → 100B+ ISK)",
+		BadgeText:  "NET WORTH",
+		BadgeClass: "border-amber-400/45 bg-amber-500/20 text-amber-200 font-bold",
+		WhereUsed:  "Net Worth & 100B+ Roadmap (/wealth)",
+		DescEN:     "Your true Net Worth is the sum of 5 pillars: Liquid Wallet ISK + Active Sell Orders + Buy Order Escrow + Hangar Inventory Value + Active Industry Jobs. The Milestone Ladder tracks your compounding progress across 100M → 1B → 10B → 50B → 100B+ ISK.",
+		DescID:     "Total Net Worth sejati adalah gabungan 5 pilar aset: Liquid Wallet ISK + Active Sell Orders + Buy Order Escrow + Nilai Inventory Hangar + Active Industry Jobs. Milestone Ladder melacak progres compounding Anda dari 100M → 1B → 10B → 50B → 100B+ ISK.",
+		TipEN:      "Never judge progress by Wallet ISK alone — active industrialists often hold 70–85% of their wealth in Sell Orders and Industry Jobs.",
+		TipID:      "Jangan hanya melihat saldo Wallet — industrialis aktif umumnya memiliki 70–85% kekayaan dalam bentuk Sell Orders dan Industry Jobs.",
+	},
+	{
+		Category:   "capital",
+		Term:       "Public ESI Mode vs. Optional EVE Online SSO",
+		BadgeText:  "ESI / SSO",
+		BadgeClass: "border-sky-400/40 bg-sky-500/15 text-sky-200 font-bold",
+		WhereUsed:  "Topbar Mode Badge & Settings → EVE Online SSO",
+		DescEN:     "aura-forge works 100% out-of-the-box in Public ESI Mode (no EVE login needed) for live 5-hub market prices, 30-day history, SCI, and blueprints. EVE Online SSO (OAuth2) is optional plug-and-play: when configured in .env, admins can link their EVE character to auto-sync live Wallet balance, active orders, and industry jobs.",
+		DescID:     "aura-forge berjalan 100% langsung di mode Public ESI (tanpa login EVE) untuk harga live 5 hub, histori 30 hari, SCI, dan blueprint. EVE Online SSO (OAuth2) bersifat opsional: jika dikonfigurasi di .env, admin dapat menautkan karakter EVE untuk sinkronisasi otomatis saldo Wallet, order aktif, dan job industri.",
+		TipEN:      "All Public ESI calls are protected by PostgreSQL caching (esi_cache), ETag/304, singleflight deduplication, and error-limit guards.",
+		TipID:      "Seluruh panggilan Public ESI dilindungi cache PostgreSQL (esi_cache), ETag/304, deduplikasi singleflight, dan proteksi error-limit.",
+	},
+
 	// 2. MARKET & TRADING
 	{
 		Category:   "market",
@@ -344,6 +434,17 @@ var eveWikiEntries = []wikiEntry{
 	},
 	{
 		Category:   "industry",
+		Term:       "Freight Cost (ISK / m³) & Cargo Volume (m³)",
+		BadgeText:  "LOGISTICS",
+		BadgeClass: "border-sky-400/35 bg-sky-500/15 text-sky-200",
+		WhereUsed:  "Settings, Calculator, Opportunity Scanner, Weekly Planner",
+		DescEN:     "Measures the physical space (in cubic meters, m³) your minerals or finished products occupy and the hauling cost per m³ (e.g., Red Frog / PushX courier rates or your own hauler time). Deducting freight ensures you don't overestimate profits when manufacturing outside Jita or doing Inter-Hub Arbitrage.",
+		DescID:     "Mengukur volume ruang fisik (dalam meter kubik, m³) bahan baku atau produk jadi serta biaya angkut per m³ (mis. tarif kurir Red Frog/PushX atau biaya angkut sendiri). Memasukkan Freight Cost mencegah Anda salah hitung profit saat produksi di luar Jita atau melakukan Inter-Hub Arbitrage.",
+		TipEN:      "Compressed ore and T2 modules have tiny m³ volume compared to raw minerals — always check Total Cargo Volume in Weekly Planner before hauling.",
+		TipID:      "Item jadi T2 dan compressed ore jauh lebih ringkas (m³ kecil) dibanding mineral mentah — selalu cek Total Volume Kargo di Weekly Planner sebelum mengangkut.",
+	},
+	{
+		Category:   "industry",
 		Term:       "Gas Cloud Materials (Fullerites & Mykoserocin)",
 		BadgeText:  "GAS / REACTIONS",
 		BadgeClass: "border-teal-400/45 bg-teal-500/20 text-teal-200 font-bold",
@@ -513,7 +614,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\" x-data=\"{\n\t\t\t\tlang: localStorage.getItem(&#39;af-wiki-lang&#39;) || &#39;en&#39;,\n\t\t\t\tcat: &#39;all&#39;,\n\t\t\t\tq: &#39;&#39;,\n\t\t\t\tsetLang(l) {\n\t\t\t\t\tthis.lang = l;\n\t\t\t\t\tlocalStorage.setItem(&#39;af-wiki-lang&#39;, l);\n\t\t\t\t},\n\t\t\t\tmatches(category, text) {\n\t\t\t\t\tif (this.cat !== &#39;all&#39; &amp;&amp; this.cat !== category) return false;\n\t\t\t\t\tconst query = this.q.trim().toLowerCase();\n\t\t\t\t\tif (!query) return true;\n\t\t\t\t\tconst haystack = (text || &#39;&#39;).toLowerCase();\n\t\t\t\t\tconst tokens = query.split(/\\s+/).filter(Boolean);\n\t\t\t\t\treturn tokens.every(tok =&gt; haystack.includes(tok));\n\t\t\t\t}\n\t\t\t}\"><!-- Header & EN | ID Language Toggle --><div class=\"flex flex-wrap items-center justify-between gap-4\"><div><h1 class=\"text-2xl font-bold tracking-tight text-white\">EVE Online Wiki &amp; UI Color Guide</h1><p class=\"text-xs text-slate-300/80 mt-0.5\" x-show=\"lang === &#39;en&#39;\">Beginner-friendly reference for every EVE Online term, UI color indicator, badge, and daily workflow inside aura-forge.</p><p x-cloak class=\"text-xs text-slate-300/80 mt-0.5\" x-show=\"lang === &#39;id&#39;\">Panduan ramah pemula untuk semua istilah EVE Online, arti warna/badge di UI, dan alur kerja harian di dalam aura-forge.</p></div><!-- EN | ID Toggle (Default EN per AGENTS.md, instant ID switch for beginner learning) --><div class=\"inline-flex rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur\"><button type=\"button\" @click=\"setLang(&#39;en&#39;)\" :class=\"lang === &#39;en&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3 py-1.5 text-xs font-extrabold tracking-wider transition cursor-pointer\">EN</button> <button type=\"button\" @click=\"setLang(&#39;id&#39;)\" :class=\"lang === &#39;id&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3 py-1.5 text-xs font-extrabold tracking-wider transition cursor-pointer\">ID</button></div></div><!-- Search & Category Filter Bar --><div class=\"tactical-panel rounded-xl p-4 space-y-3\"><div class=\"relative\"><input type=\"text\" x-model=\"q\" :placeholder=\"lang === &#39;en&#39; ? &#39;Search terms or badges (e.g. cheap, fair, high, hot, spread, ME, SCI, undercut, decryptor)...&#39; : &#39;Cari istilah atau badge (mis. cheap, fair, high, hot, spread, ME, SCI, undercut, decryptor)...&#39;\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900/90 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none\"></div><div class=\"flex flex-wrap gap-1.5\"><button type=\"button\" @click=\"cat = &#39;all&#39;\" :class=\"cat === &#39;all&#39; ? &#39;bg-violet-600 text-white border-violet-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">All Topics</button> <button type=\"button\" @click=\"cat = &#39;colors&#39;\" :class=\"cat === &#39;colors&#39; ? &#39;bg-emerald-500 text-slate-950 border-emerald-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Colors &amp; Badges</button> <button type=\"button\" @click=\"cat = &#39;market&#39;\" :class=\"cat === &#39;market&#39; ? &#39;bg-sky-500 text-slate-950 border-sky-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Market &amp; Trading</button> <button type=\"button\" @click=\"cat = &#39;industry&#39;\" :class=\"cat === &#39;industry&#39; ? &#39;bg-amber-400 text-slate-950 border-amber-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Industry &amp; Blueprints</button> <button type=\"button\" @click=\"cat = &#39;pi&#39;\" :class=\"cat === &#39;pi&#39; ? &#39;bg-teal-400 text-slate-950 border-teal-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Planetary Industry (PI)</button> <button type=\"button\" @click=\"cat = &#39;invention&#39;\" :class=\"cat === &#39;invention&#39; ? &#39;bg-violet-500 text-white border-violet-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">T2 Invention &amp; Scaling</button> <button type=\"button\" @click=\"cat = &#39;workflow&#39;\" :class=\"cat === &#39;workflow&#39; ? &#39;bg-emerald-400 text-slate-950 border-emerald-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Daily Beginner Workflow</button></div></div><!-- Wiki Cards Grid --><div class=\"grid grid-cols-1 gap-4 md:grid-cols-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\" x-data=\"{\n\t\t\t\tlang: localStorage.getItem(&#39;af-wiki-lang&#39;) || &#39;en&#39;,\n\t\t\t\tcat: &#39;all&#39;,\n\t\t\t\tq: &#39;&#39;,\n\t\t\t\tsetLang(l) {\n\t\t\t\t\tthis.lang = l;\n\t\t\t\t\tlocalStorage.setItem(&#39;af-wiki-lang&#39;, l);\n\t\t\t\t},\n\t\t\t\tmatches(category, text) {\n\t\t\t\t\tif (this.cat !== &#39;all&#39; &amp;&amp; this.cat !== category) return false;\n\t\t\t\t\tconst query = this.q.trim().toLowerCase();\n\t\t\t\t\tif (!query) return true;\n\t\t\t\t\tconst haystack = (text || &#39;&#39;).toLowerCase();\n\t\t\t\t\tconst tokens = query.split(/\\s+/).filter(Boolean);\n\t\t\t\t\treturn tokens.every(tok =&gt; haystack.includes(tok));\n\t\t\t\t}\n\t\t\t}\"><!-- Header & EN | ID Language Toggle --><div class=\"flex flex-wrap items-center justify-between gap-4\"><div><h1 class=\"text-2xl font-bold tracking-tight text-white\">EVE Online Wiki &amp; UI Color Guide</h1><p class=\"text-xs text-slate-300/80 mt-0.5\" x-show=\"lang === &#39;en&#39;\">Beginner-friendly reference for every EVE Online term, UI color indicator, badge, and daily workflow inside aura-forge.</p><p x-cloak class=\"text-xs text-slate-300/80 mt-0.5\" x-show=\"lang === &#39;id&#39;\">Panduan ramah pemula untuk semua istilah EVE Online, arti warna/badge di UI, dan alur kerja harian di dalam aura-forge.</p></div><!-- EN | ID Toggle (Default EN per AGENTS.md, instant ID switch for beginner learning) --><div class=\"inline-flex rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur\"><button type=\"button\" @click=\"setLang(&#39;en&#39;)\" :class=\"lang === &#39;en&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3 py-1.5 text-xs font-extrabold tracking-wider transition cursor-pointer\">EN</button> <button type=\"button\" @click=\"setLang(&#39;id&#39;)\" :class=\"lang === &#39;id&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3 py-1.5 text-xs font-extrabold tracking-wider transition cursor-pointer\">ID</button></div></div><!-- Search & Category Filter Bar --><div class=\"tactical-panel rounded-xl p-4 space-y-3\"><div class=\"relative\"><input type=\"text\" x-model=\"q\" :placeholder=\"lang === &#39;en&#39; ? &#39;Search terms or badges (e.g. cheap, fair, high, hot, spread, ME, SCI, undercut, decryptor)...&#39; : &#39;Cari istilah atau badge (mis. cheap, fair, high, hot, spread, ME, SCI, undercut, decryptor)...&#39;\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900/90 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none\"></div><div class=\"flex flex-wrap gap-1.5\"><button type=\"button\" @click=\"cat = &#39;all&#39;\" :class=\"cat === &#39;all&#39; ? &#39;bg-violet-600 text-white border-violet-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">All Topics</button> <button type=\"button\" @click=\"cat = &#39;colors&#39;\" :class=\"cat === &#39;colors&#39; ? &#39;bg-emerald-500 text-slate-950 border-emerald-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Colors &amp; Badges</button> <button type=\"button\" @click=\"cat = &#39;capital&#39;\" :class=\"cat === &#39;capital&#39; ? &#39;bg-amber-300 text-slate-950 border-amber-200&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Capital &amp; KPIs</button> <button type=\"button\" @click=\"cat = &#39;market&#39;\" :class=\"cat === &#39;market&#39; ? &#39;bg-sky-500 text-slate-950 border-sky-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Market &amp; Trading</button> <button type=\"button\" @click=\"cat = &#39;industry&#39;\" :class=\"cat === &#39;industry&#39; ? &#39;bg-amber-400 text-slate-950 border-amber-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Industry &amp; Blueprints</button> <button type=\"button\" @click=\"cat = &#39;pi&#39;\" :class=\"cat === &#39;pi&#39; ? &#39;bg-teal-400 text-slate-950 border-teal-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Planetary Industry (PI)</button> <button type=\"button\" @click=\"cat = &#39;invention&#39;\" :class=\"cat === &#39;invention&#39; ? &#39;bg-violet-500 text-white border-violet-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">T2 Invention &amp; Scaling</button> <button type=\"button\" @click=\"cat = &#39;workflow&#39;\" :class=\"cat === &#39;workflow&#39; ? &#39;bg-emerald-400 text-slate-950 border-emerald-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Daily Beginner Workflow</button></div></div><!-- Wiki Cards Grid --><div class=\"grid grid-cols-1 gap-4 md:grid-cols-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -526,7 +627,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(searchBlob)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 570, Col: 30}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 674, Col: 30}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -539,7 +640,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs("matches('" + item.Category + "', $el.dataset.search)")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 571, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 675, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -552,7 +653,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(item.Term)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 576, Col: 73}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 680, Col: 73}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -587,7 +688,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(item.BadgeText)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 578, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 682, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
@@ -600,7 +701,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(item.WhereUsed)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 582, Col: 24}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 686, Col: 24}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
@@ -613,7 +714,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 585, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 689, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -626,7 +727,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 588, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 692, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -639,7 +740,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 594, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 698, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
@@ -652,7 +753,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 595, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 699, Col: 56}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {

@@ -69,5 +69,12 @@ type TrapReport struct {
 	IsSlowMover         bool       `json:"is_slow_mover"`
 	IsProfitReceh       bool       `json:"is_profit_receh"`
 	IsModalLockup       bool       `json:"is_modal_lockup"`
+	IsPriceSpike        bool       `json:"is_price_spike"`
+	Avg7dPrice          float64    `json:"avg_7d_price,omitempty"`
+	PriceSpikePct       float64    `json:"price_spike_pct,omitempty"`
+	EstimatedNetProfit  float64    `json:"estimated_net_profit"`
+	EstimatedMarginPct  float64    `json:"estimated_margin_pct"`
+	EstimatedROIPct     float64    `json:"estimated_roi_pct"`
+	BOMSyncedFromSDE    bool       `json:"bom_synced_from_sde,omitempty"`
 	EvaluatedAt         time.Time  `json:"evaluated_at"`
 }

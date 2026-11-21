@@ -9,13 +9,47 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/url"
 
 	"aura-forge/internal/domain"
 	"aura-forge/internal/service"
 )
 
-func CatalogPage(mode service.ModeInfo, items []domain.MarketItem, category, status, search string, importRes *domain.ImportResult) templ.Component {
+func catalogEditPayloadJSON(it domain.MarketItem) string {
+	payload := map[string]any{
+		"id":                      it.ID,
+		"name":                    it.Name,
+		"category":                string(it.Category),
+		"batch_output_qty":        it.BatchOutputQty,
+		"estimated_jita_sell":     it.EstimatedJitaSell,
+		"estimated_jita_buy":      it.EstimatedJitaBuy,
+		"material_cost":           it.MaterialCost,
+		"extra_setup_cost":        it.ExtraSetupCost,
+		"daily_volume":            it.DailyVolume,
+		"is_frequently_destroyed": it.IsFrequentlyDestroyed,
+		"requires_rare_bpc":       it.RequiresRareBPC,
+		"is_manufacturable":       it.IsManufacturable,
+	}
+	b, err := json.Marshal(payload)
+	if err != nil {
+		return "{}"
+	}
+	return string(b)
+}
+
+func catalogProfitClass(val float64) string {
+	if val > 0 {
+		return "text-emerald-300"
+	}
+	if val < 0 {
+		return "text-rose-300"
+	}
+	return "text-slate-300"
+}
+
+func CatalogPage(mode service.ModeInfo, items []domain.MarketItem, summary service.CatalogSummary, category, status, search, sortBy string, importRes *domain.ImportResult) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -48,202 +82,365 @@ func CatalogPage(mode service.ModeInfo, items []domain.MarketItem, category, sta
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\" x-data=\"{ showAdd: false, showImport: false }\"><div class=\"flex flex-wrap items-center justify-between gap-4\"><div><h1 class=\"text-2xl font-bold tracking-tight text-white\">Catalog &amp; Trap Guard Advisor</h1><p class=\"text-xs text-slate-400 mt-0.5\">Analisis harga Jita live, volume harian Public ESI, serta deteksi otomatis jebakan BPC langka, non-manufaktur, dan slow mover.</p></div><div class=\"flex flex-wrap gap-2\"><button type=\"button\" @click=\"showAdd = !showAdd; showImport = false\" class=\"rounded-md bg-sky-500 px-3 py-1.5 text-xs font-bold text-slate-950 hover:bg-sky-400 transition cursor-pointer\">+ Tambah Item</button> <button type=\"button\" @click=\"showImport = !showImport; showAdd = false\" class=\"rounded-md border border-sky-400/40 bg-sky-500/15 px-3 py-1.5 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition cursor-pointer\">Bulk Paste / CSV Importer</button> <button type=\"button\" hx-post=\"/esi/sync-prices\" hx-swap=\"none\" class=\"rounded-md border border-amber-400/40 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer\">Sync Jita ESI</button> <button type=\"button\" hx-post=\"/catalog/sample\" hx-swap=\"none\" class=\"rounded-md border border-emerald-400/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 transition cursor-pointer\">Load Sample Data</button></div></div><!-- Import Report Banner (if any) -->")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\" x-data=\"{\n\t\t\t\tshowAdd: false,\n\t\t\t\tshowImport: false,\n\t\t\t\tshowEdit: false,\n\t\t\t\teditItem: {\n\t\t\t\t\tid: 0,\n\t\t\t\t\tname: &#39;&#39;,\n\t\t\t\t\tcategory: &#39;Drones&#39;,\n\t\t\t\t\tbatch_output_qty: 10,\n\t\t\t\t\testimated_jita_sell: 0,\n\t\t\t\t\testimated_jita_buy: 0,\n\t\t\t\t\tmaterial_cost: 0,\n\t\t\t\t\textra_setup_cost: 0,\n\t\t\t\t\tdaily_volume: 100,\n\t\t\t\t\tis_frequently_destroyed: false,\n\t\t\t\t\trequires_rare_bpc: false,\n\t\t\t\t\tis_manufacturable: true\n\t\t\t\t},\n\t\t\t\topenEdit(item) {\n\t\t\t\t\tthis.editItem = Object.assign({\n\t\t\t\t\t\tid: 0,\n\t\t\t\t\t\tname: &#39;&#39;,\n\t\t\t\t\t\tcategory: &#39;Other&#39;,\n\t\t\t\t\t\tbatch_output_qty: 1,\n\t\t\t\t\t\testimated_jita_sell: 0,\n\t\t\t\t\t\testimated_jita_buy: 0,\n\t\t\t\t\t\tmaterial_cost: 0,\n\t\t\t\t\t\textra_setup_cost: 0,\n\t\t\t\t\t\tdaily_volume: 0,\n\t\t\t\t\t\tis_frequently_destroyed: false,\n\t\t\t\t\t\trequires_rare_bpc: false,\n\t\t\t\t\t\tis_manufacturable: true\n\t\t\t\t\t}, item);\n\t\t\t\t\tthis.showEdit = true;\n\t\t\t\t}\n\t\t\t}\" @open-catalog-edit.window=\"openEdit($event.detail)\" @keydown.escape.window=\"showEdit = false\"><!-- Header & Primary Actions --><div class=\"flex flex-wrap items-center justify-between gap-4\"><div><h1 class=\"text-2xl font-bold tracking-tight text-white\">Catalog &amp; Trap Guard Advisor</h1><p class=\"text-xs text-slate-300/80 mt-0.5\">Live Jita pricing, Official CCP SDE auto-BOM material costs, 7d fake price-spike detection, and beginner trap protection.</p></div><div class=\"flex flex-wrap gap-2\"><button type=\"button\" @click=\"showAdd = !showAdd; showImport = false\" class=\"rounded-lg bg-amber-400 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer\">+ Add Item</button> <button type=\"button\" @click=\"showImport = !showImport; showAdd = false\" class=\"rounded-lg border border-sky-400/40 bg-sky-500/15 px-3 py-2 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition cursor-pointer\">Bulk Paste / CSV</button> <button type=\"button\" hx-post=\"/esi/sync-prices\" hx-swap=\"none\" class=\"rounded-lg border border-amber-400/45 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer\">Sync Jita + SDE BOM</button> <button type=\"button\" hx-post=\"/catalog/sample\" hx-swap=\"none\" class=\"rounded-lg border border-emerald-400/40 bg-emerald-500/15 px-3 py-2 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 transition cursor-pointer\">Load Sample Data</button></div></div><!-- 4 KPI Summary Cards --><div class=\"grid grid-cols-2 gap-4 lg:grid-cols-4\"><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[10px] font-mono uppercase tracking-wider text-slate-400\">Total Catalog</div><div class=\"mt-1 text-2xl font-bold font-mono text-white\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var3 string
+			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", summary.TotalCount))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 113, Col: 102}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><div class=\"mt-0.5 text-[11px] text-slate-400\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var4 string
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d synced via CCP SDE BOM", summary.SDESyncedCount))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 115, Col: 72}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[10px] font-mono uppercase tracking-wider text-emerald-300/90\">Viable / Safe</div><div class=\"mt-1 text-2xl font-bold font-mono text-emerald-300\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var5 string
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", summary.ViableCount))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 120, Col: 109}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div><div class=\"mt-0.5 text-[11px] text-slate-400\">Eligible for Smart Allocator</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[10px] font-mono uppercase tracking-wider text-amber-300/90\">Watchlist / Caution</div><div class=\"mt-1 text-2xl font-bold font-mono text-amber-300\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var6 string
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", summary.WatchlistCount))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 125, Col: 110}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div><div class=\"mt-0.5 text-[11px] text-slate-400\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if summary.SpikeCount > 0 {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<span class=\"text-amber-200\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var7 string
+				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d price spike alert(s)", summary.SpikeCount))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 128, Col: 96}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</span>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<span>Capital lock-up, thin margin, or slow mover</span>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[10px] font-mono uppercase tracking-wider text-rose-300/90\">Traps Blocked</div><div class=\"mt-1 text-2xl font-bold font-mono text-rose-300\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var8 string
+			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", summary.TrapCount))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 136, Col: 104}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div><div class=\"mt-0.5 text-[11px] text-slate-400\">Auto-excluded from Capital Allocator</div></div></div><!-- Import Report Banner (if any) -->")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if importRes != nil {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"tactical-panel rounded-xl p-4 border-sky-500/40 space-y-2\"><div class=\"text-sm font-bold text-sky-300\">Hasil Bulk Import: ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"tactical-panel rounded-xl p-4 border-sky-500/40 space-y-2\"><div class=\"text-sm font-bold text-sky-300\">Bulk Import Summary: ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var3 string
-				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d sukses, %d error dari %d baris", importRes.SuccessCount, importRes.ErrorCount, importRes.TotalLines))
+				var templ_7745c5c3_Var9 string
+				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d succeeded, %d errors out of %d lines", importRes.SuccessCount, importRes.ErrorCount, importRes.TotalLines))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 38, Col: 143}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 145, Col: 151}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if len(importRes.Errors) > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<ul class=\"space-y-1 text-xs text-rose-300 font-mono\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<ul class=\"space-y-1 text-xs text-rose-300 font-mono\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					for _, e := range importRes.Errors {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<li>Baris #")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<li>Line #")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						var templ_7745c5c3_Var4 string
-						templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", e.LineNumber))
+						var templ_7745c5c3_Var10 string
+						templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", e.LineNumber))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 43, Col: 52}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 150, Col: 51}
 						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, ": ")
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						var templ_7745c5c3_Var5 string
-						templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(e.Reason)
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 43, Col: 66}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, ": ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " — <span class=\"text-slate-400\">")
+						var templ_7745c5c3_Var11 string
+						templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(e.Reason)
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 150, Col: 65}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						var templ_7745c5c3_Var6 string
-						templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(e.RawLine)
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 43, Col: 113}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, " — <span class=\"text-slate-400\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</span></li>")
+						var templ_7745c5c3_Var12 string
+						templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(e.RawLine)
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 150, Col: 112}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</span></li>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</ul>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</ul>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<!-- Add Item Manual Panel --><div x-cloak x-show=\"showAdd\" x-transition class=\"tactical-panel rounded-xl p-5 space-y-4\" x-data=\"{\n\t\t\t\t\tnewName: &#39;&#39;,\n\t\t\t\t\tjitaSell: 0,\n\t\t\t\t\tjitaBuy: 0,\n\t\t\t\t\tdailyVol: 100,\n\t\t\t\t\tlookupMsg: &#39;&#39;,\n\t\t\t\t\tasync autoFillESI() {\n\t\t\t\t\t\tif (!this.newName) return;\n\t\t\t\t\t\tthis.lookupMsg = &#39;Mengambil harga Jita dari Public ESI...&#39;;\n\t\t\t\t\t\ttry {\n\t\t\t\t\t\t\tconst r = await fetch(&#39;/esi/lookup?name=&#39; + encodeURIComponent(this.newName));\n\t\t\t\t\t\t\tconst d = await r.json();\n\t\t\t\t\t\t\tif (!r.ok) { this.lookupMsg = d.error || &#39;Item tidak ditemukan&#39;; return; }\n\t\t\t\t\t\t\tif (d.lowest_sell &gt; 0) this.jitaSell = d.lowest_sell;\n\t\t\t\t\t\t\tif (d.highest_buy &gt; 0) this.jitaBuy = d.highest_buy;\n\t\t\t\t\t\t\tif (d.daily_volume &gt; 0) this.dailyVol = Math.round(d.daily_volume);\n\t\t\t\t\t\t\tthis.lookupMsg = &#39;TypeID #&#39; + d.type_id + &#39; • Jita Sell: &#39; + Number(d.lowest_sell).toLocaleString() + &#39; ISK • Vol: &#39; + Number(d.daily_volume).toLocaleString() + &#39;/hari&#39;;\n\t\t\t\t\t\t} catch (e) { this.lookupMsg = &#39;Gagal terhubung ke Public ESI&#39;; }\n\t\t\t\t\t}\n\t\t\t\t}\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-sky-300\">Tambah Kandidat Item (Auto-Fill Public ESI)</h2><form hx-post=\"/catalog/items\" hx-target=\"#catalog-table\" hx-swap=\"outerHTML\" @htmx:after-request=\"showAdd = false\" class=\"grid grid-cols-1 gap-3 sm:grid-cols-3\"><div class=\"sm:col-span-2\"><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Nama Item (Persis EVE Online)</label><div class=\"mt-1 flex gap-2\"><input type=\"text\" name=\"name\" x-model=\"newName\" required placeholder=\"Hobgoblin I\" class=\"flex-1 rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white\"> <button type=\"button\" @click=\"autoFillESI()\" class=\"rounded border border-amber-400/40 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer\">Cek Jita ESI</button></div><div x-show=\"lookupMsg\" x-text=\"lookupMsg\" class=\"mt-1 text-[11px] font-mono text-emerald-300\"></div></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Kategori</label> <select name=\"category\" class=\"mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white\"><option value=\"Drones\">Drones</option> <option value=\"Ammunition\">Ammunition</option> <option value=\"Ships\">Ships</option> <option value=\"Modules\">Modules</option> <option value=\"Rigs\">Rigs</option> <option value=\"Components\">Components</option> <option value=\"Commodities\">Commodities</option> <option value=\"Other\">Other</option></select></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Output Qty / Batch</label> <input type=\"number\" name=\"batch_output_qty\" value=\"10\" min=\"1\" class=\"mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Harga Jual Jita / Unit (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"estimated_jita_sell\" x-model=\"jitaSell\" class=\"mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"> <input type=\"hidden\" name=\"estimated_jita_buy\" :value=\"jitaBuy\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Biaya Bahan / Batch (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"material_cost\" value=\"0\" class=\"mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Extra Setup Cost (BPC/Decryptor)</label> <input type=\"number\" step=\"0.01\" name=\"extra_setup_cost\" value=\"0\" class=\"mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Avg Daily Volume (Unit/Hari)</label> <input type=\"number\" step=\"1\" name=\"daily_volume\" x-model=\"dailyVol\" class=\"mt-1 w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div class=\"flex items-center gap-4 pt-5 sm:col-span-2 text-xs text-slate-300\"><label class=\"inline-flex items-center gap-2\"><input type=\"checkbox\" name=\"is_frequently_destroyed\" class=\"rounded bg-slate-800 border-slate-600\"> Sering Hancur (PvP/FW Demand)</label> <label class=\"inline-flex items-center gap-2\"><input type=\"checkbox\" name=\"requires_rare_bpc\" class=\"rounded bg-slate-800 border-slate-600\"> Butuh BPC Langka</label></div><div class=\"sm:col-span-3 flex justify-end gap-2\"><button type=\"button\" @click=\"showAdd = false\" class=\"rounded border border-slate-700 px-3 py-1.5 text-xs text-slate-300\">Batal</button> <button type=\"submit\" class=\"rounded bg-sky-500 px-4 py-1.5 text-xs font-bold text-slate-950 hover:bg-sky-400 cursor-pointer\">Simpan &amp; Evaluasi Trap Guard</button></div></form></div><!-- Bulk Paste / CSV Importer Panel --><div x-cloak x-show=\"showImport\" x-transition class=\"tactical-panel rounded-xl p-5 space-y-3\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">Bulk Paste / CSV Importer (Mendukung K/M/B &amp; %)</h2><p class=\"text-xs text-slate-400\">Tempelkan tabel TSV/CSV (kolom: <code class=\"text-sky-300\">Nama Item | Harga Jual | Biaya Bahan | Volume Harian | Batch Qty</code>).</p><form method=\"POST\" action=\"/catalog/import\" class=\"space-y-3\"><textarea name=\"bulk_text\" rows=\"5\" placeholder=\"Hobgoblin II\t720K\t14.2M\t12.5K\t30\nRifter\t680K\t4.6M\t950\t10\" class=\"w-full rounded-lg border border-slate-700 bg-slate-950 p-3 font-mono text-xs text-slate-200 focus:border-sky-400 focus:outline-none\"></textarea><div class=\"flex flex-wrap items-center justify-between gap-3\"><label class=\"inline-flex items-center gap-2 text-xs text-slate-300\"><input type=\"checkbox\" name=\"enrich_esi\" checked class=\"rounded bg-slate-800 border-slate-600\"> Auto-Enrich harga Jita &amp; volume harian dari Public ESI</label><div class=\"flex gap-2\"><button type=\"button\" @click=\"showImport = false\" class=\"rounded border border-slate-700 px-3 py-1.5 text-xs text-slate-300\">Tutup</button> <button type=\"submit\" class=\"rounded bg-amber-500 px-4 py-1.5 text-xs font-bold text-slate-950 hover:bg-amber-400 cursor-pointer\">Proses Import</button></div></div></form></div><!-- Filter Bar (HTMX Live Filtering) --><form hx-get=\"/catalog\" hx-target=\"#catalog-table\" hx-swap=\"outerHTML\" hx-trigger=\"change, keyup delay:300ms from:input[name=&#39;q&#39;]\" class=\"tactical-panel rounded-xl p-4 grid grid-cols-1 gap-3 sm:grid-cols-4\"><input type=\"text\" name=\"q\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<!-- Add Item Manual Panel (Auto-Fill Public ESI + SDE BOM) --><div x-cloak x-show=\"showAdd\" x-transition class=\"tactical-panel rounded-xl p-5 space-y-4\" x-data=\"{\n\t\t\t\t\tnewName: &#39;&#39;,\n\t\t\t\t\tbatchQty: 10,\n\t\t\t\t\tjitaSell: 0,\n\t\t\t\t\tjitaBuy: 0,\n\t\t\t\t\tmatCost: 0,\n\t\t\t\t\tdailyVol: 100,\n\t\t\t\t\tlookupMsg: &#39;&#39;,\n\t\t\t\t\tasync autoFillESI() {\n\t\t\t\t\t\tif (!this.newName) return;\n\t\t\t\t\t\tthis.lookupMsg = &#39;Fetching live Jita price &amp; CCP SDE BOM...&#39;;\n\t\t\t\t\t\ttry {\n\t\t\t\t\t\t\tconst r = await fetch(&#39;/esi/lookup?name=&#39; + encodeURIComponent(this.newName) + &#39;&amp;batch_qty=&#39; + encodeURIComponent(this.batchQty || 10));\n\t\t\t\t\t\t\tconst d = await r.json();\n\t\t\t\t\t\t\tif (!r.ok) { this.lookupMsg = d.error || &#39;Item not found in Public ESI&#39;; return; }\n\t\t\t\t\t\t\tif (d.lowest_sell &gt; 0) this.jitaSell = d.lowest_sell;\n\t\t\t\t\t\t\tif (d.highest_buy &gt; 0) this.jitaBuy = d.highest_buy;\n\t\t\t\t\t\t\tif (d.daily_volume &gt; 0) this.dailyVol = Math.round(d.daily_volume);\n\t\t\t\t\t\t\tif (d.sde_has_blueprint &amp;&amp; d.sde_material_cost &gt; 0) {\n\t\t\t\t\t\t\t\tthis.matCost = d.sde_material_cost;\n\t\t\t\t\t\t\t\tthis.lookupMsg = &#39;TypeID #&#39; + d.type_id + &#39; • Jita Sell: &#39; + Number(d.lowest_sell).toLocaleString() + &#39; ISK • SDE BOM Cost: &#39; + Number(d.sde_material_cost).toLocaleString() + &#39; ISK&#39;;\n\t\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\t\tthis.lookupMsg = &#39;TypeID #&#39; + d.type_id + &#39; • Jita Sell: &#39; + Number(d.lowest_sell).toLocaleString() + &#39; ISK • Vol: &#39; + Number(d.daily_volume).toLocaleString() + &#39;/day&#39;;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t} catch (e) { this.lookupMsg = &#39;Failed to reach Public ESI&#39;; }\n\t\t\t\t\t}\n\t\t\t\t}\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">Add Candidate Item (Auto-Fill Public ESI + SDE BOM)</h2><form hx-post=\"/catalog/items\" hx-target=\"#catalog-table\" hx-swap=\"outerHTML\" @htmx:after-request=\"showAdd = false\" class=\"grid grid-cols-1 gap-3 sm:grid-cols-3\"><div class=\"sm:col-span-2\"><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Item Name (Exact EVE Online Name)</label><div class=\"mt-1 flex gap-2\"><input type=\"text\" name=\"name\" x-model=\"newName\" required placeholder=\"Hobgoblin I\" class=\"flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white\"> <button type=\"button\" @click=\"autoFillESI()\" class=\"rounded-lg border border-amber-400/45 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer shrink-0\">Auto-Fill ESI + BOM</button></div><div x-show=\"lookupMsg\" x-text=\"lookupMsg\" class=\"mt-1 text-[11px] font-mono text-emerald-300\"></div></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Category</label> <select name=\"category\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white\"><option value=\"Drones\">Drones</option> <option value=\"Ammunition\">Ammunition</option> <option value=\"Ships\">Ships</option> <option value=\"Modules\">Modules</option> <option value=\"Rigs\">Rigs</option> <option value=\"Components\">Components</option> <option value=\"Commodities\">Commodities</option> <option value=\"Other\">Other</option></select></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Output Qty / Batch</label> <input type=\"number\" name=\"batch_output_qty\" x-model=\"batchQty\" min=\"1\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Jita Sell Price / Unit (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"estimated_jita_sell\" x-model=\"jitaSell\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"> <input type=\"hidden\" name=\"estimated_jita_buy\" :value=\"jitaBuy\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Material Cost / Batch (0 = Auto SDE)</label> <input type=\"number\" step=\"0.01\" name=\"material_cost\" x-model=\"matCost\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Extra Setup Cost (BPC / Decryptor)</label> <input type=\"number\" step=\"0.01\" name=\"extra_setup_cost\" value=\"0\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Avg Daily Volume (Units/Day)</label> <input type=\"number\" step=\"1\" name=\"daily_volume\" x-model=\"dailyVol\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div class=\"flex flex-wrap items-center gap-4 pt-5 text-xs text-slate-300\"><label class=\"inline-flex items-center gap-2 cursor-pointer\"><input type=\"checkbox\" name=\"is_frequently_destroyed\" class=\"rounded bg-slate-800 border-slate-600\"> PvP / High Destruction</label> <label class=\"inline-flex items-center gap-2 cursor-pointer\"><input type=\"checkbox\" name=\"requires_rare_bpc\" class=\"rounded bg-slate-800 border-slate-600\"> Requires Rare BPC</label></div><div class=\"sm:col-span-3 flex justify-end gap-2 pt-1\"><button type=\"button\" @click=\"showAdd = false\" class=\"rounded-lg border border-slate-700 px-3.5 py-1.5 text-xs text-slate-300 cursor-pointer\">Cancel</button> <button type=\"submit\" class=\"rounded-lg bg-amber-400 px-4 py-1.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 cursor-pointer\">Save &amp; Run Trap Guard</button></div></form></div><!-- Bulk Paste / CSV Importer Panel --><div x-cloak x-show=\"showImport\" x-transition class=\"tactical-panel rounded-xl p-5 space-y-3\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-sky-300\">Bulk Paste / CSV Importer (Supports K/M/B &amp; %)</h2><p class=\"text-xs text-slate-400\">Paste TSV/CSV rows (columns: <code class=\"text-sky-300\">Item Name | Sell Price | Material Cost | Daily Volume | Batch Qty</code>).</p><form method=\"POST\" action=\"/catalog/import\" class=\"space-y-3\"><textarea name=\"bulk_text\" rows=\"5\" placeholder=\"Hobgoblin II\t720K\t14.2M\t12.5K\t30\nRifter\t680K\t4.6M\t950\t10\" class=\"w-full rounded-lg border border-slate-700 bg-slate-950 p-3 font-mono text-xs text-slate-200 focus:border-sky-400 focus:outline-none\"></textarea><div class=\"flex flex-wrap items-center justify-between gap-3\"><label class=\"inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer\"><input type=\"checkbox\" name=\"enrich_esi\" checked class=\"rounded bg-slate-800 border-slate-600\"> Auto-enrich Jita price &amp; daily volume from Public ESI</label><div class=\"flex gap-2\"><button type=\"button\" @click=\"showImport = false\" class=\"rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-300 cursor-pointer\">Close</button> <button type=\"submit\" class=\"rounded-lg bg-sky-500 px-4 py-1.5 text-xs font-bold text-slate-950 hover:bg-sky-400 cursor-pointer\">Run Import</button></div></div></form></div><!-- Filter & Sort Bar (HTMX Live Filtering) --><form hx-get=\"/catalog\" hx-target=\"#catalog-table\" hx-swap=\"outerHTML\" hx-trigger=\"change, keyup delay:300ms from:input[name=&#39;q&#39;]\" class=\"tactical-panel rounded-xl p-4 grid grid-cols-1 gap-3 sm:grid-cols-12\"><input type=\"text\" name=\"q\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var7 string
-			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(search)
+			var templ_7745c5c3_Var13 string
+			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(search)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 167, Col: 46}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 284, Col: 19}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" placeholder=\"Cari nama item...\" class=\"rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white focus:border-sky-400 focus:outline-none sm:col-span-2\"> <select name=\"category\" class=\"rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white\"><option value=\"\">Semua Kategori</option> <option value=\"Ammunition\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" placeholder=\"Search catalog item...\" class=\"rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white focus:border-amber-300/70 focus:outline-none sm:col-span-4\"> <select name=\"category\" class=\"rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white sm:col-span-2\"><option value=\"\">All Categories</option> <option value=\"Ammunition\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if category == "Ammunition" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, " selected")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, " selected")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, ">Ammunition</option> <option value=\"Drones\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, ">Ammunition</option> <option value=\"Drones\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if category == "Drones" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, " selected")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, " selected")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, ">Drones</option> <option value=\"Ships\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, ">Drones</option> <option value=\"Ships\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if category == "Ships" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, " selected")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, " selected")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, ">Ships</option> <option value=\"Modules\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, ">Ships</option> <option value=\"Modules\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if category == "Modules" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, " selected")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, " selected")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, ">Modules</option> <option value=\"Rigs\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, ">Modules</option> <option value=\"Rigs\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if category == "Rigs" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, " selected")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, " selected")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, ">Rigs</option> <option value=\"Commodities\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, ">Rigs</option> <option value=\"Components\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if category == "Components" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, " selected")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, ">Components</option> <option value=\"Commodities\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if category == "Commodities" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, " selected")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, " selected")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, ">Commodities</option></select> <select name=\"status\" class=\"rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white\"><option value=\"\">Semua Status Trap Guard</option> <option value=\"LAYAK_PRODUKSI\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, ">Commodities</option> <option value=\"Other\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if category == "Other" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, " selected")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, ">Other</option></select> <select name=\"status\" class=\"rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white sm:col-span-3\"><option value=\"\">All Trap Guard Statuses</option> <option value=\"LAYAK_PRODUKSI\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if status == "LAYAK_PRODUKSI" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, " selected")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, " selected")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, ">LAYAK_PRODUKSI</option> <option value=\"WASPADA_MODAL\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, ">VIABLE (Safe to Build)</option> <option value=\"WASPADA_MODAL\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if status == "WASPADA_MODAL" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, " selected")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, " selected")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, ">WASPADA_MODAL</option> <option value=\"WASPADA_NICHE\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, ">CAPITAL RISK (&gt;50% Capital)</option> <option value=\"WASPADA_NICHE\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if status == "WASPADA_NICHE" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, " selected")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, " selected")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, ">WASPADA_NICHE</option> <option value=\"JEBAKAN\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, ">WATCHLIST (Spike / Slow / Thin)</option> <option value=\"JEBAKAN\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if status == "JEBAKAN" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, " selected")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, " selected")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, ">JEBAKAN</option></select></form><!-- Catalog Table -->")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, ">TRAP (Avoid / Net Loss)</option></select> <select name=\"sort\" class=\"rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white sm:col-span-3\"><option value=\"name\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if sortBy == "" || sortBy == "name" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, " selected")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, ">Sort: Name (A–Z)</option> <option value=\"roi\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if sortBy == "roi" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, " selected")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, ">Sort: Highest ROI %</option> <option value=\"profit\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if sortBy == "profit" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, " selected")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, ">Sort: Highest Net Profit</option> <option value=\"volume\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if sortBy == "volume" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, " selected")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, ">Sort: Highest Daily Volume</option> <option value=\"risk\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if sortBy == "risk" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, " selected")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, ">Sort: Lowest Risk First</option></select></form><!-- Catalog Table -->")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -251,7 +448,7 @@ func CatalogPage(mode service.ModeInfo, items []domain.MarketItem, category, sta
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "<!-- Edit Item Modal --><div x-cloak x-show=\"showEdit\" class=\"fixed inset-0 z-[90] bg-slate-950/75 backdrop-blur-sm\" @click=\"showEdit = false\"></div><div x-cloak x-show=\"showEdit\" class=\"fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-none\"><div class=\"tactical-panel w-full max-w-2xl rounded-2xl border border-violet-400/40 bg-[#121329]/95 p-6 shadow-2xl pointer-events-auto space-y-4\"><div class=\"flex items-center justify-between border-b border-violet-400/20 pb-3\"><div><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">Edit Catalog Item</h2><p class=\"text-[11px] text-slate-400 mt-0.5\">Adjust batch size, BPC setup cost, or override material cost — Trap Guard re-evaluates immediately.</p></div><button type=\"button\" @click=\"showEdit = false\" class=\"rounded-lg border border-slate-700 px-2.5 py-1 text-xs text-slate-300 hover:text-white cursor-pointer\">✕</button></div><form hx-post=\"/catalog/items\" hx-swap=\"none\" @htmx:after-request=\"showEdit = false\" class=\"grid grid-cols-1 gap-3 sm:grid-cols-3\"><input type=\"hidden\" name=\"id\" :value=\"editItem.id\"><div class=\"sm:col-span-2\"><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Item Name</label> <input type=\"text\" name=\"name\" x-model=\"editItem.name\" required class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Category</label> <select name=\"category\" x-model=\"editItem.category\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white\"><option value=\"Drones\">Drones</option> <option value=\"Ammunition\">Ammunition</option> <option value=\"Ships\">Ships</option> <option value=\"Modules\">Modules</option> <option value=\"Rigs\">Rigs</option> <option value=\"Components\">Components</option> <option value=\"Commodities\">Commodities</option> <option value=\"Other\">Other</option></select></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Batch Output Qty</label> <input type=\"number\" name=\"batch_output_qty\" x-model=\"editItem.batch_output_qty\" min=\"1\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Jita Sell / Unit (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"estimated_jita_sell\" x-model=\"editItem.estimated_jita_sell\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"> <input type=\"hidden\" name=\"estimated_jita_buy\" :value=\"editItem.estimated_jita_buy\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Material Cost / Batch (0 = Auto SDE)</label> <input type=\"number\" step=\"0.01\" name=\"material_cost\" x-model=\"editItem.material_cost\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Extra Setup Cost (BPC / Decryptor)</label> <input type=\"number\" step=\"0.01\" name=\"extra_setup_cost\" x-model=\"editItem.extra_setup_cost\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Avg Daily Volume</label> <input type=\"number\" step=\"0.1\" name=\"daily_volume\" x-model=\"editItem.daily_volume\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div class=\"flex flex-col justify-center gap-1.5 pt-2 text-xs text-slate-300\"><label class=\"inline-flex items-center gap-2 cursor-pointer\"><input type=\"checkbox\" name=\"is_frequently_destroyed\" x-model=\"editItem.is_frequently_destroyed\" class=\"rounded bg-slate-800 border-slate-600\"> PvP / High Destruction</label> <label class=\"inline-flex items-center gap-2 cursor-pointer\"><input type=\"checkbox\" name=\"requires_rare_bpc\" x-model=\"editItem.requires_rare_bpc\" class=\"rounded bg-slate-800 border-slate-600\"> Requires Rare BPC</label></div><div class=\"sm:col-span-3 flex justify-end gap-2 border-t border-violet-400/20 pt-3\"><button type=\"button\" @click=\"showEdit = false\" class=\"rounded-lg border border-slate-700 px-3.5 py-2 text-xs text-slate-300 hover:text-white cursor-pointer\">Cancel</button> <button type=\"submit\" class=\"rounded-lg bg-amber-400 px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 cursor-pointer\">Update &amp; Re-Evaluate</button></div></form></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -281,312 +478,520 @@ func CatalogTable(items []domain.MarketItem) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var8 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var8 == nil {
-			templ_7745c5c3_Var8 = templ.NopComponent
+		templ_7745c5c3_Var14 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var14 == nil {
+			templ_7745c5c3_Var14 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<div id=\"catalog-table\" class=\"tactical-panel rounded-xl overflow-hidden\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "<div id=\"catalog-table\" class=\"tactical-panel rounded-xl overflow-hidden\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if len(items) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<div class=\"p-10 text-center space-y-2\"><div class=\"text-sm font-semibold text-slate-300\">Belum ada item di Catalog.</div><div class=\"text-xs text-slate-400\">Klik <strong>Load Sample Data</strong> atau gunakan <strong>Bulk Paste Importer</strong> untuk memulai.</div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "<div class=\"p-10 text-center space-y-2\"><div class=\"text-sm font-semibold text-slate-200\">No items match the current catalog filter.</div><div class=\"text-xs text-slate-400\">Click <strong>+ Add Item</strong>, <strong>Load Sample Data</strong>, or <strong>Bulk Paste / CSV</strong> to populate your manufacturing catalog.</div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs\"><thead class=\"border-b border-slate-800 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400\"><tr><th class=\"px-4 py-3\">Item &amp; Badges</th><th class=\"px-4 py-3 text-right\">Live Jita Sell / Buy</th><th class=\"px-4 py-3 text-right\">Avg Daily Vol</th><th class=\"px-4 py-3 text-right\">Biaya Bahan / Batch</th><th class=\"px-4 py-3\">Status &amp; Copilot Note</th><th class=\"px-4 py-3 text-right\">Aksi</th></tr></thead> <tbody class=\"divide-y divide-slate-800/80\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "<div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs\"><thead class=\"border-b border-violet-400/20 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400\"><tr><th class=\"px-4 py-3\">Item &amp; Badges</th><th class=\"px-3 py-3 text-right\">Jita Sell / Buy</th><th class=\"px-3 py-3 text-right\">Daily Vol / Batch</th><th class=\"px-3 py-3 text-right\">Material Cost</th><th class=\"px-3 py-3 text-right\">Est. Profit / ROI</th><th class=\"px-4 py-3\">Trap Guard &amp; Copilot Advice</th><th class=\"px-4 py-3 text-right\">Actions</th></tr></thead> <tbody class=\"divide-y divide-slate-800/80\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, it := range items {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<tr class=\"hover:bg-slate-800/40 transition align-top\"><td class=\"px-4 py-3\"><div class=\"font-semibold text-white text-sm\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "<tr class=\"hover:bg-violet-500/5 transition align-top\"><!-- Item + Official EVE Icon (32x32) --><td class=\"px-4 py-3\"><div class=\"flex items-start gap-2.5\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var9 string
-				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(it.Name)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 216, Col: 64}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</div><div class=\"mt-1 flex flex-wrap gap-1\"><span class=\"rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] text-slate-300\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var10 string
-				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(string(it.Category))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 218, Col: 117}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</span> ")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				if it.IsManufacturable && it.TrapAnalysis.Status != domain.TrapStatusJebakan {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<span class=\"rounded bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 font-mono text-[10px] text-emerald-300\">Usable</span> ")
+				if it.TypeID > 0 {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "<img src=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var15 string
+					templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(it.TypeID, 64))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 420, Col: 47}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "\" alt=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var16 string
+					templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(it.Name)
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 421, Col: 25}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "\" loading=\"lazy\" class=\"h-8 w-8 shrink-0 rounded-lg border border-violet-400/30 bg-slate-900 p-0.5 object-contain mt-0.5\" onerror=\"this.style.display=&#39;none&#39;\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				} else {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "<div class=\"flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-700 bg-slate-900 font-mono text-[10px] font-bold text-slate-400 mt-0.5\">EVE</div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "<div class=\"min-w-0\"><div class=\"font-semibold text-white text-sm leading-snug\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var17 string
+				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(it.Name)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 432, Col: 79}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "</div><div class=\"mt-1 flex flex-wrap gap-1\"><span class=\"rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] text-slate-300\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var18 string
+				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(string(it.Category))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 434, Col: 119}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "</span> ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 				if it.IsFrequentlyDestroyed {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "<span class=\"rounded bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.5 font-mono text-[10px] text-amber-300\">Sering Hancur</span> ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "<span class=\"rounded bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.5 font-mono text-[10px] text-amber-300\">PvP Demand</span> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
 				if it.TypeID > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<span class=\"font-mono text-[10px] text-slate-500\">ID:")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "<span class=\"font-mono text-[10px] text-slate-500\">ID:")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var11 string
-					templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", it.TypeID))
+					var templ_7745c5c3_Var19 string
+					templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", it.TypeID))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 226, Col: 95}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 439, Col: 97}
 					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "</span>")
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "</div></td><td class=\"px-4 py-3 text-right font-mono\"><div class=\"text-sky-300 font-semibold\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var12 string
-				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(it.EstimatedJitaSell))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 231, Col: 82}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</div><div class=\"text-[11px] text-slate-400\">Buy: ")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var13 string
-				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(it.EstimatedJitaBuy))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 232, Col: 86}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "</div></td><td class=\"px-4 py-3 text-right font-mono text-slate-200\"><div>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var14 string
-				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(FormatVolume(it.DailyVolume))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 235, Col: 44}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</div><div class=\"text-[10px] text-slate-500\">Batch: ")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var15 string
-				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d u", it.BatchOutputQty))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 236, Col: 96}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "</div></td><td class=\"px-4 py-3 text-right font-mono text-slate-200\"><div>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var16 string
-				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(it.MaterialCost))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 239, Col: 42}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "</div>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				if it.ExtraSetupCost > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "<div class=\"text-[10px] text-amber-300\">+")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_Var17 string
-					templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(it.ExtraSetupCost))
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 241, Col: 81}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, " BPC</div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "</span>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "</td><td class=\"px-4 py-3 max-w-sm\"><div class=\"flex items-center gap-2\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var18 = []any{"inline-block rounded px-2 py-0.5 font-mono text-[10px] font-bold " + TrapBadgeClass(it.TrapAnalysis.Status)}
-				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var18...)
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "<span class=\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var19 string
-				templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var18).String())
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 1, Col: 0}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "</div></div></div></td><!-- Live Jita Sell / Buy --><td class=\"px-3 py-3 text-right font-mono whitespace-nowrap\"><div class=\"text-sky-300 font-semibold\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var20 string
-				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(string(it.TrapAnalysis.Status))
+				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(it.EstimatedJitaSell))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 247, Col: 43}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 448, Col: 82}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "</span> <span class=\"font-mono text-[10px] text-slate-400\">Risk: ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "</div><div class=\"text-[11px] text-slate-400\">Buy: ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var21 string
-				templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(string(it.TrapAnalysis.RiskLevel))
+				templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(it.EstimatedJitaBuy))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 249, Col: 102}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 449, Col: 86}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</span></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				if len(it.TrapAnalysis.Reasons) > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "<ul class=\"mt-1.5 space-y-0.5 text-[11px] text-rose-200/90\">")
+				if it.TrapAnalysis.Avg7dPrice > 0 {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "<div class=\"text-[10px] text-slate-500\">7d avg: ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					for _, reason := range it.TrapAnalysis.Reasons {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "<li>• ")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						var templ_7745c5c3_Var22 string
-						templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(reason)
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 254, Col: 28}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "</li>")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
+					var templ_7745c5c3_Var22 string
+					templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(it.TrapAnalysis.Avg7dPrice))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 451, Col: 97}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "</ul>")
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "</div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				if it.TrapAnalysis.Recommendation != "" {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "<div class=\"mt-1 text-[11px] text-slate-300 italic\">")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_Var23 string
-					templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(it.TrapAnalysis.Recommendation)
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 259, Col: 94}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "</div>")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "</td><!-- Volume & Batch Qty --><td class=\"px-3 py-3 text-right font-mono text-slate-200 whitespace-nowrap\"><div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "</td><td class=\"px-4 py-3 text-right\"><button type=\"button\" hx-delete=\"")
+				var templ_7745c5c3_Var23 string
+				templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(FormatVolume(it.DailyVolume))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 457, Col: 44}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "</div><div class=\"text-[10px] text-slate-500\">Batch: ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var24 string
-				templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/catalog/items/%d", it.ID))
+				templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d u", it.BatchOutputQty))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 265, Col: 61}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 458, Col: 96}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "\" hx-target=\"#catalog-table\" hx-swap=\"outerHTML\" hx-confirm=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "</div></td><!-- Material Cost + SDE BOM badge --><td class=\"px-3 py-3 text-right font-mono text-slate-200 whitespace-nowrap\"><div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var25 string
-				templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Hapus %s dari catalog?", it.Name))
+				templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(it.MaterialCost))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 268, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 463, Col: 42}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "\" class=\"rounded border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-[11px] text-rose-300 hover:bg-rose-500/25 cursor-pointer\">Hapus</button></td></tr>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "</div><div class=\"mt-0.5 flex justify-end gap-1 flex-wrap\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if it.TrapAnalysis.BOMSyncedFromSDE {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, "<span class=\"rounded border border-sky-400/35 bg-sky-500/15 px-1.5 py-0.2 font-mono text-[9px] font-bold text-sky-300\" title=\"Auto-computed from Official CCP SDE BOM × live Jita prices\">SDE BOM</span> ")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				if it.ExtraSetupCost > 0 {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, "<span class=\"text-[10px] text-amber-300\">+")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var26 string
+					templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(it.ExtraSetupCost))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 471, Col: 83}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 82, " BPC</span>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, "</div></td><!-- Est. Net Profit / Margin / ROI --><td class=\"px-3 py-3 text-right font-mono whitespace-nowrap\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var27 = []any{"font-bold " + catalogProfitClass(it.TrapAnalysis.EstimatedNetProfit)}
+				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var27...)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 84, "<div class=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var28 string
+				templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var27).String())
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 1, Col: 0}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if it.TrapAnalysis.EstimatedNetProfit > 0 {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "+")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var29 string
+					templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(it.TrapAnalysis.EstimatedNetProfit))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 480, Col: 59}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				} else {
+					var templ_7745c5c3_Var30 string
+					templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(it.TrapAnalysis.EstimatedNetProfit))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 482, Col: 58}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 87, "</div><div class=\"text-[10px] text-slate-300\">ROI ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var31 = []any{catalogProfitClass(it.TrapAnalysis.EstimatedROIPct)}
+				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var31...)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 88, "<strong class=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var32 string
+				templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var31).String())
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 1, Col: 0}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, "\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var33 string
+				templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(it.TrapAnalysis.EstimatedROIPct))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 486, Col: 132}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "</strong></div><div class=\"text-[10px] text-slate-500\">Margin ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var34 string
+				templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(it.TrapAnalysis.EstimatedMarginPct))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 489, Col: 68}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 91, "</div></td><!-- Trap Guard Status, Price Spike Badge & Advice --><td class=\"px-4 py-3 max-w-sm\"><div class=\"flex flex-wrap items-center gap-1.5\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var35 = []any{"inline-block rounded px-2 py-0.5 font-mono text-[10px] font-bold " + TrapBadgeClass(it.TrapAnalysis.Status)}
+				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var35...)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 92, "<span class=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var36 string
+				templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var35).String())
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 1, Col: 0}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, "\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var37 string
+				templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(TrapStatusLabel(it.TrapAnalysis.Status))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 497, Col: 52}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 94, "</span> ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if it.TrapAnalysis.IsPriceSpike {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 95, "<span class=\"inline-block rounded border border-amber-400/50 bg-amber-500/20 px-1.5 py-0.5 font-mono text-[9px] font-bold text-amber-200\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var38 string
+					templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("PRICE SPIKE +%.0f%%", it.TrapAnalysis.PriceSpikePct))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 501, Col: 79}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, "</span> ")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 97, "<span class=\"font-mono text-[10px] text-slate-400\">Risk: ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var39 string
+				templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(string(it.TrapAnalysis.RiskLevel))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 504, Col: 102}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 98, "</span></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if len(it.TrapAnalysis.Reasons) > 0 {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 99, "<ul class=\"mt-1.5 space-y-0.5 text-[11px] text-rose-200/90 leading-snug\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					for _, reason := range it.TrapAnalysis.Reasons {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 100, "<li>• ")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var40 string
+						templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(reason)
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 509, Col: 28}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "</li>")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 102, "</ul>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				if it.TrapAnalysis.Recommendation != "" {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 103, "<div class=\"mt-1 text-[11px] text-slate-300/90 italic\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var41 string
+					templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs(it.TrapAnalysis.Recommendation)
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 514, Col: 97}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 104, "</div>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 105, "</td><!-- Quick Actions: Edit, Calc, Market, Delete --><td class=\"px-4 py-3 text-right whitespace-nowrap\"><div class=\"inline-flex flex-wrap justify-end gap-1\"><button type=\"button\" data-item=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var42 string
+				templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(catalogEditPayloadJSON(it))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 523, Col: 49}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 106, "\" @click=\"$dispatch(&#39;open-catalog-edit&#39;, JSON.parse($el.dataset.item))\" class=\"rounded border border-amber-400/35 bg-amber-500/15 px-2 py-1 text-[11px] font-semibold text-amber-200 hover:bg-amber-500/30 transition cursor-pointer\">Edit</button> <a href=\"/calculator?mode=blueprint\" title=\"Open Blueprint SDE Mode in Profit Calculator\" class=\"rounded border border-emerald-400/35 bg-emerald-500/15 px-2 py-1 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-500/30 transition\">Calc</a> <a href=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var43 templ.SafeURL = templ.SafeURL("/marketplace?hub=jita&q=" + url.QueryEscape(it.Name))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var43)))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 107, "\" title=\"Inspect Live Order Book in Marketplace\" class=\"rounded border border-sky-400/35 bg-sky-500/15 px-2 py-1 text-[11px] font-semibold text-sky-200 hover:bg-sky-500/30 transition\">Market</a> <button type=\"button\" hx-delete=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var44 string
+				templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/catalog/items/%d", it.ID))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 545, Col: 62}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 108, "\" hx-target=\"#catalog-table\" hx-swap=\"outerHTML\" hx-confirm=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var45 string
+				templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Delete %s from catalog?", it.Name))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/catalog.templ`, Line: 548, Col: 71}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 109, "\" class=\"rounded border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-[11px] text-rose-300 hover:bg-rose-500/25 transition cursor-pointer\">Delete</button></div></td></tr>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "</tbody></table></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 110, "</tbody></table></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 111, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
