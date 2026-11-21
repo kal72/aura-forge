@@ -63,6 +63,11 @@ func TestGetLiveMarketPulse_CategoriesSignalsAndSparkline(t *testing.T) {
 	if len(macro) != 6 {
 		t.Fatalf("expected 6 Macro & Fuel benchmarks, got %d", len(macro))
 	}
+
+	gas := svc.GetLiveMarketPulse(context.Background(), "gas", "jita")
+	if len(gas) != 8 {
+		t.Fatalf("expected 8 Gas Cloud benchmarks, got %d", len(gas))
+	}
 }
 
 type stubHotBPMarket struct {

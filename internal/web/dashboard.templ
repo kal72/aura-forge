@@ -142,7 +142,7 @@ templ DashboardPage(data *service.DashboardSummary) {
 					</div>
 
 					<div class="flex flex-wrap items-center gap-2 ml-auto">
-						<!-- 5 Category Tabs -->
+						<!-- 6 Category Tabs -->
 						<div class="inline-flex flex-wrap rounded-lg border border-violet-400/30 bg-slate-950/70 p-0.5">
 							<button
 								type="button"
@@ -151,6 +151,14 @@ templ DashboardPage(data *service.DashboardSummary) {
 								class="rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
 							>
 								Minerals (8)
+							</button>
+							<button
+								type="button"
+								@click="setCat('gas')"
+								:class="pulseCat === 'gas' ? 'bg-teal-400 text-slate-950 shadow-xs' : 'text-slate-300 hover:text-white'"
+								class="rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
+							>
+								Gas (8)
 							</button>
 							<button
 								type="button"

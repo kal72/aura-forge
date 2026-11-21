@@ -94,6 +94,17 @@ var eveWikiEntries = []wikiEntry{
 		TipEN:      "Never undercut below your Safe Relist Price — wait for the market to recover instead of locking in a loss.",
 		TipID:      "Jangan pernah menurunkan harga di bawah Safe Relist Price — lebih baik tunggu pasar pulih daripada jual rugi.",
 	},
+	{
+		Category:   "colors",
+		Term:       "CHEAP / HIGH / HOT Market Pulse Badges & 7d Sparkline",
+		BadgeText:  "CHEAP / HOT / HIGH",
+		BadgeClass: "border-amber-400/50 bg-amber-500/20 text-amber-200 font-bold",
+		WhereUsed:  "Dashboard → Live Market Pulse",
+		DescEN:     "Compares live Lowest Sell against the 7-day ESI Market History average (and 7d vs 30d volume). CHEAP (green, ≤-3%) flags discounted materials; HIGH (red, ≥+3%) flags elevated prices; HOT (amber, ≥1.25× volume surge) flags items being bought up rapidly.",
+		DescID:     "Membandingkan Lowest Sell live terhadap rata-rata 7 hari ESI Market History (serta volume 7d vs 30d). CHEAP (hijau, ≤-3%) berarti bahan sedang murah; HIGH (merah, ≥+3%) harga sedang naik tinggi; HOT (amber, lonjakan volume ≥1.25×) barang sedang diborong pasar.",
+		TipEN:      "Stockpile CHEAP minerals and manufacture HOT or rising blueprints to maximize your ISK/hour.",
+		TipID:      "Stok mineral saat status CHEAP dan produksi blueprint berstatus HOT atau harga naik untuk memaksimalkan ISK/jam.",
+	},
 
 	// 2. MARKET & TRADING
 	{
@@ -173,6 +184,74 @@ var eveWikiEntries = []wikiEntry{
 		TipEN:      "Include Escrow in your daily Net Worth snapshot so your wealth chart doesn't dip artificially when placing Buy Orders.",
 		TipID:      "Masukkan nilai Escrow ke snapshot Net Worth harian agar grafik kekayaan Anda tidak terlihat turun palsu saat pasang Buy Order.",
 	},
+	{
+		Category:   "market",
+		Term:       "Hot Blueprints & Global Movers (Live Market Pulse)",
+		BadgeText:  "MARKET PULSE",
+		BadgeClass: "border-emerald-400/45 bg-emerald-500/20 text-emerald-200 font-bold",
+		WhereUsed:  "Dashboard → Live Market Pulse",
+		DescEN:     "Hot Blueprints dynamically ranks manufacturable SDE products (ships, drones, ammo, modules, rigs) by 7d-vs-30d volume surge (Hot Demand) or 7-day price gain (Price Rising). Global Movers tracks day-over-day price risers across all ~15,000+ EVE items using 1-call daily GET /markets/prices/ PostgreSQL snapshots.",
+		DescID:     "Hot Blueprints secara dinamis mengurutkan produk blueprint SDE (kapal, drone, ammo, modul, rig) berdasarkan lonjakan volume 7d vs 30d (Hot Demand) atau kenaikan harga 7 hari (Price Rising). Global Movers melacak kenaikan harga harian dari seluruh ~15.000+ item EVE lewat snapshot harian 1-request GET /markets/prices/ di PostgreSQL.",
+		TipEN:      "Click 'Craft →' on any Hot Blueprint card to jump straight into the Profit Calculator, or click the item name to inspect its live Order Book.",
+		TipID:      "Klik 'Craft →' pada kartu Hot Blueprint untuk langsung menghitung modal di Profit Calculator, atau klik nama item untuk cek Order Book live.",
+	},
+	{
+		Category:   "market",
+		Term:       "Background Jita Price Updater & PostgreSQL esi_cache",
+		BadgeText:  "AUTO-SYNC",
+		BadgeClass: "border-sky-400/45 bg-sky-500/20 text-sky-200 font-bold",
+		WhereUsed:  "Sidebar Indicator & Settings → Background Jita Price Updater",
+		DescEN:     "Static game data (PI recipes, planet resources, blueprints) never calls ESI. Dynamic Jita 4-4 prices for your active business scope (Catalog + 68 PI items + 20 Market Pulse benchmarks + SDE Blueprints) are warmed automatically in PostgreSQL esi_cache on a safe schedule (default 15m) with ETag/304 and error-limit protection.",
+		DescID:     "Data statis (resep PI, katalog planet, blueprint) tidak pernah call ESI. Harga dinamis Jita 4-4 untuk scope aktif Anda (Catalog + 68 PI + 20 Market Pulse + Blueprint SDE) dipanaskan otomatis di esi_cache PostgreSQL sesuai jadwal (default 15 menit) dengan proteksi ETag/304 dan error-limit.",
+		TipEN:      "Other trade hubs (Amarr, Dodixie, Rens, Hek) and 15,000+ free-search Marketplace items load on-demand with PostgreSQL caching to stay lightweight and ESI-safe.",
+		TipID:      "Hub lain (Amarr, Dodixie, Rens, Hek) dan 15.000+ item pencarian bebas di Marketplace tetap on-demand dengan cache PostgreSQL agar ringan dan aman dari blocking ESI.",
+	},
+
+	// 2B. PLANETARY INDUSTRY (PI)
+	{
+		Category:   "pi",
+		Term:       "Planetary Industry Tiers (P0 → P1 → P2 → P3 → P4)",
+		BadgeText:  "P0 – P4",
+		BadgeClass: "border-amber-400/45 bg-amber-500/20 text-amber-200 font-bold",
+		WhereUsed:  "Planetary Industry (PI) Hub",
+		DescEN:     "PI turns Raw planetary resources (P0) extracted from planets into Basic (P1), Refined (P2), Specialized (P3), and Advanced (P4) commodities used to build T2 ships, structures, and fuel blocks. It runs 24/7 passively even while you are offline.",
+		DescID:     "PI mengolah bahan mentah planet (P0) menjadi komoditas Basic (P1), Refined (P2), Specialized (P3), hingga Advanced (P4) yang dipakai untuk membuat kapal T2, struktur, dan fuel block. PI berjalan pasif 24/7 bahkan saat Anda offline.",
+		TipEN:      "Beginners should start with Single-Planet P2 (e.g. Mechanical Parts, Coolant, Enriched Uranium) before scaling into multi-planet P3 (Robotics) or P4.",
+		TipID:      "Pemula sebaiknya mulai dari Single-Planet P2 (mis. Mechanical Parts, Coolant, Enriched Uranium) sebelum naik ke P3 multi-planet (Robotics) atau P4.",
+	},
+	{
+		Category:   "pi",
+		Term:       "Planet Catalog (8 Types) & Single-Planet P2",
+		BadgeText:  "PLANETS",
+		BadgeClass: "border-violet-400/45 bg-violet-500/25 text-violet-200 font-bold",
+		WhereUsed:  "PI Hub → Planet Catalog (8)",
+		DescEN:     "New Eden has 8 colonizable planet types (Barren, Temperate, Lava, Plasma, Gas, Oceanic, Storm, Ice). Each yields exactly 5 P0 resources (→ 5 P1) and supports self-contained Single-Planet P2 factories that require zero inter-planet hauling.",
+		DescID:     "New Eden memiliki 8 jenis planet yang bisa dikolonisasi (Barren, Temperate, Lava, Plasma, Gas, Oceanic, Storm, Ice). Tiap planet menghasilkan tepat 5 resource P0 (→ 5 P1) dan mendukung pabrik Single-Planet P2 tanpa perlu angkut bahan antar planet.",
+		TipEN:      "Use the Planet Catalog tab to check which planet types yield the P0 materials you need before deploying Command Centers.",
+		TipID:      "Gunakan tab Planet Catalog untuk mengecek planet mana yang memiliki resource P0 yang Anda butuhkan sebelum memasang Command Center.",
+	},
+	{
+		Category:   "pi",
+		Term:       "POCO Tax & Horizontal Recipe Tree Canvas",
+		BadgeText:  "TREE CANVAS",
+		BadgeClass: "border-emerald-400/45 bg-emerald-500/20 text-emerald-200 font-bold",
+		WhereUsed:  "PI Hub → P1–P4 Recipe Tree",
+		DescEN:     "POCO (Player-Owned Customs Office) Tax is charged whenever you import or export PI goods between a planet and space (typically 2–10%). Switch to 'Tree Canvas' mode to visually pan, zoom, flip direction (Output→Raw or Raw→Output), expand fullscreen, and click any node to highlight its exact branch and source planets.",
+		DescID:     "POCO Tax adalah pajak Customs Office setiap kali Anda impor/ekspor barang PI dari planet ke luar angkasa (umumnya 2–10%). Gunakan mode 'Tree Canvas' untuk menggeser, zoom, membalik arah (Output→Raw atau Raw→Output), expand fullscreen, dan klik node mana saja untuk menyorot jalur cabang serta planet sumbernya.",
+		TipEN:      "Double-click any P1–P4 node on the Tree Canvas to jump directly into its own recipe tree and economics.",
+		TipID:      "Double-click node P1–P4 mana pun di Tree Canvas untuk langsung membuka pohon resep dan hitungan profitnya.",
+	},
+	{
+		Category:   "pi",
+		Term:       "Colony Extractor Timers (+48h / +72h Reset)",
+		BadgeText:  "PASSIVE ISK",
+		BadgeClass: "border-sky-400/45 bg-sky-500/20 text-sky-200 font-bold",
+		WhereUsed:  "PI Hub → My Colonies",
+		DescEN:     "Planetary Extractor Control Units stop harvesting once their cycle expires. Track all your active planets in My Colonies and click '+48h' or '+72h' right after resetting your extractors in-game so you never lose passive ISK hours.",
+		DescID:     "Extractor planet akan berhenti menambang begitu durasi siklusnya habis. Catat semua planet aktif Anda di My Colonies dan klik '+48h' atau '+72h' tepat setelah reset extractor di dalam game agar tidak kehilangan jam produksi pasif.",
+		TipEN:      "48–72 hour cycles give the best balance between high yield per hour and low daily maintenance effort.",
+		TipID:      "Siklus 48–72 jam adalah keseimbangan terbaik antara hasil tinggi per jam dan minimnya waktu perawatan harian.",
+	},
 
 	// 3. INDUSTRY & BLUEPRINTS
 	{
@@ -240,6 +319,17 @@ var eveWikiEntries = []wikiEntry{
 		DescID:     "Profit bersih dibagi total jam produksi. Karena jumlah slot manufaktur karakter terbatas, memaksimalkan ISK/Hour per slot adalah kunci tercepat membesarkan modal.",
 		TipEN:      "An item making 2M ISK in 2 hours (1M ISK/hr) beats an item making 5M ISK in 24 hours (208K ISK/hr).",
 		TipID:      "Item yang untung 2M ISK dalam 2 jam (1M ISK/jam) jauh lebih cepat memutar modal daripada untung 5M ISK tapi butuh 24 jam.",
+	},
+	{
+		Category:   "industry",
+		Term:       "Gas Cloud Materials (Fullerites & Mykoserocin)",
+		BadgeText:  "GAS / REACTIONS",
+		BadgeClass: "border-teal-400/45 bg-teal-500/20 text-teal-200 font-bold",
+		WhereUsed:  "Dashboard → Live Market Pulse → Gas (8)",
+		DescEN:     "Unlike asteroid Minerals, Gas Clouds are harvested from Wormholes (Fullerite-C50 to C540) and Low/Null-Sec (Mykoserocin/Cytoserocin). They are essential for Hybrid Polymer Reactions, Tech 3 ships, Combat Boosters, Faction ships, Battleships, and Capitals.",
+		DescID:     "Berbeda dengan Mineral dari asteroid, Gas dipanen dari Wormhole (Fullerite-C50 s/d C540) dan Low/Null-Sec (Mykoserocin/Cytoserocin). Gas wajib dipakai untuk Hybrid Polymer Reactions, kapal Tech 3, Combat Booster, kapal Faction, Battleship, dan Capital.",
+		TipEN:      "Gas huffing in a cheap Venture is one of the fastest ways for beginners to build seed capital, while Gas Reactions scale smoothly into billions of ISK.",
+		TipID:      "Gas huffing dengan kapal Venture murah adalah salah satu cara tercepat pemula mengumpulkan modal awal, sedangkan Gas Reactions sangat kuat untuk skala miliaran ISK.",
 	},
 
 	// 4. T2 INVENTION & SCALING
@@ -379,7 +469,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\" x-data=\"{\n\t\t\t\tlang: localStorage.getItem(&#39;af-wiki-lang&#39;) || &#39;en&#39;,\n\t\t\t\tcat: &#39;all&#39;,\n\t\t\t\tq: &#39;&#39;,\n\t\t\t\tsetLang(l) {\n\t\t\t\t\tthis.lang = l;\n\t\t\t\t\tlocalStorage.setItem(&#39;af-wiki-lang&#39;, l);\n\t\t\t\t},\n\t\t\t\tmatches(category, text) {\n\t\t\t\t\tif (this.cat !== &#39;all&#39; &amp;&amp; this.cat !== category) return false;\n\t\t\t\t\tif (!this.q.trim()) return true;\n\t\t\t\t\treturn text.toLowerCase().includes(this.q.trim().toLowerCase());\n\t\t\t\t}\n\t\t\t}\"><!-- Header & EN | ID Language Toggle --><div class=\"flex flex-wrap items-center justify-between gap-4\"><div><h1 class=\"text-2xl font-bold tracking-tight text-white\">EVE Online Wiki &amp; UI Color Guide</h1><p class=\"text-xs text-slate-300/80 mt-0.5\" x-show=\"lang === &#39;en&#39;\">Beginner-friendly reference for every EVE Online term, UI color indicator, badge, and daily workflow inside aura-forge.</p><p x-cloak class=\"text-xs text-slate-300/80 mt-0.5\" x-show=\"lang === &#39;id&#39;\">Panduan ramah pemula untuk semua istilah EVE Online, arti warna/badge di UI, dan alur kerja harian di dalam aura-forge.</p></div><!-- EN | ID Toggle (Default EN per AGENTS.md, instant ID switch for beginner learning) --><div class=\"inline-flex rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur\"><button type=\"button\" @click=\"setLang(&#39;en&#39;)\" :class=\"lang === &#39;en&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3 py-1.5 text-xs font-extrabold tracking-wider transition cursor-pointer\">EN</button> <button type=\"button\" @click=\"setLang(&#39;id&#39;)\" :class=\"lang === &#39;id&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3 py-1.5 text-xs font-extrabold tracking-wider transition cursor-pointer\">ID</button></div></div><!-- Search & Category Filter Bar --><div class=\"tactical-panel rounded-xl p-4 space-y-3\"><div class=\"relative\"><input type=\"text\" x-model=\"q\" :placeholder=\"lang === &#39;en&#39; ? &#39;Search terms or colors (e.g. green, yellow, spread, ME, SCI, undercut, decryptor)...&#39; : &#39;Cari istilah atau warna (mis. hijau, kuning, spread, ME, SCI, undercut, decryptor)...&#39;\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900/90 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none\"></div><div class=\"flex flex-wrap gap-1.5\"><button type=\"button\" @click=\"cat = &#39;all&#39;\" :class=\"cat === &#39;all&#39; ? &#39;bg-violet-600 text-white border-violet-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">All Topics</button> <button type=\"button\" @click=\"cat = &#39;colors&#39;\" :class=\"cat === &#39;colors&#39; ? &#39;bg-emerald-500 text-slate-950 border-emerald-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Colors &amp; Badges</button> <button type=\"button\" @click=\"cat = &#39;market&#39;\" :class=\"cat === &#39;market&#39; ? &#39;bg-sky-500 text-slate-950 border-sky-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Market &amp; Trading</button> <button type=\"button\" @click=\"cat = &#39;industry&#39;\" :class=\"cat === &#39;industry&#39; ? &#39;bg-amber-400 text-slate-950 border-amber-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Industry &amp; Blueprints</button> <button type=\"button\" @click=\"cat = &#39;invention&#39;\" :class=\"cat === &#39;invention&#39; ? &#39;bg-violet-500 text-white border-violet-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">T2 Invention &amp; Scaling</button> <button type=\"button\" @click=\"cat = &#39;workflow&#39;\" :class=\"cat === &#39;workflow&#39; ? &#39;bg-emerald-400 text-slate-950 border-emerald-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Daily Beginner Workflow</button></div></div><!-- Wiki Cards Grid --><div class=\"grid grid-cols-1 gap-4 md:grid-cols-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\" x-data=\"{\n\t\t\t\tlang: localStorage.getItem(&#39;af-wiki-lang&#39;) || &#39;en&#39;,\n\t\t\t\tcat: &#39;all&#39;,\n\t\t\t\tq: &#39;&#39;,\n\t\t\t\tsetLang(l) {\n\t\t\t\t\tthis.lang = l;\n\t\t\t\t\tlocalStorage.setItem(&#39;af-wiki-lang&#39;, l);\n\t\t\t\t},\n\t\t\t\tmatches(category, text) {\n\t\t\t\t\tif (this.cat !== &#39;all&#39; &amp;&amp; this.cat !== category) return false;\n\t\t\t\t\tif (!this.q.trim()) return true;\n\t\t\t\t\treturn text.toLowerCase().includes(this.q.trim().toLowerCase());\n\t\t\t\t}\n\t\t\t}\"><!-- Header & EN | ID Language Toggle --><div class=\"flex flex-wrap items-center justify-between gap-4\"><div><h1 class=\"text-2xl font-bold tracking-tight text-white\">EVE Online Wiki &amp; UI Color Guide</h1><p class=\"text-xs text-slate-300/80 mt-0.5\" x-show=\"lang === &#39;en&#39;\">Beginner-friendly reference for every EVE Online term, UI color indicator, badge, and daily workflow inside aura-forge.</p><p x-cloak class=\"text-xs text-slate-300/80 mt-0.5\" x-show=\"lang === &#39;id&#39;\">Panduan ramah pemula untuk semua istilah EVE Online, arti warna/badge di UI, dan alur kerja harian di dalam aura-forge.</p></div><!-- EN | ID Toggle (Default EN per AGENTS.md, instant ID switch for beginner learning) --><div class=\"inline-flex rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur\"><button type=\"button\" @click=\"setLang(&#39;en&#39;)\" :class=\"lang === &#39;en&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3 py-1.5 text-xs font-extrabold tracking-wider transition cursor-pointer\">EN</button> <button type=\"button\" @click=\"setLang(&#39;id&#39;)\" :class=\"lang === &#39;id&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3 py-1.5 text-xs font-extrabold tracking-wider transition cursor-pointer\">ID</button></div></div><!-- Search & Category Filter Bar --><div class=\"tactical-panel rounded-xl p-4 space-y-3\"><div class=\"relative\"><input type=\"text\" x-model=\"q\" :placeholder=\"lang === &#39;en&#39; ? &#39;Search terms or colors (e.g. green, yellow, spread, ME, SCI, undercut, decryptor)...&#39; : &#39;Cari istilah atau warna (mis. hijau, kuning, spread, ME, SCI, undercut, decryptor)...&#39;\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900/90 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none\"></div><div class=\"flex flex-wrap gap-1.5\"><button type=\"button\" @click=\"cat = &#39;all&#39;\" :class=\"cat === &#39;all&#39; ? &#39;bg-violet-600 text-white border-violet-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">All Topics</button> <button type=\"button\" @click=\"cat = &#39;colors&#39;\" :class=\"cat === &#39;colors&#39; ? &#39;bg-emerald-500 text-slate-950 border-emerald-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Colors &amp; Badges</button> <button type=\"button\" @click=\"cat = &#39;market&#39;\" :class=\"cat === &#39;market&#39; ? &#39;bg-sky-500 text-slate-950 border-sky-400&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Market &amp; Trading</button> <button type=\"button\" @click=\"cat = &#39;industry&#39;\" :class=\"cat === &#39;industry&#39; ? &#39;bg-amber-400 text-slate-950 border-amber-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Industry &amp; Blueprints</button> <button type=\"button\" @click=\"cat = &#39;pi&#39;\" :class=\"cat === &#39;pi&#39; ? &#39;bg-teal-400 text-slate-950 border-teal-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Planetary Industry (PI)</button> <button type=\"button\" @click=\"cat = &#39;invention&#39;\" :class=\"cat === &#39;invention&#39; ? &#39;bg-violet-500 text-white border-violet-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">T2 Invention &amp; Scaling</button> <button type=\"button\" @click=\"cat = &#39;workflow&#39;\" :class=\"cat === &#39;workflow&#39; ? &#39;bg-emerald-400 text-slate-950 border-emerald-300&#39; : &#39;bg-slate-900/60 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-lg border px-3 py-1 text-xs font-semibold transition cursor-pointer\">Daily Beginner Workflow</button></div></div><!-- Wiki Cards Grid --><div class=\"grid grid-cols-1 gap-4 md:grid-cols-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -392,7 +482,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs("matches(" + `'` + item.Category + `'` + ", " + "`" + strings.ReplaceAll(searchBlob, "`", "") + "`" + ")")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 430, Col: 120}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 523, Col: 120}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -405,7 +495,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(item.Term)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 435, Col: 73}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 528, Col: 73}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -440,7 +530,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(item.BadgeText)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 437, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 530, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -453,7 +543,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(item.WhereUsed)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 441, Col: 24}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 534, Col: 24}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
@@ -466,7 +556,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 444, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 537, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
@@ -479,7 +569,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 447, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 540, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -492,7 +582,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 453, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 546, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -505,7 +595,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 454, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 547, Col: 56}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {

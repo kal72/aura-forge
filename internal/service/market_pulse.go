@@ -17,6 +17,7 @@ import (
 // MarketPulseCategory keys for the Dashboard Live Market Pulse widget.
 const (
 	PulseCategoryMinerals   = "minerals"
+	PulseCategoryGas        = "gas"
 	PulseCategoryPI         = "pi"
 	PulseCategoryMacro      = "macro"
 	PulseCategoryBlueprints = "blueprints"
@@ -52,6 +53,16 @@ var marketPulseSeeds = []pulseSeed{
 	{TypeID: 40, Name: "Megacyte", FallbackSell: 2950.00, FallbackBuy: 2720.00, Category: PulseCategoryMinerals},
 	{TypeID: 11399, Name: "Morphite", FallbackSell: 32500.00, FallbackBuy: 30200.00, Category: PulseCategoryMinerals},
 
+	// 8 Core Gas Cloud Materials (Wormhole Fullerites + Low/Null Mykoserocin for T3, Boosters, Battleships & Reactions)
+	{TypeID: 30370, Name: "Fullerite-C50", FallbackSell: 11500, FallbackBuy: 10400, Category: PulseCategoryGas},
+	{TypeID: 30371, Name: "Fullerite-C60", FallbackSell: 12800, FallbackBuy: 11600, Category: PulseCategoryGas},
+	{TypeID: 30372, Name: "Fullerite-C70", FallbackSell: 14200, FallbackBuy: 12900, Category: PulseCategoryGas},
+	{TypeID: 30373, Name: "Fullerite-C72", FallbackSell: 16500, FallbackBuy: 15000, Category: PulseCategoryGas},
+	{TypeID: 30377, Name: "Fullerite-C320", FallbackSell: 62000, FallbackBuy: 56500, Category: PulseCategoryGas},
+	{TypeID: 30378, Name: "Fullerite-C540", FallbackSell: 74000, FallbackBuy: 67500, Category: PulseCategoryGas},
+	{TypeID: 28694, Name: "Amber Mykoserocin", FallbackSell: 19500, FallbackBuy: 17600, Category: PulseCategoryGas},
+	{TypeID: 28697, Name: "Golden Mykoserocin", FallbackSell: 28500, FallbackBuy: 25800, Category: PulseCategoryGas},
+
 	// 6 High-Liquidity PI Benchmarks (P2 - P4)
 	{TypeID: 3689, Name: "Mechanical Parts", FallbackSell: 11500, FallbackBuy: 10400, Category: PulseCategoryPI, IsPI: true},
 	{TypeID: 9832, Name: "Coolant", FallbackSell: 10800, FallbackBuy: 9800, Category: PulseCategoryPI, IsPI: true},
@@ -82,6 +93,8 @@ func AllMarketPulseTypeIDs() []int32 {
 // NormalizePulseCategory returns a valid Market Pulse category key (defaults to "minerals").
 func NormalizePulseCategory(raw string) string {
 	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case PulseCategoryGas:
+		return PulseCategoryGas
 	case PulseCategoryPI:
 		return PulseCategoryPI
 	case PulseCategoryMacro:
