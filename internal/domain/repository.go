@@ -104,6 +104,14 @@ type NetWorthRepository interface {
 	DeleteSnapshot(ctx context.Context, id int64) error
 }
 
+// PIRepository specifies storage operations for player Planetary Industry colonies.
+type PIRepository interface {
+	ListColonies(ctx context.Context) ([]PIColony, error)
+	SaveColony(ctx context.Context, c *PIColony) error
+	ResetExtractor(ctx context.Context, id int64, newExpiresAt time.Time) error
+	DeleteColony(ctx context.Context, id int64) error
+}
+
 // CharacterSyncProvider specifies operations to fetch authenticated character data via ESI OAuth2.
 type CharacterSyncProvider interface {
 	SyncWallet(ctx context.Context, token *EVEToken) (float64, error)

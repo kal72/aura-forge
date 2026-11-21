@@ -1,0 +1,540 @@
+package web
+
+import (
+	"fmt"
+	"strings"
+	"time"
+
+	"aura-forge/internal/domain"
+	"aura-forge/internal/service"
+)
+
+func piTierBadgeClass(t domain.PITier) string {
+	switch t {
+	case domain.PITierP4:
+		return "border-amber-400/50 bg-amber-500/20 text-amber-200"
+	case domain.PITierP3:
+		return "border-violet-400/50 bg-violet-500/25 text-violet-200"
+	case domain.PITierP2:
+		return "border-sky-400/45 bg-sky-500/20 text-sky-200"
+	case domain.PITierP1:
+		return "border-emerald-400/45 bg-emerald-500/20 text-emerald-200"
+	default:
+		return "border-slate-500/40 bg-slate-700/30 text-slate-200"
+	}
+}
+
+func planetBadgeClass(planet string) string {
+	switch planet {
+	case "Barren":
+		return "border-amber-500/40 bg-amber-900/30 text-amber-200"
+	case "Temperate":
+		return "border-emerald-500/40 bg-emerald-900/30 text-emerald-200"
+	case "Lava":
+		return "border-rose-500/45 bg-rose-900/35 text-rose-200"
+	case "Plasma":
+		return "border-fuchsia-500/45 bg-fuchsia-900/30 text-fuchsia-200"
+	case "Gas":
+		return "border-yellow-500/40 bg-yellow-900/30 text-yellow-200"
+	case "Oceanic":
+		return "border-sky-500/45 bg-sky-900/35 text-sky-200"
+	case "Storm":
+		return "border-indigo-400/45 bg-indigo-900/35 text-indigo-200"
+	case "Ice":
+		return "border-cyan-400/45 bg-cyan-900/35 text-cyan-200"
+	default:
+		return "border-slate-500/40 bg-slate-800 text-slate-200"
+	}
+}
+
+func colonyStatusClass(status string) string {
+	switch status {
+	case "ACTIVE":
+		return "border-emerald-400/45 bg-emerald-500/20 text-emerald-200"
+	case "EXPIRING":
+		return "border-amber-400/45 bg-amber-500/20 text-amber-200"
+	default:
+		return "border-rose-400/45 bg-rose-500/20 text-rose-200"
+	}
+}
+
+templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *domain.PIRecipeAnalysis, colonies []domain.PIColony) {
+	@Layout("Planetary Industry (PI) Hub", "pi", mode) {
+		<div
+			class="space-y-6"
+			x-data="{
+				tab: 'explorer',
+				tierFilter: 'ALL',
+				searchQ: '',
+				pocoTax: 5.0,
+				selectedID: 0,
+				showAddColony: false,
+				matchesItem(tier, name) {
+					if (this.tierFilter !== 'ALL' && tier !== this.tierFilter) return false;
+					if (!this.searchQ.trim()) return true;
+					return name.toLowerCase().includes(this.searchQ.trim().toLowerCase());
+				}
+			}"
+		>
+			<!-- Header & Tab Switcher -->
+			<div class="flex flex-wrap items-center justify-between gap-4">
+				<div>
+					<h1 class="text-2xl font-bold tracking-tight text-white">Planetary Industry (PI) Hub</h1>
+					<p class="text-xs text-slate-300/80 mt-0.5">Browse all 68 P1–P4 PI items, inspect full recursive recipe trees &amp; source planets, scan live Jita margins, and track colony extractor timers.</p>
+				</div>
+
+				<div class="inline-flex flex-wrap rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur">
+					<button
+						type="button"
+						@click="tab = 'explorer'"
+						:class="tab === 'explorer' ? 'bg-amber-400 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'"
+						class="rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
+					>
+						P1–P4 Recipe Tree
+					</button>
+					<button
+						type="button"
+						@click="tab = 'scanner'"
+						:class="tab === 'scanner' ? 'bg-sky-400 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'"
+						class="rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
+					>
+						PI Profit Scanner
+					</button>
+					<button
+						type="button"
+						@click="tab = 'colonies'"
+						:class="tab === 'colonies' ? 'bg-emerald-400 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'"
+						class="rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
+					>
+						My Colonies ({ fmt.Sprintf("%d", len(colonies)) })
+					</button>
+				</div>
+			</div>
+
+			<!-- TAB 1: P1–P4 EXPLORER & RECURSIVE RECIPE TREE -->
+			<div x-show="tab === 'explorer'" class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+				<!-- Left Column: Search + P1–P4 Tier Filter + Item Selector -->
+				<div class="tactical-panel rounded-xl p-4 lg:col-span-4 space-y-3">
+					<div class="flex items-center justify-between">
+						<h2 class="text-xs font-bold uppercase tracking-wider text-amber-300">PI Catalog (P1 – P4)</h2>
+						<div class="flex items-center gap-1.5 text-[10px] font-mono text-slate-300">
+							<span>POCO Tax:</span>
+							<select x-model="pocoTax" class="rounded border border-slate-700 bg-slate-900 px-1.5 py-0.5 text-[10px] text-white">
+								<option value="0">0%</option>
+								<option value="2">2%</option>
+								<option value="5">5%</option>
+								<option value="10">10%</option>
+							</select>
+						</div>
+					</div>
+
+					<!-- Search Input -->
+					<input
+						type="text"
+						x-model="searchQ"
+						placeholder="Search PI item (e.g. Robotics, Coolant, Water)..."
+						class="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none"
+					/>
+
+					<!-- Tier Filter Pills (P1, P2, P3, P4) -->
+					<div class="grid grid-cols-5 gap-1">
+						<button type="button" @click="tierFilter = 'ALL'" :class="tierFilter === 'ALL' ? 'bg-violet-600 text-white border-violet-400' : 'bg-slate-900/60 text-slate-300 border-slate-700'" class="rounded-md border py-1 font-mono text-[10px] font-bold transition cursor-pointer">ALL</button>
+						<button type="button" @click="tierFilter = 'P1'" :class="tierFilter === 'P1' ? 'bg-emerald-500 text-slate-950 border-emerald-400' : 'bg-slate-900/60 text-emerald-200 border-slate-700'" class="rounded-md border py-1 font-mono text-[10px] font-bold transition cursor-pointer">P1</button>
+						<button type="button" @click="tierFilter = 'P2'" :class="tierFilter === 'P2' ? 'bg-sky-500 text-slate-950 border-sky-400' : 'bg-slate-900/60 text-sky-200 border-slate-700'" class="rounded-md border py-1 font-mono text-[10px] font-bold transition cursor-pointer">P2</button>
+						<button type="button" @click="tierFilter = 'P3'" :class="tierFilter === 'P3' ? 'bg-violet-500 text-white border-violet-300' : 'bg-slate-900/60 text-violet-200 border-slate-700'" class="rounded-md border py-1 font-mono text-[10px] font-bold transition cursor-pointer">P3</button>
+						<button type="button" @click="tierFilter = 'P4'" :class="tierFilter === 'P4' ? 'bg-amber-400 text-slate-950 border-amber-300' : 'bg-slate-900/60 text-amber-200 border-slate-700'" class="rounded-md border py-1 font-mono text-[10px] font-bold transition cursor-pointer">P4</button>
+					</div>
+
+					<!-- Scrollable PI Items List -->
+					<div class="max-h-[540px] overflow-y-auto space-y-1 pr-1">
+						for _, item := range items {
+							<button
+								type="button"
+								x-show={ fmt.Sprintf("matchesItem(%q, %q)", string(item.Tier), item.Name) }
+								@click={ fmt.Sprintf("selectedID = %d; htmx.ajax('GET', '/pi/tree?type_id=%d&poco_tax=' + pocoTax, { target: '#pi-tree-panel', swap: 'innerHTML', indicator: '#pi-tree-spinner' })", item.TypeID, item.TypeID) }
+								:class={ fmt.Sprintf("selectedID === %d ? 'border-amber-300/60 bg-amber-400/15 text-white' : 'border-violet-400/15 bg-slate-950/40 text-slate-200 hover:bg-white/10'", item.TypeID) }
+								class="w-full flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-xs transition cursor-pointer"
+							>
+								<span class="font-medium truncate">{ item.Name }</span>
+								<span class={ "shrink-0 rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold " + piTierBadgeClass(item.Tier) }>
+									{ string(item.Tier) }
+								</span>
+							</button>
+						}
+					</div>
+				</div>
+
+				<!-- Right Column: Recursive PI Recipe Tree + Source Planets + Live Economics -->
+				<div class="lg:col-span-8 space-y-4">
+					<div id="pi-tree-spinner" class="htmx-indicator tactical-panel rounded-xl p-4 text-center text-xs font-mono text-amber-200">
+						Loading live Jita prices &amp; recursive PI recipe tree from Public ESI...
+					</div>
+					<div id="pi-tree-panel">
+						@PITreePartial(selectedTree, "")
+					</div>
+				</div>
+			</div>
+
+			<!-- TAB 2: PI PROFIT SCANNER (BY TIER P1–P4) -->
+			<div x-cloak x-show="tab === 'scanner'" class="space-y-5">
+				<div class="tactical-panel rounded-xl p-5 space-y-4">
+					<div>
+						<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">PI Tier Profit Scanner (Live Jita Public ESI)</h2>
+						<p class="text-xs text-slate-300/80 mt-0.5">Compare every PI commodity in P1, P2, P3, or P4 against live Jita Sell prices after POCO import/export taxes.</p>
+					</div>
+
+					<form
+						hx-post="/pi/scan"
+						hx-target="#pi-scan-results"
+						hx-swap="innerHTML"
+						hx-indicator="#pi-scan-spinner"
+						class="flex flex-wrap items-end gap-3"
+					>
+						<div class="w-44">
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">PI Tier</label>
+							<select name="tier" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white">
+								<option value="P1">P1 — Basic (15 items)</option>
+								<option value="P2" selected>P2 — Refined (24 items)</option>
+								<option value="P3">P3 — Specialized (21 items)</option>
+								<option value="P4">P4 — Advanced (8 items)</option>
+							</select>
+						</div>
+						<div class="w-40">
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">POCO Tax (%)</label>
+							<input type="number" step="0.5" name="poco_tax" value="5.0" min="0" max="30" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white"/>
+						</div>
+						<button
+							type="submit"
+							class="inline-flex items-center gap-2 rounded-lg bg-sky-400 px-5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-sky-300 transition cursor-pointer"
+						>
+							<span id="pi-scan-spinner" class="htmx-indicator h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent"></span>
+							<span>Scan PI Tier (Live ESI)</span>
+						</button>
+					</form>
+				</div>
+
+				<div id="pi-scan-results">
+					<div class="tactical-panel rounded-xl p-8 text-center text-xs text-slate-300/80">
+						Choose a PI Tier (P1–P4) and click <strong>Scan PI Tier</strong> to rank the highest-profit PI commodities in Jita.
+					</div>
+				</div>
+			</div>
+
+			<!-- TAB 3: MY PI COLONIES & EXTRACTOR TIMERS -->
+			<div x-cloak x-show="tab === 'colonies'" class="space-y-5">
+				<div class="flex flex-wrap items-center justify-between gap-3">
+					<div>
+						<h2 class="text-sm font-bold uppercase tracking-wider text-emerald-300">Active PI Colonies &amp; Extractor Timers</h2>
+						<p class="text-xs text-slate-300/80 mt-0.5">Never let your extractors sit idle — track expiry countdowns and reset timers in 1 click.</p>
+					</div>
+					<button
+						type="button"
+						@click="showAddColony = !showAddColony"
+						class="rounded-lg bg-emerald-400 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-emerald-300 transition cursor-pointer"
+					>
+						+ Add PI Colony
+					</button>
+				</div>
+
+				<div x-cloak x-show="showAddColony" x-transition class="tactical-panel rounded-xl p-5 space-y-4">
+					<h3 class="text-xs font-bold uppercase tracking-wider text-amber-300">Add Tracked Planet Colony</h3>
+					<form hx-post="/pi/colonies" hx-swap="none" class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+						<div>
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Planet Name</label>
+							<input type="text" name="planet_name" required placeholder="e.g. Perimeter III" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white"/>
+						</div>
+						<div>
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Solar System</label>
+							<input type="text" name="solar_system" placeholder="e.g. Perimeter" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white"/>
+						</div>
+						<div>
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Planet Type</label>
+							<select name="planet_type" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white">
+								for _, pt := range domain.AllPlanetTypes {
+									<option value={ pt }>{ pt }</option>
+								}
+							</select>
+						</div>
+						<div>
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Target PI Product</label>
+							<select name="product_type_id" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white">
+								for _, it := range items {
+									<option value={ fmt.Sprintf("%d", it.TypeID) }>[{ string(it.Tier) }] { it.Name }</option>
+								}
+							</select>
+						</div>
+						<div>
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Extractor Cycle (Hours)</label>
+							<input type="number" name="cycle_hours" value="48" min="1" max="336" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white"/>
+						</div>
+						<div>
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Est. Daily ISK</label>
+							<input type="number" step="10000" name="est_daily_isk" value="1500000" min="0" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white"/>
+						</div>
+						<div class="sm:col-span-3 flex justify-end gap-2">
+							<button type="button" @click="showAddColony = false" class="rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-slate-300 cursor-pointer">Cancel</button>
+							<button type="submit" class="rounded-lg bg-emerald-400 px-4 py-1.5 text-xs font-bold text-slate-950 hover:bg-emerald-300 cursor-pointer">Save Colony</button>
+						</div>
+					</form>
+				</div>
+
+				<div class="tactical-panel rounded-xl overflow-hidden">
+					if len(colonies) == 0 {
+						<div class="p-8 text-center text-xs text-slate-300/80">
+							No PI colonies tracked yet. Click <strong>+ Add PI Colony</strong> to monitor your extractor timers.
+						</div>
+					} else {
+						{{ now := time.Now() }}
+						<div class="overflow-x-auto">
+							<table class="w-full text-left text-xs">
+								<thead class="bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15">
+									<tr>
+										<th class="px-4 py-3">Planet / System</th>
+										<th class="px-4 py-3">Type</th>
+										<th class="px-4 py-3">Product</th>
+										<th class="px-4 py-3">Extractor Status</th>
+										<th class="px-4 py-3 text-right">Est. Daily ISK</th>
+										<th class="px-4 py-3 text-right">Actions</th>
+									</tr>
+								</thead>
+								<tbody class="divide-y divide-violet-400/15">
+									for _, c := range colonies {
+										{{ st, rem := c.StatusLabel(now) }}
+										<tr class="hover:bg-white/5">
+											<td class="px-4 py-3">
+												<div class="font-semibold text-white">{ c.PlanetName }</div>
+												<div class="font-mono text-[10px] text-slate-400">{ c.SolarSystem }</div>
+											</td>
+											<td class="px-4 py-3">
+												<span class={ "inline-block rounded border px-2 py-0.5 font-mono text-[10px] " + planetBadgeClass(c.PlanetType) }>{ c.PlanetType }</span>
+											</td>
+											<td class="px-4 py-3">
+												<span class="font-medium text-white">{ c.ProductName }</span>
+												<span class={ "ml-1.5 rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold " + piTierBadgeClass(c.Tier) }>{ string(c.Tier) }</span>
+											</td>
+											<td class="px-4 py-3 font-mono">
+												<span class={ "inline-block rounded border px-2 py-0.5 text-[10px] font-bold " + colonyStatusClass(st) }>{ st }</span>
+												<span class="ml-1.5 text-[11px] text-slate-300">{ rem }</span>
+											</td>
+											<td class="px-4 py-3 text-right font-mono text-emerald-300">{ FormatISK(c.EstDailyISK) }</td>
+											<td class="px-4 py-3 text-right">
+												<div class="inline-flex gap-1.5">
+													<button type="button" hx-post={ fmt.Sprintf("/pi/colonies/%d/reset?hours=48", c.ID) } hx-swap="none" class="rounded border border-emerald-400/35 bg-emerald-500/15 px-2 py-1 text-[10px] font-semibold text-emerald-200 hover:bg-emerald-500/25 cursor-pointer">+48h</button>
+													<button type="button" hx-post={ fmt.Sprintf("/pi/colonies/%d/reset?hours=72", c.ID) } hx-swap="none" class="rounded border border-sky-400/35 bg-sky-500/15 px-2 py-1 text-[10px] font-semibold text-sky-200 hover:bg-sky-500/25 cursor-pointer">+72h</button>
+													<button type="button" hx-delete={ fmt.Sprintf("/pi/colonies/%d", c.ID) } hx-confirm="Delete this PI colony?" hx-swap="none" class="rounded border border-rose-400/35 bg-rose-500/15 px-2 py-1 text-[10px] font-semibold text-rose-200 hover:bg-rose-500/25 cursor-pointer">Delete</button>
+												</div>
+											</td>
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+					}
+				</div>
+			</div>
+		</div>
+	}
+}
+
+templ PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) {
+	if errMsg != "" {
+		<div class="tactical-panel rounded-xl p-5 border-rose-400/40 text-xs text-rose-200">{ errMsg }</div>
+	} else if tree == nil {
+		<div class="tactical-panel rounded-xl p-10 text-center space-y-2">
+			<div class="text-sm font-semibold text-white">Select any P1, P2, P3, or P4 item from the left catalog</div>
+			<p class="text-xs text-slate-300/80 max-w-md mx-auto">
+				Click an item (for example <strong>Robotics</strong>, <strong>Coolant</strong>, or <strong>Wetware Mainframe</strong>) to reveal its complete recursive recipe tree, exact source planet types, and live Jita factory profit.
+			</p>
+		</div>
+	} else {
+		<div class="space-y-4" x-data="{ copied: false }">
+			<!-- Selected Item Banner & Required Source Planets -->
+			<div class="tactical-panel rounded-xl p-5 space-y-3">
+				<div class="flex flex-wrap items-center justify-between gap-2">
+					<div class="flex items-center gap-2.5">
+						<h2 class="text-xl font-bold text-white">{ tree.Commodity.Name }</h2>
+						<span class={ "rounded border px-2 py-0.5 font-mono text-[10px] font-bold " + piTierBadgeClass(tree.Commodity.Tier) }>
+							{ string(tree.Commodity.Tier) }
+						</span>
+						<span class="font-mono text-[11px] text-slate-400">
+							{ fmt.Sprintf("%d units / %dm cycle", tree.Commodity.OutputQty, tree.Commodity.CycleMinutes) }
+						</span>
+					</div>
+					if tree.MultibuyText != "" {
+						<button
+							type="button"
+							@click="navigator.clipboard.writeText($refs.piMultibuy.value); copied = true; setTimeout(() => copied = false, 2000)"
+							class="rounded-md border border-amber-400/45 bg-amber-500/15 px-3 py-1 text-[11px] font-mono font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer"
+						>
+							<span x-show="!copied">Copy Direct Inputs (Multibuy)</span>
+							<span x-cloak x-show="copied">Copied!</span>
+						</button>
+						<textarea x-ref="piMultibuy" class="hidden" readonly>{ tree.MultibuyText }</textarea>
+					}
+				</div>
+
+				<!-- Consolidated Source Planets Required -->
+				<div class="pt-2 border-t border-violet-400/15">
+					<div class="text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1.5">
+						Source Planets Yielding Raw Materials ({ fmt.Sprintf("%d planet types available", len(tree.RequiredPlanets)) })
+					</div>
+					<div class="flex flex-wrap gap-1.5">
+						for _, pl := range tree.RequiredPlanets {
+							<span class={ "rounded-md border px-2.5 py-0.5 font-mono text-[11px] font-semibold " + planetBadgeClass(pl) }>
+								{ pl }
+							</span>
+						}
+					</div>
+				</div>
+			</div>
+
+			<!-- 4 Factory Economics KPIs -->
+			<div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+				<div class="tactical-panel rounded-xl p-3.5">
+					<div class="text-[10px] font-mono uppercase text-amber-300/80">Jita Unit Sell</div>
+					<div class="mt-1 text-base font-mono font-bold text-amber-200">{ FormatISK(tree.OutputUnitSell) }</div>
+					<div class="text-[10px] font-mono text-slate-400">Cycle Rev: { FormatISK(tree.OutputCycleRevenue) }</div>
+				</div>
+				<div class="tactical-panel rounded-xl p-3.5">
+					<div class="text-[10px] font-mono uppercase text-slate-400">Inputs + POCO ({ fmt.Sprintf("%.1f%%", tree.POCOTaxPercent) })</div>
+					<div class="mt-1 text-base font-mono font-bold text-white">{ FormatISK(tree.DirectInputCost + tree.POCOTaxISK) }</div>
+					<div class="text-[10px] font-mono text-slate-400">POCO Tax: { FormatISK(tree.POCOTaxISK) }</div>
+				</div>
+				<div class="tactical-panel rounded-xl p-3.5">
+					<div class="text-[10px] font-mono uppercase text-emerald-300/80">Net Profit / Cycle</div>
+					<div class={ "mt-1 text-base font-mono font-bold " + profitColor(tree.NetProfitPerCycle) }>{ FormatISK(tree.NetProfitPerCycle) }</div>
+					<div class="text-[10px] font-mono text-slate-400">Margin: { FormatPercent(tree.NetMarginPercent) }</div>
+				</div>
+				<div class="tactical-panel rounded-xl p-3.5">
+					<div class="text-[10px] font-mono uppercase text-sky-300/80">Est. Monthly (1 Factory)</div>
+					<div class={ "mt-1 text-base font-mono font-bold " + profitColor(tree.EstMonthlyISK) }>{ FormatISK(tree.EstMonthlyISK) }</div>
+					<div class="text-[10px] font-mono text-slate-400">Daily: { FormatISK(tree.EstDailyISK) }</div>
+				</div>
+			</div>
+
+			<!-- Full Recursive Recipe Tree (P4 -> P3 -> P2 -> P1 -> P0 + Planets) -->
+			<div class="tactical-panel rounded-xl overflow-hidden">
+				<div class="px-4 py-3 border-b border-violet-400/20 flex items-center justify-between">
+					<h3 class="text-xs font-bold uppercase tracking-wider text-amber-300">Full Recursive Recipe Tree (With Planet Sources)</h3>
+					<span class="text-[10px] font-mono text-slate-400">1 Factory Cycle Breakdown</span>
+				</div>
+				<div class="p-4 space-y-1.5 font-mono text-xs">
+					for _, node := range tree.FlatTree {
+						<div
+							class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-violet-400/15 bg-slate-950/45 px-3 py-2"
+							style={ fmt.Sprintf("margin-left: %dpx", node.Depth*18) }
+						>
+							<div class="flex flex-wrap items-center gap-2">
+								if node.Depth > 0 {
+									<span class="text-slate-500">└─</span>
+								}
+								<span class={ "rounded border px-1.5 py-0.5 text-[9px] font-bold " + piTierBadgeClass(node.Tier) }>
+									{ string(node.Tier) }
+								</span>
+								<span class="font-sans font-semibold text-white">{ node.Name }</span>
+								<span class="text-amber-200">× { fmt.Sprintf("%d", node.Quantity) }</span>
+							</div>
+
+							<div class="flex flex-wrap items-center gap-1.5">
+								if node.Tier == domain.PITierP0 {
+									for _, pl := range node.SourcePlanets {
+										<span class={ "rounded border px-1.5 py-0.5 text-[9px] font-semibold " + planetBadgeClass(pl) }>
+											{ pl }
+										</span>
+									}
+								} else if node.TotalValue > 0 {
+									<span class="text-[11px] text-slate-300">{ FormatISK(node.TotalValue) }</span>
+								}
+							</div>
+						</div>
+					}
+				</div>
+			</div>
+
+			<!-- P0 Raw Material Summary by Planet -->
+			if len(tree.P0Requirements) > 0 {
+				<div class="tactical-panel rounded-xl overflow-hidden">
+					<div class="px-4 py-2.5 border-b border-violet-400/20">
+						<h3 class="text-xs font-bold uppercase tracking-wider text-violet-200">Raw P0 Extraction Summary &amp; Compatible Planets</h3>
+					</div>
+					<div class="overflow-x-auto">
+						<table class="w-full text-left text-xs">
+							<thead class="bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15">
+								<tr>
+									<th class="px-4 py-2">Raw P0 Resource</th>
+									<th class="px-4 py-2 text-right">Total Qty / Cycle</th>
+									<th class="px-4 py-2">Found On Planet Types</th>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-violet-400/10">
+								for _, p0 := range tree.P0Requirements {
+									<tr class="hover:bg-white/5">
+										<td class="px-4 py-2 font-semibold text-white">{ p0.Name }</td>
+										<td class="px-4 py-2 text-right font-mono text-amber-200">{ fmt.Sprintf("%d", p0.TotalQuantity) }</td>
+										<td class="px-4 py-2">
+											<div class="flex flex-wrap gap-1">
+												for _, pl := range p0.SourcePlanets {
+													<span class={ "rounded border px-1.5 py-0.5 font-mono text-[9px] font-semibold " + planetBadgeClass(pl) }>{ pl }</span>
+												}
+											</div>
+										</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			}
+		</div>
+	}
+}
+
+templ PIScanPartial(rows []domain.PIProfitRow, tier string, errMsg string) {
+	if errMsg != "" {
+		<div class="tactical-panel rounded-xl p-4 border-rose-400/40 text-xs text-rose-200">{ errMsg }</div>
+	} else if len(rows) == 0 {
+		<div class="tactical-panel rounded-xl p-8 text-center text-xs text-slate-400">No PI items returned for tier { strings.ToUpper(tier) }.</div>
+	} else {
+		<div class="tactical-panel rounded-xl overflow-hidden">
+			<div class="overflow-x-auto">
+				<table class="w-full text-left text-xs">
+					<thead class="bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15">
+						<tr>
+							<th class="px-4 py-3">PI Item</th>
+							<th class="px-4 py-3 text-right">Jita Unit Sell</th>
+							<th class="px-4 py-3 text-right">Input + POCO</th>
+							<th class="px-4 py-3 text-right">Net Profit / Cycle</th>
+							<th class="px-4 py-3 text-right">Margin</th>
+							<th class="px-4 py-3 text-right">Est. Monthly (1 Factory)</th>
+							<th class="px-4 py-3">Verdict</th>
+							<th class="px-4 py-3 text-right">Tree</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-violet-400/15 font-mono">
+						for _, r := range rows {
+							<tr class="hover:bg-white/5">
+								<td class="px-4 py-2.5 font-sans">
+									<span class="font-semibold text-white">{ r.Name }</span>
+									<span class={ "ml-1.5 rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold " + piTierBadgeClass(r.Tier) }>{ string(r.Tier) }</span>
+								</td>
+								<td class="px-4 py-2.5 text-right text-amber-200">{ FormatISK(r.OutputUnitSell) }</td>
+								<td class="px-4 py-2.5 text-right text-slate-300">{ FormatISK(r.DirectInputCost + r.POCOTaxISK) }</td>
+								<td class={ "px-4 py-2.5 text-right font-bold " + profitColor(r.NetProfitPerCycle) }>{ FormatISK(r.NetProfitPerCycle) }</td>
+								<td class={ "px-4 py-2.5 text-right " + profitColor(r.NetMarginPercent) }>{ FormatPercent(r.NetMarginPercent) }</td>
+								<td class={ "px-4 py-2.5 text-right font-bold " + profitColor(r.EstMonthlyISK) }>{ FormatISK(r.EstMonthlyISK) }</td>
+								<td class="px-4 py-2.5">
+									<span class={ "inline-block rounded border px-2 py-0.5 text-[10px] font-bold " + verdictBadgeClass(r.Verdict) }>{ string(r.Verdict) }</span>
+								</td>
+								<td class="px-4 py-2.5 text-right font-sans">
+									<a href={ templ.SafeURL(fmt.Sprintf("/pi?type_id=%d", r.TypeID)) } class="rounded border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-[10px] font-semibold text-amber-200 hover:bg-amber-500/25">
+										View Tree →
+									</a>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	}
+}

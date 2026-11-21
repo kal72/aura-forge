@@ -143,3 +143,18 @@ func (tr *TemplRenderer) RenderWiki(w http.ResponseWriter, r *http.Request, mode
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	return WikiPage(mode).Render(r.Context(), w)
 }
+
+func (tr *TemplRenderer) RenderPI(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, items []domain.PICommodity, selectedTree *domain.PIRecipeAnalysis, colonies []domain.PIColony) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return PIPage(mode, items, selectedTree, colonies).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderPITreePartial(w http.ResponseWriter, r *http.Request, tree *domain.PIRecipeAnalysis, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return PITreePartial(tree, errMsg).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderPIScanPartial(w http.ResponseWriter, r *http.Request, rows []domain.PIProfitRow, tier string, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return PIScanPartial(rows, tier, errMsg).Render(r.Context(), w)
+}

@@ -48,6 +48,7 @@ func main() {
 		userRepo     domain.UserRepository
 		sdeRepo      domain.SDERepository
 		wealthRepo   domain.NetWorthRepository
+		piRepo       domain.PIRepository
 	)
 
 	db, err := postgres.NewDB(ctx, cfg.DatabaseURL)
@@ -66,6 +67,7 @@ func main() {
 		userRepo = postgres.NewUserRepo(db.Pool)
 		sdeRepo = postgres.NewSDERepo(db.Pool)
 		wealthRepo = postgres.NewWealthRepo(db.Pool)
+		piRepo = postgres.NewPIRepo(db.Pool)
 	}
 
 	// Initialize Application Auth & seed initial Admin account if database has no users yet
@@ -101,6 +103,7 @@ func main() {
 	)
 	copilotSvc.SetSDERepository(sdeRepo)
 	copilotSvc.SetNetWorthRepository(wealthRepo)
+	copilotSvc.SetPIRepository(piRepo)
 
 	router := apphttp.NewRouterWithAuth(copilotSvc, authSvc, web.NewRenderer())
 

@@ -121,6 +121,16 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.Post("/make-vs-buy", h.HandleMakeVsBuy)
 		})
 
+		// Planetary Industry (PI) Hub: P1-P4 Explorer, Recursive Recipe Tree, Source Planets & Colony Timers
+		r.Route("/pi", func(r chi.Router) {
+			r.Get("/", h.HandlePIPage)
+			r.Get("/tree", h.HandlePITree)
+			r.Post("/scan", h.HandlePIScan)
+			r.Post("/colonies", h.HandlePIColonySave)
+			r.Post("/colonies/{id}/reset", h.HandlePIColonyReset)
+			r.Delete("/colonies/{id}", h.HandlePIColonyDelete)
+		})
+
 		// Weekly Production & Slot Planner
 		r.Route("/planner", func(r chi.Router) {
 			r.Get("/", h.HandlePlanner)

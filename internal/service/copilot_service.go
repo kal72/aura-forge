@@ -80,6 +80,7 @@ type CopilotService struct {
 	sso      SSOAuthenticator
 	sde      domain.SDERepository
 	wealth   domain.NetWorthRepository
+	pi       domain.PIRepository
 }
 
 // NewCopilotService constructs a CopilotService via Dependency Inversion interfaces.
