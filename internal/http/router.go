@@ -101,11 +101,18 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.Post("/make-vs-buy", h.HandleMakeVsBuy)
 		})
 
+		// Manufacture Horizontal Blueprint Recipe Tree & Cost Explorer
+		r.Route("/manufacture", func(r chi.Router) {
+			r.Get("/", h.HandleManufacturePage)
+			r.Post("/tree", h.HandleManufactureTree)
+		})
+
 		// Planetary Industry (PI) Hub (Research tabs for all; My Colonies mutations for admin only)
 		r.Route("/pi", func(r chi.Router) {
 			r.Get("/", h.HandlePIPage)
 			r.Get("/tree", h.HandlePITree)
 			r.Post("/scan", h.HandlePIScan)
+			r.Post("/sales-calc", h.HandlePISalesCalc)
 			r.With(adminOnly).Post("/colonies", h.HandlePIColonySave)
 			r.With(adminOnly).Post("/colonies/{id}/reset", h.HandlePIColonyReset)
 			r.With(adminOnly).Delete("/colonies/{id}", h.HandlePIColonyDelete)

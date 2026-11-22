@@ -510,3 +510,259 @@ func BuildPIRecipeTree(typeID int32, prices map[int32]JitaPrice, pocoTaxPct floa
 		MultibuyText:       strings.Join(multibuyLines, "\n"),
 	}, nil
 }
+
+// PIUnitVolumeM3 returns the official EVE Online unit cargo volume (m3) for each PI tier.
+func PIUnitVolumeM3(tier PITier) float64 {
+	switch tier {
+	case PITierP0:
+		return 0.01
+	case PITierP1:
+		return 0.38
+	case PITierP2:
+		return 1.50
+	case PITierP3:
+		return 6.00
+	case PITierP4:
+		return 100.00
+	default:
+		return 1.50
+	}
+}
+
+// LookupPICommodityByName finds a producible PI commodity (P1-P4) by case-insensitive exact name.
+func LookupPICommodityByName(name string) (PICommodity, bool) {
+	needle := strings.ToLower(strings.TrimSpace(name))
+	if needle == "" {
+		return PICommodity{}, false
+	}
+	for _, c := range piCatalogByID {
+		if c.Tier != PITierP0 && strings.ToLower(c.Name) == needle {
+			return c, true
+		}
+	}
+	return PICommodity{}, false
+}
+
+// PISalesInputItem represents one PI commodity and unit quantity to simulate selling.
+type PISalesInputItem struct {
+	TypeID   int32 `json:"type_id"`
+	Quantity int64 `json:"quantity"`
+}
+
+// PISalesCalcOptions configures trade hub, cost basis, sell execution mode, and fee rates.
+type PISalesCalcOptions struct {
+	Hub              TradeHub `json:"hub"`
+	CostMode         string   `json:"cost_mode"`          // "self_extracted" | "buy_inputs"
+	SellMode         string   `json:"sell_mode"`          // "sell_order" | "instant_buy"
+	POCOTaxPercent   float64  `json:"poco_tax_percent"`   // 0..15%
+	BrokerFeePercent float64  `json:"broker_fee_percent"` // applied to sell_order only
+	SalesTaxPercent  float64  `json:"sales_tax_percent"`  // applied to both sell modes
+}
+
+// PISalesLineResult summarizes live profit and cargo volume for one PI item line.
+type PISalesLineResult struct {
+	TypeID       int32   `json:"type_id"`
+	Name         string  `json:"name"`
+	Tier         PITier  `json:"tier"`
+	Quantity     int64   `json:"quantity"`
+	UnitPrice    float64 `json:"unit_price"`
+	GrossRevenue float64 `json:"gross_revenue"`
+	InputCost    float64 `json:"input_cost"`
+	POCOTax      float64 `json:"poco_tax"`
+	MarketFees   float64 `json:"market_fees"`
+	NetProfit    float64 `json:"net_profit"`
+	MarginPct    float64 `json:"margin_pct"`
+	VolumeM3     float64 `json:"volume_m3"`
+}
+
+// PISalesCalcResult aggregates multi-item PI sales profit, fees, and Epithal hauling volume.
+type PISalesCalcResult struct {
+	Options           PISalesCalcOptions  `json:"options"`
+	Lines             []PISalesLineResult `json:"lines"`
+	TotalUnits        int64               `json:"total_units"`
+	TotalGrossRevenue float64             `json:"total_gross_revenue"`
+	TotalInputCost    float64             `json:"total_input_cost"`
+	TotalPOCOTax      float64             `json:"total_poco_tax"`
+	TotalMarketFees   float64             `json:"total_market_fees"`
+	TotalNetProfit    float64             `json:"total_net_profit"`
+	OverallMarginPct  float64             `json:"overall_margin_pct"`
+	TotalVolumeM3     float64             `json:"total_volume_m3"`
+	EpithalCapacityM3 float64             `json:"epithal_capacity_m3"`
+	EpithalTrips      int                 `json:"epithal_trips"`
+}
+
+// ParsePIInventoryPaste parses EVE Online Inventory / Multibuy clipboard lines ("Item Name\tQty" or "Item Name  Qty")
+// into recognized producible P1-P4 PI items, returning unmatched non-empty lines for user feedback.
+func ParsePIInventoryPaste(raw string) ([]PISalesInputItem, []string) {
+	var parsed []PISalesInputItem
+	var unmatched []string
+
+	for _, line := range strings.Split(raw, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		var namePart, qtyPart string
+		if strings.Contains(line, "\t") {
+			cols := strings.Split(line, "\t")
+			namePart = strings.TrimSpace(cols[0])
+			if len(cols) >= 2 {
+				qtyPart = strings.TrimSpace(cols[1])
+			}
+		} else {
+			// Fallback: split last whitespace-separated token as quantity
+			fields := strings.Fields(line)
+			if len(fields) >= 2 {
+				qtyPart = fields[len(fields)-1]
+				namePart = strings.Join(fields[:len(fields)-1], " ")
+			} else {
+				namePart = line
+			}
+		}
+
+		// Strip commas/spaces/x from quantity (e.g. "2,500" or "2500x")
+		qtyClean := strings.NewReplacer(",", "", ".", "", " ", "", "x", "", "X", "").Replace(qtyPart)
+		var qty int64 = 1
+		if qtyClean != "" {
+			var n int64
+			if _, err := fmt.Sscanf(qtyClean, "%d", &n); err == nil && n > 0 {
+				qty = n
+			}
+		}
+
+		comm, ok := LookupPICommodityByName(namePart)
+		if !ok {
+			unmatched = append(unmatched, line)
+			continue
+		}
+		parsed = append(parsed, PISalesInputItem{
+			TypeID:   comm.TypeID,
+			Quantity: qty,
+		})
+	}
+	return parsed, unmatched
+}
+
+// CalculatePISalesProfit computes multi-item PI sales profit for custom unit quantities using live hub prices.
+func CalculatePISalesProfit(items []PISalesInputItem, prices map[int32]JitaPrice, opts PISalesCalcOptions) PISalesCalcResult {
+	if opts.POCOTaxPercent < 0 {
+		opts.POCOTaxPercent = 0
+	}
+	if opts.CostMode != "buy_inputs" {
+		opts.CostMode = "self_extracted"
+	}
+	if opts.SellMode != "instant_buy" {
+		opts.SellMode = "sell_order"
+	}
+
+	// Merge duplicate TypeIDs preserving insertion order
+	qtyByID := make(map[int32]int64, len(items))
+	order := make([]int32, 0, len(items))
+	for _, it := range items {
+		if it.TypeID <= 0 || it.Quantity <= 0 {
+			continue
+		}
+		if _, ok := piCatalogByID[it.TypeID]; !ok {
+			continue
+		}
+		if _, seen := qtyByID[it.TypeID]; !seen {
+			order = append(order, it.TypeID)
+		}
+		qtyByID[it.TypeID] += it.Quantity
+	}
+
+	brokerPct := opts.BrokerFeePercent
+	if opts.SellMode == "instant_buy" {
+		brokerPct = 0
+	}
+	totalMarketFeeRate := (brokerPct + opts.SalesTaxPercent) / 100.0
+
+	const epithalHoldIV = 63000.0 // Epithal Planetary Commodities Hold at Gallente Hauler IV (63,000 m3)
+
+	res := PISalesCalcResult{
+		Options:           opts,
+		Lines:             make([]PISalesLineResult, 0, len(order)),
+		EpithalCapacityM3: epithalHoldIV,
+	}
+
+	for _, id := range order {
+		comm := piCatalogByID[id]
+		qty := qtyByID[id]
+		jp := prices[id]
+
+		unitPrice := jp.LowestSell
+		if opts.SellMode == "instant_buy" {
+			if jp.HighestBuy > 0 {
+				unitPrice = jp.HighestBuy
+			}
+		} else if unitPrice <= 0 && jp.HighestBuy > 0 {
+			unitPrice = jp.HighestBuy
+		}
+
+		gross := RoundISK(unitPrice * float64(qty))
+		pocoExport := (comm.BaseValueISK * (opts.POCOTaxPercent / 100.0)) * float64(qty)
+
+		var inputCost, pocoImport float64
+		if opts.CostMode == "buy_inputs" && len(comm.Inputs) > 0 {
+			outPerCycle := comm.OutputQty
+			if outPerCycle <= 0 {
+				outPerCycle = 1
+			}
+			cycles := float64(qty) / float64(outPerCycle)
+			for _, req := range comm.Inputs {
+				inComm, ok := piCatalogByID[req.TypeID]
+				if !ok || inComm.Tier == PITierP0 {
+					continue
+				}
+				inQty := float64(req.Quantity) * cycles
+				inPrice := prices[req.TypeID].LowestSell
+				if inPrice <= 0 {
+					inPrice = prices[req.TypeID].HighestBuy
+				}
+				inputCost += inPrice * inQty
+				pocoImport += (inComm.BaseValueISK * 0.5 * (opts.POCOTaxPercent / 100.0)) * inQty
+			}
+		}
+
+		inputCost = RoundISK(inputCost)
+		pocoTax := RoundISK(pocoExport + pocoImport)
+		marketFees := RoundISK(gross * totalMarketFeeRate)
+		netProfit := RoundISK(gross - inputCost - pocoTax - marketFees)
+		marginPct := 0.0
+		if gross > 0 {
+			marginPct = RoundPercent((netProfit / gross) * 100.0)
+		}
+		volM3 := RoundISK(PIUnitVolumeM3(comm.Tier) * float64(qty))
+
+		res.Lines = append(res.Lines, PISalesLineResult{
+			TypeID:       comm.TypeID,
+			Name:         comm.Name,
+			Tier:         comm.Tier,
+			Quantity:     qty,
+			UnitPrice:    RoundISK(unitPrice),
+			GrossRevenue: gross,
+			InputCost:    inputCost,
+			POCOTax:      pocoTax,
+			MarketFees:   marketFees,
+			NetProfit:    netProfit,
+			MarginPct:    marginPct,
+			VolumeM3:     volM3,
+		})
+
+		res.TotalUnits += qty
+		res.TotalGrossRevenue = RoundISK(res.TotalGrossRevenue + gross)
+		res.TotalInputCost = RoundISK(res.TotalInputCost + inputCost)
+		res.TotalPOCOTax = RoundISK(res.TotalPOCOTax + pocoTax)
+		res.TotalMarketFees = RoundISK(res.TotalMarketFees + marketFees)
+		res.TotalNetProfit = RoundISK(res.TotalNetProfit + netProfit)
+		res.TotalVolumeM3 = RoundISK(res.TotalVolumeM3 + volM3)
+	}
+
+	if res.TotalGrossRevenue > 0 {
+		res.OverallMarginPct = RoundPercent((res.TotalNetProfit / res.TotalGrossRevenue) * 100.0)
+	}
+	if res.TotalVolumeM3 > 0 {
+		res.EpithalTrips = int(math.Ceil(res.TotalVolumeM3 / epithalHoldIV))
+	}
+	return res
+}

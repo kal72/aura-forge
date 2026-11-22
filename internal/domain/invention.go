@@ -69,15 +69,16 @@ func LookupT2Preset(key string) T2InventionPreset {
 
 // InventionInput holds user parameters for evaluating all 9 Decryptors on a T2 product.
 type InventionInput struct {
-	PresetKey             string  `json:"preset_key"`
-	EncryptionSkill       int     `json:"encryption_skill"`        // 1..5
-	Datacore1Skill        int     `json:"datacore_1_skill"`        // 1..5
-	Datacore2Skill        int     `json:"datacore_2_skill"`        // 1..5
-	BaseBuildCostPerRun   float64 `json:"base_build_cost_per_run"` // ME 0 T2 material cost per run
-	ProductSellOverride   float64 `json:"product_sell_override"`   // 0 = live Jita sell
-	InventionJobFee       float64 `json:"invention_job_fee"`       // per invention attempt
-	BrokerFeePercent      float64 `json:"broker_fee_percent"`
-	SalesTaxPercent       float64 `json:"sales_tax_percent"`
+	PresetKey           string  `json:"preset_key"`
+	HubKey              string  `json:"hub_key,omitempty"`       // optional: jita|amarr|dodixie|rens|hek
+	EncryptionSkill     int     `json:"encryption_skill"`        // 1..5
+	Datacore1Skill      int     `json:"datacore_1_skill"`        // 1..5
+	Datacore2Skill      int     `json:"datacore_2_skill"`        // 1..5
+	BaseBuildCostPerRun float64 `json:"base_build_cost_per_run"` // ME 0 T2 material cost per run
+	ProductSellOverride float64 `json:"product_sell_override"`   // 0 = live hub sell
+	InventionJobFee     float64 `json:"invention_job_fee"`       // per invention attempt
+	BrokerFeePercent    float64 `json:"broker_fee_percent"`
+	SalesTaxPercent     float64 `json:"sales_tax_percent"`
 }
 
 // DecryptorScenario holds the calculated economics for one Decryptor option.
@@ -102,6 +103,7 @@ type DecryptorScenario struct {
 // InventionOptimizationResult bundles all 9 decryptor scenarios for a T2 item.
 type InventionOptimizationResult struct {
 	Preset             T2InventionPreset   `json:"preset"`
+	HubName            string              `json:"hub_name,omitempty"`
 	ProductSellPrice   float64             `json:"product_sell_price"`
 	DatacoreCostPerTry float64             `json:"datacore_cost_per_try"`
 	BestScenario       DecryptorScenario   `json:"best_scenario"`

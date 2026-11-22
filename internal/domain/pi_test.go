@@ -62,3 +62,49 @@ func TestBuildPlanetCatalog_All8PlanetsWithResourcesAndSinglePlanetP2(t *testing
 		}
 	}
 }
+
+func TestPISalesCalculator_MultiItemAndPaste(t *testing.T) {
+	paste := "Coolant\t2,000\nMechanical Parts\t1500\nRandom Junk Item\t50"
+	parsed, unmatched := domain.ParsePIInventoryPaste(paste)
+	if len(parsed) != 2 {
+		t.Fatalf("expected 2 recognized PI items from paste, got %d", len(parsed))
+	}
+	if len(unmatched) != 1 {
+		t.Fatalf("expected 1 unmatched non-PI line, got %d", len(unmatched))
+	}
+
+	prices := map[int32]domain.JitaPrice{
+		9832: {LowestSell: 11_000, HighestBuy: 10_000}, // Coolant (P2)
+		3689: {LowestSell: 12_000, HighestBuy: 11_000}, // Mechanical Parts (P2)
+	}
+	opts := domain.PISalesCalcOptions{
+		Hub:              domain.LookupTradeHub("amarr"),
+		CostMode:         "self_extracted",
+		SellMode:         "sell_order",
+		POCOTaxPercent:   5.0,
+		BrokerFeePercent: 3.0,
+		SalesTaxPercent:  3.6,
+	}
+
+	res := domain.CalculatePISalesProfit(parsed, prices, opts)
+	if len(res.Lines) != 2 || res.TotalUnits != 3500 {
+		t.Fatalf("expected 2 lines and 3500 units, got %d lines / %d units", len(res.Lines), res.TotalUnits)
+	}
+	if res.TotalGrossRevenue != 40_000_000 {
+		t.Fatalf("expected gross 40,000,000 ISK, got %.2f", res.TotalGrossRevenue)
+	}
+	if res.TotalNetProfit <= 0 || res.TotalPOCOTax <= 0 || res.TotalMarketFees <= 0 {
+		t.Fatalf("expected positive net profit, poco tax, and market fees, got %+v", res)
+	}
+	// 3,500 P2 units * 1.5 m3 = 5,250 m3 -> fits 1 Epithal trip
+	if res.TotalVolumeM3 != 5250.0 || res.EpithalTrips != 1 {
+		t.Fatalf("expected 5250.0 m3 and 1 Epithal trip, got %.1f m3 / %d trips", res.TotalVolumeM3, res.EpithalTrips)
+	}
+
+	// Instant Sell mode must use HighestBuy and zero broker fee
+	opts.SellMode = "instant_buy"
+	inst := domain.CalculatePISalesProfit(parsed, prices, opts)
+	if inst.TotalGrossRevenue != 36_500_000 {
+		t.Fatalf("expected instant sell gross 36,500,000 ISK, got %.2f", inst.TotalGrossRevenue)
+	}
+}

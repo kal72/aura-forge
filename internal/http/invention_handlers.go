@@ -28,6 +28,7 @@ func (h *Handlers) HandleInventionOptimize(w http.ResponseWriter, r *http.Reques
 	settings, _ := h.svc.GetSettings(r.Context())
 	in := domain.InventionInput{
 		PresetKey:           strings.TrimSpace(r.FormValue("preset_key")),
+		HubKey:              strings.TrimSpace(r.FormValue("hub")),
 		EncryptionSkill:     parseIntDefault(r.FormValue("encryption_skill"), 4),
 		Datacore1Skill:      parseIntDefault(r.FormValue("datacore_1_skill"), 4),
 		Datacore2Skill:      parseIntDefault(r.FormValue("datacore_2_skill"), 4),

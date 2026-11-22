@@ -55,6 +55,17 @@ func reverseSnapshots(snaps []domain.NetWorthSnapshot) []domain.NetWorthSnapshot
 	return out
 }
 
+func wealthSharePct(part, total float64) float64 {
+	if total <= 0 || part <= 0 {
+		return 0
+	}
+	pct := (part / total) * 100.0
+	if pct > 100 {
+		pct = 100
+	}
+	return pct
+}
+
 templ WealthPage(mode service.ModeInfo, summary *domain.WealthSummary) {
 	@Layout("Net Worth & 100B+ Roadmap", "wealth", mode) {
 		<div class="space-y-6" x-data="{ showSnapshotForm: false }">
@@ -62,7 +73,7 @@ templ WealthPage(mode service.ModeInfo, summary *domain.WealthSummary) {
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-white">Net Worth Tracker &amp; 100B+ ISK Roadmap</h1>
-					<p class="text-xs text-slate-300/80 mt-0.5">Track total asset compounding (Wallet + Sell Orders + Escrow + Inventory + Active Jobs) and follow your capital-tier playbook.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">Track your <strong>Total Wealth (Net Worth)</strong> compounding across all 5 asset pillars (Wallet + Sell Orders + Escrow + Inventory + Active Jobs) toward 100B+ ISK.</p>
 				</div>
 				<div class="flex flex-wrap gap-2">
 					<button
@@ -152,11 +163,52 @@ templ WealthPage(mode service.ModeInfo, summary *domain.WealthSummary) {
 				</div>
 			</div>
 
+			<!-- Total Wealth vs Working Capital Clarity + Visual Asset Composition -->
+			<div class="tactical-panel rounded-xl p-4 space-y-3">
+				<div class="grid grid-cols-1 gap-3 md:grid-cols-2 text-xs">
+					<div class="rounded-lg border border-amber-400/30 bg-amber-950/20 px-3.5 py-2.5">
+						<div class="font-mono text-[10px] font-bold uppercase tracking-wider text-amber-300">Total Wealth / Net Worth (Goal: 100B+ ISK)</div>
+						<p class="text-slate-200 mt-0.5 leading-relaxed">
+							Your combined EVE assets — Liquid Wallet + Active Sell Orders + Buy Escrow + Hangar Inventory + Active Industry Jobs. You do <strong>not</strong> need 100B ISK as starting capital; you compound into 100B+ Total Wealth over time.
+						</p>
+					</div>
+					<div class="rounded-lg border border-sky-400/30 bg-sky-950/20 px-3.5 py-2.5">
+						<div class="font-mono text-[10px] font-bold uppercase tracking-wider text-sky-300">Working Capital (Active Production &amp; Trading)</div>
+						<p class="text-slate-200 mt-0.5 leading-relaxed">
+							Only the liquid ISK you actively rotate in <a href="/allocator" class="text-sky-300 underline hover:text-sky-200">Smart Allocator</a> &amp; <a href="/catalog" class="text-sky-300 underline hover:text-sky-200">Catalog</a> batches (keeping a 15% Cash Buffer for broker fees &amp; relists).
+						</p>
+					</div>
+				</div>
+
+				if summary.CurrentNetWorth > 0 {
+					<div class="space-y-1.5 pt-1">
+						<div class="flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono text-slate-400">
+							<span class="uppercase">Total Wealth Composition</span>
+							<span>Liquid Share: <strong class="text-emerald-300">{ FormatPercent(wealthSharePct(summary.WalletISK, summary.CurrentNetWorth)) }</strong> • Invested Share: <strong class="text-sky-300">{ FormatPercent(wealthSharePct(summary.SellOrdersISK+summary.EscrowISK+summary.InventoryISK+summary.ActiveJobsISK, summary.CurrentNetWorth)) }</strong></span>
+						</div>
+						<div class="flex h-2.5 w-full overflow-hidden rounded-full bg-slate-900 border border-slate-800">
+							<div class="bg-emerald-500" style={ fmt.Sprintf("width: %.2f%%;", wealthSharePct(summary.WalletISK, summary.CurrentNetWorth)) } title={ fmt.Sprintf("Liquid Wallet: %s", FormatISK(summary.WalletISK)) }></div>
+							<div class="bg-sky-500" style={ fmt.Sprintf("width: %.2f%%;", wealthSharePct(summary.SellOrdersISK, summary.CurrentNetWorth)) } title={ fmt.Sprintf("Sell Orders: %s", FormatISK(summary.SellOrdersISK)) }></div>
+							<div class="bg-amber-500" style={ fmt.Sprintf("width: %.2f%%;", wealthSharePct(summary.EscrowISK, summary.CurrentNetWorth)) } title={ fmt.Sprintf("Buy Escrow: %s", FormatISK(summary.EscrowISK)) }></div>
+							<div class="bg-slate-400" style={ fmt.Sprintf("width: %.2f%%;", wealthSharePct(summary.InventoryISK, summary.CurrentNetWorth)) } title={ fmt.Sprintf("Hangar Inventory: %s", FormatISK(summary.InventoryISK)) }></div>
+							<div class="bg-violet-500" style={ fmt.Sprintf("width: %.2f%%;", wealthSharePct(summary.ActiveJobsISK, summary.CurrentNetWorth)) } title={ fmt.Sprintf("Active Jobs: %s", FormatISK(summary.ActiveJobsISK)) }></div>
+						</div>
+						<div class="flex flex-wrap gap-3 text-[10px] font-mono text-slate-400">
+							<span class="inline-flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-emerald-500"></span>Wallet ({ FormatISK(summary.WalletISK) })</span>
+							<span class="inline-flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-sky-500"></span>Sell Orders ({ FormatISK(summary.SellOrdersISK) })</span>
+							<span class="inline-flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-amber-500"></span>Escrow ({ FormatISK(summary.EscrowISK) })</span>
+							<span class="inline-flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-slate-400"></span>Inventory ({ FormatISK(summary.InventoryISK) })</span>
+							<span class="inline-flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-violet-500"></span>Active Jobs ({ FormatISK(summary.ActiveJobsISK) })</span>
+						</div>
+					</div>
+				}
+			</div>
+
 			<!-- 0 -> 100B+ Milestone Ladder -->
 			<div class="tactical-panel rounded-xl p-5 space-y-3">
 				<div class="flex flex-wrap items-center justify-between gap-2">
-					<h2 class="text-xs font-bold uppercase tracking-wider text-amber-300">Milestone Ladder (100M → 1B → 10B → 50B → 100B ISK)</h2>
-					<span class="text-[11px] font-mono text-slate-300">North Star Goal: 100B+ ISK</span>
+					<h2 class="text-xs font-bold uppercase tracking-wider text-amber-300">Total Wealth Milestone Ladder (100M → 1B → 10B → 50B → 100B ISK)</h2>
+					<span class="text-[11px] font-mono text-slate-300">North Star Goal: 100B+ ISK Total Wealth</span>
 				</div>
 				<div class="grid grid-cols-1 gap-3 sm:grid-cols-5">
 					for _, m := range summary.Milestones {

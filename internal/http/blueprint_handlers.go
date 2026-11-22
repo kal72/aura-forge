@@ -119,6 +119,96 @@ func (h *Handlers) HandleBlueprintSearch(w http.ResponseWriter, r *http.Request)
 	h.writeJSON(w, http.StatusOK, res)
 }
 
+// HandleManufacturePage renders the dedicated Manufacture Horizontal Blueprint Tree & Recipe Cost page.
+func (h *Handlers) HandleManufacturePage(w http.ResponseWriter, r *http.Request) {
+	mode := h.svc.GetModeInfo(r.Context())
+	settings, _ := h.svc.GetSettings(r.Context())
+	blueprints, _ := h.svc.SearchBlueprints(r.Context(), "", "", 100)
+
+	var initialRes *domain.BlueprintCalcResult
+	if rawBP := strings.TrimSpace(r.URL.Query().Get("bp_id")); rawBP != "" {
+		if bpID, err := strconv.ParseInt(rawBP, 10, 32); err == nil && bpID > 0 {
+			hubKey := strings.TrimSpace(r.URL.Query().Get("hub"))
+			if hubKey == "" && settings != nil {
+				hubKey = settings.ActiveTradeHub().Key
+			}
+			in := domain.BlueprintCalcInput{
+				BlueprintTypeID:     int32(bpID),
+				Runs:                parseIntDefault(r.URL.Query().Get("runs"), 1),
+				ME:                  parseIntDefault(r.URL.Query().Get("me"), 10),
+				TE:                  20,
+				HubKey:              hubKey,
+				MaterialPriceSource: "jita_sell",
+				SystemCostIndex:     settings.SystemCostIndex,
+				FacilityTaxPercent:  settings.FacilityTaxPercent,
+				BrokerFeePercent:    settings.BrokerFeePercent,
+				SalesTaxPercent:     settings.SalesTaxPercent,
+				RelistFeePercent:    settings.RelistFeePercent,
+				EstimatedRelists:    1,
+				BatchesPerWeek:      1,
+			}
+			if res, err := h.svc.CalculateBlueprintProfit(r.Context(), in); err == nil {
+				initialRes = res
+			}
+		}
+	}
+
+	if h.renderer != nil {
+		_ = h.renderer.RenderManufacture(w, r, mode, *settings, blueprints, initialRes)
+		return
+	}
+	h.writeJSON(w, http.StatusOK, map[string]any{"blueprints": len(blueprints), "result": initialRes})
+}
+
+// HandleManufactureTree computes the horizontal blueprint recipe tree and total recipe cost for the chosen Trade Hub.
+func (h *Handlers) HandleManufactureTree(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	settings, _ := h.svc.GetSettings(r.Context())
+	bpID, _ := strconv.ParseInt(strings.TrimSpace(r.FormValue("blueprint_type_id")), 10, 32)
+	hubKey := strings.TrimSpace(r.FormValue("hub_key"))
+	if hubKey == "" && settings != nil {
+		hubKey = settings.ActiveTradeHub().Key
+	}
+
+	in := domain.BlueprintCalcInput{
+		BlueprintTypeID:     int32(bpID),
+		Runs:                parseIntDefault(r.FormValue("runs"), 1),
+		ME:                  parseIntDefault(r.FormValue("me"), 10),
+		TE:                  20,
+		StructureKey:        strings.TrimSpace(r.FormValue("structure_key")),
+		HubKey:              hubKey,
+		MaterialPriceSource: strings.TrimSpace(r.FormValue("material_price_source")),
+		MakeBuyOverrides:    domain.ParseMakeBuyOverrides(r.FormValue("make_buy_overrides")),
+		SystemCostIndex:     settings.SystemCostIndex,
+		FacilityTaxPercent:  settings.FacilityTaxPercent,
+		BrokerFeePercent:    settings.BrokerFeePercent,
+		SalesTaxPercent:     settings.SalesTaxPercent,
+		RelistFeePercent:    settings.RelistFeePercent,
+		EstimatedRelists:    1,
+		BatchesPerWeek:      1,
+	}
+
+	res, err := h.svc.CalculateBlueprintProfit(r.Context(), in)
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
+
+	if h.renderer != nil {
+		_ = h.renderer.RenderManufactureTreePartial(w, r, res, errMsg)
+		return
+	}
+	if err != nil {
+		h.writeJSON(w, http.StatusBadRequest, map[string]string{"error": errMsg})
+		return
+	}
+	h.writeJSON(w, http.StatusOK, res)
+}
+
 // HandleSDEImport triggers the asynchronous 1-click Official CCP SDE (JSONL) import from /settings.
 func (h *Handlers) HandleSDEImport(w http.ResponseWriter, r *http.Request) {
 	started, err := h.svc.StartOfficialCCPSDEImport()

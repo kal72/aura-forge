@@ -8,18 +8,23 @@ import (
 	"aura-forge/internal/domain"
 )
 
-// OptimizeT2InventionLive fetches live Jita prices for all 8 Decryptors, the preset's 2 Datacores,
+// OptimizeT2InventionLive fetches live Trade Hub prices for all 8 Decryptors, the preset's 2 Datacores,
 // and the T2 product from Public ESI (cached in PostgreSQL), then ranks all 9 Decryptor strategies.
 func (s *CopilotService) OptimizeT2InventionLive(ctx context.Context, in domain.InventionInput) (*domain.InventionOptimizationResult, error) {
 	preset := domain.LookupT2Preset(in.PresetKey)
 	settings, _ := s.GetSettings(ctx)
+	hub := domain.LookupTradeHub("jita")
 	if settings != nil {
+		hub = settings.ActiveTradeHub()
 		if in.BrokerFeePercent <= 0 {
 			in.BrokerFeePercent = settings.BrokerFeePercent
 		}
 		if in.SalesTaxPercent <= 0 {
 			in.SalesTaxPercent = settings.SalesTaxPercent
 		}
+	}
+	if strings.TrimSpace(in.HubKey) != "" {
+		hub = domain.LookupTradeHub(in.HubKey)
 	}
 
 	if in.EncryptionSkill < 1 {
@@ -53,25 +58,26 @@ func (s *CopilotService) OptimizeT2InventionLive(ctx context.Context, in domain.
 
 	prices := make(map[int32]domain.JitaPrice)
 	if s.market != nil && len(typeIDs) > 0 {
-		fetched, err := s.market.GetJitaPrices(ctx, typeIDs)
+		fetched, err := s.fetchHubPrices(ctx, hub, typeIDs)
 		if err != nil {
-			return nil, fmt.Errorf("fetching live Jita prices for T2 invention: %w", err)
+			return nil, fmt.Errorf("fetching live %s prices for T2 invention: %w", hub.Name, err)
 		}
 		prices = fetched
 	}
 
 	res := domain.OptimizeT2Invention(preset, in, prices)
+	res.HubName = hub.Name
 	return &res, nil
 }
 
-// EvaluateMakeVsBuy compares buying an intermediate component in Jita vs manufacturing it in-house.
+// EvaluateMakeVsBuy compares buying an intermediate component on the market vs manufacturing it in-house.
 func (s *CopilotService) EvaluateMakeVsBuy(ctx context.Context, name string, qty int, jitaUnitPrice, rawMatPerUnit float64) (domain.MakeVsBuyResult, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
 		return domain.MakeVsBuyResult{}, fmt.Errorf("component name is required")
 	}
 	if jitaUnitPrice <= 0 || rawMatPerUnit <= 0 {
-		return domain.MakeVsBuyResult{}, fmt.Errorf("both Jita unit price and raw material cost per unit must be greater than 0")
+		return domain.MakeVsBuyResult{}, fmt.Errorf("both hub unit price and raw material cost per unit must be greater than 0")
 	}
 	settings, _ := s.GetSettings(ctx)
 	sci := 0.045

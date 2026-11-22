@@ -84,6 +84,61 @@ func (h *Handlers) HandlePIScan(w http.ResponseWriter, r *http.Request) {
 	_ = h.renderer.RenderPIScanPartial(w, r, rows, tier, hub, errMsg)
 }
 
+// HandlePISalesCalc simulates multi-item PI sales profit for custom unit quantities (from row builder or EVE Hangar paste).
+func (h *Handlers) HandlePISalesCalc(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	hubKey := strings.TrimSpace(r.FormValue("hub"))
+	costMode := strings.TrimSpace(r.FormValue("cost_mode"))
+	sellMode := strings.TrimSpace(r.FormValue("sell_mode"))
+	pocoTax := parseFloatDefault(r.FormValue("poco_tax"), 5.0)
+	pasteText := strings.TrimSpace(r.FormValue("paste_text"))
+
+	var items []domain.PISalesInputItem
+	var unmatched []string
+
+	if pasteText != "" {
+		parsed, bad := domain.ParsePIInventoryPaste(pasteText)
+		items = append(items, parsed...)
+		unmatched = bad
+	}
+
+	rawIDs := r.Form["type_id"]
+	rawQtys := r.Form["quantity"]
+	for i := 0; i < len(rawIDs); i++ {
+		tid, err := strconv.ParseInt(strings.TrimSpace(rawIDs[i]), 10, 32)
+		if err != nil || tid <= 0 {
+			continue
+		}
+		var qty int64
+		if i < len(rawQtys) {
+			qty, _ = strconv.ParseInt(strings.TrimSpace(rawQtys[i]), 10, 64)
+		}
+		if qty <= 0 {
+			continue
+		}
+		items = append(items, domain.PISalesInputItem{
+			TypeID:   int32(tid),
+			Quantity: qty,
+		})
+	}
+
+	res, err := h.svc.SimulatePISales(r.Context(), items, costMode, sellMode, pocoTax, hubKey)
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
+
+	if h.renderer == nil {
+		h.writeJSON(w, http.StatusOK, map[string]any{"result": res, "unmatched": unmatched, "error": errMsg})
+		return
+	}
+	_ = h.renderer.RenderPISalesCalcPartial(w, r, res, unmatched, errMsg)
+}
+
 // HandlePIColonySave creates a new tracked PI colony with an extractor expiry timer.
 func (h *Handlers) HandlePIColonySave(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {

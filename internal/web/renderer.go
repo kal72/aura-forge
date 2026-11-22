@@ -49,6 +49,16 @@ func (tr *TemplRenderer) RenderBlueprintResult(w http.ResponseWriter, r *http.Re
 	return BlueprintResultPartial(result, errMsg).Render(r.Context(), w)
 }
 
+func (tr *TemplRenderer) RenderManufacture(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, blueprints []domain.SDEBlueprint, initialResult *domain.BlueprintCalcResult) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return ManufacturePage(mode, settings, blueprints, initialResult).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderManufactureTreePartial(w http.ResponseWriter, r *http.Request, result *domain.BlueprintCalcResult, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return ManufactureTreePartial(result, errMsg).Render(r.Context(), w)
+}
+
 func (tr *TemplRenderer) RenderAllocator(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, cfg domain.AllocationConfig, result *domain.AllocationResult, allocErr string) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	return AllocatorPage(mode, cfg, result, allocErr).Render(r.Context(), w)
@@ -167,4 +177,9 @@ func (tr *TemplRenderer) RenderPITreePartial(w http.ResponseWriter, r *http.Requ
 func (tr *TemplRenderer) RenderPIScanPartial(w http.ResponseWriter, r *http.Request, rows []domain.PIProfitRow, tier string, hub domain.TradeHub, errMsg string) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	return PIScanPartial(rows, tier, hub, errMsg).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderPISalesCalcPartial(w http.ResponseWriter, r *http.Request, res *domain.PISalesCalcResult, unmatched []string, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return PISalesCalcPartial(res, unmatched, errMsg).Render(r.Context(), w)
 }

@@ -166,6 +166,85 @@ func (s *CopilotService) ScanPIProfitability(ctx context.Context, tier string, p
 	return rows, hub, nil
 }
 
+// SimulatePISales computes multi-item PI sales net profit for custom unit quantities
+// using live Public ESI prices at the chosen Trade Hub (or the user's Primary Trade Hub).
+func (s *CopilotService) SimulatePISales(
+	ctx context.Context,
+	items []domain.PISalesInputItem,
+	costMode, sellMode string,
+	pocoTaxPct float64,
+	hubKey string,
+) (*domain.PISalesCalcResult, error) {
+	if len(items) == 0 {
+		return nil, fmt.Errorf("please add at least one PI item and quantity to calculate sales profit")
+	}
+
+	settings, _ := s.GetSettings(ctx)
+	hub := domain.LookupTradeHub("jita")
+	brokerPct := 3.0
+	salesTaxPct := 3.6
+	if settings != nil {
+		hub = settings.ActiveTradeHub()
+		brokerPct = settings.BrokerFeePercent
+		salesTaxPct = settings.SalesTaxPercent
+	}
+	if strings.TrimSpace(hubKey) != "" {
+		hub = domain.LookupTradeHub(hubKey)
+	}
+
+	seen := make(map[int32]struct{}, len(items)*3)
+	typeIDs := make([]int32, 0, len(items)*3)
+	addID := func(id int32) {
+		if id <= 0 {
+			return
+		}
+		if _, ok := seen[id]; !ok {
+			seen[id] = struct{}{}
+			typeIDs = append(typeIDs, id)
+		}
+	}
+
+	for _, it := range items {
+		if it.TypeID <= 0 || it.Quantity <= 0 {
+			continue
+		}
+		addID(it.TypeID)
+		if costMode == "buy_inputs" {
+			if comm, ok := domain.GetPICommodity(it.TypeID); ok {
+				for _, req := range comm.Inputs {
+					if inComm, ok2 := domain.GetPICommodity(req.TypeID); ok2 && inComm.Tier != domain.PITierP0 {
+						addID(req.TypeID)
+					}
+				}
+			}
+		}
+	}
+
+	if len(typeIDs) == 0 {
+		return nil, fmt.Errorf("no valid PI items with positive quantity were provided")
+	}
+
+	prices := make(map[int32]domain.JitaPrice)
+	if s.market != nil {
+		fetched, err := s.fetchHubPrices(ctx, hub, typeIDs)
+		if err != nil {
+			return nil, fmt.Errorf("fetching live %s PI prices: %w", hub.Name, err)
+		}
+		prices = fetched
+	}
+
+	opts := domain.PISalesCalcOptions{
+		Hub:              hub,
+		CostMode:         costMode,
+		SellMode:         sellMode,
+		POCOTaxPercent:   pocoTaxPct,
+		BrokerFeePercent: brokerPct,
+		SalesTaxPercent:  salesTaxPct,
+	}
+	res := domain.CalculatePISalesProfit(items, prices, opts)
+	return &res, nil
+}
+
 // ListPIColonies returns all tracked player PI colonies ordered by soonest extractor expiry.
 func (s *CopilotService) ListPIColonies(ctx context.Context) ([]domain.PIColony, error) {
 	if s.pi == nil {
