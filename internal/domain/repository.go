@@ -161,7 +161,9 @@ type CharacterLedgerSyncProvider interface {
 // TradeLedgerRepository persists realized market transactions, fee journal entries, and historical orders.
 type TradeLedgerRepository interface {
 	UpsertTransactions(ctx context.Context, txs []MarketTransaction) (inserted int, skipped int, err error)
-	ListTransactions(ctx context.Context, periodDays int, sideFilter string, query string, limit int) ([]MarketTransaction, error)
+	ListTransactions(ctx context.Context, periodDays int, sideFilter string, query string, includeExcluded bool, limit int) ([]MarketTransaction, error)
+	SetTransactionsExcluded(ctx context.Context, ids []int64, excluded bool) (int, error)
+	CountExcludedTransactions(ctx context.Context, periodDays int) (int, error)
 	DeleteTransaction(ctx context.Context, id int64) error
 	UpsertFeeEntries(ctx context.Context, entries []WalletFeeEntry) (int, error)
 	ListFeeEntries(ctx context.Context, periodDays int) ([]WalletFeeEntry, error)

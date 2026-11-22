@@ -22,13 +22,15 @@ type LedgerSyncResult struct {
 // TradeLedgerViewData bundles all data required to render Tab 2 (Buy & Sell Ledger)
 // and Tab 3 (Realized P&L & Orders) inside /tracker.
 type TradeLedgerViewData struct {
-	PeriodDays   int                            `json:"period_days"`
-	SideFilter   string                         `json:"side_filter"`
-	SearchQuery  string                         `json:"search_query"`
-	Transactions []domain.MarketTransaction     `json:"transactions"`
-	Report       domain.TradeLedgerReport       `json:"report"`
-	ActiveOrders []domain.CharacterOrder        `json:"active_orders"`
-	OrderHistory []domain.CharacterOrderHistory `json:"order_history"`
+	PeriodDays    int                            `json:"period_days"`
+	SideFilter    string                         `json:"side_filter"`
+	SearchQuery   string                         `json:"search_query"`
+	ShowExcluded  bool                           `json:"show_excluded"`
+	ExcludedCount int                            `json:"excluded_count"`
+	Transactions  []domain.MarketTransaction     `json:"transactions"`
+	Report        domain.TradeLedgerReport       `json:"report"`
+	ActiveOrders  []domain.CharacterOrder        `json:"active_orders"`
+	OrderHistory  []domain.CharacterOrderHistory `json:"order_history"`
 }
 
 // SyncPrivateESILedger pulls wallet transactions, tax/fee journal entries, active orders,
@@ -161,7 +163,16 @@ func (s *CopilotService) AddManualTransaction(ctx context.Context, tx *domain.Ma
 	return err
 }
 
-// DeleteLedgerTransaction removes a transaction row by ID.
+// SetLedgerTransactionsExcluded marks one or more transactions as excluded from P&L (non-industry/personal)
+// or restores them. Excluded transactions remain in DB so future Private ESI syncs never re-import them.
+func (s *CopilotService) SetLedgerTransactionsExcluded(ctx context.Context, ids []int64, excluded bool) (int, error) {
+	if s.ledger == nil {
+		return 0, fmt.Errorf("trade ledger repository unavailable")
+	}
+	return s.ledger.SetTransactionsExcluded(ctx, ids, excluded)
+}
+
+// DeleteLedgerTransaction permanently removes a transaction row by ID (mainly for manual entry typos).
 func (s *CopilotService) DeleteLedgerTransaction(ctx context.Context, id int64) error {
 	if s.ledger == nil {
 		return fmt.Errorf("trade ledger repository unavailable")
@@ -171,14 +182,15 @@ func (s *CopilotService) DeleteLedgerTransaction(ctx context.Context, id int64) 
 
 // GetTradeLedgerView assembles transactions, Realized P&L report, Fee Leak summary,
 // and active/historical market orders for /tracker tabs and Aura AI.
-func (s *CopilotService) GetTradeLedgerView(ctx context.Context, periodDays int, sideFilter, searchQuery string) (*TradeLedgerViewData, error) {
+func (s *CopilotService) GetTradeLedgerView(ctx context.Context, periodDays int, sideFilter, searchQuery string, showExcluded bool) (*TradeLedgerViewData, error) {
 	if periodDays < 0 {
 		periodDays = 30
 	}
 	data := &TradeLedgerViewData{
-		PeriodDays:  periodDays,
-		SideFilter:  strings.ToUpper(strings.TrimSpace(sideFilter)),
-		SearchQuery: strings.TrimSpace(searchQuery),
+		PeriodDays:   periodDays,
+		SideFilter:   strings.ToUpper(strings.TrimSpace(sideFilter)),
+		SearchQuery:  strings.TrimSpace(searchQuery),
+		ShowExcluded: showExcluded,
 	}
 
 	var allPeriodTxs []domain.MarketTransaction
@@ -187,18 +199,19 @@ func (s *CopilotService) GetTradeLedgerView(ctx context.Context, periodDays int,
 	var orderHist []domain.CharacterOrderHistory
 
 	if s.ledger != nil {
-		// Transactions for table (respects side & search filter)
-		filtered, err := s.ledger.ListTransactions(ctx, periodDays, sideFilter, searchQuery, 500)
+		// Transactions for table (respects side, search, and showExcluded filter)
+		filtered, err := s.ledger.ListTransactions(ctx, periodDays, sideFilter, searchQuery, showExcluded, 500)
 		if err != nil {
 			return nil, err
 		}
 		data.Transactions = filtered
+		data.ExcludedCount, _ = s.ledger.CountExcludedTransactions(ctx, periodDays)
 
-		// Full transactions in period for accurate Weighted-Average Cost Basis P&L
-		if sideFilter == "" && searchQuery == "" {
+		// Full NON-EXCLUDED transactions in period for pure business Weighted-Average Cost Basis P&L
+		if sideFilter == "" && searchQuery == "" && !showExcluded {
 			allPeriodTxs = filtered
 		} else {
-			allPeriodTxs, _ = s.ledger.ListTransactions(ctx, periodDays, "", "", 1500)
+			allPeriodTxs, _ = s.ledger.ListTransactions(ctx, periodDays, "", "", false, 1500)
 		}
 
 		fees, _ = s.ledger.ListFeeEntries(ctx, periodDays)

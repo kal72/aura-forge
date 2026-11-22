@@ -72,7 +72,7 @@ func (r *LedgerRepo) UpsertTransactions(ctx context.Context, txs []domain.Market
 	return inserted, skipped, nil
 }
 
-func (r *LedgerRepo) ListTransactions(ctx context.Context, periodDays int, sideFilter string, searchQuery string, limit int) ([]domain.MarketTransaction, error) {
+func (r *LedgerRepo) ListTransactions(ctx context.Context, periodDays int, sideFilter string, searchQuery string, includeExcluded bool, limit int) ([]domain.MarketTransaction, error) {
 	if limit <= 0 || limit > 2000 {
 		limit = 500
 	}
@@ -81,6 +81,9 @@ func (r *LedgerRepo) ListTransactions(ctx context.Context, periodDays int, sideF
 	var args []any
 	argIdx := 1
 
+	if !includeExcluded {
+		conds = append(conds, "is_excluded = FALSE")
+	}
 	if periodDays > 0 {
 		conds = append(conds, fmt.Sprintf("transacted_at >= NOW() - (%d || ' days')::interval", periodDays))
 	}
@@ -105,7 +108,7 @@ func (r *LedgerRepo) ListTransactions(ctx context.Context, periodDays int, sideF
 	query := fmt.Sprintf(`
 		SELECT id, character_id, external_tx_id, dedup_hash, transacted_at, side,
 		       type_id, item_name, quantity, unit_price, total_isk, estimated_fee,
-		       location_id, hub_name, source, notes, created_at
+		       location_id, hub_name, source, notes, is_excluded, created_at
 		FROM market_transactions
 		%s
 		ORDER BY transacted_at DESC, id DESC
@@ -125,7 +128,7 @@ func (r *LedgerRepo) ListTransactions(ctx context.Context, periodDays int, sideF
 		if err := rows.Scan(
 			&tx.ID, &tx.CharacterID, &tx.ExternalTxID, &tx.DedupHash, &tx.TransactedAt, &sideStr,
 			&tx.TypeID, &tx.ItemName, &tx.Quantity, &tx.UnitPrice, &tx.TotalISK, &tx.EstimatedFee,
-			&tx.LocationID, &tx.HubName, &srcStr, &tx.Notes, &tx.CreatedAt,
+			&tx.LocationID, &tx.HubName, &srcStr, &tx.Notes, &tx.IsExcluded, &tx.CreatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("scanning market transaction: %w", err)
 		}
@@ -134,6 +137,29 @@ func (r *LedgerRepo) ListTransactions(ctx context.Context, periodDays int, sideF
 		out = append(out, tx)
 	}
 	return out, nil
+}
+
+func (r *LedgerRepo) SetTransactionsExcluded(ctx context.Context, ids []int64, excluded bool) (int, error) {
+	if len(ids) == 0 {
+		return 0, nil
+	}
+	tag, err := r.pool.Exec(ctx, `UPDATE market_transactions SET is_excluded = $1 WHERE id = ANY($2)`, excluded, ids)
+	if err != nil {
+		return 0, fmt.Errorf("updating excluded state: %w", err)
+	}
+	return int(tag.RowsAffected()), nil
+}
+
+func (r *LedgerRepo) CountExcludedTransactions(ctx context.Context, periodDays int) (int, error) {
+	where := "WHERE is_excluded = TRUE"
+	if periodDays > 0 {
+		where += fmt.Sprintf(" AND transacted_at >= NOW() - (%d || ' days')::interval", periodDays)
+	}
+	var count int
+	if err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM market_transactions "+where).Scan(&count); err != nil {
+		return 0, err
+	}
+	return count, nil
 }
 
 func (r *LedgerRepo) DeleteTransaction(ctx context.Context, id int64) error {

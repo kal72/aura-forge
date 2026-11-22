@@ -518,7 +518,7 @@ func (s *CopilotService) executeAuraTool(
 		if days == 0 && !strings.Contains(argsRaw, `"period_days"`) {
 			days = 30
 		}
-		view, err := s.GetTradeLedgerView(ctx, days, "", "")
+		view, err := s.GetTradeLedgerView(ctx, days, "", "", false)
 		if err != nil {
 			trace.Error = err.Error()
 			return toJSON(map[string]string{"error": err.Error()}), trace, nil

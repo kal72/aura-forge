@@ -113,6 +113,62 @@ func (h *Handlers) HandleLedgerAddManual(w http.ResponseWriter, r *http.Request)
 	http.Redirect(w, r, "/tracker?tab=ledger", http.StatusSeeOther)
 }
 
+// HandleLedgerSetExcluded marks one or more transactions as excluded (non-business/personal) or restores them.
+// Excluded transactions stay in PostgreSQL so future Private ESI syncs never re-import them.
+func (h *Handlers) HandleLedgerSetExcluded(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form payload", http.StatusBadRequest)
+		return
+	}
+
+	excluded := strings.ToLower(strings.TrimSpace(r.FormValue("excluded"))) != "false"
+	rawIDs := r.Form["ids"]
+	var ids []int64
+	for _, raw := range rawIDs {
+		for _, part := range strings.Split(raw, ",") {
+			part = strings.TrimSpace(part)
+			if part == "" {
+				continue
+			}
+			if id, err := strconv.ParseInt(part, 10, 64); err == nil && id > 0 {
+				ids = append(ids, id)
+			}
+		}
+	}
+	if len(ids) == 0 {
+		if IsHTMX(r) {
+			TriggerToast(w, "error", "Select at least one transaction first.")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		http.Error(w, "No transaction IDs selected", http.StatusBadRequest)
+		return
+	}
+
+	n, err := h.svc.SetLedgerTransactionsExcluded(r.Context(), ids, excluded)
+	if err != nil {
+		if IsHTMX(r) {
+			TriggerToast(w, "error", "Failed to update transactions: "+err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	msg := fmt.Sprintf("Excluded %d non-business transaction(s) from P&L (won't re-import on ESI sync).", n)
+	if !excluded {
+		msg = fmt.Sprintf("Restored %d transaction(s) back into P&L calculations.", n)
+	}
+	if IsHTMX(r) {
+		TriggerToast(w, "success", msg)
+		w.Header().Set("HX-Refresh", "true")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	http.Redirect(w, r, "/tracker?tab=ledger", http.StatusSeeOther)
+}
+
 // HandleLedgerDeleteTx deletes a single market transaction from the ledger.
 func (h *Handlers) HandleLedgerDeleteTx(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)

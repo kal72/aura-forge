@@ -788,8 +788,9 @@ func (h *Handlers) HandleTracker(w http.ResponseWriter, r *http.Request) {
 	}
 	sideFilter := strings.ToUpper(strings.TrimSpace(r.URL.Query().Get("side")))
 	searchQuery := strings.TrimSpace(r.URL.Query().Get("q"))
+	showExcluded := r.URL.Query().Get("show_excluded") == "1" || strings.EqualFold(r.URL.Query().Get("show_excluded"), "true")
 
-	ledgerData, _ := h.svc.GetTradeLedgerView(r.Context(), periodDays, sideFilter, searchQuery)
+	ledgerData, _ := h.svc.GetTradeLedgerView(r.Context(), periodDays, sideFilter, searchQuery, showExcluded)
 
 	if h.renderer != nil {
 		mode := h.svc.GetModeInfo(r.Context())

@@ -176,6 +176,7 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 				r.Post("/ledger/sync-esi", h.HandleLedgerSyncESI)
 				r.Post("/ledger/import-paste", h.HandleLedgerImportPaste)
 				r.Post("/ledger/manual", h.HandleLedgerAddManual)
+				r.Post("/ledger/exclude", h.HandleLedgerSetExcluded)
 				r.Delete("/ledger/tx/{id}", h.HandleLedgerDeleteTx)
 			})
 

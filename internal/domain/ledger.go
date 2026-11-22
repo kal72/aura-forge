@@ -46,6 +46,7 @@ type MarketTransaction struct {
 	HubName      string            `json:"hub_name"`
 	Source       TransactionSource `json:"source"`
 	Notes        string            `json:"notes"`
+	IsExcluded   bool              `json:"is_excluded"`
 	CreatedAt    time.Time         `json:"created_at"`
 }
 
@@ -485,6 +486,9 @@ func ComputeRealizedPnLReport(
 	var totalEstimatedFees float64
 
 	for _, tx := range sorted {
+		if tx.IsExcluded {
+			continue
+		}
 		k := itemKey(tx)
 		acc, ok := byItem[k]
 		if !ok {

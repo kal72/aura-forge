@@ -53,6 +53,8 @@ func TestComputeRealizedPnLReport_WeightedAverageAndFeeLeak(t *testing.T) {
 		// Loss maker: Buy 10 @ 100,000 = 1,000,000, Sell 10 @ 90,000 = 900,000 -> Net = -100,000
 		{ID: 4, TransactedAt: t0.Add(3 * time.Hour), Side: domain.TransactionSideBuy, TypeID: 587, ItemName: "Rifter", Quantity: 10, UnitPrice: 100_000, TotalISK: 1_000_000},
 		{ID: 5, TransactedAt: t0.Add(4 * time.Hour), Side: domain.TransactionSideSell, TypeID: 587, ItemName: "Rifter", Quantity: 10, UnitPrice: 90_000, TotalISK: 900_000},
+		// Excluded personal purchase (must be completely ignored by P&L & Cash Out!)
+		{ID: 6, TransactedAt: t0.Add(5 * time.Hour), Side: domain.TransactionSideBuy, TypeID: 29668, ItemName: "Personal PvP Ship", Quantity: 1, UnitPrice: 50_000_000, TotalISK: 50_000_000, IsExcluded: true},
 	}
 
 	fees := []domain.WalletFeeEntry{
