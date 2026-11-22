@@ -1,6 +1,3 @@
-# Local AI / project instructions
-AGENTS.md
-
 # Environment & secrets (never commit real credentials; keep .env.example tracked)
 .env
 .env.*
