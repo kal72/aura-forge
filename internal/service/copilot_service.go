@@ -37,24 +37,42 @@ func (m ModeInfo) IsAdmin() bool {
 	return m.CurrentUser == nil || m.CurrentUser.IsAdmin()
 }
 
+// CopilotAction represents one prioritized, 1-click actionable directive for the Daily Copilot Assistant.
+type CopilotAction struct {
+	Priority    string `json:"priority"` // "URGENT" | "ACTION" | "TIP" | "OK"
+	Title       string `json:"title"`
+	Detail      string `json:"detail"`
+	ActionLabel string `json:"action_label"`
+	ActionURL   string `json:"action_url,omitempty"`
+	ActionPost  string `json:"action_post,omitempty"`
+}
+
 // DashboardSummary aggregates top-level KPIs and daily assistant tasks.
 type DashboardSummary struct {
-	Mode                 ModeInfo           `json:"mode"`
-	AvailableCapital     float64            `json:"available_capital"`
-	CapitalSource        string             `json:"capital_source"`
-	LockedCapital        float64            `json:"locked_capital"`
-	RealizedProfit       float64            `json:"realized_profit"`
-	MfgSlotsTotal        int                `json:"mfg_slots_total"`
-	MfgSlotsUsed         int                `json:"mfg_slots_used"`
-	SciSlotsTotal        int                `json:"sci_slots_total"`
-	SciSlotsUsed         int                `json:"sci_slots_used"`
-	TotalCatalogItems    int                `json:"total_catalog_items"`
-	LayakItemsCount      int                `json:"layak_items_count"`
-	JebakanItemsCount    int                `json:"jebakan_items_count"`
-	ActiveBatchesCount   int                `json:"active_batches_count"`
-	UndercutBatchesCount int                `json:"undercut_batches_count"`
-	ActivePlan           *domain.WeeklyPlan `json:"active_plan,omitempty"`
-	DailyChecklist       []string           `json:"daily_checklist"`
+	Mode                  ModeInfo           `json:"mode"`
+	ActiveHub             domain.TradeHub    `json:"active_hub"`
+	AvailableCapital      float64            `json:"available_capital"`
+	CapitalSource         string             `json:"capital_source"`
+	LockedCapital         float64            `json:"locked_capital"`
+	RealizedProfit        float64            `json:"realized_profit"`
+	MfgSlotsTotal         int                `json:"mfg_slots_total"`
+	MfgSlotsUsed          int                `json:"mfg_slots_used"`
+	SciSlotsTotal         int                `json:"sci_slots_total"`
+	SciSlotsUsed          int                `json:"sci_slots_used"`
+	TotalCatalogItems     int                `json:"total_catalog_items"`
+	LayakItemsCount       int                `json:"layak_items_count"`
+	JebakanItemsCount     int                `json:"jebakan_items_count"`
+	ActiveBatchesCount    int                `json:"active_batches_count"`
+	UndercutBatchesCount  int                `json:"undercut_batches_count"`
+	ExpiringColoniesCount int                `json:"expiring_colonies_count"`
+	ExpiredColoniesCount  int                `json:"expired_colonies_count"`
+	CapturedWealthToday   bool               `json:"captured_wealth_today"`
+	CurrentNetWorth       float64            `json:"current_net_worth"`
+	NextMilestoneLabel    string             `json:"next_milestone_label"`
+	NextMilestonePct      float64            `json:"next_milestone_pct"`
+	ActivePlan            *domain.WeeklyPlan `json:"active_plan,omitempty"`
+	DailyChecklist        []string           `json:"daily_checklist"`
+	CopilotActions        []CopilotAction    `json:"copilot_actions"`
 }
 
 // MineralQuote holds a live trade-hub price snapshot, 7-day trend signal, volume surge, and sparkline for the Dashboard Market Pulse.
@@ -271,9 +289,11 @@ func (s *CopilotService) GetDashboard(ctx context.Context) (*DashboardSummary, e
 
 	mode := s.GetModeInfo(ctx)
 	profile, availCap, capSource := s.resolveProfileAndCapital(ctx, *settings)
+	hub := settings.ActiveTradeHub()
 
 	summary := &DashboardSummary{
 		Mode:             mode,
+		ActiveHub:        hub,
 		AvailableCapital: availCap,
 		CapitalSource:    capSource,
 		MfgSlotsTotal:    settings.ManufacturingSlots,
@@ -333,19 +353,149 @@ func (s *CopilotService) GetDashboard(ctx context.Context) (*DashboardSummary, e
 		}
 	}
 
+	// Check PI Colony extractor timers
+	if s.pi != nil {
+		if cols, err := s.pi.ListColonies(ctx); err == nil {
+			now := time.Now()
+			for _, c := range cols {
+				status, _ := c.StatusLabel(now)
+				switch status {
+				case "EXPIRED":
+					summary.ExpiredColoniesCount++
+				case "EXPIRING":
+					summary.ExpiringColoniesCount++
+				}
+			}
+		}
+	}
+
+	// Check Net Worth snapshots for today's capture & next 100B+ milestone progress
+	today := time.Now().Format("2006-01-02")
+	estNetWorth := domain.RoundISK(summary.AvailableCapital + summary.LockedCapital)
+	if s.wealth != nil {
+		if snaps, err := s.wealth.ListSnapshots(ctx, 14); err == nil && len(snaps) > 0 {
+			latest := snaps[len(snaps)-1]
+			estNetWorth = latest.TotalNetWorth
+			for _, sn := range snaps {
+				if sn.SnapshotDate == today {
+					summary.CapturedWealthToday = true
+					break
+				}
+			}
+		}
+	}
+	summary.CurrentNetWorth = estNetWorth
+	_, nextMs := domain.BuildWealthMilestones(estNetWorth)
+	summary.NextMilestoneLabel = nextMs.Label
+	summary.NextMilestonePct = nextMs.ProgressPct
+
+	summary.CopilotActions = buildCopilotActions(summary)
 	summary.DailyChecklist = buildDailyChecklist(summary)
 	return summary, nil
 }
 
+func buildCopilotActions(d *DashboardSummary) []CopilotAction {
+	hubName := d.ActiveHub.Name
+	if hubName == "" {
+		hubName = "Primary Hub"
+	}
+	actions := make([]CopilotAction, 0, 6)
+
+	// 1. URGENT: Undercut sell orders
+	if d.UndercutBatchesCount > 0 {
+		actions = append(actions, CopilotAction{
+			Priority:    "URGENT",
+			Title:       fmt.Sprintf("%d Listed Order(s) Undercut in %s", d.UndercutBatchesCount, hubName),
+			Detail:      "Competitors beat your sell price. Check Safe Relist Floor before modifying orders so broker fees don't erase your margin.",
+			ActionLabel: "Fix Undercuts →",
+			ActionURL:   "/tracker?status=LISTED",
+		})
+	}
+
+	// 2. URGENT: Expired or Expiring PI Colonies
+	if d.ExpiredColoniesCount > 0 || d.ExpiringColoniesCount > 0 {
+		actions = append(actions, CopilotAction{
+			Priority:    "URGENT",
+			Title:       fmt.Sprintf("PI Extractors Need Attention (%d expired, %d expiring)", d.ExpiredColoniesCount, d.ExpiringColoniesCount),
+			Detail:      "Idle extractors stop passive daily ISK generation. Reset your planet timers in 1 click.",
+			ActionLabel: "Open PI Colonies →",
+			ActionURL:   "/pi",
+		})
+	}
+
+	// 3. ACTION: Idle Manufacturing Slots
+	if d.MfgSlotsUsed < d.MfgSlotsTotal {
+		idle := d.MfgSlotsTotal - d.MfgSlotsUsed
+		targetURL := "/planner"
+		btnLabel := "Fill Slots (Planner) →"
+		if d.ActivePlan == nil {
+			targetURL = "/allocator"
+			btnLabel = "Run Capital Allocator →"
+		}
+		actions = append(actions, CopilotAction{
+			Priority:    "ACTION",
+			Title:       fmt.Sprintf("%d of %d Manufacturing Slot(s) Sitting Idle", idle, d.MfgSlotsTotal),
+			Detail:      "Empty industry slots slow down compounding toward 100B+ Total Wealth. Queue your next profitable wave.",
+			ActionLabel: btnLabel,
+			ActionURL:   targetURL,
+		})
+	}
+
+	// 4. ACTION: Catalog discovery or Live Price Sync
+	if d.TotalCatalogItems == 0 {
+		actions = append(actions, CopilotAction{
+			Priority:    "ACTION",
+			Title:       "Build Your First Profitable Catalog",
+			Detail:      fmt.Sprintf("Scan live %s opportunities or auto-generate beginner-safe items sized to your working capital.", hubName),
+			ActionLabel: "Open Opportunity Scanner →",
+			ActionURL:   "/scanner",
+		})
+	} else {
+		actions = append(actions, CopilotAction{
+			Priority:    "TIP",
+			Title:       fmt.Sprintf("Refresh Live %s Prices & Volumes", hubName),
+			Detail:      fmt.Sprintf("Keep your %d catalog item(s) and Trap Guard signals synced with current Public ESI order books.", d.TotalCatalogItems),
+			ActionLabel: "Sync " + hubName + " Prices",
+			ActionPost:  "/esi/sync-prices",
+		})
+	}
+
+	// 5. ACTION: Today's Net Worth Snapshot
+	if !d.CapturedWealthToday {
+		actions = append(actions, CopilotAction{
+			Priority:    "ACTION",
+			Title:       fmt.Sprintf("Log Today's Total Wealth (Next: %s — %.1f%%)", d.NextMilestoneLabel, d.NextMilestonePct),
+			Detail:      "Capture a daily snapshot to plot your equity curve and verify real compounding velocity.",
+			ActionLabel: "Auto-Capture Today",
+			ActionPost:  "/wealth/auto-snapshot",
+		})
+	}
+
+	if len(actions) == 0 {
+		actions = append(actions, CopilotAction{
+			Priority:    "OK",
+			Title:       "All Systems Optimal — Keep Compounding!",
+			Detail:      "All manufacturing slots are busy, no active undercuts detected, and today's Net Worth snapshot is logged.",
+			ActionLabel: "Open Manufacture →",
+			ActionURL:   "/manufacture",
+		})
+	}
+	return actions
+}
+
 func buildDailyChecklist(d *DashboardSummary) []string {
+	hubName := d.ActiveHub.Name
+	if hubName == "" {
+		hubName = "Primary Hub"
+	}
 	list := make([]string, 0, 5)
 	if d.TotalCatalogItems == 0 {
-		list = append(list, "Run the Opportunity Scanner or click 'Load Sample Data' in Catalog to start discovering profitable items.")
+		list = append(list, "Run the Opportunity Scanner or Auto-Recommend in Catalog to start discovering profitable items.")
 	} else {
-		list = append(list, "Click 'Sync Jita Prices' to refresh live Sell/Buy prices and daily volumes from Public ESI.")
+		list = append(list, fmt.Sprintf("Sync live %s prices to refresh Sell/Buy spreads and daily volumes from Public ESI.", hubName))
 	}
 	if d.UndercutBatchesCount > 0 {
-		list = append(list, fmt.Sprintf("ALERT: %d listed batch(es) are currently undercut in Jita — verify Safe Relist Price in Tracker.", d.UndercutBatchesCount))
+		list = append(list, fmt.Sprintf("ALERT: %d listed batch(es) are currently undercut in %s — verify Safe Relist Price in Tracker.", d.UndercutBatchesCount, hubName))
 	}
 	if d.MfgSlotsUsed < d.MfgSlotsTotal {
 		list = append(list, fmt.Sprintf("%d manufacturing slot(s) are idle — start batches from Weekly Planner to keep ISK compounding.", d.MfgSlotsTotal-d.MfgSlotsUsed))

@@ -51,6 +51,46 @@ func formatCompactVol(v float64) string {
 	}
 }
 
+func copilotPriorityBadgeClass(priority string) string {
+	switch priority {
+	case "URGENT":
+		return "border-rose-400/50 bg-rose-500/20 text-rose-200"
+	case "ACTION":
+		return "border-amber-400/50 bg-amber-500/20 text-amber-200"
+	case "OK":
+		return "border-emerald-400/50 bg-emerald-500/20 text-emerald-200"
+	default:
+		return "border-sky-400/45 bg-sky-500/20 text-sky-200"
+	}
+}
+
+func copilotActionBtnClass(priority string) string {
+	switch priority {
+	case "URGENT":
+		return "border-rose-400/55 bg-rose-500/20 text-rose-100 hover:bg-rose-500/35"
+	case "ACTION":
+		return "border-amber-400/55 bg-amber-400/20 text-amber-100 hover:bg-amber-400/35"
+	case "OK":
+		return "border-emerald-400/50 bg-emerald-500/20 text-emerald-100 hover:bg-emerald-500/35"
+	default:
+		return "border-sky-400/45 bg-sky-500/20 text-sky-100 hover:bg-sky-500/35"
+	}
+}
+
+func dashboardHubKey(hub domain.TradeHub) string {
+	if hub.Key != "" {
+		return hub.Key
+	}
+	return "jita"
+}
+
+func dashboardHubName(hub domain.TradeHub) string {
+	if hub.Name != "" {
+		return hub.Name
+	}
+	return "Jita 4-4"
+}
+
 templ DashboardPage(data *service.DashboardSummary) {
 	@Layout("Dashboard", "dashboard", data.Mode) {
 		<div class="space-y-6">
@@ -127,9 +167,9 @@ templ DashboardPage(data *service.DashboardSummary) {
 			<!-- Live Market Pulse (Minerals, PI Benchmarks, Macro/Fuel, Hot Blueprints & Global Movers) -->
 			<div
 				class="tactical-panel rounded-xl p-4 space-y-3.5"
-				x-data="{
+				x-data={ fmt.Sprintf(`{
 					pulseCat: 'minerals',
-					pulseHub: 'jita',
+					pulseHub: %q,
 					pulseSort: 'demand',
 					loadPulse() {
 						htmx.ajax('GET', '/esi/minerals?category=' + this.pulseCat + '&hub=' + this.pulseHub + '&sort=' + this.pulseSort, {
@@ -146,7 +186,7 @@ templ DashboardPage(data *service.DashboardSummary) {
 						this.pulseSort = s;
 						this.loadPulse();
 					}
-				}"
+				}`, dashboardHubKey(data.ActiveHub)) }
 			>
 				<div class="flex flex-wrap items-center justify-between gap-3">
 					<div class="flex items-center gap-2">
@@ -251,7 +291,7 @@ templ DashboardPage(data *service.DashboardSummary) {
 
 				<div
 					id="live-mineral-ticker"
-					hx-get="/esi/minerals?category=minerals&hub=jita&sort=demand"
+					hx-get={ fmt.Sprintf("/esi/minerals?category=minerals&hub=%s&sort=demand", dashboardHubKey(data.ActiveHub)) }
 					hx-trigger="load"
 					hx-swap="innerHTML"
 					hx-indicator="#pulse-spinner"
@@ -261,25 +301,57 @@ templ DashboardPage(data *service.DashboardSummary) {
 				</div>
 			</div>
 
-			<!-- Two-Column Workspace: Daily Checklist (Admin Only) + Quick HTMX Calculator -->
+			<!-- Two-Column Workspace: Daily Copilot Assistant (Admin Only) + Quick HTMX Calculator -->
 			<div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
-				<!-- Daily Assistant Checklist (Admin Only) -->
+				<!-- Daily Copilot Assistant (Admin Only) -->
 				if data.Mode.IsAdmin() {
 					<div class="tactical-panel rounded-xl p-5 lg:col-span-5 space-y-4">
-						<div class="flex items-center justify-between">
-							<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">Daily Copilot Checklist</h2>
-							<span class="rounded bg-sky-500/15 px-2 py-0.5 font-mono text-[10px] text-sky-300">COPILOT</span>
+						<div class="flex flex-wrap items-center justify-between gap-2">
+							<div>
+								<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Daily Copilot Assistant</h2>
+								<p class="text-[11px] text-slate-400 mt-0.5">Prioritized next actions for <strong class="text-sky-200">{ dashboardHubName(data.ActiveHub) }</strong> — click to execute.</p>
+							</div>
+							<span class="rounded-full border border-amber-400/40 bg-amber-500/15 px-2.5 py-0.5 font-mono text-[10px] font-bold text-amber-200">
+								{ fmt.Sprintf("%d BRIEFING", len(data.CopilotActions)) }
+							</span>
 						</div>
-						<ul class="space-y-2.5 text-sm">
-							for i, task := range data.DailyChecklist {
-								<li class="flex items-start gap-2.5 rounded-lg border border-slate-800 bg-slate-900/60 p-3">
-									<span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sky-500/20 font-mono text-[11px] font-bold text-sky-300">
-										{ fmt.Sprintf("%d", i+1) }
-									</span>
-									<span class="text-slate-200 leading-relaxed">{ task }</span>
-								</li>
+
+						<div class="space-y-2.5">
+							for _, act := range data.CopilotActions {
+								<div class="rounded-lg border border-slate-800/90 bg-slate-900/65 p-3 space-y-2">
+									<div class="flex items-start justify-between gap-2">
+										<div class="space-y-0.5 min-w-0">
+											<div class="flex items-center gap-2">
+												<span class={ "rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold " + copilotPriorityBadgeClass(act.Priority) }>
+													{ act.Priority }
+												</span>
+												<span class="text-xs font-bold text-white">{ act.Title }</span>
+											</div>
+											<p class="text-[11px] text-slate-300 leading-relaxed">{ act.Detail }</p>
+										</div>
+									</div>
+									<div class="flex justify-end">
+										if act.ActionPost != "" {
+											<button
+												type="button"
+												hx-post={ act.ActionPost }
+												hx-swap="none"
+												class={ "rounded-md border px-2.5 py-1 text-[11px] font-bold transition cursor-pointer " + copilotActionBtnClass(act.Priority) }
+											>
+												{ act.ActionLabel }
+											</button>
+										} else if act.ActionURL != "" {
+											<a
+												href={ templ.SafeURL(act.ActionURL) }
+												class={ "rounded-md border px-2.5 py-1 text-[11px] font-bold transition " + copilotActionBtnClass(act.Priority) }
+											>
+												{ act.ActionLabel }
+											</a>
+										}
+									</div>
+								</div>
 							}
-						</ul>
+						</div>
 
 						if data.ActivePlan != nil {
 							<div class="rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-3.5">
@@ -303,11 +375,11 @@ templ DashboardPage(data *service.DashboardSummary) {
 						}
 						return "tactical-panel rounded-xl p-5 lg:col-span-12 space-y-4"
 					}() }
-					x-data="{
+					x-data={ fmt.Sprintf(`{
 						itemName: 'Hobgoblin I',
 						sellPrice: 14500,
 						esiHint: '',
-						async fetchJita() {
+						async fetchHubPrice() {
 							if (!this.itemName) return;
 							this.esiHint = 'Looking up Public ESI...';
 							try {
@@ -315,10 +387,10 @@ templ DashboardPage(data *service.DashboardSummary) {
 								const d = await r.json();
 								if (!r.ok) { this.esiHint = d.error || 'Item not found'; return; }
 								if (d.lowest_sell > 0) this.sellPrice = d.lowest_sell;
-								this.esiHint = 'Live Jita Sell: ' + Number(d.lowest_sell).toLocaleString() + ' ISK • Vol: ' + Number(d.daily_volume).toLocaleString() + '/day';
+								this.esiHint = 'Live ' + (d.hub_name || %q) + ' Sell: ' + Number(d.lowest_sell).toLocaleString() + ' ISK • Vol: ' + Number(d.daily_volume).toLocaleString() + '/day';
 							} catch (e) { this.esiHint = 'Failed to reach Public ESI'; }
 						}
-					}"
+					}`, dashboardHubName(data.ActiveHub)) }
 				>
 					<div class="flex items-center justify-between">
 						<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Quick Profit Calculator (HTMX + Public ESI)</h2>
@@ -332,11 +404,11 @@ templ DashboardPage(data *service.DashboardSummary) {
 						class="grid grid-cols-1 gap-3 sm:grid-cols-2"
 					>
 						<div class="sm:col-span-2">
-							<label class="block text-[11px] font-mono uppercase text-slate-300">Item Name (Auto-Fill Jita Price via Public ESI)</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Item Name (Auto-Fill { dashboardHubName(data.ActiveHub) } Price via Public ESI)</label>
 							<div class="mt-1 flex gap-2">
 								<input type="text" name="item_name" x-model="itemName" class="flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-sky-400 focus:outline-none"/>
-								<button type="button" @click="fetchJita()" class="rounded-md border border-amber-400/40 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer">
-									Fetch Jita ESI
+								<button type="button" @click="fetchHubPrice()" class="rounded-md border border-amber-400/40 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer">
+									Fetch { dashboardHubName(data.ActiveHub) } ESI
 								</button>
 							</div>
 							<div x-show="esiHint" x-text="esiHint" class="mt-1 text-[11px] font-mono text-emerald-300"></div>

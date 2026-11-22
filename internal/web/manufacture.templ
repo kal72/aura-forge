@@ -142,10 +142,11 @@ func buildShoppingPresetsJSON(tree *domain.IndustryTreeAnalysis) string {
 }
 
 templ ManufacturePage(mode service.ModeInfo, settings domain.UserSettings, blueprints []domain.SDEBlueprint, initialResult *domain.BlueprintCalcResult) {
-	@Layout("Manufacture // Blueprint Recipe Tree", "manufacture", mode) {
+	@Layout("Manufacture", "manufacture", mode) {
 		<div
 			class="space-y-6"
 			x-data={ fmt.Sprintf(`{
+				isAdmin: %t,
 				mfgFlowDir: 'output-to-raw',
 				mfgOverrides: '',
 				mfgME: %d,
@@ -246,6 +247,7 @@ templ ManufacturePage(mode service.ModeInfo, settings domain.UserSettings, bluep
 					this.submitTree();
 				}
 			}`,
+				mode.IsAdmin(),
 				func() int {
 					if initialResult != nil && initialResult.Blueprint.TechLevel >= 2 {
 						return 2
@@ -313,7 +315,7 @@ templ ManufacturePage(mode service.ModeInfo, settings domain.UserSettings, bluep
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<div class="flex flex-wrap items-center gap-2">
-						<h1 class="text-2xl font-bold tracking-tight text-white">Manufacture // Blueprint Recipe Tree</h1>
+						<h1 class="text-2xl font-bold tracking-tight text-white">Manufacture</h1>
 						<span class="rounded-full border border-sky-400/40 bg-sky-500/15 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-sky-200">
 							Default Hub: { settings.ActiveTradeHub().Name }
 						</span>
@@ -322,7 +324,7 @@ templ ManufacturePage(mode service.ModeInfo, settings domain.UserSettings, bluep
 							title="Configured in Settings"
 							class="rounded-full border border-slate-700 bg-slate-900/80 px-2.5 py-0.5 font-mono text-[10px] text-slate-300 hover:border-amber-400/50 hover:text-amber-200 transition"
 						>
-							{ fmt.Sprintf("SCI %.2f%% • Facility Tax %.2f%%", settings.SystemCostIndex*100.0, settings.FacilityTaxPercent) }
+							{ fmt.Sprintf("System Cost Index %.2f%% • Facility Tax %.2f%%", settings.SystemCostIndex*100.0, settings.FacilityTaxPercent) }
 						</a>
 					</div>
 					<p class="text-xs text-slate-300/80 mt-0.5">Inspect any CCP SDE Blueprint as a full-width horizontal recipe tree with live 5-Hub material costs (Jita, Amarr, Dodixie, Rens, Hek), MAKE/BUY toggles, and 1-click EVE Multibuy.</p>
@@ -349,7 +351,7 @@ templ ManufacturePage(mode service.ModeInfo, settings domain.UserSettings, bluep
 					<input type="hidden" name="blueprint_type_id" :value="selectedBP.blueprint_type_id" required/>
 
 					<!-- Blueprint Picker -->
-					<div class="md:col-span-4">
+					<div class="md:col-span-3">
 						<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Blueprint (T1 / T2 / T3 / Reactions)</label>
 						<button
 							type="button"
@@ -418,9 +420,9 @@ templ ManufacturePage(mode service.ModeInfo, settings domain.UserSettings, bluep
 						/>
 					</div>
 
-					<!-- ME -->
-					<div class="md:col-span-1">
-						<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">ME (0–10)</label>
+					<!-- Material Efficiency -->
+					<div class="md:col-span-2">
+						<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Material Efficiency (0–10)</label>
 						<input
 							type="number"
 							name="me"
@@ -674,17 +676,39 @@ templ ManufactureTreePartial(res *domain.BlueprintCalcResult, errMsg string) {
 
 				<div class="tactical-panel rounded-xl p-4 flex flex-col justify-between gap-2">
 					<div>
-						<div class="text-[10px] font-mono uppercase text-violet-300/90">Material Volume &amp; Multibuy</div>
+						<div class="text-[10px] font-mono uppercase text-violet-300/90">Material Volume &amp; Quick Actions</div>
 						<div class="mt-1 text-xl font-mono font-bold text-violet-200">{ fmt.Sprintf("%.1f m³", tree.OptimalVolumeM3) }</div>
 					</div>
-					<button
-						type="button"
-						@click="copyMultibuy()"
-						class="w-full rounded-md border border-emerald-400/50 bg-emerald-500/20 px-3 py-1.5 text-[11px] font-bold text-emerald-200 hover:bg-emerald-500/30 transition cursor-pointer"
-					>
-						<span x-show="copiedKey !== 'optimal'">1-Click Copy Optimal Multibuy</span>
-						<span x-cloak x-show="copiedKey === 'optimal'">Copied!</span>
-					</button>
+					<div class="flex flex-wrap gap-1.5">
+						<button
+							type="button"
+							@click="copyMultibuy()"
+							class="flex-1 rounded-md border border-emerald-400/50 bg-emerald-500/20 px-2.5 py-1.5 text-[11px] font-bold text-emerald-200 hover:bg-emerald-500/30 transition cursor-pointer"
+						>
+							<span x-show="copiedKey !== 'optimal'">Copy Multibuy</span>
+							<span x-cloak x-show="copiedKey === 'optimal'">Copied!</span>
+						</button>
+						<form
+							x-show="isAdmin"
+							hx-post="/calculator/blueprint/save-catalog"
+							hx-swap="none"
+							class="flex-1"
+						>
+							<input type="hidden" name="product_type_id" value={ fmt.Sprintf("%d", res.Blueprint.ProductTypeID) }/>
+							<input type="hidden" name="product_name" value={ res.Blueprint.ProductName }/>
+							<input type="hidden" name="category" value={ res.Blueprint.Category }/>
+							<input type="hidden" name="output_qty" value={ fmt.Sprintf("%d", res.TotalOutputQty) }/>
+							<input type="hidden" name="unit_sell_price" value={ fmt.Sprintf("%.2f", res.ProductUnitSellPrice) }/>
+							<input type="hidden" name="unit_buy_price" value={ fmt.Sprintf("%.2f", res.ProductUnitBuyPrice) }/>
+							<input type="hidden" name="material_cost" value={ fmt.Sprintf("%.2f", tree.OptimalCost) }/>
+							<button
+								type="submit"
+								class="w-full rounded-md border border-amber-400/50 bg-amber-400/20 px-2.5 py-1.5 text-[11px] font-bold text-amber-200 hover:bg-amber-400/30 transition cursor-pointer"
+							>
+								+ Catalog
+							</button>
+						</form>
+					</div>
 				</div>
 			</div>
 

@@ -268,7 +268,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M4 6h4v4H4V6zm12-2h4v4h-4V4zm0 12h4v4h-4v-4zM8 8h4m0 0V6h4m-4 2v10h4\"></path></svg> <span>Manufacture Tree</span></a> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M4 6h4v4H4V6zm12-2h4v4h-4V4zm0 12h4v4h-4v-4zM8 8h4m0 0V6h4m-4 2v10h4\"></path></svg> <span>Manufacture</span></a> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

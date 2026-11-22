@@ -325,7 +325,7 @@ templ CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input 
 							<label class="block text-[11px] font-mono uppercase text-slate-300">Price Hub</label>
 							<select name="hub_key" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-amber-200 font-semibold">
 								for _, h := range domain.MajorTradeHubs {
-									<option value={ h.Key }>{ h.Name } ({ h.RegionName })</option>
+									<option value={ h.Key } selected?={ h.Key == settings.ActiveTradeHub().Key }>{ h.Name } ({ h.RegionName })</option>
 								}
 							</select>
 						</div>
@@ -342,12 +342,12 @@ templ CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input 
 							<input type="number" name="runs" value="10" min="1" max="10000" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-300">ME Level (0–10%)</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Material Efficiency (0–10%)</label>
 							<input type="number" name="me" value="10" min="0" max="10" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
 
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-300">TE Level (0–20%)</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">Time Efficiency (0–20%)</label>
 							<input type="number" name="te" value="20" min="0" max="20" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
 						<div>

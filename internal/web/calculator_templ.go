@@ -364,43 +364,53 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if h.Key == settings.ActiveTradeHub().Key {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, " selected")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, ">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var15 string
 				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(h.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 328, Col: 41}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 328, Col: 94}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, " (")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, " (")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var16 string
 				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(h.RegionName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 328, Col: 59}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/calculator.templ`, Line: 328, Col: 112}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, ")</option>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, ")</option>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</select></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Material Pricing</label> <select name=\"material_price_source\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white\"><option value=\"jita_sell\">Hub Lowest Sell (Instant Buy)</option> <option value=\"jita_buy\">Hub Highest Buy (Buy Orders)</option></select></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Runs</label> <input type=\"number\" name=\"runs\" value=\"10\" min=\"1\" max=\"10000\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">ME Level (0–10%)</label> <input type=\"number\" name=\"me\" value=\"10\" min=\"0\" max=\"10\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">TE Level (0–20%)</label> <input type=\"number\" name=\"te\" value=\"20\" min=\"0\" max=\"20\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Manufacturing Structure</label> <select name=\"structure_key\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</select></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Material Pricing</label> <select name=\"material_price_source\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white\"><option value=\"jita_sell\">Hub Lowest Sell (Instant Buy)</option> <option value=\"jita_buy\">Hub Highest Buy (Buy Orders)</option></select></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Runs</label> <input type=\"number\" name=\"runs\" value=\"10\" min=\"1\" max=\"10000\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Material Efficiency (0–10%)</label> <input type=\"number\" name=\"me\" value=\"10\" min=\"0\" max=\"10\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Time Efficiency (0–20%)</label> <input type=\"number\" name=\"te\" value=\"20\" min=\"0\" max=\"20\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Manufacturing Structure</label> <select name=\"structure_key\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, st := range domain.DefaultStructureProfiles {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<option value=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<option value=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -413,7 +423,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -426,12 +436,12 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</option>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</option>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</select></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Sell Price Override (0 = Live Jita)</label> <input type=\"number\" step=\"0.01\" name=\"product_sell_override\" value=\"0\" min=\"0\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Extra BPC / Setup Cost (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"extra_setup_cost\" value=\"0\" min=\"0\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">System Cost Index</label> <input type=\"number\" step=\"0.0001\" name=\"system_cost_index\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</select></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Sell Price Override (0 = Live Jita)</label> <input type=\"number\" step=\"0.01\" name=\"product_sell_override\" value=\"0\" min=\"0\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Extra BPC / Setup Cost (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"extra_setup_cost\" value=\"0\" min=\"0\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">System Cost Index</label> <input type=\"number\" step=\"0.0001\" name=\"system_cost_index\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -444,7 +454,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Freight (ISK / m³)</label> <input type=\"number\" step=\"0.01\" name=\"freight_cost_per_m3\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Freight (ISK / m³)</label> <input type=\"number\" step=\"0.01\" name=\"freight_cost_per_m3\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -457,7 +467,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Broker Fee (%)</label> <input type=\"number\" step=\"0.01\" name=\"broker_fee_percent\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Broker Fee (%)</label> <input type=\"number\" step=\"0.01\" name=\"broker_fee_percent\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -470,7 +480,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Sales Tax (%)</label> <input type=\"number\" step=\"0.01\" name=\"sales_tax_percent\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Sales Tax (%)</label> <input type=\"number\" step=\"0.01\" name=\"sales_tax_percent\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -483,7 +493,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Estimated Relists</label> <input type=\"number\" name=\"estimated_relists\" value=\"1\" min=\"0\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Batches / Week</label> <input type=\"number\" name=\"batches_per_week\" value=\"4\" min=\"1\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div class=\"sm:col-span-2 pt-2\"><button type=\"submit\" class=\"w-full inline-flex items-center justify-center gap-2 rounded-lg bg-amber-400 py-2.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer\"><span id=\"bp-calc-spinner\" class=\"htmx-indicator h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent\"></span> <span>Calculate Live Blueprint Profit</span></button></div></form></div><!-- Blueprint SDE Result Panel --><div id=\"bp-result-panel\" class=\"tactical-panel rounded-xl p-5 lg:col-span-7\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Estimated Relists</label> <input type=\"number\" name=\"estimated_relists\" value=\"1\" min=\"0\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Batches / Week</label> <input type=\"number\" name=\"batches_per_week\" value=\"4\" min=\"1\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div class=\"sm:col-span-2 pt-2\"><button type=\"submit\" class=\"w-full inline-flex items-center justify-center gap-2 rounded-lg bg-amber-400 py-2.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer\"><span id=\"bp-calc-spinner\" class=\"htmx-indicator h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent\"></span> <span>Calculate Live Blueprint Profit</span></button></div></form></div><!-- Blueprint SDE Result Panel --><div id=\"bp-result-panel\" class=\"tactical-panel rounded-xl p-5 lg:col-span-7\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -491,7 +501,7 @@ func CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input d
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</div></div><!-- Blueprint Catalog Modal Popup (Categories + Tech Level + Live Search + Pagination) --><div x-cloak x-show=\"bpModalOpen\" @keydown.escape.window=\"bpModalOpen = false\" class=\"fixed inset-0 z-[100] flex items-center justify-center p-4\"><!-- Backdrop --><div @click=\"bpModalOpen = false\" class=\"fixed inset-0 bg-slate-950/80 backdrop-blur-xs\"></div><!-- Modal Dialog --><div class=\"relative z-10 flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-amber-400/45 bg-[#0e1126] shadow-2xl\"><!-- Modal Header --><div class=\"flex items-center justify-between gap-3 border-b border-violet-400/20 bg-slate-950/85 px-5 py-3.5\"><div><h3 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">EVE Online Blueprint Catalog</h3><p class=\"text-[11px] font-mono text-slate-400 mt-0.5\"><span x-text=\"bpTotal.toLocaleString()\"></span> matching blueprints • Click any item to load into Calculator</p></div><div class=\"flex items-center gap-2\"><a x-show=\"isAdmin\" href=\"/settings\" class=\"rounded-md border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-[10.5px] font-mono font-semibold text-violet-200 hover:bg-violet-500/25\">Import Full SDE →</a> <button type=\"button\" @click=\"bpModalOpen = false\" class=\"rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs font-bold text-slate-300 hover:text-white cursor-pointer\">✕</button></div></div><!-- Search + Tech Filter + Category Pills --><div class=\"border-b border-violet-400/15 bg-slate-950/55 px-5 py-3.5 space-y-3\"><div class=\"flex flex-wrap items-center gap-2.5\"><input type=\"text\" x-model=\"bpSearch\" @input=\"onBPSearchInput()\" placeholder=\"Search blueprint or product (e.g. Gila, Tengu, Hobgoblin II, Damage Control, Orca)...\" class=\"flex-1 min-w-[220px] rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none\"><!-- Tech Level Filter --><div class=\"inline-flex rounded-lg border border-violet-400/30 bg-slate-900 p-0.5 font-mono text-[11px]\"><button type=\"button\" @click=\"setBPTech(0)\" :class=\"bpTech === 0 ? &#39;bg-violet-500 text-white&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2.5 py-1 font-bold cursor-pointer\">ALL</button> <button type=\"button\" @click=\"setBPTech(1)\" :class=\"bpTech === 1 ? &#39;bg-emerald-500 text-slate-950&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2.5 py-1 font-bold cursor-pointer\">T1</button> <button type=\"button\" @click=\"setBPTech(2)\" :class=\"bpTech === 2 ? &#39;bg-amber-400 text-slate-950&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2.5 py-1 font-bold cursor-pointer\">T2</button> <button type=\"button\" @click=\"setBPTech(3)\" :class=\"bpTech === 3 ? &#39;bg-sky-400 text-slate-950&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2.5 py-1 font-bold cursor-pointer\">T3</button></div></div><!-- Category Filter Pills --><div class=\"flex flex-wrap gap-1.5\"><button type=\"button\" @click=\"setBPCategory(&#39;ALL&#39;)\" :class=\"bpCategory === &#39;ALL&#39; ? &#39;bg-amber-400 text-slate-950 border-amber-300&#39; : &#39;bg-slate-900/70 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-md border px-2.5 py-1 font-mono text-[10px] font-bold transition cursor-pointer\">All Categories</button><template x-for=\"cat in bpCategories\" :key=\"cat\"><button type=\"button\" @click=\"setBPCategory(cat)\" :class=\"bpCategory === cat ? &#39;bg-amber-400 text-slate-950 border-amber-300&#39; : &#39;bg-slate-900/70 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-md border px-2.5 py-1 font-mono text-[10px] font-bold transition cursor-pointer\" x-text=\"cat\"></button></template></div></div><!-- Paginated Blueprint Cards Grid --><div class=\"flex-1 overflow-y-auto p-5\"><div x-show=\"bpLoading\" class=\"py-12 text-center font-mono text-xs text-amber-200\">Loading blueprints...</div><div x-show=\"!bpLoading &amp;&amp; bpItems.length === 0\" class=\"py-12 text-center text-xs text-slate-400\">No blueprints matched your filter. Try clearing the search or importing the Full Official CCP SDE in Settings.</div><div x-show=\"!bpLoading &amp;&amp; bpItems.length &gt; 0\" class=\"grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3\"><template x-for=\"bp in bpItems\" :key=\"bp.blueprint_type_id\"><button type=\"button\" @click=\"chooseBlueprint(bp)\" :class=\"selectedBP.blueprint_type_id === bp.blueprint_type_id ? &#39;border-amber-300 bg-amber-400/15&#39; : &#39;border-violet-400/20 bg-slate-950/60 hover:border-amber-300/60 hover:bg-slate-900/80&#39;\" class=\"flex items-center gap-2.5 rounded-xl border p-2.5 text-left transition cursor-pointer\"><img :src=\"&#39;https://images.evetech.net/types/&#39; + bp.product_type_id + &#39;/icon?size=64&#39;\" :alt=\"bp.product_name\" loading=\"lazy\" class=\"h-9 w-9 shrink-0 rounded-lg border border-violet-400/30 bg-slate-950 p-0.5 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"><div class=\"min-w-0 flex-1\"><div class=\"text-xs font-bold text-white truncate\" x-text=\"bp.product_name\"></div><div class=\"mt-0.5 flex items-center gap-1.5 font-mono text-[9.5px] text-slate-400\"><span class=\"rounded border px-1 py-0.25 font-bold\" :class=\"bp.tech_level === 2 ? &#39;border-amber-400/45 bg-amber-500/20 text-amber-200&#39; : (bp.tech_level === 3 ? &#39;border-sky-400/45 bg-sky-500/20 text-sky-200&#39; : &#39;border-emerald-400/40 bg-emerald-500/15 text-emerald-200&#39;)\" x-text=\"&#39;T&#39; + bp.tech_level\"></span> <span class=\"truncate\" x-text=\"bp.category\"></span> <span class=\"ml-auto text-slate-300\" x-text=\"bp.product_qty_per_run + &#39;/run&#39;\"></span></div></div></button></template></div></div><!-- Pagination Footer --><div class=\"flex flex-wrap items-center justify-between gap-2 border-t border-violet-400/20 bg-slate-950/85 px-5 py-3 font-mono text-[11px] text-slate-300\"><div>Page <strong class=\"text-amber-200\" x-text=\"bpPage\"></strong> of <strong class=\"text-white\" x-text=\"bpTotalPages\"></strong> (<span x-text=\"bpTotal.toLocaleString()\"></span> total)</div><div class=\"flex items-center gap-2\"><button type=\"button\" @click=\"if (bpPage &gt; 1) fetchBlueprints(bpPage - 1)\" :disabled=\"bpPage &lt;= 1 || bpLoading\" class=\"rounded-md border border-slate-700 bg-slate-900 px-3 py-1 font-bold text-slate-200 hover:border-amber-400/50 disabled:opacity-40 cursor-pointer\">← Prev</button> <button type=\"button\" @click=\"if (bpPage &lt; bpTotalPages) fetchBlueprints(bpPage + 1)\" :disabled=\"bpPage &gt;= bpTotalPages || bpLoading\" class=\"rounded-md border border-slate-700 bg-slate-900 px-3 py-1 font-bold text-slate-200 hover:border-amber-400/50 disabled:opacity-40 cursor-pointer\">Next →</button></div></div></div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</div></div><!-- Blueprint Catalog Modal Popup (Categories + Tech Level + Live Search + Pagination) --><div x-cloak x-show=\"bpModalOpen\" @keydown.escape.window=\"bpModalOpen = false\" class=\"fixed inset-0 z-[100] flex items-center justify-center p-4\"><!-- Backdrop --><div @click=\"bpModalOpen = false\" class=\"fixed inset-0 bg-slate-950/80 backdrop-blur-xs\"></div><!-- Modal Dialog --><div class=\"relative z-10 flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-amber-400/45 bg-[#0e1126] shadow-2xl\"><!-- Modal Header --><div class=\"flex items-center justify-between gap-3 border-b border-violet-400/20 bg-slate-950/85 px-5 py-3.5\"><div><h3 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">EVE Online Blueprint Catalog</h3><p class=\"text-[11px] font-mono text-slate-400 mt-0.5\"><span x-text=\"bpTotal.toLocaleString()\"></span> matching blueprints • Click any item to load into Calculator</p></div><div class=\"flex items-center gap-2\"><a x-show=\"isAdmin\" href=\"/settings\" class=\"rounded-md border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-[10.5px] font-mono font-semibold text-violet-200 hover:bg-violet-500/25\">Import Full SDE →</a> <button type=\"button\" @click=\"bpModalOpen = false\" class=\"rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs font-bold text-slate-300 hover:text-white cursor-pointer\">✕</button></div></div><!-- Search + Tech Filter + Category Pills --><div class=\"border-b border-violet-400/15 bg-slate-950/55 px-5 py-3.5 space-y-3\"><div class=\"flex flex-wrap items-center gap-2.5\"><input type=\"text\" x-model=\"bpSearch\" @input=\"onBPSearchInput()\" placeholder=\"Search blueprint or product (e.g. Gila, Tengu, Hobgoblin II, Damage Control, Orca)...\" class=\"flex-1 min-w-[220px] rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none\"><!-- Tech Level Filter --><div class=\"inline-flex rounded-lg border border-violet-400/30 bg-slate-900 p-0.5 font-mono text-[11px]\"><button type=\"button\" @click=\"setBPTech(0)\" :class=\"bpTech === 0 ? &#39;bg-violet-500 text-white&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2.5 py-1 font-bold cursor-pointer\">ALL</button> <button type=\"button\" @click=\"setBPTech(1)\" :class=\"bpTech === 1 ? &#39;bg-emerald-500 text-slate-950&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2.5 py-1 font-bold cursor-pointer\">T1</button> <button type=\"button\" @click=\"setBPTech(2)\" :class=\"bpTech === 2 ? &#39;bg-amber-400 text-slate-950&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2.5 py-1 font-bold cursor-pointer\">T2</button> <button type=\"button\" @click=\"setBPTech(3)\" :class=\"bpTech === 3 ? &#39;bg-sky-400 text-slate-950&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2.5 py-1 font-bold cursor-pointer\">T3</button></div></div><!-- Category Filter Pills --><div class=\"flex flex-wrap gap-1.5\"><button type=\"button\" @click=\"setBPCategory(&#39;ALL&#39;)\" :class=\"bpCategory === &#39;ALL&#39; ? &#39;bg-amber-400 text-slate-950 border-amber-300&#39; : &#39;bg-slate-900/70 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-md border px-2.5 py-1 font-mono text-[10px] font-bold transition cursor-pointer\">All Categories</button><template x-for=\"cat in bpCategories\" :key=\"cat\"><button type=\"button\" @click=\"setBPCategory(cat)\" :class=\"bpCategory === cat ? &#39;bg-amber-400 text-slate-950 border-amber-300&#39; : &#39;bg-slate-900/70 text-slate-300 border-slate-700 hover:text-white&#39;\" class=\"rounded-md border px-2.5 py-1 font-mono text-[10px] font-bold transition cursor-pointer\" x-text=\"cat\"></button></template></div></div><!-- Paginated Blueprint Cards Grid --><div class=\"flex-1 overflow-y-auto p-5\"><div x-show=\"bpLoading\" class=\"py-12 text-center font-mono text-xs text-amber-200\">Loading blueprints...</div><div x-show=\"!bpLoading &amp;&amp; bpItems.length === 0\" class=\"py-12 text-center text-xs text-slate-400\">No blueprints matched your filter. Try clearing the search or importing the Full Official CCP SDE in Settings.</div><div x-show=\"!bpLoading &amp;&amp; bpItems.length &gt; 0\" class=\"grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3\"><template x-for=\"bp in bpItems\" :key=\"bp.blueprint_type_id\"><button type=\"button\" @click=\"chooseBlueprint(bp)\" :class=\"selectedBP.blueprint_type_id === bp.blueprint_type_id ? &#39;border-amber-300 bg-amber-400/15&#39; : &#39;border-violet-400/20 bg-slate-950/60 hover:border-amber-300/60 hover:bg-slate-900/80&#39;\" class=\"flex items-center gap-2.5 rounded-xl border p-2.5 text-left transition cursor-pointer\"><img :src=\"&#39;https://images.evetech.net/types/&#39; + bp.product_type_id + &#39;/icon?size=64&#39;\" :alt=\"bp.product_name\" loading=\"lazy\" class=\"h-9 w-9 shrink-0 rounded-lg border border-violet-400/30 bg-slate-950 p-0.5 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"><div class=\"min-w-0 flex-1\"><div class=\"text-xs font-bold text-white truncate\" x-text=\"bp.product_name\"></div><div class=\"mt-0.5 flex items-center gap-1.5 font-mono text-[9.5px] text-slate-400\"><span class=\"rounded border px-1 py-0.25 font-bold\" :class=\"bp.tech_level === 2 ? &#39;border-amber-400/45 bg-amber-500/20 text-amber-200&#39; : (bp.tech_level === 3 ? &#39;border-sky-400/45 bg-sky-500/20 text-sky-200&#39; : &#39;border-emerald-400/40 bg-emerald-500/15 text-emerald-200&#39;)\" x-text=\"&#39;T&#39; + bp.tech_level\"></span> <span class=\"truncate\" x-text=\"bp.category\"></span> <span class=\"ml-auto text-slate-300\" x-text=\"bp.product_qty_per_run + &#39;/run&#39;\"></span></div></div></button></template></div></div><!-- Pagination Footer --><div class=\"flex flex-wrap items-center justify-between gap-2 border-t border-violet-400/20 bg-slate-950/85 px-5 py-3 font-mono text-[11px] text-slate-300\"><div>Page <strong class=\"text-amber-200\" x-text=\"bpPage\"></strong> of <strong class=\"text-white\" x-text=\"bpTotalPages\"></strong> (<span x-text=\"bpTotal.toLocaleString()\"></span> total)</div><div class=\"flex items-center gap-2\"><button type=\"button\" @click=\"if (bpPage &gt; 1) fetchBlueprints(bpPage - 1)\" :disabled=\"bpPage &lt;= 1 || bpLoading\" class=\"rounded-md border border-slate-700 bg-slate-900 px-3 py-1 font-bold text-slate-200 hover:border-amber-400/50 disabled:opacity-40 cursor-pointer\">← Prev</button> <button type=\"button\" @click=\"if (bpPage &lt; bpTotalPages) fetchBlueprints(bpPage + 1)\" :disabled=\"bpPage &gt;= bpTotalPages || bpLoading\" class=\"rounded-md border border-slate-700 bg-slate-900 px-3 py-1 font-bold text-slate-200 hover:border-amber-400/50 disabled:opacity-40 cursor-pointer\">Next →</button></div></div></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -527,7 +537,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 		}
 		ctx = templ.ClearChildren(ctx)
 		if errMsg != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<div class=\"rounded-lg border border-rose-500/40 bg-rose-950/40 p-4 text-xs text-rose-200\"><strong>Calculation Error:</strong> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<div class=\"rounded-lg border border-rose-500/40 bg-rose-950/40 p-4 text-xs text-rose-200\"><strong>Calculation Error:</strong> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -540,12 +550,12 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else if res != nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<div class=\"space-y-4\"><div class=\"flex items-center justify-between\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-white\">Calculation Result: ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<div class=\"space-y-4\"><div class=\"flex items-center justify-between\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-white\">Calculation Result: ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -558,22 +568,22 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</h2>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</h2>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if res.IsProfitable {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<span class=\"rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-0.5 font-mono text-[11px] font-bold text-emerald-300\">PROFITABLE</span>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<span class=\"rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-0.5 font-mono text-[11px] font-bold text-emerald-300\">PROFITABLE</span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<span class=\"rounded-full border border-rose-500/40 bg-rose-500/20 px-2.5 py-0.5 font-mono text-[11px] font-bold text-rose-300\">NET LOSS</span>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<span class=\"rounded-full border border-rose-500/40 bg-rose-500/20 px-2.5 py-0.5 font-mono text-[11px] font-bold text-rose-300\">NET LOSS</span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</div><div class=\"grid grid-cols-2 gap-3\"><div class=\"rounded-lg border border-slate-800 bg-slate-900/70 p-3\"><div class=\"text-[10px] font-mono uppercase text-slate-400\">Net Profit / Batch</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</div><div class=\"grid grid-cols-2 gap-3\"><div class=\"rounded-lg border border-slate-800 bg-slate-900/70 p-3\"><div class=\"text-[10px] font-mono uppercase text-slate-400\">Net Profit / Batch</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -582,7 +592,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<div class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<div class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -595,7 +605,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -608,7 +618,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</div></div><div class=\"rounded-lg border border-slate-800 bg-slate-900/70 p-3\"><div class=\"text-[10px] font-mono uppercase text-slate-400\">Weekly Projected Profit</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</div></div><div class=\"rounded-lg border border-slate-800 bg-slate-900/70 p-3\"><div class=\"text-[10px] font-mono uppercase text-slate-400\">Weekly Projected Profit</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -617,7 +627,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<div class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<div class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -630,7 +640,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -643,7 +653,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</div></div><div class=\"rounded-lg border border-slate-800 bg-slate-900/70 p-3\"><div class=\"text-[10px] font-mono uppercase text-slate-400\">Net Margin / ROI</div><div class=\"mt-1 text-base font-bold font-mono text-sky-300\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "</div></div><div class=\"rounded-lg border border-slate-800 bg-slate-900/70 p-3\"><div class=\"text-[10px] font-mono uppercase text-slate-400\">Net Margin / ROI</div><div class=\"mt-1 text-base font-bold font-mono text-sky-300\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -656,7 +666,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, " / ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, " / ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -669,7 +679,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "</div></div><div class=\"rounded-lg border border-slate-800 bg-slate-900/70 p-3\"><div class=\"text-[10px] font-mono uppercase text-slate-400\">Break-Even Unit Price</div><div class=\"mt-1 text-base font-bold font-mono text-amber-300\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "</div></div><div class=\"rounded-lg border border-slate-800 bg-slate-900/70 p-3\"><div class=\"text-[10px] font-mono uppercase text-slate-400\">Break-Even Unit Price</div><div class=\"mt-1 text-base font-bold font-mono text-amber-300\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -682,7 +692,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "</div></div></div><div class=\"rounded-lg border border-slate-800 bg-slate-950/60 p-3.5 text-xs space-y-1.5 font-mono\"><div class=\"flex justify-between\"><span class=\"text-slate-400\">Gross Revenue</span><span class=\"text-white\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</div></div></div><div class=\"rounded-lg border border-slate-800 bg-slate-950/60 p-3.5 text-xs space-y-1.5 font-mono\"><div class=\"flex justify-between\"><span class=\"text-slate-400\">Gross Revenue</span><span class=\"text-white\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -695,7 +705,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "</span></div><div class=\"flex justify-between\"><span class=\"text-slate-400\">Total Direct Cost (Materials + BPC + SCI + Freight)</span><span class=\"text-slate-200\">-")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "</span></div><div class=\"flex justify-between\"><span class=\"text-slate-400\">Total Direct Cost (Materials + BPC + SCI + Freight)</span><span class=\"text-slate-200\">-")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -708,7 +718,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</span></div><div class=\"flex justify-between\"><span class=\"text-slate-400\">Job Install Cost (SCI)</span><span class=\"text-slate-400\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</span></div><div class=\"flex justify-between\"><span class=\"text-slate-400\">Job Install Cost (SCI)</span><span class=\"text-slate-400\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -721,7 +731,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "</span></div><div class=\"flex justify-between\"><span class=\"text-slate-400\">Broker Fee + Sales Tax + Relist</span><span class=\"text-rose-300\">-")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "</span></div><div class=\"flex justify-between\"><span class=\"text-slate-400\">Broker Fee + Sales Tax + Relist</span><span class=\"text-rose-300\">-")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -734,7 +744,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</span></div><div class=\"border-t border-slate-800 pt-1.5 flex justify-between font-bold\"><span class=\"text-slate-300\">Total Actual Cost</span> <span class=\"text-white\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "</span></div><div class=\"border-t border-slate-800 pt-1.5 flex justify-between font-bold\"><span class=\"text-slate-300\">Total Actual Cost</span> <span class=\"text-white\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -747,7 +757,7 @@ func CalculatorResultPartial(input domain.ProfitCalcInput, res *domain.ProfitCal
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "</span></div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "</span></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -778,7 +788,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 		}
 		ctx = templ.ClearChildren(ctx)
 		if errMsg != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<div class=\"rounded-lg border border-rose-500/40 bg-rose-950/40 p-4 text-xs text-rose-200\"><strong>Blueprint Calculation Error:</strong> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "<div class=\"rounded-lg border border-rose-500/40 bg-rose-950/40 p-4 text-xs text-rose-200\"><strong>Blueprint Calculation Error:</strong> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -791,18 +801,18 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else if res == nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "<div class=\"flex flex-col items-center justify-center py-12 text-center space-y-2\"><div class=\"text-sm font-semibold text-white\">Select a Blueprint &amp; Click \"Calculate Live Blueprint Profit\"</div><p class=\"text-xs text-slate-300/80 max-w-md\">Aura-Forge will automatically compute ME-adjusted material quantities, fetch live Jita material &amp; product prices from Public ESI, estimate build duration &amp; ISK/Hour, and generate an EVE Multibuy list.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "<div class=\"flex flex-col items-center justify-center py-12 text-center space-y-2\"><div class=\"text-sm font-semibold text-white\">Select a Blueprint &amp; Click \"Calculate Live Blueprint Profit\"</div><p class=\"text-xs text-slate-300/80 max-w-md\">Aura-Forge will automatically compute ME-adjusted material quantities, fetch live Jita material &amp; product prices from Public ESI, estimate build duration &amp; ISK/Hour, and generate an EVE Multibuy list.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
 			hasTree := res.IndustryTree != nil
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "<div class=\"space-y-4\" x-data=\"{ copied: false }\"><!-- Title, View Mode Switcher & Actions --><div class=\"flex flex-wrap items-center justify-between gap-2\"><div class=\"flex items-center gap-3 min-w-0\"><img src=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<div class=\"space-y-4\" x-data=\"{ copied: false }\"><!-- Title, View Mode Switcher & Actions --><div class=\"flex flex-wrap items-center justify-between gap-2\"><div class=\"flex items-center gap-3 min-w-0\"><img src=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -815,7 +825,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "\" alt=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "\" alt=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -828,7 +838,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "\" class=\"h-11 w-11 shrink-0 rounded-lg border border-amber-300/45 bg-slate-950/80 p-0.5 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"><div class=\"min-w-0\"><div class=\"flex items-center gap-2\"><h2 class=\"text-base font-bold text-white truncate\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "\" class=\"h-11 w-11 shrink-0 rounded-lg border border-amber-300/45 bg-slate-950/80 p-0.5 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"><div class=\"min-w-0\"><div class=\"flex items-center gap-2\"><h2 class=\"text-base font-bold text-white truncate\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -841,7 +851,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "</h2><span class=\"rounded border border-violet-400/40 bg-violet-500/20 px-1.5 py-0.5 font-mono text-[9.5px] font-bold text-violet-200\">T")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "</h2><span class=\"rounded border border-violet-400/40 bg-violet-500/20 px-1.5 py-0.5 font-mono text-[9.5px] font-bold text-violet-200\">T")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -854,7 +864,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</span></div><div class=\"text-[11px] font-mono text-slate-400\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "</span></div><div class=\"text-[11px] font-mono text-slate-400\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -867,28 +877,28 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "</div></div></div><div class=\"flex flex-wrap items-center gap-2 ml-auto\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "</div></div></div><div class=\"flex flex-wrap items-center gap-2 ml-auto\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if hasTree {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "<div class=\"inline-flex rounded-lg border border-violet-400/35 bg-slate-950/75 p-0.5\"><button type=\"button\" @click=\"bpViewMode = &#39;details&#39;\" :class=\"bpViewMode === &#39;details&#39; ? &#39;bg-violet-500 text-white shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer\">Details &amp; Make/Buy</button> <button type=\"button\" @click=\"bpViewMode = &#39;canvas&#39;\" :class=\"bpViewMode === &#39;canvas&#39; ? &#39;bg-amber-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer\"><svg class=\"h-3.5 w-3.5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M4 6h4v4H4V6zm12-2h4v4h-4V4zm0 12h4v4h-4v-4zM8 8h4m0 0V6h4m-4 2v10h4\"></path></svg> <span>Tree Canvas</span></button></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "<div class=\"inline-flex rounded-lg border border-violet-400/35 bg-slate-950/75 p-0.5\"><button type=\"button\" @click=\"bpViewMode = &#39;details&#39;\" :class=\"bpViewMode === &#39;details&#39; ? &#39;bg-violet-500 text-white shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer\">Details &amp; Make/Buy</button> <button type=\"button\" @click=\"bpViewMode = &#39;canvas&#39;\" :class=\"bpViewMode === &#39;canvas&#39; ? &#39;bg-amber-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-semibold transition cursor-pointer\"><svg class=\"h-3.5 w-3.5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M4 6h4v4H4V6zm12-2h4v4h-4V4zm0 12h4v4h-4v-4zM8 8h4m0 0V6h4m-4 2v10h4\"></path></svg> <span>Tree Canvas</span></button></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
 			if res.Profit.IsProfitable {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "<span class=\"rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-0.5 font-mono text-[11px] font-bold text-emerald-300\">PROFITABLE</span>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "<span class=\"rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-0.5 font-mono text-[11px] font-bold text-emerald-300\">PROFITABLE</span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "<span class=\"rounded-full border border-rose-500/40 bg-rose-500/20 px-2.5 py-0.5 font-mono text-[11px] font-bold text-rose-300\">NET LOSS</span>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "<span class=\"rounded-full border border-rose-500/40 bg-rose-500/20 px-2.5 py-0.5 font-mono text-[11px] font-bold text-rose-300\">NET LOSS</span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "<form x-show=\"isAdmin\" hx-post=\"/calculator/blueprint/save-catalog\" hx-swap=\"none\"><input type=\"hidden\" name=\"product_type_id\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "<form x-show=\"isAdmin\" hx-post=\"/calculator/blueprint/save-catalog\" hx-swap=\"none\"><input type=\"hidden\" name=\"product_type_id\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -901,7 +911,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "\"> <input type=\"hidden\" name=\"product_name\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "\"> <input type=\"hidden\" name=\"product_name\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -914,7 +924,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "\"> <input type=\"hidden\" name=\"category\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "\"> <input type=\"hidden\" name=\"category\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -927,7 +937,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "\"> <input type=\"hidden\" name=\"output_qty\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "\"> <input type=\"hidden\" name=\"output_qty\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -940,7 +950,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "\"> <input type=\"hidden\" name=\"unit_sell_price\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "\"> <input type=\"hidden\" name=\"unit_sell_price\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -953,7 +963,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "\"> <input type=\"hidden\" name=\"unit_buy_price\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "\"> <input type=\"hidden\" name=\"unit_buy_price\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -966,7 +976,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "\"> <input type=\"hidden\" name=\"material_cost\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "\"> <input type=\"hidden\" name=\"material_cost\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -979,13 +989,13 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "\"> <button type=\"submit\" class=\"rounded-md bg-emerald-500 px-3 py-1 text-[11px] font-bold text-slate-950 hover:bg-emerald-400 transition cursor-pointer\">+ Save to Catalog</button></form></div></div><!-- MODE A: INTERACTIVE HORIZONTAL INDUSTRY TREE CANVAS (PAN, ZOOM, FLIP, EXPAND & MAKE/BUY TOGGLE) -->")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "\"> <button type=\"submit\" class=\"rounded-md bg-emerald-500 px-3 py-1 text-[11px] font-bold text-slate-950 hover:bg-emerald-400 transition cursor-pointer\">+ Save to Catalog</button></form></div></div><!-- MODE A: INTERACTIVE HORIZONTAL INDUSTRY TREE CANVAS (PAN, ZOOM, FLIP, EXPAND & MAKE/BUY TOGGLE) -->")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if hasTree {
 				canvas := BuildIndustryHorizontalCanvasLayout(res.IndustryTree.RootNode)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "<div x-cloak x-show=\"bpViewMode === &#39;canvas&#39;\" x-data=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "<div x-cloak x-show=\"bpViewMode === &#39;canvas&#39;\" x-data=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1096,7 +1106,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "\" @mousemove.window=\"onDrag($event)\" @mouseup.window=\"endDrag()\" @keydown.escape.window=\"if (fullscreen) { fullscreen = false; $nextTick(() =&gt; fitView()); }\"><div x-cloak x-show=\"fullscreen\" @click=\"toggleFullscreen()\" class=\"fixed inset-0 z-[90] bg-slate-950/80 backdrop-blur-xs\"></div><div :class=\"fullscreen ? &#39;fixed inset-4 z-[100] flex flex-col shadow-2xl border-amber-400/55 bg-[#0b0e1f]&#39; : &#39;rounded-xl border border-violet-400/30 bg-[#0b0e1f]/90&#39;\" class=\"rounded-xl overflow-hidden border\"><!-- Canvas Toolbar --><div class=\"flex flex-wrap items-center justify-between gap-2 border-b border-violet-400/20 bg-slate-950/90 px-4 py-2.5\"><div class=\"flex flex-wrap items-center gap-2 text-xs\"><span class=\"font-bold uppercase tracking-wider text-amber-300\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "\" @mousemove.window=\"onDrag($event)\" @mouseup.window=\"endDrag()\" @keydown.escape.window=\"if (fullscreen) { fullscreen = false; $nextTick(() =&gt; fitView()); }\"><div x-cloak x-show=\"fullscreen\" @click=\"toggleFullscreen()\" class=\"fixed inset-0 z-[90] bg-slate-950/80 backdrop-blur-xs\"></div><div :class=\"fullscreen ? &#39;fixed inset-4 z-[100] flex flex-col shadow-2xl border-amber-400/55 bg-[#0b0e1f]&#39; : &#39;rounded-xl border border-violet-400/30 bg-[#0b0e1f]/90&#39;\" class=\"rounded-xl overflow-hidden border\"><!-- Canvas Toolbar --><div class=\"flex flex-wrap items-center justify-between gap-2 border-b border-violet-400/20 bg-slate-950/90 px-4 py-2.5\"><div class=\"flex flex-wrap items-center gap-2 text-xs\"><span class=\"font-bold uppercase tracking-wider text-amber-300\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1109,7 +1119,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, " — Make/Buy Tree</span> <span class=\"hidden md:inline font-mono text-[10px] text-slate-400\">Drag to pan • Scroll to zoom • Click node to highlight or toggle MAKE/BUY</span></div><div class=\"flex flex-wrap items-center gap-1.5 font-mono text-[11px]\"><button type=\"button\" @click=\"toggleFlowDir()\" class=\"inline-flex items-center gap-1 rounded border border-sky-400/40 bg-sky-500/15 px-2.5 py-1 text-sky-200 hover:bg-sky-500/25 cursor-pointer\"><span x-text=\"bpFlowDir === &#39;output-to-raw&#39; ? &#39;Output → Raw&#39; : &#39;Raw → Output&#39;\">Output → Raw</span></button> <button type=\"button\" @click=\"zoomOut()\" class=\"rounded border border-slate-700 bg-slate-900 px-2 py-1 text-slate-200 hover:text-white cursor-pointer\">−</button> <span class=\"min-w-[44px] text-center text-amber-200\" x-text=\"Math.round(scale * 100) + &#39;%&#39;\">100%</span> <button type=\"button\" @click=\"zoomIn()\" class=\"rounded border border-slate-700 bg-slate-900 px-2 py-1 text-slate-200 hover:text-white cursor-pointer\">+</button> <button type=\"button\" @click=\"fitView()\" class=\"rounded border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-violet-200 hover:bg-violet-500/25 cursor-pointer\">Fit</button> <button type=\"button\" @click=\"resetView()\" class=\"rounded border border-slate-700 bg-slate-900 px-2 py-1 text-slate-300 hover:text-white cursor-pointer\">1:1</button> <button type=\"button\" @click=\"toggleFullscreen()\" class=\"rounded border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-amber-200 hover:bg-amber-500/25 cursor-pointer\"><span x-show=\"!fullscreen\">Expand</span> <span x-cloak x-show=\"fullscreen\">Exit Full</span></button></div></div><!-- Viewport --><div x-ref=\"indViewport\" @mousedown.prevent=\"startDrag($event)\" @click=\"if (!moved &amp;&amp; $event.target === $refs.indViewport) clearFocus()\" @wheel.prevent=\"onWheel($event)\" :class=\"[dragging ? &#39;cursor-grabbing&#39; : &#39;cursor-grab&#39;, fullscreen ? &#39;flex-1 min-h-0&#39; : &#39;h-[520px]&#39;]\" class=\"relative w-full overflow-hidden select-none bg-[#0a0d1c]\" style=\"background-image: radial-gradient(rgba(167, 139, 250, 0.16) 1px, transparent 1px); background-size: 22px 22px;\"><div class=\"absolute top-0 left-0 origin-top-left will-change-transform\" :style=\"`width: ${cw}px; height: ${ch}px; transform: translate3d(${tx}px, ${ty}px, 0) scale(${scale});`\"><svg width=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, " — Make/Buy Tree</span> <span class=\"hidden md:inline font-mono text-[10px] text-slate-400\">Drag to pan • Scroll to zoom • Click node to highlight or toggle MAKE/BUY</span></div><div class=\"flex flex-wrap items-center gap-1.5 font-mono text-[11px]\"><button type=\"button\" @click=\"toggleFlowDir()\" class=\"inline-flex items-center gap-1 rounded border border-sky-400/40 bg-sky-500/15 px-2.5 py-1 text-sky-200 hover:bg-sky-500/25 cursor-pointer\"><span x-text=\"bpFlowDir === &#39;output-to-raw&#39; ? &#39;Output → Raw&#39; : &#39;Raw → Output&#39;\">Output → Raw</span></button> <button type=\"button\" @click=\"zoomOut()\" class=\"rounded border border-slate-700 bg-slate-900 px-2 py-1 text-slate-200 hover:text-white cursor-pointer\">−</button> <span class=\"min-w-[44px] text-center text-amber-200\" x-text=\"Math.round(scale * 100) + &#39;%&#39;\">100%</span> <button type=\"button\" @click=\"zoomIn()\" class=\"rounded border border-slate-700 bg-slate-900 px-2 py-1 text-slate-200 hover:text-white cursor-pointer\">+</button> <button type=\"button\" @click=\"fitView()\" class=\"rounded border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-violet-200 hover:bg-violet-500/25 cursor-pointer\">Fit</button> <button type=\"button\" @click=\"resetView()\" class=\"rounded border border-slate-700 bg-slate-900 px-2 py-1 text-slate-300 hover:text-white cursor-pointer\">1:1</button> <button type=\"button\" @click=\"toggleFullscreen()\" class=\"rounded border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-amber-200 hover:bg-amber-500/25 cursor-pointer\"><span x-show=\"!fullscreen\">Expand</span> <span x-cloak x-show=\"fullscreen\">Exit Full</span></button></div></div><!-- Viewport --><div x-ref=\"indViewport\" @mousedown.prevent=\"startDrag($event)\" @click=\"if (!moved &amp;&amp; $event.target === $refs.indViewport) clearFocus()\" @wheel.prevent=\"onWheel($event)\" :class=\"[dragging ? &#39;cursor-grabbing&#39; : &#39;cursor-grab&#39;, fullscreen ? &#39;flex-1 min-h-0&#39; : &#39;h-[520px]&#39;]\" class=\"relative w-full overflow-hidden select-none bg-[#0a0d1c]\" style=\"background-image: radial-gradient(rgba(167, 139, 250, 0.16) 1px, transparent 1px); background-size: 22px 22px;\"><div class=\"absolute top-0 left-0 origin-top-left will-change-transform\" :style=\"`width: ${cw}px; height: ${ch}px; transform: translate3d(${tx}px, ${ty}px, 0) scale(${scale});`\"><svg width=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1122,7 +1132,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "\" height=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "\" height=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1135,7 +1145,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, "\" viewBox=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "\" viewBox=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1148,12 +1158,12 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "\" class=\"pointer-events-none absolute inset-0\" fill=\"none\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "\" class=\"pointer-events-none absolute inset-0\" fill=\"none\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				for _, edge := range canvas.Edges {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "<path :d=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "<path :d=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1166,7 +1176,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "\" :stroke=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "\" :stroke=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1179,7 +1189,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "\" :stroke-width=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "\" :stroke-width=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1192,7 +1202,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "\" :opacity=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, "\" :opacity=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1205,12 +1215,12 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "\" stroke-linecap=\"round\"></path>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, "\" stroke-linecap=\"round\"></path>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, "</svg> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 82, "</svg> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1220,7 +1230,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, "<div @click.stop=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, "<div @click.stop=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1233,7 +1243,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 82, "\" :class=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 84, "\" :class=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1246,7 +1256,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, "\" :style=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "\" :style=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1259,7 +1269,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 84, "\" class=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "\" class=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1272,7 +1282,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "\"><img src=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 87, "\"><img src=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1285,7 +1295,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "\" alt=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 88, "\" alt=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1298,7 +1308,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 87, "\" draggable=\"false\" class=\"h-10 w-10 shrink-0 rounded-lg border border-violet-400/30 bg-slate-950/90 p-0.5 object-contain pointer-events-none\" onerror=\"this.style.display=&#39;none&#39;\"><div class=\"min-w-0 flex-1\"><div class=\"flex items-center justify-between gap-1\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, "\" draggable=\"false\" class=\"h-10 w-10 shrink-0 rounded-lg border border-violet-400/30 bg-slate-950/90 p-0.5 object-contain pointer-events-none\" onerror=\"this.style.display=&#39;none&#39;\"><div class=\"min-w-0 flex-1\"><div class=\"flex items-center justify-between gap-1\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1307,7 +1317,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 88, "<span class=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "<span class=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1320,7 +1330,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, "\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 91, "\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1333,7 +1343,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "</span> <span class=\"font-mono text-[10.5px] font-bold text-amber-200\">×")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 92, "</span> <span class=\"font-mono text-[10.5px] font-bold text-amber-200\">×")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1346,7 +1356,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 91, "</span></div><div class=\"mt-1 text-xs font-semibold text-white truncate\" title=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, "</span></div><div class=\"mt-1 text-xs font-semibold text-white truncate\" title=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1359,7 +1369,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 92, "\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 94, "\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1372,7 +1382,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, "</div><div class=\"mt-0.5 font-mono text-[10px] text-slate-300\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 95, "</div><div class=\"mt-0.5 font-mono text-[10px] text-slate-300\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1385,17 +1395,17 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 94, "</div></div></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, "</div></div></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 95, "</div><!-- Floating Focused Branch Bar with 1-Click MAKE/BUY Override --><div x-cloak x-show=\"focusedNodeID !== &#39;&#39;\" @mousedown.stop class=\"absolute bottom-3 left-3 z-10 flex flex-wrap items-center gap-2 rounded-xl border border-amber-400/45 bg-slate-950/95 backdrop-blur px-3 py-2 text-xs shadow-xl\"><span class=\"font-mono text-[10px] uppercase text-amber-300\">Focused:</span> <span class=\"font-semibold text-white\" x-text=\"focusedName\"></span> <button type=\"button\" x-show=\"focusedCanToggle\" @click=\"toggleMakeBuy(focusedTypeID, focusedDecision === &#39;MAKE&#39; ? &#39;BUY&#39; : &#39;MAKE&#39;)\" class=\"rounded-md border border-emerald-400/50 bg-emerald-500/20 px-2.5 py-1 font-mono text-[10px] font-bold text-emerald-200 hover:bg-emerald-500/30 cursor-pointer\" x-text=\"focusedDecision === &#39;MAKE&#39; ? &#39;Switch to BUY&#39; : &#39;Switch to MAKE&#39;\"></button> <button type=\"button\" @click=\"clearFocus()\" class=\"rounded-md border border-slate-700 bg-slate-900 px-2 py-1 font-mono text-[10px] text-slate-300 hover:text-white cursor-pointer\">Clear</button></div></div></div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 97, "</div><!-- Floating Focused Branch Bar with 1-Click MAKE/BUY Override --><div x-cloak x-show=\"focusedNodeID !== &#39;&#39;\" @mousedown.stop class=\"absolute bottom-3 left-3 z-10 flex flex-wrap items-center gap-2 rounded-xl border border-amber-400/45 bg-slate-950/95 backdrop-blur px-3 py-2 text-xs shadow-xl\"><span class=\"font-mono text-[10px] uppercase text-amber-300\">Focused:</span> <span class=\"font-semibold text-white\" x-text=\"focusedName\"></span> <button type=\"button\" x-show=\"focusedCanToggle\" @click=\"toggleMakeBuy(focusedTypeID, focusedDecision === &#39;MAKE&#39; ? &#39;BUY&#39; : &#39;MAKE&#39;)\" class=\"rounded-md border border-emerald-400/50 bg-emerald-500/20 px-2.5 py-1 font-mono text-[10px] font-bold text-emerald-200 hover:bg-emerald-500/30 cursor-pointer\" x-text=\"focusedDecision === &#39;MAKE&#39; ? &#39;Switch to BUY&#39; : &#39;Switch to MAKE&#39;\"></button> <button type=\"button\" @click=\"clearFocus()\" class=\"rounded-md border border-slate-700 bg-slate-900 px-2 py-1 font-mono text-[10px] text-slate-300 hover:text-white cursor-pointer\">Clear</button></div></div></div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, "<!-- MODE B: DETAILS, 3-SCENARIO OPTIMAL MAKE/BUY & SUB-JOB QUEUE --><div x-show=\"bpViewMode === &#39;details&#39;\" class=\"space-y-4\"><!-- 4 KPI Cards --><div class=\"grid grid-cols-2 gap-3 sm:grid-cols-4\"><div class=\"rounded-lg border border-slate-800 bg-slate-900/75 p-3\"><div class=\"text-[10px] font-mono uppercase text-slate-400\">Net Profit</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 98, "<!-- MODE B: DETAILS, 3-SCENARIO OPTIMAL MAKE/BUY & SUB-JOB QUEUE --><div x-show=\"bpViewMode === &#39;details&#39;\" class=\"space-y-4\"><!-- 4 KPI Cards --><div class=\"grid grid-cols-2 gap-3 sm:grid-cols-4\"><div class=\"rounded-lg border border-slate-800 bg-slate-900/75 p-3\"><div class=\"text-[10px] font-mono uppercase text-slate-400\">Net Profit</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1404,7 +1414,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 97, "<div class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 99, "<div class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1417,7 +1427,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 98, "\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 100, "\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1430,7 +1440,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 99, "</div><div class=\"text-[10px] font-mono text-slate-400\">ROI: ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "</div><div class=\"text-[10px] font-mono text-slate-400\">ROI: ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1443,7 +1453,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 100, "</div></div><div class=\"rounded-lg border border-slate-800 bg-slate-900/75 p-3\"><div class=\"text-[10px] font-mono uppercase text-amber-300/80\">ISK / Hour (Slot)</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 102, "</div></div><div class=\"rounded-lg border border-slate-800 bg-slate-900/75 p-3\"><div class=\"text-[10px] font-mono uppercase text-amber-300/80\">ISK / Hour (Slot)</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1452,7 +1462,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "<div class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 103, "<div class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1465,7 +1475,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 102, "\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 104, "\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1478,7 +1488,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 103, "/h</div><div class=\"text-[10px] font-mono text-slate-400\">Build: ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 105, "/h</div><div class=\"text-[10px] font-mono text-slate-400\">Build: ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1491,7 +1501,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 104, "</div></div><div class=\"rounded-lg border border-slate-800 bg-slate-900/75 p-3\"><div class=\"text-[10px] font-mono uppercase text-sky-300/80\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 106, "</div></div><div class=\"rounded-lg border border-slate-800 bg-slate-900/75 p-3\"><div class=\"text-[10px] font-mono uppercase text-sky-300/80\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1504,7 +1514,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 105, " Sell</div><div class=\"mt-1 text-base font-bold font-mono text-sky-200\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 107, " Sell</div><div class=\"mt-1 text-base font-bold font-mono text-sky-200\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1517,7 +1527,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 106, "</div><div class=\"text-[10px] font-mono text-slate-400\">Break-Even: ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 108, "</div><div class=\"text-[10px] font-mono text-slate-400\">Break-Even: ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1530,7 +1540,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 107, "</div></div><div class=\"rounded-lg border border-slate-800 bg-slate-900/75 p-3\"><div class=\"text-[10px] font-mono uppercase text-violet-300/80\">Optimal Build Cost</div><div class=\"mt-1 text-base font-bold font-mono text-white\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 109, "</div></div><div class=\"rounded-lg border border-slate-800 bg-slate-900/75 p-3\"><div class=\"text-[10px] font-mono uppercase text-violet-300/80\">Optimal Build Cost</div><div class=\"mt-1 text-base font-bold font-mono text-white\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1543,7 +1553,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 108, "</div><div class=\"text-[10px] font-mono text-slate-400\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 110, "</div><div class=\"text-[10px] font-mono text-slate-400\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1556,17 +1566,17 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 109, "</div></div></div><!-- 3-Scenario Optimal Make-vs-Buy Savings Banner (for Multi-Level / T2 Blueprints) -->")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 111, "</div></div></div><!-- 3-Scenario Optimal Make-vs-Buy Savings Banner (for Multi-Level / T2 Blueprints) -->")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if hasTree && res.IndustryTree.HasSubBlueprints {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 110, "<div class=\"rounded-xl border border-emerald-400/35 bg-emerald-950/25 p-3.5 space-y-2.5\"><div class=\"flex flex-wrap items-center justify-between gap-2\"><div class=\"flex items-center gap-2\"><span class=\"rounded border border-emerald-400/50 bg-emerald-500/20 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-200\">MULTI-LEVEL MAKE vs BUY</span> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 112, "<div class=\"rounded-xl border border-emerald-400/35 bg-emerald-950/25 p-3.5 space-y-2.5\"><div class=\"flex flex-wrap items-center justify-between gap-2\"><div class=\"flex items-center gap-2\"><span class=\"rounded border border-emerald-400/50 bg-emerald-500/20 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-200\">MULTI-LEVEL MAKE vs BUY</span> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if res.IndustryTree.OptimalSavingsISK > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 111, "<span class=\"text-xs font-semibold text-emerald-200\">Saving <strong class=\"font-mono\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 113, "<span class=\"text-xs font-semibold text-emerald-200\">Saving <strong class=\"font-mono\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1579,7 +1589,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 112, "</strong> (")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 114, "</strong> (")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1592,27 +1602,27 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 113, ") vs Buying Direct Inputs</span>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 115, ") vs Buying Direct Inputs</span>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 114, "<span class=\"text-xs text-slate-300\">Buying direct inputs is currently optimal for this hub's prices.</span>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 116, "<span class=\"text-xs text-slate-300\">Buying direct inputs is currently optimal for this hub's prices.</span>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 115, "</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 117, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if len(res.IndustryTree.ActiveOverrides) > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 116, "<button type=\"button\" @click=\"resetMakeBuyOverrides()\" class=\"rounded border border-amber-400/40 bg-amber-500/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer\">Reset Auto-Optimal</button>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 118, "<button type=\"button\" @click=\"resetMakeBuyOverrides()\" class=\"rounded border border-amber-400/40 bg-amber-500/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer\">Reset Auto-Optimal</button>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 117, "</div><div class=\"grid grid-cols-3 gap-2 font-mono text-[11px]\"><div class=\"rounded-lg border border-slate-700/70 bg-slate-950/60 p-2\"><div class=\"text-[9.5px] uppercase text-slate-400\">Buy All Direct</div><div class=\"font-bold text-slate-200 mt-0.5\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 119, "</div><div class=\"grid grid-cols-3 gap-2 font-mono text-[11px]\"><div class=\"rounded-lg border border-slate-700/70 bg-slate-950/60 p-2\"><div class=\"text-[9.5px] uppercase text-slate-400\">Buy All Direct</div><div class=\"font-bold text-slate-200 mt-0.5\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1625,7 +1635,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 118, "</div></div><div class=\"rounded-lg border border-slate-700/70 bg-slate-950/60 p-2\"><div class=\"text-[9.5px] uppercase text-slate-400\">Make Everything</div><div class=\"font-bold text-slate-200 mt-0.5\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 120, "</div></div><div class=\"rounded-lg border border-slate-700/70 bg-slate-950/60 p-2\"><div class=\"text-[9.5px] uppercase text-slate-400\">Make Everything</div><div class=\"font-bold text-slate-200 mt-0.5\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1638,7 +1648,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 119, "</div></div><div class=\"rounded-lg border border-emerald-400/45 bg-emerald-500/15 p-2\"><div class=\"text-[9.5px] uppercase text-emerald-300\">Active Optimal Plan</div><div class=\"font-bold text-emerald-200 mt-0.5\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 121, "</div></div><div class=\"rounded-lg border border-emerald-400/45 bg-emerald-500/15 p-2\"><div class=\"text-[9.5px] uppercase text-emerald-300\">Active Optimal Plan</div><div class=\"font-bold text-emerald-200 mt-0.5\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1651,27 +1661,27 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 120, "</div></div></div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 122, "</div></div></div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 121, "<!-- Recursive BOM & Make-vs-Buy Table --><div class=\"rounded-lg border border-violet-400/20 bg-slate-950/55 overflow-hidden\"><div class=\"px-3.5 py-2 border-b border-violet-400/15 flex flex-wrap items-center justify-between gap-2\"><span class=\"text-[11px] font-mono font-bold uppercase tracking-wider text-amber-300\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 123, "<!-- Recursive BOM & Make-vs-Buy Table --><div class=\"rounded-lg border border-violet-400/20 bg-slate-950/55 overflow-hidden\"><div class=\"px-3.5 py-2 border-b border-violet-400/15 flex flex-wrap items-center justify-between gap-2\"><span class=\"text-[11px] font-mono font-bold uppercase tracking-wider text-amber-300\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if hasTree && res.IndustryTree.HasSubBlueprints {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 122, "Recursive Bill of Materials &amp; Make/Buy Controls")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 124, "Recursive Bill of Materials &amp; Make/Buy Controls")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 123, "ME-Adjusted Bill of Materials")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 125, "ME-Adjusted Bill of Materials")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 124, "</span> <button type=\"button\" @click=\"navigator.clipboard.writeText($refs.bpMultibuy.value); copied = true; setTimeout(() =&gt; copied = false, 2000)\" class=\"rounded border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-[10px] font-mono font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer\"><span x-show=\"!copied\">Copy Optimal EVE Multibuy</span> <span x-cloak x-show=\"copied\">Copied!</span></button></div><textarea x-ref=\"bpMultibuy\" class=\"hidden\" readonly>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 126, "</span> <button type=\"button\" @click=\"navigator.clipboard.writeText($refs.bpMultibuy.value); copied = true; setTimeout(() =&gt; copied = false, 2000)\" class=\"rounded border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-[10px] font-mono font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer\"><span x-show=\"!copied\">Copy Optimal EVE Multibuy</span> <span x-cloak x-show=\"copied\">Copied!</span></button></div><textarea x-ref=\"bpMultibuy\" class=\"hidden\" readonly>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1684,14 +1694,14 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 125, "</textarea><div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs font-mono\"><thead class=\"text-[10px] uppercase text-slate-400 border-b border-violet-400/15\"><tr><th class=\"px-3.5 py-2\">Material / Sub-Component</th><th class=\"px-2 py-2 text-right\">Qty</th><th class=\"px-2 py-2 text-right\">BUY Cost</th><th class=\"px-2 py-2 text-right\">MAKE Cost</th><th class=\"px-3.5 py-2 text-right\">Decision</th></tr></thead> <tbody class=\"divide-y divide-violet-400/10\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 127, "</textarea><div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs font-mono\"><thead class=\"text-[10px] uppercase text-slate-400 border-b border-violet-400/15\"><tr><th class=\"px-3.5 py-2\">Material / Sub-Component</th><th class=\"px-2 py-2 text-right\">Qty</th><th class=\"px-2 py-2 text-right\">BUY Cost</th><th class=\"px-2 py-2 text-right\">MAKE Cost</th><th class=\"px-3.5 py-2 text-right\">Decision</th></tr></thead> <tbody class=\"divide-y divide-violet-400/10\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if hasTree {
 				for _, n := range res.IndustryTree.FlatNodes {
 					if n.Depth > 0 {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 126, "<tr class=\"hover:bg-white/5\"><td class=\"px-3.5 py-1.5 font-sans text-slate-100\"><div class=\"flex items-center gap-2\" style=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 128, "<tr class=\"hover:bg-white/5\"><td class=\"px-3.5 py-1.5 font-sans text-slate-100\"><div class=\"flex items-center gap-2\" style=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1704,17 +1714,17 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 127, "\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 129, "\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						if n.Depth > 1 {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 128, "<span class=\"font-mono text-slate-500\">└─</span> ")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 130, "<span class=\"font-mono text-slate-500\">└─</span> ")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 129, "<img src=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 131, "<img src=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1727,7 +1737,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 130, "\" alt=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 132, "\" alt=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1740,7 +1750,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 131, "\" loading=\"lazy\" class=\"h-5 w-5 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"> <span class=\"truncate\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 133, "\" loading=\"lazy\" class=\"h-5 w-5 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"> <span class=\"truncate\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1753,7 +1763,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 132, "</span></div></td><td class=\"px-2 py-1.5 text-right text-slate-200\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 134, "</span></div></td><td class=\"px-2 py-1.5 text-right text-slate-200\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1766,7 +1776,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 133, "</td><td class=\"px-2 py-1.5 text-right text-slate-300\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 135, "</td><td class=\"px-2 py-1.5 text-right text-slate-300\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1779,7 +1789,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 134, "</td><td class=\"px-2 py-1.5 text-right\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 136, "</td><td class=\"px-2 py-1.5 text-right\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1794,7 +1804,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 135, "<span class=\"")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 137, "<span class=\"")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -1807,7 +1817,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 136, "\">")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 138, "\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -1820,17 +1830,17 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 137, "</span>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 139, "</span>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 						} else {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 138, "<span class=\"text-slate-600\">—</span>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 140, "<span class=\"text-slate-600\">—</span>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 139, "</td><td class=\"px-3.5 py-1.5 text-right\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 141, "</td><td class=\"px-3.5 py-1.5 text-right\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1840,7 +1850,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 140, "<button type=\"button\" @click=\"")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 142, "<button type=\"button\" @click=\"")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -1858,7 +1868,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 141, "\" title=\"Click to override MAKE ↔ BUY for this component\" class=\"")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 143, "\" title=\"Click to override MAKE ↔ BUY for this component\" class=\"")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -1871,7 +1881,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 142, "\"><span>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 144, "\"><span>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -1884,29 +1894,29 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 143, "</span> <span class=\"opacity-70\">⇄</span></button>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 145, "</span> <span class=\"opacity-70\">⇄</span></button>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 						} else {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 144, "<span class=\"rounded border border-slate-600/40 bg-slate-800/60 px-1.5 py-0.5 text-[9.5px] text-slate-400\">RAW</span>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 146, "<span class=\"rounded border border-slate-600/40 bg-slate-800/60 px-1.5 py-0.5 text-[9.5px] text-slate-400\">RAW</span>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 145, "</td></tr>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 147, "</td></tr>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 146, "</tbody></table></div></div><!-- Bottom-Up Sub-Job Execution Queue (when sub-blueprints are set to MAKE) -->")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 148, "</tbody></table></div></div><!-- Bottom-Up Sub-Job Execution Queue (when sub-blueprints are set to MAKE) -->")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if hasTree && len(res.IndustryTree.SubJobs) > 1 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 147, "<div class=\"rounded-lg border border-sky-400/25 bg-slate-950/55 overflow-hidden\"><div class=\"px-3.5 py-2 border-b border-sky-400/15 flex items-center justify-between text-[11px] font-mono\"><span class=\"font-bold uppercase tracking-wider text-sky-300\">Manufacturing Sub-Job Execution Order</span> <span class=\"text-slate-400\">Total Job Time: <strong class=\"text-white\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 149, "<div class=\"rounded-lg border border-sky-400/25 bg-slate-950/55 overflow-hidden\"><div class=\"px-3.5 py-2 border-b border-sky-400/15 flex items-center justify-between text-[11px] font-mono\"><span class=\"font-bold uppercase tracking-wider text-sky-300\">Manufacturing Sub-Job Execution Order</span> <span class=\"text-slate-400\">Total Job Time: <strong class=\"text-white\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1919,12 +1929,12 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 148, "</strong></span></div><div class=\"divide-y divide-violet-400/10 text-xs font-mono\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 150, "</strong></span></div><div class=\"divide-y divide-violet-400/10 text-xs font-mono\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				for _, job := range res.IndustryTree.SubJobs {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 149, "<div class=\"px-3.5 py-2 flex flex-wrap items-center justify-between gap-2 hover:bg-white/5\"><div class=\"flex items-center gap-2 font-sans\"><span class=\"flex h-5 w-5 items-center justify-center rounded-full bg-sky-500/20 font-mono text-[10px] font-bold text-sky-300\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 151, "<div class=\"px-3.5 py-2 flex flex-wrap items-center justify-between gap-2 hover:bg-white/5\"><div class=\"flex items-center gap-2 font-sans\"><span class=\"flex h-5 w-5 items-center justify-center rounded-full bg-sky-500/20 font-mono text-[10px] font-bold text-sky-300\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1937,7 +1947,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 150, "</span> <img src=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 152, "</span> <img src=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1950,7 +1960,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 151, "\" alt=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 153, "\" alt=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1963,7 +1973,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 152, "\" loading=\"lazy\" class=\"h-5 w-5 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"> <span class=\"font-semibold text-white\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 154, "\" loading=\"lazy\" class=\"h-5 w-5 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"> <span class=\"font-semibold text-white\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1976,7 +1986,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 153, "</span> <span class=\"font-mono text-[11px] text-amber-200\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 155, "</span> <span class=\"font-mono text-[11px] text-amber-200\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1989,7 +1999,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 154, "</span></div><div class=\"text-[11px] text-slate-400\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 156, "</span></div><div class=\"text-[11px] text-slate-400\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -2002,7 +2012,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 155, " • Fee: <span class=\"text-slate-200\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 157, " • Fee: <span class=\"text-slate-200\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -2015,17 +2025,17 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 156, "</span></div></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 158, "</span></div></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 157, "</div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 159, "</div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 158, "<!-- Financial Breakdown --><div class=\"rounded-lg border border-slate-800 bg-slate-950/60 p-3.5 text-xs space-y-1.5 font-mono\"><div class=\"flex justify-between\"><span class=\"text-slate-400\">Gross Revenue (")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 160, "<!-- Financial Breakdown --><div class=\"rounded-lg border border-slate-800 bg-slate-950/60 p-3.5 text-xs space-y-1.5 font-mono\"><div class=\"flex justify-between\"><span class=\"text-slate-400\">Gross Revenue (")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2038,7 +2048,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 159, ")</span><span class=\"text-white\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 161, ")</span><span class=\"text-white\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2051,7 +2061,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 160, "</span></div><div class=\"flex justify-between\"><span class=\"text-slate-400\">Materials + Freight (")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 162, "</span></div><div class=\"flex justify-between\"><span class=\"text-slate-400\">Materials + Freight (")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2064,7 +2074,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 161, ") + SCI (")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 163, ") + SCI (")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2077,7 +2087,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 162, ")</span><span class=\"text-slate-200\">-")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 164, ")</span><span class=\"text-slate-200\">-")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2090,7 +2100,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 163, "</span></div><div class=\"flex justify-between\"><span class=\"text-slate-400\">Market Fees (Broker + Sales Tax + Relist)</span><span class=\"text-rose-300\">-")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 165, "</span></div><div class=\"flex justify-between\"><span class=\"text-slate-400\">Market Fees (Broker + Sales Tax + Relist)</span><span class=\"text-rose-300\">-")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2103,7 +2113,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 164, "</span></div><div class=\"border-t border-slate-800 pt-1.5 flex justify-between font-bold\"><span class=\"text-slate-300\">Weekly Projected Profit</span> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 166, "</span></div><div class=\"border-t border-slate-800 pt-1.5 flex justify-between font-bold\"><span class=\"text-slate-300\">Weekly Projected Profit</span> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2112,7 +2122,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 165, "<span class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 167, "<span class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2125,7 +2135,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 166, "\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 168, "\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2138,7 +2148,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 167, "</span></div></div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 169, "</span></div></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
