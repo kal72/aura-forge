@@ -36,6 +36,11 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 	if _, err := os.Stat(staticDir); err == nil {
 		fs := http.FileServer(http.Dir(staticDir))
 		r.Handle("/static/*", http.StripPrefix("/static/", fs))
+		r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "image/svg+xml")
+			w.Header().Set("Cache-Control", "public, max-age=86400")
+			http.ServeFile(w, r, filepath.Join(staticDir, "favicon.svg"))
+		})
 	}
 
 	// Health check (public)
