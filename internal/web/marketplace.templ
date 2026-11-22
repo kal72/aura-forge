@@ -153,6 +153,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 			class="space-y-6"
 			x-data={ fmt.Sprintf(`{
 				isAdmin: %t,
+				aiEnabled: %t,
 				mpTab: 'orderbook',
 				appraisalText: '',
 				queryText: %q,
@@ -280,7 +281,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 						window.dispatchEvent(new CustomEvent('showToast', { detail: { level: 'success', message: label + ' copied (' + Number(val).toLocaleString() + ' ISK)' } }));
 					});
 				}
-			}`, mode.IsAdmin(), query, hubKey) }
+			}`, mode.IsAdmin(), mode.AI.Enabled, query, hubKey) }
 			@keydown.escape.window="showBrowse = false"
 			@mp-switch-hub.window="runSearch($event.detail.name, $event.detail.hub)"
 			@mp-copy-price.window="copyPrice($event.detail.val, $event.detail.label)"
@@ -666,6 +667,14 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 				</div>
 
 				<div class="flex flex-wrap items-center gap-2">
+					<button
+						type="button"
+						x-show="aiEnabled"
+						@click={ fmt.Sprintf("window.dispatchEvent(new CustomEvent('open-aura-ai', { detail: { prompt: %q } }))", fmt.Sprintf("Analyze %s at %s (check sell walls, 7d/30d price trend, 5-hub spread, and whether to Station Trade, Craft, or Avoid).", snap.TypeName, snap.SelectedHub.Name)) }
+						class="rounded-lg border border-violet-400/50 bg-violet-500/20 px-3 py-1.5 text-xs font-bold text-violet-100 hover:bg-violet-500/35 transition cursor-pointer"
+					>
+						⚡ Ask Aura: Analyze
+					</button>
 					<form x-show="isAdmin" hx-post="/marketplace/add-catalog" hx-swap="none">
 						<input type="hidden" name="type_id" value={ fmt.Sprintf("%d", snap.TypeID) }/>
 						<input type="hidden" name="name" value={ snap.TypeName }/>
@@ -1097,14 +1106,24 @@ templ MarketplaceAppraisalPartial(res *domain.AppraisalResult, errMsg string) {
 						<div class="text-[10px] font-mono uppercase text-amber-300/90">Buyback ({ fmt.Sprintf("%.0f%%", res.BuybackPercent) } Buy)</div>
 						<div class="mt-1 text-xl font-mono font-bold text-amber-200">{ FormatISK(res.BuybackValue) }</div>
 					</div>
-					<button
-						type="button"
-						@click="copyAppraisalMB()"
-						class="w-full rounded-md border border-emerald-400/45 bg-emerald-500/15 px-3 py-1.5 text-[11px] font-bold text-emerald-200 hover:bg-emerald-500/25 transition cursor-pointer"
-					>
-						<span x-show="!copiedMB">Copy EVE Multibuy</span>
-						<span x-cloak x-show="copiedMB">Copied!</span>
-					</button>
+					<div class="flex gap-1.5">
+						<button
+							type="button"
+							@click="copyAppraisalMB()"
+							class="flex-1 rounded-md border border-emerald-400/45 bg-emerald-500/15 px-2.5 py-1.5 text-[11px] font-bold text-emerald-200 hover:bg-emerald-500/25 transition cursor-pointer"
+						>
+							<span x-show="!copiedMB">Copy Multibuy</span>
+							<span x-cloak x-show="copiedMB">Copied!</span>
+						</button>
+						<button
+							type="button"
+							x-show="aiEnabled"
+							@click={ fmt.Sprintf("window.dispatchEvent(new CustomEvent('open-aura-ai', { detail: { prompt: %q } }))", fmt.Sprintf("Audit this EVE appraisal at %s: Total Sell %s (Net %s), Total Buy %s (Net %s), Volume %.1f m3, %d distinct items. Should I Sell Order, Instant Sell, or haul to another hub? Check Gank Risk.", res.Hub.Name, FormatISK(res.TotalSell), FormatISK(res.NetSellAfterFees), FormatISK(res.TotalBuy), FormatISK(res.NetBuyAfterFees), res.TotalVolumeM3, res.TotalDistinct)) }
+							class="rounded-md border border-violet-400/50 bg-violet-500/20 px-2.5 py-1.5 text-[11px] font-bold text-violet-100 hover:bg-violet-500/35 transition cursor-pointer"
+						>
+							⚡ Aura
+						</button>
+					</div>
 				</div>
 			</div>
 

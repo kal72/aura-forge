@@ -29,6 +29,7 @@ type ModeInfo struct {
 	StatusHint    string          `json:"status_hint"`
 	CurrentUser   *domain.AppUser `json:"current_user,omitempty"`
 	PriceSync     PriceSyncStatus `json:"price_sync"`
+	AI            domain.AIStatus `json:"ai"`
 }
 
 // IsAdmin returns true for authenticated administrators (and in auth-less unit test routers where CurrentUser is nil).
@@ -126,6 +127,8 @@ type CopilotService struct {
 	wealth          domain.NetWorthRepository
 	pi              domain.PIRepository
 	globalSnapshots domain.GlobalPriceSnapshotRepository
+	aiProvider      domain.AIProvider
+	aiRepo          domain.AIRepository
 	priceSync       *priceSyncState
 	sdeImport       *sdeImportState
 }
@@ -133,6 +136,16 @@ type CopilotService struct {
 // SetGlobalPriceSnapshotRepository attaches the optional PostgreSQL global price snapshot repository.
 func (s *CopilotService) SetGlobalPriceSnapshotRepository(repo domain.GlobalPriceSnapshotRepository) {
 	s.globalSnapshots = repo
+}
+
+// SetAIProvider attaches the optional OpenAI-compatible AI provider.
+func (s *CopilotService) SetAIProvider(p domain.AIProvider) {
+	s.aiProvider = p
+}
+
+// SetAIRepository attaches the PostgreSQL AI conversation & pilot memory repository.
+func (s *CopilotService) SetAIRepository(r domain.AIRepository) {
+	s.aiRepo = r
 }
 
 // NewCopilotService constructs a CopilotService via Dependency Inversion interfaces.
@@ -164,6 +177,10 @@ func NewCopilotService(
 func (s *CopilotService) GetModeInfo(ctx context.Context) ModeInfo {
 	currentUser := domain.AppUserFromContext(ctx)
 	priceSync := s.GetPriceSyncStatus(ctx)
+	aiStatus := domain.AIStatus{}
+	if s.aiProvider != nil {
+		aiStatus = s.aiProvider.Status()
+	}
 	ssoEnabled := s.sso != nil && s.sso.IsEnabled()
 	if !ssoEnabled {
 		return ModeInfo{
@@ -172,6 +189,7 @@ func (s *CopilotService) GetModeInfo(ctx context.Context) ModeInfo {
 			StatusHint:  "Optional: Set ESI_CLIENT_ID & SECRET in .env for Character Auto-Sync",
 			CurrentUser: currentUser,
 			PriceSync:   priceSync,
+			AI:          aiStatus,
 		}
 	}
 
@@ -186,6 +204,7 @@ func (s *CopilotService) GetModeInfo(ctx context.Context) ModeInfo {
 				StatusHint:    fmt.Sprintf("Connected as %s", tok.CharacterName),
 				CurrentUser:   currentUser,
 				PriceSync:     priceSync,
+				AI:            aiStatus,
 			}
 		}
 	}
@@ -197,6 +216,7 @@ func (s *CopilotService) GetModeInfo(ctx context.Context) ModeInfo {
 		StatusHint:   "EVE SSO Ready: Click Connect EVE SSO to synchronize your character",
 		CurrentUser:  currentUser,
 		PriceSync:    priceSync,
+		AI:           aiStatus,
 	}
 }
 
@@ -1415,6 +1435,7 @@ func (s *CopilotService) SaveBatch(ctx context.Context, b *domain.BatchRecord) (
 	if b == nil || strings.TrimSpace(b.ItemName) == "" {
 		return nil, fmt.Errorf("batch item name is required")
 	}
+	b.EntryType = b.NormalizedEntryType()
 	if b.Runs <= 0 {
 		b.Runs = 1
 	}

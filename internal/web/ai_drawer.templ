@@ -1,0 +1,238 @@
+package web
+
+import (
+	"fmt"
+	"html"
+	"regexp"
+	"strings"
+
+	"aura-forge/internal/domain"
+	"aura-forge/internal/service"
+)
+
+var (
+	reMDBold = regexp.MustCompile(`\*\*([^*]+)\*\*`)
+	reMDCode = regexp.MustCompile("`([^`]+)`")
+)
+
+// formatAIMarkdownSafe converts basic Markdown (bold, inline code, headings, bullets, line breaks)
+// into safe escaped HTML for clean display inside the Aura AI Copilot Drawer.
+func formatAIMarkdownSafe(raw string) string {
+	escaped := html.EscapeString(strings.TrimSpace(raw))
+	if escaped == "" {
+		return ""
+	}
+	lines := strings.Split(escaped, "\n")
+	var out strings.Builder
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			out.WriteString(`<div class="h-2"></div>`)
+			continue
+		}
+		trimmed = reMDBold.ReplaceAllString(trimmed, `<strong class="text-white font-semibold">$1</strong>`)
+		trimmed = reMDCode.ReplaceAllString(trimmed, `<code class="rounded bg-slate-950/90 border border-slate-700/80 px-1 py-0.5 font-mono text-[11px] text-amber-200">$1</code>`)
+
+		switch {
+		case strings.HasPrefix(trimmed, "### "):
+			out.WriteString(`<div class="mt-2 mb-1 text-xs font-bold uppercase tracking-wider text-amber-300">` + strings.TrimPrefix(trimmed, "### ") + `</div>`)
+		case strings.HasPrefix(trimmed, "## "):
+			out.WriteString(`<div class="mt-2.5 mb-1 text-xs font-bold uppercase tracking-wider text-sky-300">` + strings.TrimPrefix(trimmed, "## ") + `</div>`)
+		case strings.HasPrefix(trimmed, "- ") || strings.HasPrefix(trimmed, "* "):
+			body := trimmed[2:]
+			out.WriteString(`<div class="flex gap-2 pl-1 leading-relaxed"><span class="text-amber-300 shrink-0">▸</span><span>` + body + `</span></div>`)
+		default:
+			out.WriteString(`<p class="leading-relaxed">` + trimmed + `</p>`)
+		}
+	}
+	return out.String()
+}
+
+func aiActionCardAccent(kind string) string {
+	switch kind {
+	case "add_catalog":
+		return "border-emerald-400/45 bg-emerald-500/10"
+	case "create_batch":
+		return "border-amber-400/45 bg-amber-500/10"
+	default:
+		return "border-sky-400/45 bg-sky-500/10"
+	}
+}
+
+func aiActionButtonClass(kind string) string {
+	switch kind {
+	case "add_catalog":
+		return "bg-emerald-400 text-slate-950 hover:bg-emerald-300"
+	case "create_batch":
+		return "bg-amber-400 text-slate-950 hover:bg-amber-300"
+	default:
+		return "border border-sky-400/50 bg-sky-500/20 text-sky-100 hover:bg-sky-500/35"
+	}
+}
+
+templ AIDrawerThreadPartial(mode service.ModeInfo, convs []domain.AIConversation, activeConvID int64, msgs []domain.AIMessage, errMsg string) {
+	<div
+		class="flex h-full flex-col"
+		x-init={ fmt.Sprintf("auraConvID = %d; $nextTick(() => { const el = $el.querySelector('[data-aura-scroll]'); if (el) el.scrollTop = el.scrollHeight; })", activeConvID) }
+	>
+		<!-- Conversation Switcher Bar -->
+		<div class="flex items-center justify-between gap-2 border-b border-violet-400/20 bg-slate-950/75 px-4 py-2">
+			<div class="flex items-center gap-1.5 min-w-0 flex-1">
+				<select
+					onchange="htmx.ajax('GET', '/ai/drawer?conv_id=' + this.value, { target: '#aura-drawer-thread', swap: 'innerHTML' })"
+					class="min-w-0 flex-1 rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] text-slate-200 focus:border-amber-400 focus:outline-none"
+				>
+					<option value="0" selected?={ activeConvID == 0 }>+ New Conversation</option>
+					for _, c := range convs {
+						<option value={ fmt.Sprintf("%d", c.ID) } selected?={ c.ID == activeConvID }>
+							{ c.Title }
+						</option>
+					}
+				</select>
+				if activeConvID > 0 {
+					<button
+						type="button"
+						hx-delete={ fmt.Sprintf("/ai/conversations/%d", activeConvID) }
+						hx-target="#aura-drawer-thread"
+						hx-swap="innerHTML"
+						hx-confirm="Delete this Aura conversation?"
+						class="rounded border border-rose-400/35 bg-rose-500/15 px-2 py-1 text-[10px] font-semibold text-rose-200 hover:bg-rose-500/25 cursor-pointer"
+						title="Delete conversation"
+					>
+						Delete
+					</button>
+				}
+			</div>
+			<button
+				type="button"
+				@click="auraConvID = 0; htmx.ajax('GET', '/ai/drawer?conv_id=0', { target: '#aura-drawer-thread', swap: 'innerHTML' })"
+				class="shrink-0 rounded border border-violet-400/40 bg-violet-500/20 px-2.5 py-1 text-[10.5px] font-bold text-violet-100 hover:bg-violet-500/35 cursor-pointer"
+			>
+				+ New
+			</button>
+		</div>
+
+		<!-- Messages Scroll Area -->
+		<div data-aura-scroll class="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+			if errMsg != "" {
+				<div class="rounded-xl border border-rose-400/45 bg-rose-950/40 p-3 text-xs text-rose-200">
+					<strong>Aura AI Error:</strong> { errMsg }
+				</div>
+			}
+
+			if len(msgs) == 0 {
+				<div class="space-y-4 py-4">
+					<div class="rounded-xl border border-violet-400/30 bg-violet-950/30 p-4 space-y-2">
+						<div class="flex items-center gap-2">
+							<span class="h-2.5 w-2.5 rounded-full bg-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.7)]"></span>
+							<h3 class="text-xs font-bold uppercase tracking-wider text-amber-200">Aura Level-4 Agentic Copilot Ready</h3>
+						</div>
+						<p class="text-xs text-slate-300 leading-relaxed">
+							I can inspect live 5-Hub order books, scan profitable opportunities, check CCP SDE recipes, audit your Catalog &amp; Tracker, simulate PI sales, appraise clipboard items, and propose 1-click actions. Ask in <strong>Indonesian</strong> or <strong>English</strong>!
+						</p>
+					</div>
+
+					<!-- Quick Prompt Starters -->
+					<div class="space-y-2">
+						<div class="text-[10px] font-mono uppercase tracking-wider text-slate-400">Quick Prompts</div>
+						<div class="grid grid-cols-1 gap-2">
+							if mode.IsAdmin() {
+								<button
+									type="button"
+									@click="sendAuraPrompt('Cek kondisi bisnis saya sekarang (modal, slot kosong, undercut, PI) dan rekomendasikan 3 langkah paling aman hari ini menuju 100B+ Total Wealth.')"
+									class="rounded-lg border border-slate-700/80 bg-slate-900/75 px-3 py-2 text-left text-xs text-slate-200 hover:border-amber-400/55 hover:text-white transition cursor-pointer"
+								>
+									📊 Audit kondisi bisnis hari ini &amp; 3 langkah terbaik
+								</button>
+							}
+							<button
+								type="button"
+								@click="sendAuraPrompt('Carikan 3 peluang manufacturing atau station trading paling aman di hub utama saya sekarang, cek order book-nya agar tidak kena sell wall atau price spike.')"
+								class="rounded-lg border border-slate-700/80 bg-slate-900/75 px-3 py-2 text-left text-xs text-slate-200 hover:border-amber-400/55 hover:text-white transition cursor-pointer"
+							>
+								🔎 Cari 3 peluang paling aman di Trade Hub aktif
+							</button>
+							<button
+								type="button"
+								@click="sendAuraPrompt('Bandingkan profit bikin Hobgoblin I vs Rifter vs Caracal di hub utama saya (cek resep SDE dan harga jual live).')"
+								class="rounded-lg border border-slate-700/80 bg-slate-900/75 px-3 py-2 text-left text-xs text-slate-200 hover:border-amber-400/55 hover:text-white transition cursor-pointer"
+							>
+								⚙️ Bandingkan resep SDE &amp; profit Hobgoblin I vs Rifter vs Caracal
+							</button>
+						</div>
+					</div>
+				</div>
+			} else {
+				for _, m := range msgs {
+					if m.Role == "user" {
+						<div class="flex justify-end">
+							<div class="max-w-[85%] rounded-2xl rounded-tr-sm border border-violet-400/40 bg-violet-600/30 px-3.5 py-2.5 text-xs text-white leading-relaxed whitespace-pre-wrap">
+								{ m.Content }
+							</div>
+						</div>
+					} else {
+						<div class="space-y-2.5">
+							<!-- Tool Execution Traces (Transparency: proves live Go tools were called) -->
+							if len(m.ToolTraces) > 0 {
+								<details class="rounded-lg border border-slate-800 bg-slate-950/70 px-3 py-1.5 text-[10.5px] font-mono text-slate-400">
+									<summary class="cursor-pointer select-none text-sky-300 hover:text-sky-200">
+										⚡ Verified live via { fmt.Sprintf("%d", len(m.ToolTraces)) } internal tool call(s)
+									</summary>
+									<div class="mt-2 space-y-1 border-t border-slate-800/80 pt-1.5">
+										for _, tr := range m.ToolTraces {
+											<div class="flex items-start justify-between gap-2">
+												<span class="text-amber-300 font-semibold">{ tr.ToolName }</span>
+												<span class="text-right text-slate-300 truncate">{ tr.Summary }</span>
+											</div>
+										}
+									</div>
+								</details>
+							}
+
+							<!-- Assistant Markdown Reply -->
+							<div class="rounded-2xl rounded-tl-sm border border-slate-700/80 bg-slate-900/85 px-4 py-3 text-xs text-slate-200 space-y-1">
+								@templ.Raw(formatAIMarkdownSafe(m.Content))
+							</div>
+
+							<!-- Human-in-the-Loop 1-Click Action Cards -->
+							if len(m.ActionCards) > 0 {
+								<div class="space-y-2">
+									for _, card := range m.ActionCards {
+										<div class={ "rounded-xl border p-3 flex flex-wrap items-center justify-between gap-2.5 " + aiActionCardAccent(card.Kind) }>
+											<div class="min-w-0 flex-1">
+												<div class="text-xs font-bold text-white">{ card.Title }</div>
+												if card.Description != "" {
+													<div class="text-[11px] text-slate-300 mt-0.5">{ card.Description }</div>
+												}
+											</div>
+											if card.Method == "POST" {
+												<form hx-post={ card.URL } hx-swap="none">
+													for k, v := range card.Payload {
+														<input type="hidden" name={ k } value={ v }/>
+													}
+													<button
+														type="submit"
+														class={ "rounded-lg px-3 py-1.5 text-[11px] font-extrabold transition cursor-pointer " + aiActionButtonClass(card.Kind) }
+													>
+														{ card.ButtonLabel }
+													</button>
+												</form>
+											} else {
+												<a
+													href={ templ.SafeURL(card.URL) }
+													class={ "rounded-lg px-3 py-1.5 text-[11px] font-bold transition " + aiActionButtonClass(card.Kind) }
+												>
+													{ card.ButtonLabel }
+												</a>
+											}
+										</div>
+									}
+								</div>
+							}
+						</div>
+					}
+				}
+			}
+		</div>
+	</div>
+}

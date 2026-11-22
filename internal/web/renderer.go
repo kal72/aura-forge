@@ -84,14 +84,19 @@ func (tr *TemplRenderer) RenderRelistResult(w http.ResponseWriter, r *http.Reque
 	return RelistResultPartial(res, errMsg).Render(r.Context(), w)
 }
 
-func (tr *TemplRenderer) RenderSettings(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, sdeStatus service.SDEImportStatus, saved bool) error {
+func (tr *TemplRenderer) RenderSettings(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, sdeStatus service.SDEImportStatus, pilotMem *domain.AIPilotMemory, saved bool) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	return SettingsPage(mode, settings, sdeStatus, saved).Render(r.Context(), w)
+	return SettingsPage(mode, settings, sdeStatus, pilotMem, saved).Render(r.Context(), w)
 }
 
 func (tr *TemplRenderer) RenderSDEStatusPartial(w http.ResponseWriter, r *http.Request, status service.SDEImportStatus) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	return SDEStatusPartial(status).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderAIDrawerThread(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, convs []domain.AIConversation, activeConvID int64, msgs []domain.AIMessage, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return AIDrawerThreadPartial(mode, convs, activeConvID, msgs, errMsg).Render(r.Context(), w)
 }
 
 func (tr *TemplRenderer) RenderMineralTicker(w http.ResponseWriter, r *http.Request, pulse service.MarketPulseResponse) error {

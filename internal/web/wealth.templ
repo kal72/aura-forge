@@ -76,6 +76,15 @@ templ WealthPage(mode service.ModeInfo, summary *domain.WealthSummary) {
 					<p class="text-xs text-slate-300/80 mt-0.5">Track your <strong>Total Wealth (Net Worth)</strong> compounding across all 5 asset pillars (Wallet + Sell Orders + Escrow + Inventory + Active Jobs) toward 100B+ ISK.</p>
 				</div>
 				<div class="flex flex-wrap gap-2">
+					if mode.AI.Enabled {
+						<button
+							type="button"
+							@click={ fmt.Sprintf("window.dispatchEvent(new CustomEvent('open-aura-ai', { detail: { prompt: %q } }))", "Audit bisnis saya minggu ini (cek Net Worth, semua batch SOLD/SLOW_MOVER, modal cair vs terkunci, dan rencana konkret menuju 100B+ Total Wealth).") }
+							class="rounded-lg border border-violet-400/50 bg-violet-500/20 px-3.5 py-2 text-xs font-bold text-violet-100 hover:bg-violet-500/35 transition cursor-pointer"
+						>
+							⚡ AI Weekly Audit
+						</button>
+					}
 					<button
 						type="button"
 						hx-post="/wealth/auto-snapshot"

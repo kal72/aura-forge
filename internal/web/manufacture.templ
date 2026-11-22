@@ -147,6 +147,7 @@ templ ManufacturePage(mode service.ModeInfo, settings domain.UserSettings, bluep
 			class="space-y-6"
 			x-data={ fmt.Sprintf(`{
 				isAdmin: %t,
+				aiEnabled: %t,
 				mfgFlowDir: 'output-to-raw',
 				mfgOverrides: '',
 				mfgME: %d,
@@ -248,6 +249,7 @@ templ ManufacturePage(mode service.ModeInfo, settings domain.UserSettings, bluep
 				}
 			}`,
 				mode.IsAdmin(),
+				mode.AI.Enabled,
 				func() int {
 					if initialResult != nil && initialResult.Blueprint.TechLevel >= 2 {
 						return 2
@@ -833,6 +835,14 @@ templ ManufactureTreePartial(res *domain.BlueprintCalcResult, errMsg string) {
 							<span class="rounded-full border border-emerald-400/40 bg-emerald-500/15 px-2.5 py-0.5 font-mono text-[10.5px] font-bold text-emerald-200">
 								Total ({ res.PriceHub.Name }): { FormatISK(tree.OptimalCost) }
 							</span>
+							<button
+								type="button"
+								x-show="aiEnabled"
+								@click={ fmt.Sprintf("window.dispatchEvent(new CustomEvent('open-aura-ai', { detail: { prompt: %q } }))", fmt.Sprintf("Review the manufacturing recipe tree for %dx %s at %s (Optimal cost %s, Output value %s). Should I MAKE or BUY sub-components, and is it worth running for my capital?", res.Runs, res.Blueprint.ProductName, res.PriceHub.Name, FormatISK(tree.OptimalCost), FormatISK(outputValue))) }
+								class="rounded border border-violet-400/50 bg-violet-500/20 px-2.5 py-0.5 font-mono text-[10px] font-bold text-violet-100 hover:bg-violet-500/35 cursor-pointer"
+							>
+								⚡ AI Build Strategy
+							</button>
 							if len(tree.ActiveOverrides) > 0 {
 								<button type="button" @click="resetMakeBuyOverrides()" class="rounded border border-rose-400/45 bg-rose-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-rose-200 hover:bg-rose-500/25 cursor-pointer">
 									Reset Overrides ({ fmt.Sprintf("%d", len(tree.ActiveOverrides)) })

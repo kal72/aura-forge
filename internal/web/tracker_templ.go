@@ -27,9 +27,12 @@ func computeBeatRelistPrice(competitorPrice float64) float64 {
 	return beat
 }
 
-func nextBatchStatusAction(st domain.BatchStatus) (nextStatus string, label string, btnClass string) {
+func nextBatchStatusAction(st domain.BatchStatus, entryType domain.BatchEntryType) (nextStatus string, label string, btnClass string) {
 	switch st {
 	case domain.BatchStatusDraft:
+		if entryType == domain.BatchEntryTrade {
+			return string(domain.BatchStatusListed), "List Flip →", "border-sky-400/45 bg-sky-500/20 text-sky-200 hover:bg-sky-500/35"
+		}
 		return string(domain.BatchStatusInProduction), "Start Build →", "border-amber-400/45 bg-amber-500/20 text-amber-200 hover:bg-amber-500/35"
 	case domain.BatchStatusInProduction:
 		return string(domain.BatchStatusListed), "List on Market →", "border-sky-400/45 bg-sky-500/20 text-sky-200 hover:bg-sky-500/35"
@@ -80,7 +83,7 @@ func TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tra
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(hub.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 54, Col: 180}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 57, Col: 180}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -93,7 +96,7 @@ func TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tra
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(hub.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 66, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 69, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -106,7 +109,7 @@ func TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tra
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", summary.ActiveCount))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 78, Col: 103}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 81, Col: 103}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -119,7 +122,7 @@ func TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tra
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d listed • %d sold total", summary.ListedCount, summary.SoldCount))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 79, Col: 136}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 82, Col: 136}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -132,7 +135,7 @@ func TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tra
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(summary.LockedCapital))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 83, Col: 101}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 86, Col: 101}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -145,7 +148,7 @@ func TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tra
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(hub.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 87, Col: 109}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 90, Col: 109}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -185,7 +188,7 @@ func TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tra
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", summary.UndercutCount))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 89, Col: 48}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 92, Col: 48}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -235,7 +238,7 @@ func TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tra
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(summary.RealizedProfit))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 101, Col: 130}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 104, Col: 130}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -247,6 +250,7 @@ func TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tra
 			}
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf(`{
+					entryType: 'MANUFACTURING',
 					itemName: '',
 					runs: 10,
 					unitsOut: 10,
@@ -263,7 +267,14 @@ func TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tra
 							if (!r.ok) { this.lookupNote = d.error || 'Item not found'; return; }
 							if (d.recommended_sell_price > 0) this.sellPrice = d.recommended_sell_price;
 							else if (d.lowest_sell > 0) this.sellPrice = d.lowest_sell;
-							if (d.sde_has_blueprint && d.sde_material_cost > 0) {
+							if (this.entryType === 'TRADE') {
+								if (d.highest_buy > 0) {
+									this.prodCost = Math.round(d.highest_buy * (Number(this.unitsOut) || 1) * 100) / 100;
+									this.lookupNote = 'Filled Trade Buy/Sell prices from ' + (d.hub_name || 'Hub') + '!';
+								} else {
+									this.lookupNote = 'Filled live sell price from ' + (d.hub_name || 'Hub') + '.';
+								}
+							} else if (d.sde_has_blueprint && d.sde_material_cost > 0) {
 								this.prodCost = d.sde_material_cost;
 								this.lookupNote = 'Filled from ' + (d.hub_name || 'Hub') + ' + SDE BOM!';
 							} else {
@@ -273,26 +284,26 @@ func TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tra
 					}
 				}`, hub.Key))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 137, Col: 16}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 148, Col: 16}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">Record New Production Batch</h2><form hx-post=\"/tracker/batches\" hx-swap=\"none\" class=\"grid grid-cols-1 gap-3 sm:grid-cols-3\"><div class=\"sm:col-span-2\"><label class=\"block text-[10px] font-mono uppercase text-slate-300\">Item Name</label><div class=\"mt-1 flex gap-2\"><input type=\"text\" name=\"item_name\" x-model=\"itemName\" required placeholder=\"Hobgoblin I\" class=\"flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white\"> <button type=\"button\" @click=\"autoFill()\" class=\"shrink-0 rounded-lg border border-amber-400/45 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer\">Auto-Fill ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\"><div class=\"flex flex-wrap items-center justify-between gap-2\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\" x-text=\"entryType === &#39;TRADE&#39; ? &#39;Record New Trade / Arbitrage Flip&#39; : &#39;Record New Production Batch&#39;\"></h2><div class=\"inline-flex rounded-lg border border-slate-700/80 bg-slate-950/70 p-0.5 text-[11px] font-mono\"><button type=\"button\" @click=\"entryType = &#39;MANUFACTURING&#39;\" :class=\"entryType === &#39;MANUFACTURING&#39; ? &#39;bg-violet-500/30 text-violet-100 border border-violet-400/50&#39; : &#39;text-slate-400 hover:text-slate-200 border border-transparent&#39;\" class=\"rounded-md px-2.5 py-1 font-bold transition cursor-pointer\">Manufacturing (MFG)</button> <button type=\"button\" @click=\"entryType = &#39;TRADE&#39;; runs = 1\" :class=\"entryType === &#39;TRADE&#39; ? &#39;bg-sky-500/30 text-sky-100 border border-sky-400/50&#39; : &#39;text-slate-400 hover:text-slate-200 border border-transparent&#39;\" class=\"rounded-md px-2.5 py-1 font-bold transition cursor-pointer\">Trade / Flip (TRADE)</button></div></div><form hx-post=\"/tracker/batches\" hx-swap=\"none\" class=\"grid grid-cols-1 gap-3 sm:grid-cols-3\"><input type=\"hidden\" name=\"entry_type\" :value=\"entryType\"><div class=\"sm:col-span-2\"><label class=\"block text-[10px] font-mono uppercase text-slate-300\">Item Name</label><div class=\"mt-1 flex gap-2\"><input type=\"text\" name=\"item_name\" x-model=\"itemName\" required placeholder=\"Hobgoblin I\" class=\"flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white\"> <button type=\"button\" @click=\"autoFill()\" class=\"shrink-0 rounded-lg border border-amber-400/45 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer\">Auto-Fill ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(hub.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 146, Col: 28}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 178, Col: 28}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, " + BOM</button></div><div x-show=\"lookupNote\" x-text=\"lookupNote\" class=\"mt-1 text-[11px] font-mono text-emerald-300\"></div></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300\">Initial Status</label> <select name=\"status\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white\"><option value=\"DRAFT\">DRAFT</option> <option value=\"IN_PRODUCTION\">IN_PRODUCTION</option> <option value=\"LISTED\">LISTED</option> <option value=\"SOLD\">SOLD</option></select></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300\">Runs</label> <input type=\"number\" name=\"runs\" x-model=\"runs\" min=\"1\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300\">Total Output Units</label> <input type=\"number\" name=\"units_output\" x-model=\"unitsOut\" min=\"1\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300\">Total Production Cost (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"actual_production_cost\" x-model=\"prodCost\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300\">Sell Price / Unit (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"actual_sell_price\" x-model=\"sellPrice\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div class=\"sm:col-span-2 flex items-end justify-end gap-2\"><button type=\"button\" @click=\"showNewBatch = false\" class=\"rounded-lg border border-slate-700 px-3.5 py-2 text-xs text-slate-300 cursor-pointer\">Cancel</button> <button type=\"submit\" class=\"rounded-lg bg-amber-400 px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 cursor-pointer\">Save Batch</button></div></form></div><!-- Status Filter Tabs --><div class=\"flex flex-wrap gap-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</button></div><div x-show=\"lookupNote\" x-text=\"lookupNote\" class=\"mt-1 text-[11px] font-mono text-emerald-300\"></div></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300\">Initial Status</label> <select name=\"status\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white\"><option value=\"DRAFT\">DRAFT</option> <option value=\"IN_PRODUCTION\" x-show=\"entryType === &#39;MANUFACTURING&#39;\">IN_PRODUCTION</option> <option value=\"LISTED\">LISTED</option> <option value=\"SOLD\">SOLD</option></select></div><div x-show=\"entryType === &#39;MANUFACTURING&#39;\"><label class=\"block text-[10px] font-mono uppercase text-slate-300\">Runs</label> <input type=\"number\" name=\"runs\" x-model=\"runs\" min=\"1\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300\" x-text=\"entryType === &#39;TRADE&#39; ? &#39;Units Bought to Flip&#39; : &#39;Total Output Units&#39;\"></label> <input type=\"number\" name=\"units_output\" x-model=\"unitsOut\" min=\"1\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300\" x-text=\"entryType === &#39;TRADE&#39; ? &#39;Total Buy Cost (ISK)&#39; : &#39;Total Production Cost (ISK)&#39;\"></label> <input type=\"number\" step=\"0.01\" name=\"actual_production_cost\" x-model=\"prodCost\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300\">Target Sell Price / Unit (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"actual_sell_price\" x-model=\"sellPrice\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div class=\"sm:col-span-2 flex items-end justify-end gap-2\"><button type=\"button\" @click=\"showNewBatch = false\" class=\"rounded-lg border border-slate-700 px-3.5 py-2 text-xs text-slate-300 cursor-pointer\">Cancel</button> <button type=\"submit\" class=\"rounded-lg bg-amber-400 px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 cursor-pointer\" x-text=\"entryType === &#39;TRADE&#39; ? &#39;Save Trade Flip&#39; : &#39;Save Batch&#39;\"></button></div></form></div><!-- Status Filter Tabs --><div class=\"flex flex-wrap gap-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -330,14 +341,14 @@ func TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tra
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs\"><thead class=\"border-b border-violet-400/20 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400\"><tr><th class=\"px-4 py-3\">Batch &amp; Status</th><th class=\"px-3 py-3 text-right\">Build Cost</th><th class=\"px-3 py-3 text-right\">Price / Safe Floor / ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs\"><thead class=\"border-b border-violet-400/20 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400\"><tr><th class=\"px-4 py-3\">Batch / Flip &amp; Status</th><th class=\"px-3 py-3 text-right\">Build / Buy Cost</th><th class=\"px-3 py-3 text-right\">Price / Safe Floor / ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var17 string
 				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(hub.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 207, Col: 73}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 239, Col: 73}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 				if templ_7745c5c3_Err != nil {
@@ -348,8 +359,9 @@ func TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tra
 					return templ_7745c5c3_Err
 				}
 				for _, b := range batches {
+					entryType := b.NormalizedEntryType()
 					beatPrice := computeBeatRelistPrice(b.CurrentMarketPrice)
-					nextSt, nextLabel, nextCls := nextBatchStatusAction(b.Status)
+					nextSt, nextLabel, nextCls := nextBatchStatusAction(b.Status, entryType)
 					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<tr class=\"hover:bg-violet-500/5 transition align-top\"><!-- Item + Official EVE Icon (32x32) --><td class=\"px-4 py-3\"><div class=\"flex items-start gap-2.5\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
@@ -362,7 +374,7 @@ func TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tra
 						var templ_7745c5c3_Var18 string
 						templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(b.TypeID, 64))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 223, Col: 48}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 256, Col: 48}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 						if templ_7745c5c3_Err != nil {
@@ -375,7 +387,7 @@ func TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tra
 						var templ_7745c5c3_Var19 string
 						templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(b.ItemName)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 224, Col: 30}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 257, Col: 30}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 						if templ_7745c5c3_Err != nil {
@@ -391,20 +403,35 @@ func TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tra
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<div class=\"min-w-0\"><div class=\"font-semibold text-white text-sm leading-snug\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<div class=\"min-w-0\"><div class=\"flex items-center gap-1.5\"><span class=\"font-semibold text-white text-sm leading-snug\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var20 string
 					templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(b.ItemName)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 235, Col: 84}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 269, Col: 86}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</div><div class=\"mt-1 flex flex-wrap items-center gap-1.5\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</span> ")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					if entryType == domain.BatchEntryTrade {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<span class=\"rounded border border-sky-400/40 bg-sky-500/15 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-sky-200\">TRADE</span>")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					} else {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<span class=\"rounded border border-violet-400/40 bg-violet-500/15 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-violet-200\">MFG</span>")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</div><div class=\"mt-1 flex flex-wrap items-center gap-1.5\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -413,7 +440,7 @@ func TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tra
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<span class=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<span class=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -426,443 +453,471 @@ func TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tra
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var23 string
 					templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(string(b.Status))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 238, Col: 33}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 278, Col: 33}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</span> <span class=\"font-mono text-[10px] text-slate-400\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</span> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var24 string
-					templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%dx run • %d u", b.Runs, b.UnitsOutput))
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 240, Col: 121}
+					if entryType == domain.BatchEntryTrade {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<span class=\"font-mono text-[10px] text-slate-400\">")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var24 string
+						templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d u flip", b.UnitsOutput))
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 281, Col: 107}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</span>")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					} else {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<span class=\"font-mono text-[10px] text-slate-400\">")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var25 string
+						templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%dx run • %d u", b.Runs, b.UnitsOutput))
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 283, Col: 122}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</span>")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
 					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</span></div></div></div></td><!-- Build Cost --><td class=\"px-3 py-3 text-right font-mono text-slate-200 whitespace-nowrap\">")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_Var25 string
-					templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(b.ActualProductionCost))
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 248, Col: 46}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</td><!-- Listed Price, Safe Floor, Live Hub Price & Smart Copy Action --><td class=\"px-3 py-3 text-right font-mono whitespace-nowrap\"><div class=\"text-sky-300 font-semibold\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</div></div></div></td><!-- Build Cost --><td class=\"px-3 py-3 text-right font-mono text-slate-200 whitespace-nowrap\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var26 string
-					templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(b.ActualSellPrice))
+					templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(b.ActualProductionCost))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 253, Col: 81}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 292, Col: 46}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "/u</div><div class=\"text-[10px] text-amber-300\">Safe Floor: ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</td><!-- Listed Price, Safe Floor, Live Hub Price & Smart Copy Action --><td class=\"px-3 py-3 text-right font-mono whitespace-nowrap\"><div class=\"text-sky-300 font-semibold\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var27 string
-					templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(b.SafeRelistPrice))
+					templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(b.ActualSellPrice))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 254, Col: 93}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 297, Col: 81}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "/u</div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "/u</div><div class=\"text-[10px] text-amber-300\">Safe Floor: ")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var28 string
+					templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(b.SafeRelistPrice))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 298, Col: 93}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "/u</div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					if b.CurrentMarketPrice > 0 {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<div class=\"mt-0.5 text-[10px] text-slate-300\">")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						var templ_7745c5c3_Var28 string
-						templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(hub.Name)
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 257, Col: 23}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, ": ")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<div class=\"mt-0.5 text-[10px] text-slate-300\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var29 string
-						templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(b.CurrentMarketPrice))
+						templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(hub.Name)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 257, Col: 60}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 301, Col: 23}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "/u ")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						if b.IsUndercut {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<span class=\"ml-1 rounded bg-rose-500/25 border border-rose-400/50 px-1 py-0.5 text-[9px] font-bold text-rose-200\">UNDERCUT!</span>")
-							if templ_7745c5c3_Err != nil {
-								return templ_7745c5c3_Err
-							}
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</div>")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<div class=\"mt-1 flex justify-end\">")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					if b.IsUndercut && beatPrice >= b.SafeRelistPrice && beatPrice > 0 {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<button type=\"button\" data-val=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, ": ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var30 string
-						templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", beatPrice))
+						templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(b.CurrentMarketPrice))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 267, Col: 55}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 301, Col: 60}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "\" @click=\"copyTrackerPrice($el.dataset.val, &#39;Beat Relist Price&#39;)\" class=\"rounded border border-emerald-400/45 bg-emerald-500/15 px-2 py-0.5 text-[9.5px] font-bold text-emerald-200 hover:bg-emerald-500/30 cursor-pointer\">Copy Beat (")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "/u ")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						if b.IsUndercut {
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "<span class=\"ml-1 rounded bg-rose-500/25 border border-rose-400/50 px-1 py-0.5 text-[9px] font-bold text-rose-200\">UNDERCUT!</span>")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "</div>")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<div class=\"mt-1 flex justify-end\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					if b.IsUndercut && beatPrice >= b.SafeRelistPrice && beatPrice > 0 {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "<button type=\"button\" data-val=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var31 string
-						templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(beatPrice))
+						templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", beatPrice))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 271, Col: 47}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 311, Col: 55}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, ")</button>")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-					} else if b.IsUndercut && b.CurrentMarketPrice > 0 && b.CurrentMarketPrice < b.SafeRelistPrice {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<span class=\"rounded border border-rose-400/50 bg-rose-500/20 px-1.5 py-0.5 text-[9px] font-bold text-rose-200\">HOLD — Below Safe Floor</span>")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-					} else if b.SafeRelistPrice > 0 {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "<button type=\"button\" data-val=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "\" @click=\"copyTrackerPrice($el.dataset.val, &#39;Beat Relist Price&#39;)\" class=\"rounded border border-emerald-400/45 bg-emerald-500/15 px-2 py-0.5 text-[9.5px] font-bold text-emerald-200 hover:bg-emerald-500/30 cursor-pointer\">Copy Beat (")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var32 string
-						templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", b.SafeRelistPrice))
+						templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(beatPrice))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 280, Col: 63}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 315, Col: 47}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "\" @click=\"copyTrackerPrice($el.dataset.val, &#39;Safe Relist Floor&#39;)\" class=\"text-[9.5px] text-slate-400 hover:text-amber-200 underline cursor-pointer\">Copy Safe Floor</button>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, ")</button>")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					} else if b.IsUndercut && b.CurrentMarketPrice > 0 && b.CurrentMarketPrice < b.SafeRelistPrice {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "<span class=\"rounded border border-rose-400/50 bg-rose-500/20 px-1.5 py-0.5 text-[9px] font-bold text-rose-200\">HOLD — Below Safe Floor</span>")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					} else if b.SafeRelistPrice > 0 {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<button type=\"button\" data-val=\"")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var33 string
+						templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", b.SafeRelistPrice))
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 324, Col: 63}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "\" @click=\"copyTrackerPrice($el.dataset.val, &#39;Safe Relist Floor&#39;)\" class=\"text-[9.5px] text-slate-400 hover:text-amber-200 underline cursor-pointer\">Copy Safe Floor</button>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "</div></td><!-- Net Profit / ROI --><td class=\"px-3 py-3 text-right font-mono whitespace-nowrap\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</div></td><!-- Net Profit / ROI --><td class=\"px-3 py-3 text-right font-mono whitespace-nowrap\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var33 = []any{"font-bold " + profitColor(b.NetProfit)}
-					templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var33...)
+					var templ_7745c5c3_Var34 = []any{"font-bold " + profitColor(b.NetProfit)}
+					templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var34...)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "<div class=\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_Var34 string
-					templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var33).String())
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 1, Col: 0}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "<div class=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var35 string
-					templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(b.NetProfit))
+					templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var34).String())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 292, Col: 90}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 1, Col: 0}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "</div><div class=\"text-[10px] text-slate-400\">ROI ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var36 string
-					templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(b.ROI))
+					templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(b.NetProfit))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 293, Col: 77}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 336, Col: 90}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</div></td><!-- Relist Guard Simulator --><td class=\"px-3 py-3 min-w-[230px]\"><form hx-post=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "</div><div class=\"text-[10px] text-slate-400\">ROI ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var37 string
-					templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/tracker/batches/%d/relist-check", b.ID))
+					templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(b.ROI))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 299, Col: 75}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 337, Col: 77}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "\" hx-target=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "</div></td><!-- Relist Guard Simulator --><td class=\"px-3 py-3 min-w-[230px]\"><form hx-post=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var38 string
-					templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("#relist-res-%d", b.ID))
+					templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/tracker/batches/%d/relist-check", b.ID))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 300, Col: 59}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 343, Col: 75}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "\" hx-swap=\"innerHTML\" class=\"flex gap-1.5\"><input type=\"number\" step=\"0.01\" name=\"proposed_price\" placeholder=\"Competitor price...\" class=\"w-32 rounded border border-slate-700 bg-slate-950 px-2 py-1 font-mono text-[11px] text-white\"> <button type=\"submit\" class=\"rounded border border-amber-500/40 bg-amber-500/15 px-2 py-1 text-[10px] font-bold text-amber-200 hover:bg-amber-500/25 cursor-pointer\">Test Relist</button></form><div id=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "\" hx-target=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var39 string
-					templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("relist-res-%d", b.ID))
+					templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("#relist-res-%d", b.ID))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 315, Col: 55}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 344, Col: 59}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "\" class=\"mt-1.5\"></div></td><!-- Lifecycle 1-Click + Manual Dropdown + Market + Delete --><td class=\"px-4 py-3 text-right whitespace-nowrap\"><div class=\"flex flex-col items-end gap-1.5\"><div class=\"flex items-center gap-1\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "\" hx-swap=\"innerHTML\" class=\"flex gap-1.5\"><input type=\"number\" step=\"0.01\" name=\"proposed_price\" placeholder=\"Competitor price...\" class=\"w-32 rounded border border-slate-700 bg-slate-950 px-2 py-1 font-mono text-[11px] text-white\"> <button type=\"submit\" class=\"rounded border border-amber-500/40 bg-amber-500/15 px-2 py-1 text-[10px] font-bold text-amber-200 hover:bg-amber-500/25 cursor-pointer\">Test Relist</button></form><div id=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var40 string
+					templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("relist-res-%d", b.ID))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 359, Col: 55}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "\" class=\"mt-1.5\"></div></td><!-- Lifecycle 1-Click + Manual Dropdown + Market + Delete --><td class=\"px-4 py-3 text-right whitespace-nowrap\"><div class=\"flex flex-col items-end gap-1.5\"><div class=\"flex items-center gap-1\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					if nextSt != "" {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "<form hx-post=\"")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						var templ_7745c5c3_Var40 string
-						templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/tracker/batches/%d/status", b.ID))
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 323, Col: 77}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "\" hx-swap=\"none\"><input type=\"hidden\" name=\"status\" value=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "<form hx-post=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var41 string
-						templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs(nextSt)
+						templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/tracker/batches/%d/status", b.ID))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 324, Col: 64}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 367, Col: 77}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "\"> ")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "\" hx-swap=\"none\"><input type=\"hidden\" name=\"status\" value=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						var templ_7745c5c3_Var42 = []any{"rounded border px-2 py-1 text-[10px] font-bold transition cursor-pointer " + nextCls}
-						templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var42...)
+						var templ_7745c5c3_Var42 string
+						templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(nextSt)
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 368, Col: 64}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "<button type=\"submit\" class=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "\"> ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						var templ_7745c5c3_Var43 string
-						templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var42).String())
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 1, Col: 0}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
+						var templ_7745c5c3_Var43 = []any{"rounded border px-2 py-1 text-[10px] font-bold transition cursor-pointer " + nextCls}
+						templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var43...)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "<button type=\"submit\" class=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var44 string
-						templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(nextLabel)
+						templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var43).String())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 326, Col: 27}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 1, Col: 0}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "</button></form>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "\">")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var45 string
+						templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(nextLabel)
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 370, Col: 27}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "</button></form>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "<a href=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "<a href=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var45 templ.SafeURL = templ.SafeURL("/marketplace?hub=" + hub.Key + "&q=" + url.QueryEscape(b.ItemName))
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var45)))
+					var templ_7745c5c3_Var46 templ.SafeURL = templ.SafeURL("/marketplace?hub=" + hub.Key + "&q=" + url.QueryEscape(b.ItemName))
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var46)))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "\" title=\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_Var46 string
-					templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs("Inspect " + hub.Name + " Order Book")
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 332, Col: 59}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "\" class=\"rounded border border-sky-400/35 bg-sky-500/15 px-2 py-1 text-[10px] font-semibold text-sky-200 hover:bg-sky-500/30 transition\">Market</a></div><div class=\"flex items-center gap-1.5\"><form hx-post=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "\" title=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var47 string
-					templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/tracker/batches/%d/status", b.ID))
+					templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.JoinStringErrs("Inspect " + hub.Name + " Order Book")
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 339, Col: 76}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 376, Col: 59}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var47))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "\" hx-swap=\"none\" class=\"flex gap-1\"><select name=\"status\" class=\"rounded border border-slate-700 bg-slate-900 px-1.5 py-0.5 text-[10px] text-slate-200\"><option value=\"DRAFT\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					if b.Status == domain.BatchStatusDraft {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, " selected")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, ">DRAFT</option> <option value=\"IN_PRODUCTION\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					if b.Status == domain.BatchStatusInProduction {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, " selected")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, ">IN_PRODUCTION</option> <option value=\"LISTED\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					if b.Status == domain.BatchStatusListed {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, " selected")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, ">LISTED</option> <option value=\"SOLD\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					if b.Status == domain.BatchStatusSold {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, " selected")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, ">SOLD</option> <option value=\"SLOW_MOVER\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					if b.Status == domain.BatchStatusSlowMover {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, " selected")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, ">SLOW_MOVER</option></select> <button type=\"submit\" class=\"rounded bg-slate-800 border border-slate-600 px-1.5 py-0.5 text-[10px] text-slate-200 hover:text-white cursor-pointer\">Set</button></form><button type=\"button\" hx-delete=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "\" class=\"rounded border border-sky-400/35 bg-sky-500/15 px-2 py-1 text-[10px] font-semibold text-sky-200 hover:bg-sky-500/30 transition\">Market</a></div><div class=\"flex items-center gap-1.5\"><form hx-post=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var48 string
-					templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/tracker/batches/%d", b.ID))
+					templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/tracker/batches/%d/status", b.ID))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 353, Col: 66}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 383, Col: 76}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "\" hx-swap=\"none\" hx-confirm=\"Delete this batch?\" class=\"text-[10px] text-rose-400 hover:underline cursor-pointer\">Delete</button></div></div></td></tr>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, "\" hx-swap=\"none\" class=\"flex gap-1\"><select name=\"status\" class=\"rounded border border-slate-700 bg-slate-900 px-1.5 py-0.5 text-[10px] text-slate-200\"><option value=\"DRAFT\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					if b.Status == domain.BatchStatusDraft {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, " selected")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, ">DRAFT</option> <option value=\"IN_PRODUCTION\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					if b.Status == domain.BatchStatusInProduction {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, " selected")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, ">IN_PRODUCTION</option> <option value=\"LISTED\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					if b.Status == domain.BatchStatusListed {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, " selected")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, ">LISTED</option> <option value=\"SOLD\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					if b.Status == domain.BatchStatusSold {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, " selected")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, ">SOLD</option> <option value=\"SLOW_MOVER\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					if b.Status == domain.BatchStatusSlowMover {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 82, " selected")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, ">SLOW_MOVER</option></select> <button type=\"submit\" class=\"rounded bg-slate-800 border border-slate-600 px-1.5 py-0.5 text-[10px] text-slate-200 hover:text-white cursor-pointer\">Set</button></form><button type=\"button\" hx-delete=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var49 string
+					templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/tracker/batches/%d", b.ID))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 397, Col: 66}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var49))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 84, "\" hx-swap=\"none\" hx-confirm=\"Delete this batch?\" class=\"text-[10px] text-rose-400 hover:underline cursor-pointer\">Delete</button></div></div></td></tr>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "</tbody></table></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "</tbody></table></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "</div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "</div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -892,62 +947,62 @@ func trackerTab(label, val, active string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var49 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var49 == nil {
-			templ_7745c5c3_Var49 = templ.NopComponent
+		templ_7745c5c3_Var50 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var50 == nil {
+			templ_7745c5c3_Var50 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		if val == active {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, "<a href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 87, "<a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var50 templ.SafeURL = templ.SafeURL("/tracker?status=" + val)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var50)))
+			var templ_7745c5c3_Var51 templ.SafeURL = templ.SafeURL("/tracker?status=" + val)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var51)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, "\" class=\"rounded-lg bg-amber-400 px-3 py-1.5 font-mono text-xs font-extrabold text-slate-950\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 88, "\" class=\"rounded-lg bg-amber-400 px-3 py-1.5 font-mono text-xs font-extrabold text-slate-950\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var51 string
-			templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.JoinStringErrs(label)
+			var templ_7745c5c3_Var52 string
+			templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 376, Col: 153}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 420, Col: 153}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var51))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var52))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 82, "</a>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, "</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, "<a href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "<a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var52 templ.SafeURL = templ.SafeURL("/tracker?status=" + val)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var52)))
+			var templ_7745c5c3_Var53 templ.SafeURL = templ.SafeURL("/tracker?status=" + val)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var53)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 84, "\" class=\"rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-1.5 font-mono text-xs text-slate-300 hover:text-white transition\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 91, "\" class=\"rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-1.5 font-mono text-xs text-slate-300 hover:text-white transition\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var53 string
-			templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.JoinStringErrs(label)
+			var templ_7745c5c3_Var54 string
+			templ_7745c5c3_Var54, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 378, Col: 193}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 422, Col: 193}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var53))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var54))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "</a>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 92, "</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -972,63 +1027,63 @@ func RelistResultPartial(res *domain.RelistGuardResult, errMsg string) templ.Com
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var54 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var54 == nil {
-			templ_7745c5c3_Var54 = templ.NopComponent
+		templ_7745c5c3_Var55 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var55 == nil {
+			templ_7745c5c3_Var55 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		if errMsg != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "<div class=\"rounded border border-rose-500/40 bg-rose-950/40 p-2 text-[11px] text-rose-200\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, "<div class=\"rounded border border-rose-500/40 bg-rose-950/40 p-2 text-[11px] text-rose-200\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var55 string
-			templ_7745c5c3_Var55, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
+			var templ_7745c5c3_Var56 string
+			templ_7745c5c3_Var56, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 384, Col: 102}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 428, Col: 102}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var55))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var56))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 87, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 94, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else if res != nil {
 			if res.IsSafeToRelist {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 88, "<div class=\"rounded border border-emerald-500/40 bg-emerald-950/40 p-2 text-[11px] text-emerald-200\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var56 string
-				templ_7745c5c3_Var56, templ_7745c5c3_Err = templ.JoinStringErrs(res.Advice)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 388, Col: 16}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var56))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, "</div>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "<div class=\"rounded border border-rose-500/50 bg-rose-950/50 p-2 text-[11px] text-rose-200\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 95, "<div class=\"rounded border border-emerald-500/40 bg-emerald-950/40 p-2 text-[11px] text-emerald-200\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var57 string
 				templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.JoinStringErrs(res.Advice)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 392, Col: 16}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 432, Col: 16}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var57))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 91, "</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, "</div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 97, "<div class=\"rounded border border-rose-500/50 bg-rose-950/50 p-2 text-[11px] text-rose-200\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var58 string
+				templ_7745c5c3_Var58, templ_7745c5c3_Err = templ.JoinStringErrs(res.Advice)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 436, Col: 16}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var58))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 98, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

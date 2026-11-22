@@ -29,8 +29,9 @@ type Renderer interface {
 	RenderPlanner(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, data *service.PlannerViewData) error
 	RenderTracker(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, hub domain.TradeHub, summary service.TrackerSummary, batches []domain.BatchRecord, statusFilter string) error
 	RenderRelistResult(w http.ResponseWriter, r *http.Request, res *domain.RelistGuardResult, errMsg string) error
-	RenderSettings(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, sdeStatus service.SDEImportStatus, saved bool) error
+	RenderSettings(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, sdeStatus service.SDEImportStatus, pilotMem *domain.AIPilotMemory, saved bool) error
 	RenderSDEStatusPartial(w http.ResponseWriter, r *http.Request, status service.SDEImportStatus) error
+	RenderAIDrawerThread(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, convs []domain.AIConversation, activeConvID int64, msgs []domain.AIMessage, errMsg string) error
 	RenderMineralTicker(w http.ResponseWriter, r *http.Request, pulse service.MarketPulseResponse) error
 	RenderLogin(w http.ResponseWriter, r *http.Request, errMsg string, username string) error
 	RenderUsers(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, users []domain.AppUser, flashMsg string, flashErr string) error
@@ -790,6 +791,7 @@ func (h *Handlers) HandleSaveBatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	batch := &domain.BatchRecord{
+		EntryType:            domain.BatchEntryType(strings.ToUpper(strings.TrimSpace(r.FormValue("entry_type")))),
 		ItemName:             strings.TrimSpace(r.FormValue("item_name")),
 		Runs:                 parseIntForm(r, "runs", 1),
 		UnitsOutput:          parseIntForm(r, "units_output", 1),
@@ -797,6 +799,10 @@ func (h *Handlers) HandleSaveBatch(w http.ResponseWriter, r *http.Request) {
 		ActualProductionCost: parseFloatForm(r, "actual_production_cost", 0),
 		ActualSellPrice:      parseFloatForm(r, "actual_sell_price", 0),
 		Status:               domain.BatchStatus(r.FormValue("status")),
+	}
+	batch.EntryType = batch.NormalizedEntryType()
+	if batch.EntryType == domain.BatchEntryTrade && batch.Runs <= 0 {
+		batch.Runs = 1
 	}
 	if batch.Status == "" {
 		batch.Status = domain.BatchStatusDraft
@@ -908,7 +914,8 @@ func (h *Handlers) HandleSettings(w http.ResponseWriter, r *http.Request) {
 	if h.renderer != nil {
 		mode := h.svc.GetModeInfo(r.Context())
 		sdeStatus := h.svc.GetSDEImportStatus(r.Context())
-		_ = h.renderer.RenderSettings(w, r, mode, *settings, sdeStatus, saved)
+		pilotMem := h.svc.GetPilotMemory(r.Context())
+		_ = h.renderer.RenderSettings(w, r, mode, *settings, sdeStatus, pilotMem, saved)
 		return
 	}
 	h.writeJSON(w, http.StatusOK, settings)

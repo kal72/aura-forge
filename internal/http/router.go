@@ -108,6 +108,15 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.Post("/tree", h.HandleManufactureTree)
 		})
 
+		// Aura AI Level-4 Agentic Copilot (Optional OpenAI-Compatible API)
+		r.Route("/ai", func(r chi.Router) {
+			r.Get("/drawer", h.HandleAIDrawer)
+			r.Post("/chat", h.HandleAIChat)
+			r.Delete("/conversations/{id}", h.HandleAIDeleteConversation)
+			r.Post("/memory", h.HandleAISaveMemory)
+			r.With(adminOnly).Post("/test", h.HandleAITestConnection)
+		})
+
 		// Planetary Industry (PI) Hub (Research tabs for all; My Colonies mutations for admin only)
 		r.Route("/pi", func(r chi.Router) {
 			r.Get("/", h.HandlePIPage)

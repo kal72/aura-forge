@@ -5,7 +5,15 @@ import (
 	"time"
 )
 
-// BatchStatus tracks the lifecycle of an individual production lot.
+// BatchEntryType distinguishes industrial manufacturing batches from market trading / arbitrage flips.
+type BatchEntryType string
+
+const (
+	BatchEntryManufacturing BatchEntryType = "MANUFACTURING"
+	BatchEntryTrade         BatchEntryType = "TRADE"
+)
+
+// BatchStatus tracks the lifecycle of an individual production lot or trade flip.
 type BatchStatus string
 
 const (
@@ -16,32 +24,41 @@ const (
 	BatchStatusSlowMover    BatchStatus = "SLOW_MOVER"
 )
 
-// BatchRecord represents a tracked manufacturing batch from blueprint to market execution.
+// BatchRecord represents a tracked manufacturing batch or market trade flip from acquisition to sale.
 type BatchRecord struct {
-	ID                   int64       `json:"id"`
-	PlanID               *int64      `json:"plan_id,omitempty"`
-	TypeID               int32       `json:"type_id"`
-	ItemName             string      `json:"item_name"`
-	Runs                 int         `json:"runs"`
-	UnitsOutput          int         `json:"units_output"`
-	TotalMaterialCost    float64     `json:"total_material_cost"`
-	ActualProductionCost float64     `json:"actual_production_cost"`
-	ActualSellPrice      float64     `json:"actual_sell_price"`
-	TotalRevenue         float64     `json:"total_revenue"`
-	NetProfit            float64     `json:"net_profit"`
-	ROI                  float64     `json:"roi"`
-	Status               BatchStatus `json:"status"`
-	MarketOrderID        *int64      `json:"market_order_id,omitempty"`
-	CurrentMarketPrice   float64     `json:"current_market_price"`
-	IsUndercut           bool        `json:"is_undercut"`
-	SafeRelistPrice      float64     `json:"safe_relist_price"`
-	RemainingSafeMargin  float64     `json:"remaining_safe_margin"`
-	StartedAt            *time.Time  `json:"started_at,omitempty"`
-	FinishedAt           *time.Time  `json:"finished_at,omitempty"`
-	ListedAt             *time.Time  `json:"listed_at,omitempty"`
-	SoldAt               *time.Time  `json:"sold_at,omitempty"`
-	CreatedAt            time.Time   `json:"created_at"`
-	UpdatedAt            time.Time   `json:"updated_at"`
+	ID                   int64          `json:"id"`
+	PlanID               *int64         `json:"plan_id,omitempty"`
+	EntryType            BatchEntryType `json:"entry_type"`
+	TypeID               int32          `json:"type_id"`
+	ItemName             string         `json:"item_name"`
+	Runs                 int            `json:"runs"`
+	UnitsOutput          int            `json:"units_output"`
+	TotalMaterialCost    float64        `json:"total_material_cost"`
+	ActualProductionCost float64        `json:"actual_production_cost"`
+	ActualSellPrice      float64        `json:"actual_sell_price"`
+	TotalRevenue         float64        `json:"total_revenue"`
+	NetProfit            float64        `json:"net_profit"`
+	ROI                  float64        `json:"roi"`
+	Status               BatchStatus    `json:"status"`
+	MarketOrderID        *int64         `json:"market_order_id,omitempty"`
+	CurrentMarketPrice   float64        `json:"current_market_price"`
+	IsUndercut           bool           `json:"is_undercut"`
+	SafeRelistPrice      float64        `json:"safe_relist_price"`
+	RemainingSafeMargin  float64        `json:"remaining_safe_margin"`
+	StartedAt            *time.Time     `json:"started_at,omitempty"`
+	FinishedAt           *time.Time     `json:"finished_at,omitempty"`
+	ListedAt             *time.Time     `json:"listed_at,omitempty"`
+	SoldAt               *time.Time     `json:"sold_at,omitempty"`
+	CreatedAt            time.Time      `json:"created_at"`
+	UpdatedAt            time.Time      `json:"updated_at"`
+}
+
+// NormalizedEntryType returns TRADE when explicitly set to TRADE, otherwise MANUFACTURING.
+func (b BatchRecord) NormalizedEntryType() BatchEntryType {
+	if b.EntryType == BatchEntryTrade {
+		return BatchEntryTrade
+	}
+	return BatchEntryManufacturing
 }
 
 // RelistGuardResult summarizes the undercut check and safe relist calculation for a listed batch.
