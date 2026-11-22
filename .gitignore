@@ -1,3 +1,51 @@
+# Local AI / project instructions
 AGENTS.md
 
+# Environment & secrets (never commit real credentials; keep .env.example tracked)
+.env
+.env.*
+!.env.example
+
+# Go build artifacts, binaries & test coverage
 bin/
+dist/
+tmp/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.txt
+coverage.html
+aura-forge
+
+# Downloaded CCP SDE archives & local data dumps
+*.zip
+*.tar.gz
+*.jsonl
+*.sql.gz
+*.dump
+pgdata/
+
+# Logs & temporary files
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+
+# OS metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+Desktop.ini
+
+# Editors & IDEs
+.idea/
+.vscode/
+*.iml
+.fleet/
