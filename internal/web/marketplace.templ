@@ -153,8 +153,17 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 			class="space-y-6"
 			x-data={ fmt.Sprintf(`{
 				isAdmin: %t,
+				mpTab: 'orderbook',
+				appraisalText: '',
 				queryText: %q,
 				selectedHub: %q,
+				loadAppraisalSample() {
+					this.appraisalText = "Tritanium\t50,000\tMineral\nPyerite\t20,000\tMineral\nHobgoblin II\t15\tLight Scout Drone\nDamage Control II\t4\tDamage Control\nCoolant\t800\tRefined Commodities";
+				},
+				inspectFromAppraisal(name) {
+					this.mpTab = 'orderbook';
+					this.runSearch(name, this.selectedHub);
+				},
 				suggestions: [],
 				showSuggest: false,
 				suggestTimer: null,
@@ -280,13 +289,30 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-white">New Eden Marketplace Browser</h1>
-					<p class="text-xs text-slate-300/80 mt-0.5">Live SDE autocomplete, parallel 5-hub comparisons (Jita, Amarr, Dodixie, Rens, Hek), Net Flip &amp; Craft intelligence, and Order Book depth.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">Live SDE autocomplete, parallel 5-hub comparisons (Jita, Amarr, Dodixie, Rens, Hek), bulk clipboard Appraisal, and Order Book depth.</p>
 				</div>
-				<span class="rounded-full border border-emerald-400/35 bg-emerald-500/15 px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-emerald-200">
-					Public ESI • Parallel Cached
-				</span>
+				<div class="inline-flex rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur">
+					<button
+						type="button"
+						@click="mpTab = 'orderbook'"
+						:class="mpTab === 'orderbook' ? 'bg-amber-400 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'"
+						class="rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
+					>
+						Item Order Book
+					</button>
+					<button
+						type="button"
+						@click="mpTab = 'appraisal'"
+						:class="mpTab === 'appraisal' ? 'bg-emerald-400 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'"
+						class="rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
+					>
+						Appraisal
+					</button>
+				</div>
 			</div>
 
+			<!-- TAB 1: ITEM ORDER BOOK -->
+			<div x-show="mpTab === 'orderbook'" class="space-y-6">
 			<!-- Search & Trade Hub Filter Panel -->
 			<div class="tactical-panel relative z-30 rounded-xl p-5 space-y-4">
 				<form
@@ -383,6 +409,97 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 			<!-- Live Marketplace Results Container -->
 			<div id="marketplace-results">
 				@MarketplaceResultsPartial(snap, errMsg)
+			</div>
+			</div>
+
+			<!-- TAB 2: APPRAISAL (EVE CLIPBOARD PASTE PRICE CHECK) -->
+			<div x-cloak x-show="mpTab === 'appraisal'" class="space-y-6">
+				<div class="tactical-panel rounded-xl p-5 space-y-4">
+					<div class="flex flex-wrap items-center justify-between gap-3">
+						<div>
+							<h2 class="text-sm font-bold uppercase tracking-wider text-emerald-300">EVE Online Bulk Appraisal (Paste from Game)</h2>
+							<p class="text-xs text-slate-300/80 mt-0.5">Press <span class="font-mono text-amber-200">Ctrl+A → Ctrl+C</span> in your EVE Hangar, Ship Cargo, Loot, Epithal, Contract, Multibuy, or EFT Fit and paste below for instant 5-Hub valuation.</p>
+						</div>
+						<div class="flex items-center gap-2">
+							<button
+								type="button"
+								@click="loadAppraisalSample()"
+								class="rounded-md border border-violet-400/40 bg-violet-500/15 px-2.5 py-1 text-[11px] font-semibold text-violet-200 hover:bg-violet-500/25 transition cursor-pointer"
+							>
+								Load Sample
+							</button>
+							<button
+								type="button"
+								@click="appraisalText = ''"
+								class="rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1 text-[11px] text-slate-300 hover:text-white transition cursor-pointer"
+							>
+								Clear
+							</button>
+						</div>
+					</div>
+
+					<form
+						hx-post="/marketplace/appraise"
+						hx-target="#marketplace-appraisal-results"
+						hx-swap="innerHTML"
+						hx-indicator="#mp-appraise-spinner"
+						class="space-y-3"
+					>
+						<textarea
+							name="paste_text"
+							x-model="appraisalText"
+							rows="7"
+							required
+							placeholder="Paste items copied from EVE Online here...&#10;&#10;Examples:&#10;Tritanium&#9;50,000&#9;Mineral&#10;10x Hobgoblin II&#10;Damage Control II x4&#10;[Caracal, PvP Fit]"
+							class="w-full rounded-xl border border-slate-700 bg-slate-950/90 p-3.5 font-mono text-xs text-emerald-200 placeholder-slate-500 focus:border-emerald-400/70 focus:outline-none"
+						></textarea>
+
+						<div class="grid grid-cols-1 gap-3 sm:grid-cols-12 items-end">
+							<div class="sm:col-span-5">
+								<label class="block text-[10px] font-mono uppercase text-sky-300 mb-1">Price Hub</label>
+								<select
+									name="hub"
+									x-model="selectedHub"
+									class="w-full rounded-lg border border-sky-500/40 bg-slate-900 px-3 py-2.5 text-xs font-semibold text-amber-200"
+								>
+									for _, h := range domain.MajorTradeHubs {
+										<option value={ h.Key }>{ h.Name } ({ h.RegionName })</option>
+									}
+								</select>
+							</div>
+							<div class="sm:col-span-3">
+								<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Buyback / Split (%)</label>
+								<input
+									type="number"
+									name="buyback_pct"
+									value="90"
+									min="1"
+									max="100"
+									step="1"
+									class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2.5 text-xs font-mono text-white"
+								/>
+							</div>
+							<div class="sm:col-span-4">
+								<button
+									type="submit"
+									class="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-400 px-4 py-2.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-emerald-300 transition cursor-pointer"
+								>
+									<span id="mp-appraise-spinner" class="htmx-indicator h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent"></span>
+									<span>Appraise (Live ESI)</span>
+								</button>
+							</div>
+						</div>
+					</form>
+				</div>
+
+				<div id="marketplace-appraisal-results">
+					<div class="tactical-panel rounded-xl p-10 text-center space-y-2">
+						<div class="text-sm font-bold text-white">Ready to Appraise Your EVE Online Items</div>
+						<p class="text-xs text-slate-400 max-w-md mx-auto">
+							Paste any list of items copied from EVE Online above and click <strong>Appraise (Live ESI)</strong> to see Total Sell, Instant Buy, post-tax net ISK, Buyback value, and cargo volume.
+						</p>
+					</div>
+				</div>
 			</div>
 
 			<!-- EVE Online Market Catalog Modal Popup (0 ESI calls — local PostgreSQL sde_types) -->
@@ -911,6 +1028,148 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 							</table>
 						</div>
 					}
+				</div>
+			</div>
+		</div>
+	}
+}
+
+templ MarketplaceAppraisalPartial(res *domain.AppraisalResult, errMsg string) {
+	if errMsg != "" {
+		<div class="tactical-panel rounded-xl border-rose-500/40 bg-rose-950/30 p-4 text-xs text-rose-200">
+			<strong>Appraisal Error:</strong> { errMsg }
+		</div>
+	} else if res != nil {
+		<div
+			class="space-y-5"
+			x-data={ fmt.Sprintf(`{
+				copiedMB: false,
+				mbText: %q,
+				copyAppraisalMB() {
+					if (!this.mbText) return;
+					navigator.clipboard.writeText(this.mbText).then(() => {
+						this.copiedMB = true;
+						window.dispatchEvent(new CustomEvent('showToast', { detail: { level: 'success', message: 'Appraisal items copied as EVE Multibuy!' } }));
+						setTimeout(() => this.copiedMB = false, 2200);
+					});
+				}
+			}`, res.MultibuyText) }
+		>
+			if len(res.UnmatchedLines) > 0 {
+				<div class="rounded-xl border border-amber-400/40 bg-amber-950/30 px-4 py-3 text-xs text-amber-200">
+					<strong>Unrecognized lines ({ fmt.Sprintf("%d", len(res.UnmatchedLines)) }):</strong> { strings.Join(res.UnmatchedLines, ", ") }
+				</div>
+			}
+
+			<!-- 4 Top Valuation KPI Cards -->
+			<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+				<div class="tactical-panel rounded-xl p-4 border-emerald-400/35">
+					<div class="text-[10px] font-mono uppercase text-emerald-300/90">Total Sell ({ res.Hub.Name })</div>
+					<div class="mt-1 text-2xl font-mono font-bold text-white">{ FormatISK(res.TotalSell) }</div>
+					<div class="mt-0.5 text-[10.5px] font-mono text-emerald-300">
+						Net after fees: { FormatISK(res.NetSellAfterFees) }
+					</div>
+				</div>
+
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase text-sky-300/90">Total Buy / Instant ({ res.Hub.Name })</div>
+					<div class="mt-1 text-2xl font-mono font-bold text-sky-200">{ FormatISK(res.TotalBuy) }</div>
+					<div class="mt-0.5 text-[10.5px] font-mono text-slate-300">
+						Net after tax: { FormatISK(res.NetBuyAfterFees) }
+					</div>
+				</div>
+
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="flex items-center justify-between gap-1">
+						<span class="text-[10px] font-mono uppercase text-violet-300/90">Volume &amp; Density</span>
+						if res.GankRiskWarning {
+							<span class="rounded border border-rose-400/55 bg-rose-500/20 px-1.5 py-0.5 font-mono text-[9px] font-bold text-rose-200">GANK RISK</span>
+						}
+					</div>
+					<div class="mt-1 text-2xl font-mono font-bold text-violet-200">{ fmt.Sprintf("%.1f m³", res.TotalVolumeM3) }</div>
+					<div class="mt-0.5 text-[10.5px] font-mono text-slate-400">
+						{ FormatISK(res.ISKPerM3) }/m³ • { fmt.Sprintf("%d items", res.TotalDistinct) }
+					</div>
+				</div>
+
+				<div class="tactical-panel rounded-xl p-4 flex flex-col justify-between gap-2">
+					<div>
+						<div class="text-[10px] font-mono uppercase text-amber-300/90">Buyback ({ fmt.Sprintf("%.0f%%", res.BuybackPercent) } Buy)</div>
+						<div class="mt-1 text-xl font-mono font-bold text-amber-200">{ FormatISK(res.BuybackValue) }</div>
+					</div>
+					<button
+						type="button"
+						@click="copyAppraisalMB()"
+						class="w-full rounded-md border border-emerald-400/45 bg-emerald-500/15 px-3 py-1.5 text-[11px] font-bold text-emerald-200 hover:bg-emerald-500/25 transition cursor-pointer"
+					>
+						<span x-show="!copiedMB">Copy EVE Multibuy</span>
+						<span x-cloak x-show="copiedMB">Copied!</span>
+					</button>
+				</div>
+			</div>
+
+			<!-- Per-Item Valuation Breakdown Table -->
+			<div class="tactical-panel rounded-xl overflow-hidden">
+				<div class="px-4 py-2.5 border-b border-violet-400/20 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-slate-300">
+					<span>
+						Appraised <strong class="text-white">{ fmt.Sprintf("%d", res.TotalDistinct) }</strong> item(s) • <strong class="text-amber-200">{ formatInt64(res.TotalUnits) }</strong> total units
+					</span>
+					<span>
+						Hub: <strong class="text-sky-300">{ res.Hub.Name }</strong> •
+						{ fmt.Sprintf("Broker %.2f%% • Sales Tax %.2f%%", res.BrokerFeePercent, res.SalesTaxPercent) }
+					</span>
+				</div>
+				<div class="overflow-x-auto">
+					<table class="w-full text-left text-xs">
+						<thead class="bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15">
+							<tr>
+								<th class="px-4 py-3">Item (Click to Open Order Book)</th>
+								<th class="px-3 py-3 text-right">Qty</th>
+								<th class="px-3 py-3 text-right">Volume</th>
+								<th class="px-3 py-3 text-right">Unit Buy</th>
+								<th class="px-3 py-3 text-right">Unit Sell</th>
+								<th class="px-3 py-3 text-right">Total Buy</th>
+								<th class="px-4 py-3 text-right">Total Sell</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-violet-400/15 font-mono">
+							for _, ln := range res.Lines {
+								<tr class="hover:bg-white/5">
+									<td class="px-4 py-2.5 font-sans">
+										<button
+											type="button"
+											@click={ fmt.Sprintf("inspectFromAppraisal(%q)", ln.Name) }
+											class="flex items-center gap-2.5 text-left group cursor-pointer"
+										>
+											<img
+												src={ func() string {
+													low := strings.ToLower(ln.Name)
+													if strings.HasSuffix(low, " blueprint") || strings.HasSuffix(low, " reaction formula") {
+														return fmt.Sprintf("https://images.evetech.net/types/%d/bp?size=32", ln.TypeID)
+													}
+													return EVEItemIconURL(ln.TypeID, 32)
+												}() }
+												alt={ ln.Name }
+												loading="lazy"
+												class="h-7 w-7 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain"
+												onerror="if(!this.dataset.fb){this.dataset.fb='1';this.src=this.src.replace('/icon?','/render?');}else{this.style.display='none';}"
+											/>
+											<div>
+												<div class="font-semibold text-white group-hover:text-amber-300 transition">{ ln.Name }</div>
+												<div class="text-[10px] font-mono text-slate-400">{ ln.Category }</div>
+											</div>
+										</button>
+									</td>
+									<td class="px-3 py-2.5 text-right text-amber-200">{ formatInt64(ln.Quantity) }</td>
+									<td class="px-3 py-2.5 text-right text-slate-400">{ fmt.Sprintf("%.1f m³", ln.TotalVolumeM3) }</td>
+									<td class="px-3 py-2.5 text-right text-slate-300">{ FormatISK(ln.UnitBuy) }</td>
+									<td class="px-3 py-2.5 text-right text-slate-300">{ FormatISK(ln.UnitSell) }</td>
+									<td class="px-3 py-2.5 text-right text-sky-200">{ FormatISK(ln.TotalBuy) }</td>
+									<td class="px-4 py-2.5 text-right font-bold text-emerald-200">{ FormatISK(ln.TotalSell) }</td>
+								</tr>
+							}
+						</tbody>
+					</table>
 				</div>
 			</div>
 		</div>

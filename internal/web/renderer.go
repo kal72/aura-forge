@@ -119,6 +119,11 @@ func (tr *TemplRenderer) RenderMarketplaceResults(w http.ResponseWriter, r *http
 	return MarketplaceResultsPartial(snap, errMsg).Render(r.Context(), w)
 }
 
+func (tr *TemplRenderer) RenderMarketplaceAppraisal(w http.ResponseWriter, r *http.Request, res *domain.AppraisalResult, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return MarketplaceAppraisalPartial(res, errMsg).Render(r.Context(), w)
+}
+
 func (tr *TemplRenderer) RenderScanner(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	return ScannerPage(mode, settings).Render(r.Context(), w)

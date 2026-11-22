@@ -82,6 +82,30 @@ func (h *Handlers) HandleMarketplaceBrowse(w http.ResponseWriter, r *http.Reques
 	h.writeJSON(w, http.StatusOK, res)
 }
 
+// HandleMarketplaceAppraise evaluates pasted EVE Online clipboard items (Inventory, Cargo, Multibuy, Fit)
+// against live prices at the chosen Trade Hub.
+func (h *Handlers) HandleMarketplaceAppraise(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form payload", http.StatusBadRequest)
+		return
+	}
+	rawText := strings.TrimSpace(r.FormValue("paste_text"))
+	hubKey := strings.TrimSpace(r.FormValue("hub"))
+	buybackPct := parseFloatDefault(r.FormValue("buyback_pct"), 90.0)
+
+	res, err := h.svc.AppraiseEVEClipboard(r.Context(), rawText, hubKey, buybackPct)
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
+
+	if h.renderer == nil {
+		h.writeJSON(w, http.StatusOK, map[string]any{"appraisal": res, "error": errMsg})
+		return
+	}
+	_ = h.renderer.RenderMarketplaceAppraisal(w, r, res, errMsg)
+}
+
 // HandleMarketplaceAddCatalog adds an item inspected in Marketplace directly into Catalog & Trap Guard.
 func (h *Handlers) HandleMarketplaceAddCatalog(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
