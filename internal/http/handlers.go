@@ -27,7 +27,7 @@ type Renderer interface {
 	RenderAllocator(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, cfg domain.AllocationConfig, result *domain.AllocationResult, allocErr string) error
 	RenderAllocatorResult(w http.ResponseWriter, r *http.Request, result *domain.AllocationResult, allocErr string) error
 	RenderPlanner(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, data *service.PlannerViewData) error
-	RenderTracker(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, hub domain.TradeHub, summary service.TrackerSummary, batches []domain.BatchRecord, statusFilter string) error
+	RenderTracker(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, hub domain.TradeHub, activeTab string, summary service.TrackerSummary, batches []domain.BatchRecord, statusFilter string, ledger *service.TradeLedgerViewData) error
 	RenderRelistResult(w http.ResponseWriter, r *http.Request, res *domain.RelistGuardResult, errMsg string) error
 	RenderSettings(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, sdeStatus service.SDEImportStatus, pilotMem *domain.AIPilotMemory, saved bool) error
 	RenderSDEStatusPartial(w http.ResponseWriter, r *http.Request, status service.SDEImportStatus) error
@@ -756,8 +756,13 @@ func (h *Handlers) HandlePlannerConvertBatches(w http.ResponseWriter, r *http.Re
 	http.Redirect(w, r, "/tracker", http.StatusSeeOther)
 }
 
-// HandleTracker renders the Production, Inventory & Market Order Tracker.
+// HandleTracker renders the 3-tab Production, Inventory, Buy/Sell Ledger & Realized P&L Tracker.
 func (h *Handlers) HandleTracker(w http.ResponseWriter, r *http.Request) {
+	activeTab := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("tab")))
+	if activeTab != "ledger" && activeTab != "pnl" {
+		activeTab = "batches"
+	}
+
 	statusFilter := r.URL.Query().Get("status")
 	allBatches, err := h.svc.ListBatches(r.Context(), "")
 	if err != nil {
@@ -775,13 +780,28 @@ func (h *Handlers) HandleTracker(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	periodDays := 30
+	if rawDays := strings.TrimSpace(r.URL.Query().Get("days")); rawDays != "" {
+		if d, convErr := strconv.Atoi(rawDays); convErr == nil && d >= 0 {
+			periodDays = d
+		}
+	}
+	sideFilter := strings.ToUpper(strings.TrimSpace(r.URL.Query().Get("side")))
+	searchQuery := strings.TrimSpace(r.URL.Query().Get("q"))
+
+	ledgerData, _ := h.svc.GetTradeLedgerView(r.Context(), periodDays, sideFilter, searchQuery)
+
 	if h.renderer != nil {
 		mode := h.svc.GetModeInfo(r.Context())
 		hub := h.svc.ActiveCatalogHub(r.Context())
-		_ = h.renderer.RenderTracker(w, r, mode, hub, summary, batches, statusFilter)
+		_ = h.renderer.RenderTracker(w, r, mode, hub, activeTab, summary, batches, statusFilter, ledgerData)
 		return
 	}
-	h.writeJSON(w, http.StatusOK, batches)
+	h.writeJSON(w, http.StatusOK, map[string]any{
+		"tab":     activeTab,
+		"batches": batches,
+		"ledger":  ledgerData,
+	})
 }
 
 // HandleSaveBatch creates a manual production batch in Tracker.

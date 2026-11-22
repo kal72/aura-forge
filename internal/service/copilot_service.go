@@ -129,6 +129,7 @@ type CopilotService struct {
 	globalSnapshots domain.GlobalPriceSnapshotRepository
 	aiProvider      domain.AIProvider
 	aiRepo          domain.AIRepository
+	ledger          domain.TradeLedgerRepository
 	priceSync       *priceSyncState
 	sdeImport       *sdeImportState
 }
@@ -146,6 +147,11 @@ func (s *CopilotService) SetAIProvider(p domain.AIProvider) {
 // SetAIRepository attaches the PostgreSQL AI conversation & pilot memory repository.
 func (s *CopilotService) SetAIRepository(r domain.AIRepository) {
 	s.aiRepo = r
+}
+
+// SetTradeLedgerRepository attaches the PostgreSQL trade ledger & order history repository.
+func (s *CopilotService) SetTradeLedgerRepository(r domain.TradeLedgerRepository) {
+	s.ledger = r
 }
 
 // NewCopilotService constructs a CopilotService via Dependency Inversion interfaces.
@@ -1581,6 +1587,10 @@ func (s *CopilotService) SyncCharacterSSO(ctx context.Context) (*domain.Characte
 		UpdatedAt:               time.Now(),
 	}
 	_ = s.chars.UpsertProfile(ctx, profile)
+
+	// Best-effort sync of Private ESI wallet transactions, journal fees, and 90-day order history
+	_, _ = s.SyncPrivateESILedger(ctx)
+
 	return profile, nil
 }
 

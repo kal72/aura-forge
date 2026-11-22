@@ -166,13 +166,17 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 				r.Post("/convert-batches", h.HandlePlannerConvertBatches)
 			})
 
-			// Production, Inventory & Market Order Tracker
+			// Production, Inventory & Market Order Tracker (+ Buy/Sell Ledger & Realized P&L)
 			r.Route("/tracker", func(r chi.Router) {
 				r.Get("/", h.HandleTracker)
 				r.Post("/batches", h.HandleSaveBatch)
 				r.Post("/batches/{id}/status", h.HandleUpdateBatchStatus)
 				r.Delete("/batches/{id}", h.HandleDeleteBatch)
 				r.Post("/batches/{id}/relist-check", h.HandleRelistCheck)
+				r.Post("/ledger/sync-esi", h.HandleLedgerSyncESI)
+				r.Post("/ledger/import-paste", h.HandleLedgerImportPaste)
+				r.Post("/ledger/manual", h.HandleLedgerAddManual)
+				r.Delete("/ledger/tx/{id}", h.HandleLedgerDeleteTx)
 			})
 
 			// Settings, Official CCP SDE Importer & Background Price Updater

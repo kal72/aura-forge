@@ -150,6 +150,25 @@ type CharacterSyncProvider interface {
 	SyncAssets(ctx context.Context, token *EVEToken) ([]HangarAsset, error)
 }
 
+// CharacterLedgerSyncProvider is an optional Private ESI extension for wallet transactions,
+// realized tax/fee journal entries, and 90-day order history (uses existing wallet & order scopes).
+type CharacterLedgerSyncProvider interface {
+	SyncWalletTransactions(ctx context.Context, token *EVEToken) ([]MarketTransaction, error)
+	SyncWalletJournalFees(ctx context.Context, token *EVEToken) ([]WalletFeeEntry, error)
+	SyncOrderHistory(ctx context.Context, token *EVEToken) ([]CharacterOrderHistory, error)
+}
+
+// TradeLedgerRepository persists realized market transactions, fee journal entries, and historical orders.
+type TradeLedgerRepository interface {
+	UpsertTransactions(ctx context.Context, txs []MarketTransaction) (inserted int, skipped int, err error)
+	ListTransactions(ctx context.Context, periodDays int, sideFilter string, query string, limit int) ([]MarketTransaction, error)
+	DeleteTransaction(ctx context.Context, id int64) error
+	UpsertFeeEntries(ctx context.Context, entries []WalletFeeEntry) (int, error)
+	ListFeeEntries(ctx context.Context, periodDays int) ([]WalletFeeEntry, error)
+	UpsertOrderHistory(ctx context.Context, orders []CharacterOrderHistory) (int, error)
+	ListOrderHistory(ctx context.Context, characterID int64, limit int) ([]CharacterOrderHistory, error)
+}
+
 // UserRepository specifies storage operations for application users and login sessions.
 type UserRepository interface {
 	CountUsers(ctx context.Context) (int, error)

@@ -333,6 +333,9 @@ func buildAuraToolDefinitions(isAdmin bool) []domain.AIToolDefinition {
 			def("check_catalog_and_batches",
 				"List the pilot's Catalog items (with VIABLE/TRAP status, margin, ROI, daily volume) and recent Tracker batches (DRAFT, IN_PRODUCTION, LISTED, SLOW_MOVER, SOLD, undercut status).",
 				`{"type":"object","properties":{"status_filter":{"type":"string","description":"Optional batch status filter: DRAFT, IN_PRODUCTION, LISTED, SLOW_MOVER, SOLD"}}}`),
+			def("get_trade_ledger",
+				"Get the pilot's closed-loop Buy & Sell Ledger and Realized P&L analytics: Cash In/Out, Realized Net Profit & ROI (weighted-average cost basis), Top Cash Cows, Capital Drains, Fee & Tax Leak breakdown (Broker/Relist/Sales/Industry/PI), and Active & Historical Order Fill Rates.",
+				`{"type":"object","properties":{"period_days":{"type":"integer","description":"Lookback window in days (default 30; use 0 for all-time)"}}}`),
 		)
 	}
 
@@ -500,6 +503,43 @@ func (s *CopilotService) executeAuraTool(
 			"catalog_items": catOut,
 			"batches_total": len(batches),
 			"batches":       batchOut,
+		}), trace, nil
+
+	case "get_trade_ledger":
+		if !isAdmin {
+			trace.Error = "admin only"
+			return `{"error":"get_trade_ledger is restricted to Admin accounts"}`, trace, nil
+		}
+		var args struct {
+			PeriodDays int `json:"period_days"`
+		}
+		_ = json.Unmarshal([]byte(argsRaw), &args)
+		days := args.PeriodDays
+		if days == 0 && !strings.Contains(argsRaw, `"period_days"`) {
+			days = 30
+		}
+		view, err := s.GetTradeLedgerView(ctx, days, "", "")
+		if err != nil {
+			trace.Error = err.Error()
+			return toJSON(map[string]string{"error": err.Error()}), trace, nil
+		}
+		rep := view.Report
+		trace.Summary = fmt.Sprintf("Ledger (%dd): Realized %s | Fees %s | %d items",
+			days, fmtCompactISK(rep.RealizedProfitISK), fmtCompactISK(rep.FeeLeak.TotalFeesISK), len(rep.Items))
+		return toJSON(map[string]any{
+			"period_days":         days,
+			"buy_count":           rep.TotalBuyCount,
+			"sell_count":          rep.TotalSellCount,
+			"total_cash_out_isk":  rep.TotalCashOutISK,
+			"total_cash_in_isk":   rep.TotalCashInISK,
+			"net_cash_flow_isk":   rep.NetCashFlowISK,
+			"realized_profit_isk": rep.RealizedProfitISK,
+			"realized_roi_pct":    rep.RealizedROIPct,
+			"open_inventory_isk":  rep.OpenInventoryISK,
+			"fee_leak":            rep.FeeLeak,
+			"orders_summary":      rep.Orders,
+			"top_cash_cows":       rep.TopCashCows,
+			"capital_drains":      rep.CapitalDrains,
 		}), trace, nil
 
 	case "search_marketplace":

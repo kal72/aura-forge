@@ -35,7 +35,7 @@ func nextBatchStatusAction(st domain.BatchStatus, entryType domain.BatchEntryTyp
 	}
 }
 
-templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.TrackerSummary, batches []domain.BatchRecord, statusFilter string) {
+templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, activeTab string, summary service.TrackerSummary, batches []domain.BatchRecord, statusFilter string, ledger *service.TradeLedgerViewData) {
 	@Layout("Production & Market Tracker", "tracker", mode) {
 		<div
 			class="space-y-6"
@@ -54,25 +54,77 @@ templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tr
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-white">Production, Inventory &amp; Market Order Tracker</h1>
 					<p class="text-xs text-slate-300/80 mt-0.5">
-						Manage batch lifecycles (<code class="text-sky-300">DRAFT → IN_PRODUCTION → LISTED → SOLD</code>) and protect profit with live <strong class="text-amber-200">{ hub.Name }</strong> Undercut &amp; Safe Relist Guard.
+						Manage batch lifecycles (<code class="text-sky-300">DRAFT → IN_PRODUCTION → LISTED → SOLD</code>), audit Buy/Sell Ledger &amp; Realized P&amp;L, and protect profit at <strong class="text-amber-200">{ hub.Name }</strong>.
 					</p>
 				</div>
-				<div class="flex flex-wrap gap-2">
-					<button
-						type="button"
-						hx-post="/esi/check-undercuts"
-						hx-swap="none"
-						hx-indicator="#undercut-spinner"
-						class="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/45 bg-amber-500/15 px-3.5 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer"
-					>
-						<span id="undercut-spinner" class="htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-amber-300 border-t-transparent"></span>
-						<span>Check Live Undercuts ({ hub.Name })</span>
-					</button>
-					<button type="button" @click="showNewBatch = !showNewBatch" class="rounded-lg bg-amber-400 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer">
-						+ Record Batch
-					</button>
-				</div>
+				if activeTab == "batches" {
+					<div class="flex flex-wrap gap-2">
+						<button
+							type="button"
+							hx-post="/esi/check-undercuts"
+							hx-swap="none"
+							hx-indicator="#undercut-spinner"
+							class="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/45 bg-amber-500/15 px-3.5 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer"
+						>
+							<span id="undercut-spinner" class="htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-amber-300 border-t-transparent"></span>
+							<span>Check Live Undercuts ({ hub.Name })</span>
+						</button>
+						<button type="button" @click="showNewBatch = !showNewBatch" class="rounded-lg bg-amber-400 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer">
+							+ Record Batch
+						</button>
+					</div>
+				}
 			</div>
+
+			<!-- 3-Tab Sub-Navigation (No New Sidebar Menu) -->
+			<div class="flex flex-wrap items-center gap-2 border-b border-violet-400/20 pb-3">
+				<a
+					href="/tracker?tab=batches"
+					class={ "inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition " + func() string {
+						if activeTab == "batches" {
+							return "bg-violet-500/30 border border-violet-400/60 text-white shadow-[0_0_12px_rgba(139,92,246,0.25)]"
+						}
+						return "border border-slate-800 bg-slate-900/50 text-slate-300 hover:text-white"
+					}() }
+				>
+					<span>Batches &amp; Flips</span>
+					<span class="rounded bg-slate-950/70 px-1.5 py-0.5 font-mono text-[10px] text-amber-200">{ fmt.Sprintf("%d", summary.ActiveCount) }</span>
+				</a>
+				<a
+					href="/tracker?tab=ledger"
+					class={ "inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition " + func() string {
+						if activeTab == "ledger" {
+							return "bg-violet-500/30 border border-violet-400/60 text-white shadow-[0_0_12px_rgba(139,92,246,0.25)]"
+						}
+						return "border border-slate-800 bg-slate-900/50 text-slate-300 hover:text-white"
+					}() }
+				>
+					<span>Buy &amp; Sell Ledger</span>
+					if ledger != nil {
+						<span class="rounded bg-slate-950/70 px-1.5 py-0.5 font-mono text-[10px] text-sky-200">{ fmt.Sprintf("%d", len(ledger.Transactions)) }</span>
+					}
+				</a>
+				<a
+					href="/tracker?tab=pnl"
+					class={ "inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition " + func() string {
+						if activeTab == "pnl" {
+							return "bg-violet-500/30 border border-violet-400/60 text-white shadow-[0_0_12px_rgba(139,92,246,0.25)]"
+						}
+						return "border border-slate-800 bg-slate-900/50 text-slate-300 hover:text-white"
+					}() }
+				>
+					<span>Realized P&amp;L &amp; Orders</span>
+					if ledger != nil && ledger.Report.RealizedProfitISK != 0 {
+						<span class={ "rounded bg-slate-950/70 px-1.5 py-0.5 font-mono text-[10px] " + profitColor(ledger.Report.RealizedProfitISK) }>{ FormatISK(ledger.Report.RealizedProfitISK) }</span>
+					}
+				</a>
+			</div>
+
+			if activeTab == "ledger" {
+				@TrackerLedgerTab(mode, hub, ledger)
+			} else if activeTab == "pnl" {
+				@TrackerPnLTab(mode, hub, ledger)
+			} else {
 
 			<!-- 4 KPI Summary Cards -->
 			<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -411,6 +463,7 @@ templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tr
 					</div>
 				}
 			</div>
+			}
 		</div>
 	}
 }

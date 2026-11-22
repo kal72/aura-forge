@@ -74,9 +74,9 @@ func (tr *TemplRenderer) RenderPlanner(w http.ResponseWriter, r *http.Request, m
 	return PlannerPage(mode, data).Render(r.Context(), w)
 }
 
-func (tr *TemplRenderer) RenderTracker(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, hub domain.TradeHub, summary service.TrackerSummary, batches []domain.BatchRecord, statusFilter string) error {
+func (tr *TemplRenderer) RenderTracker(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, hub domain.TradeHub, activeTab string, summary service.TrackerSummary, batches []domain.BatchRecord, statusFilter string, ledger *service.TradeLedgerViewData) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	return TrackerPage(mode, hub, summary, batches, statusFilter).Render(r.Context(), w)
+	return TrackerPage(mode, hub, activeTab, summary, batches, statusFilter, ledger).Render(r.Context(), w)
 }
 
 func (tr *TemplRenderer) RenderRelistResult(w http.ResponseWriter, r *http.Request, res *domain.RelistGuardResult, errMsg string) error {
