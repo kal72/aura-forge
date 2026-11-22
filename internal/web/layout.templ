@@ -335,7 +335,7 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 					if mode.IsAdmin() {
 						<a
 							href="/settings"
-							title="Background Jita Price Updater (Scope: Catalog + 68 PI P1–P4 + SDE Blueprints). Click to configure interval."
+							title="Background Trade Hub Price Updater (Scope: Catalog + 68 PI P1–P4 + SDE Blueprints). Click to configure Primary Hub or interval."
 							class="flex items-center gap-2 rounded-lg border border-slate-500/30 bg-slate-900/45 backdrop-blur-xs px-3 py-1.5 text-[10.5px] font-mono text-slate-200 hover:border-amber-400/40 transition"
 						>
 							if mode.PriceSync.IsRunning {
@@ -355,15 +355,15 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 							hx-post="/esi/sync-prices"
 							hx-swap="none"
 							hx-indicator="#global-sync-spinner"
-							title="Manually refresh Jita prices now for Catalog, PI (P1–P4), and SDE Blueprints"
+							title="Manually refresh prices at your Primary Trade Hub for Catalog, PI (P1–P4), and SDE Blueprints"
 							class="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-amber-400/40 bg-amber-500/20 backdrop-blur-xs px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/30 transition cursor-pointer"
 						>
 							<span id="global-sync-spinner" class="htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-amber-300 border-t-transparent"></span>
-							<span>Sync Jita Prices</span>
+							<span>Sync { mode.PriceSync.HubLabel() } Prices</span>
 						</button>
 					} else {
 						<div
-							title="Jita market cache freshness (auto-synced by system)"
+							title="Active Trade Hub market cache freshness (auto-synced by system)"
 							class="flex items-center gap-2 rounded-lg border border-slate-500/30 bg-slate-900/45 backdrop-blur-xs px-3 py-1.5 text-[10.5px] font-mono text-slate-200"
 						>
 							if mode.PriceSync.IsRunning {

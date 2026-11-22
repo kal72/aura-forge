@@ -303,10 +303,11 @@ func (h *Handlers) HandleLoadSampleData(w http.ResponseWriter, r *http.Request) 
 
 // HandleSyncJitaPrices triggers a scoped Jita price refresh (Catalog + PI P1-P4 + SDE Blueprints) via Public ESI.
 func (h *Handlers) HandleSyncJitaPrices(w http.ResponseWriter, r *http.Request) {
+	hub := h.svc.ActiveCatalogHub(r.Context())
 	res, err := h.svc.SyncScopedJitaPrices(r.Context())
 	if err != nil {
 		if IsHTMX(r) {
-			TriggerToast(w, "error", "Public ESI Jita sync failed: "+err.Error())
+			TriggerToast(w, "error", fmt.Sprintf("Public ESI %s sync failed: %s", hub.Name, err.Error()))
 			w.WriteHeader(http.StatusOK)
 			return
 		}
@@ -316,7 +317,7 @@ func (h *Handlers) HandleSyncJitaPrices(w http.ResponseWriter, r *http.Request) 
 
 	if res.SkippedBusy {
 		if IsHTMX(r) {
-			TriggerToast(w, "info", "A Jita price sync cycle is already running in the background.")
+			TriggerToast(w, "info", fmt.Sprintf("A %s price sync cycle is already running in the background.", hub.Name))
 			w.WriteHeader(http.StatusOK)
 			return
 		}
@@ -325,7 +326,7 @@ func (h *Handlers) HandleSyncJitaPrices(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if IsHTMX(r) {
-		TriggerToast(w, "success", fmt.Sprintf("Jita prices synced: %d/%d scoped items warmed (%d catalog updated) in %dms.", res.WarmedCount, res.TotalTypeIDs, res.CatalogUpdated, res.DurationMs))
+		TriggerToast(w, "success", fmt.Sprintf("%s prices synced: %d/%d scoped items warmed (%d catalog updated) in %dms.", hub.Name, res.WarmedCount, res.TotalTypeIDs, res.CatalogUpdated, res.DurationMs))
 		w.Header().Set("HX-Refresh", "true")
 		w.WriteHeader(http.StatusOK)
 		return

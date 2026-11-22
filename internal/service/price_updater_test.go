@@ -102,7 +102,7 @@ func TestSyncScopedJitaPrices_CollectsPIAndSDEAndUpdatesStatus(t *testing.T) {
 	if status.LastSyncedCount != 91 {
 		t.Fatalf("expected LastSyncedCount=91, got %d", status.LastSyncedCount)
 	}
-	if !strings.Contains(status.FreshnessLabel(), "Jita synced just now (91)") {
+	if !strings.Contains(status.FreshnessLabel(), "synced just now (91)") {
 		t.Fatalf("unexpected FreshnessLabel: %q", status.FreshnessLabel())
 	}
 }
@@ -118,10 +118,13 @@ func TestClampPriceSyncIntervalAndFreshnessLabel(t *testing.T) {
 		t.Fatalf("expected 15, got %d", got)
 	}
 
-	if lbl := (PriceSyncStatus{IsRunning: true}).FreshnessLabel(); lbl != "Syncing Jita..." {
+	if lbl := (PriceSyncStatus{IsRunning: true}).FreshnessLabel(); lbl != "Syncing Jita 4-4..." {
 		t.Fatalf("unexpected running label: %q", lbl)
 	}
-	if lbl := (PriceSyncStatus{Enabled: false}).FreshnessLabel(); lbl != "Auto-Sync: Manual Only" {
+	if lbl := (PriceSyncStatus{HubName: "Amarr VIII", IsRunning: true}).FreshnessLabel(); lbl != "Syncing Amarr VIII..." {
+		t.Fatalf("unexpected Amarr running label: %q", lbl)
+	}
+	if lbl := (PriceSyncStatus{Enabled: false}).FreshnessLabel(); !strings.Contains(lbl, "Manual Sync") {
 		t.Fatalf("unexpected manual label: %q", lbl)
 	}
 	tenMinAgo := time.Now().Add(-10 * time.Minute)

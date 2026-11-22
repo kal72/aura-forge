@@ -463,7 +463,7 @@ templ MineralTickerPartial(pulse service.MarketPulseResponse) {
 					if pulse.GlobalStats != nil && pulse.GlobalStats.DaysAvailable == 1 {
 						Day 1 baseline from <code class="text-amber-200">GET /markets/prices/</code> (1 cached ESI call) is saved in PostgreSQL. Day-over-day <strong>Top Global Movers</strong> across all ~15,000+ EVE items will activate automatically once Day 2's snapshot is recorded.
 					} else {
-						Waiting for the first background <code class="text-amber-200">GET /markets/prices/</code> snapshot (runs automatically within ~15s after server start, or click <strong>Sync Jita Prices</strong> in the sidebar).
+						Waiting for the first background <code class="text-amber-200">GET /markets/prices/</code> snapshot (runs automatically within ~15s after server start, or click <strong>Sync Prices</strong> in the sidebar).
 					}
 				</p>
 			</div>

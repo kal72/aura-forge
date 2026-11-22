@@ -13,8 +13,9 @@ import (
 	"aura-forge/internal/esi"
 )
 
-// PriceSyncStatus exposes the live state of the scoped Jita background price updater to the UI.
+// PriceSyncStatus exposes the live state of the scoped Trade Hub background price updater to the UI.
 type PriceSyncStatus struct {
+	HubName         string     `json:"hub_name"`
 	Enabled         bool       `json:"enabled"`
 	IntervalMinutes int        `json:"interval_minutes"`
 	IsRunning       bool       `json:"is_running"`
@@ -26,36 +27,46 @@ type PriceSyncStatus struct {
 	NextSyncAt      *time.Time `json:"next_sync_at,omitempty"`
 }
 
+// HubLabel returns the active Trade Hub display name (defaulting to Jita 4-4).
+func (st PriceSyncStatus) HubLabel() string {
+	if st.HubName != "" {
+		return st.HubName
+	}
+	return "Jita 4-4"
+}
+
 // FreshnessLabel returns a concise, human-readable status string for the sidebar and settings page.
 func (st PriceSyncStatus) FreshnessLabel() string {
+	hub := st.HubLabel()
 	if st.IsRunning {
-		return "Syncing Jita..."
+		return fmt.Sprintf("Syncing %s...", hub)
 	}
 	if st.LastSyncedAt != nil {
 		ago := time.Since(*st.LastSyncedAt)
 		switch {
 		case ago < time.Minute:
-			return fmt.Sprintf("Jita synced just now (%d)", st.LastSyncedCount)
+			return fmt.Sprintf("%s synced just now (%d)", hub, st.LastSyncedCount)
 		case ago < time.Hour:
-			return fmt.Sprintf("Jita synced %dm ago (%d)", int(ago.Minutes()), st.LastSyncedCount)
+			return fmt.Sprintf("%s synced %dm ago (%d)", hub, int(ago.Minutes()), st.LastSyncedCount)
 		default:
-			return fmt.Sprintf("Jita synced %dh ago (%d)", int(ago.Hours()), st.LastSyncedCount)
+			return fmt.Sprintf("%s synced %dh ago (%d)", hub, int(ago.Hours()), st.LastSyncedCount)
 		}
 	}
 	if st.Enabled {
 		interval := domain.ClampPriceSyncInterval(st.IntervalMinutes)
-		return fmt.Sprintf("Auto-Sync: Every %dm", interval)
+		return fmt.Sprintf("Auto-Sync (%s): %dm", hub, interval)
 	}
-	return "Auto-Sync: Manual Only"
+	return fmt.Sprintf("Manual Sync (%s)", hub)
 }
 
-// PriceSyncResult summarizes one completed scoped Jita price sync cycle.
+// PriceSyncResult summarizes one completed scoped Trade Hub price sync cycle.
 type PriceSyncResult struct {
-	TotalTypeIDs   int   `json:"total_type_ids"`
-	WarmedCount    int   `json:"warmed_count"`
-	CatalogUpdated int   `json:"catalog_updated"`
-	DurationMs     int64 `json:"duration_ms"`
-	SkippedBusy    bool  `json:"skipped_busy"`
+	HubName        string `json:"hub_name"`
+	TotalTypeIDs   int    `json:"total_type_ids"`
+	WarmedCount    int    `json:"warmed_count"`
+	CatalogUpdated int    `json:"catalog_updated"`
+	DurationMs     int64  `json:"duration_ms"`
+	SkippedBusy    bool   `json:"skipped_busy"`
 }
 
 type priceSyncState struct {
@@ -87,16 +98,19 @@ func (p *priceSyncState) notifyConfigChanged() {
 	}
 }
 
-// GetPriceSyncStatus returns a thread-safe snapshot of the background Jita price updater.
+// GetPriceSyncStatus returns a thread-safe snapshot of the background Trade Hub price updater.
 func (s *CopilotService) GetPriceSyncStatus(ctx context.Context) PriceSyncStatus {
 	enabled := true
 	interval := 15
+	hubName := "Jita 4-4"
 	if cfg, err := s.GetSettings(ctx); err == nil && cfg != nil {
 		enabled = cfg.AutoPriceSyncEnabled
 		interval = domain.ClampPriceSyncInterval(cfg.AutoPriceSyncIntervalMinutes)
+		hubName = cfg.ActiveTradeHub().Name
 	}
 
 	st := PriceSyncStatus{
+		HubName:         hubName,
 		Enabled:         enabled,
 		IntervalMinutes: interval,
 	}
@@ -235,7 +249,12 @@ func (s *CopilotService) SyncScopedJitaPrices(ctx context.Context) (*PriceSyncRe
 	}
 
 	// Step 2: Warm PostgreSQL esi_cache for all scoped TypeIDs (Catalog + PI P1–P4 + SDE Blueprints)
-	// Processed in gentle chunks of 20 so ESI traffic stays smooth and cancellable.
+	// at the user's configured Primary Trade Hub in gentle chunks of 20 so ESI traffic stays smooth.
+	hub := domain.LookupTradeHub("jita")
+	if cfg, err := s.GetSettings(ctx); err == nil && cfg != nil {
+		hub = cfg.ActiveTradeHub()
+	}
+
 	allIDs := s.CollectScopedJitaTypeIDs(ctx)
 	totalIDs = len(allIDs)
 
@@ -249,13 +268,13 @@ func (s *CopilotService) SyncScopedJitaPrices(ctx context.Context) (*PriceSyncRe
 		if end > len(allIDs) {
 			end = len(allIDs)
 		}
-		prices, err := s.market.GetJitaPrices(ctx, allIDs[i:end])
+		prices, err := s.fetchHubPrices(ctx, hub, allIDs[i:end])
 		if err != nil {
 			if errors.Is(err, esi.ErrErrorLimitReached) || errors.Is(err, esi.ErrRateLimitCooldown) {
 				syncErr = err
 				return nil, err
 			}
-			log.Printf("[WARN] Scoped Jita sync chunk %d-%d warning: %v", i, end, err)
+			log.Printf("[WARN] Scoped %s sync chunk %d-%d warning: %v", hub.Name, i, end, err)
 			continue
 		}
 		warmedCount += len(prices)
@@ -271,6 +290,7 @@ func (s *CopilotService) SyncScopedJitaPrices(ctx context.Context) (*PriceSyncRe
 	}
 
 	return &PriceSyncResult{
+		HubName:        hub.Name,
 		TotalTypeIDs:   totalIDs,
 		WarmedCount:    warmedCount,
 		CatalogUpdated: catalogUpdated,

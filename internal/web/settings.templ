@@ -12,7 +12,7 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 		<div class="space-y-6">
 			<div>
 				<h1 class="text-2xl font-bold tracking-tight text-white">Settings &amp; EVE Online ESI Mode</h1>
-				<p class="text-xs text-slate-300/80 mt-0.5">Configure starting capital, Jita market taxes, character slot capacity, and optional EVE SSO OAuth2 integration.</p>
+				<p class="text-xs text-slate-300/80 mt-0.5">Configure starting capital, Primary Trade Hub, market taxes, character slot capacity, and optional EVE SSO OAuth2 integration.</p>
 			</div>
 
 			if saved {
@@ -102,10 +102,10 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 
 				<!-- Right Column: Background Jita Price Updater + Optional EVE SSO -->
 				<div class="lg:col-span-5 space-y-6">
-					<!-- Background Jita Price Updater Card -->
+					<!-- Background Trade Hub Price Updater Card -->
 					<div class="tactical-panel rounded-xl p-5 space-y-4">
 						<div class="flex items-center justify-between gap-2">
-							<h2 class="text-sm font-bold uppercase tracking-wider text-emerald-300">Background Jita Price Updater</h2>
+							<h2 class="text-sm font-bold uppercase tracking-wider text-emerald-300">Background Trade Hub Price Updater</h2>
 							if mode.PriceSync.IsRunning {
 								<span class="rounded-full border border-amber-400/45 bg-amber-500/20 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-200 animate-pulse">SYNCING</span>
 							} else if settings.AutoPriceSyncEnabled {
@@ -116,7 +116,7 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 						</div>
 
 						<p class="text-xs text-slate-300 leading-relaxed">
-							Keeps dynamic <strong>Jita 4-4</strong> prices warm in PostgreSQL <code class="text-amber-200">esi_cache</code> for your active business scope (<strong>Catalog + 68 PI P1–P4 + SDE Blueprints</strong>) so PI Hub, Scanner, Calculator, and Marketplace load instantly. Static recipes &amp; planet catalogs never call ESI; other hubs (Amarr, Dodixie, Rens, Hek) remain on-demand.
+							Keeps dynamic <strong>{ settings.ActiveTradeHub().Name }</strong> prices warm in PostgreSQL <code class="text-amber-200">esi_cache</code> for your active business scope (<strong>Catalog + 68 PI P1–P4 + SDE Blueprints</strong>) so PI Hub, Scanner, Calculator, Manufacture, and Marketplace load instantly. Static recipes &amp; planet catalogs never call ESI; other trade hubs remain on-demand.
 						</p>
 
 						<!-- Live Sync Telemetry -->
@@ -149,7 +149,7 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 									checked?={ settings.AutoPriceSyncEnabled }
 									class="h-4 w-4 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-400"
 								/>
-								<span class="text-xs font-medium text-white">Enable automatic Jita background sync</span>
+								<span class="text-xs font-medium text-white">Enable automatic { settings.ActiveTradeHub().Name } background sync</span>
 							</label>
 
 							<div>

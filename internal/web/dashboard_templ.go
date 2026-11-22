@@ -749,7 +749,7 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "Waiting for the first background <code class=\"text-amber-200\">GET /markets/prices/</code> snapshot (runs automatically within ~15s after server start, or click <strong>Sync Jita Prices</strong> in the sidebar).")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "Waiting for the first background <code class=\"text-amber-200\">GET /markets/prices/</code> snapshot (runs automatically within ~15s after server start, or click <strong>Sync Prices</strong> in the sidebar).")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
