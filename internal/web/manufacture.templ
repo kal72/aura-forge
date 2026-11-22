@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -9,20 +10,13 @@ import (
 	"aura-forge/internal/service"
 )
 
-type mfgLayerItem struct {
-	TypeID    int32
-	Name      string
-	Quantity  int64
-	UnitPrice float64
-	TotalCost float64
-}
-
-type mfgLayerSummary struct {
-	Depth        int
-	Label        string
-	Items        []mfgLayerItem
-	TotalCost    float64
-	MultibuyText string
+type mfgShopItem struct {
+	TypeID    int32   `json:"id"`
+	Name      string  `json:"name"`
+	Quantity  int64   `json:"qty"`
+	UnitPrice float64 `json:"unit_price"`
+	TotalCost float64 `json:"total_cost"`
+	Checked   bool    `json:"checked"`
 }
 
 func calcTreeJobInstallTotal(tree *domain.IndustryTreeAnalysis) float64 {
@@ -38,77 +32,113 @@ func calcTreeJobInstallTotal(tree *domain.IndustryTreeAnalysis) float64 {
 	return domain.RoundISK(total)
 }
 
-func buildManufactureLayers(tree *domain.IndustryTreeAnalysis) []mfgLayerSummary {
-	if tree == nil || len(tree.FlatNodes) == 0 {
+func buildShoppingModeItems(tree *domain.IndustryTreeAnalysis, mode string) []mfgShopItem {
+	if tree == nil {
 		return nil
 	}
-	byDepth := make(map[int]map[int32]*mfgLayerItem)
-	for _, n := range tree.FlatNodes {
-		if n.Depth <= 0 {
-			continue
+	byID := make(map[int32]*mfgShopItem)
+	addNode := func(n domain.IndustryTreeNode) {
+		if n.TypeID <= 0 || n.Quantity <= 0 {
+			return
 		}
-		if byDepth[n.Depth] == nil {
-			byDepth[n.Depth] = make(map[int32]*mfgLayerItem)
-		}
-		if existing, ok := byDepth[n.Depth][n.TypeID]; ok {
+		if existing, ok := byID[n.TypeID]; ok {
 			existing.Quantity += n.Quantity
 			existing.TotalCost = domain.RoundISK(existing.TotalCost + n.BuyCost)
 		} else {
-			byDepth[n.Depth][n.TypeID] = &mfgLayerItem{
+			byID[n.TypeID] = &mfgShopItem{
 				TypeID:    n.TypeID,
 				Name:      n.Name,
 				Quantity:  n.Quantity,
 				UnitPrice: n.UnitPrice,
 				TotalCost: n.BuyCost,
+				Checked:   true,
 			}
 		}
 	}
 
-	depths := make([]int, 0, len(byDepth))
-	for d := range byDepth {
-		depths = append(depths, d)
-	}
-	sort.Ints(depths)
-
-	layers := make([]mfgLayerSummary, 0, len(depths))
-	for _, d := range depths {
-		m := byDepth[d]
-		items := make([]mfgLayerItem, 0, len(m))
-		totalCost := 0.0
-		for _, it := range m {
-			items = append(items, *it)
-			totalCost += it.TotalCost
+	switch mode {
+	case "direct":
+		for _, ch := range tree.RootNode.Children {
+			addNode(ch)
 		}
-		sort.Slice(items, func(i, j int) bool {
-			if items[i].TotalCost == items[j].TotalCost {
-				return items[i].Name < items[j].Name
+	case "raw":
+		var walkRaw func(n domain.IndustryTreeNode)
+		walkRaw = func(n domain.IndustryTreeNode) {
+			if len(n.Children) == 0 {
+				if n.Depth > 0 {
+					addNode(n)
+				}
+				return
 			}
-			return items[i].TotalCost > items[j].TotalCost
-		})
-
-		lines := make([]string, 0, len(items))
-		for _, it := range items {
-			lines = append(lines, fmt.Sprintf("%s\t%d", it.Name, it.Quantity))
+			for _, ch := range n.Children {
+				walkRaw(ch)
+			}
 		}
-
-		label := fmt.Sprintf("Layer %d", d)
-		if d == 1 {
-			label = "Layer 1 — Direct Inputs"
-		} else if d == depths[len(depths)-1] {
-			label = fmt.Sprintf("Layer %d — Base / Raw", d)
-		} else {
-			label = fmt.Sprintf("Layer %d — Sub-Components", d)
+		walkRaw(tree.RootNode)
+	default: // "active" (respects MAKE/BUY decisions)
+		var walkActive func(n domain.IndustryTreeNode)
+		walkActive = func(n domain.IndustryTreeNode) {
+			if n.Depth > 0 && (n.ActiveDecision != domain.DecisionMake || len(n.Children) == 0) {
+				addNode(n)
+				return
+			}
+			for _, ch := range n.Children {
+				walkActive(ch)
+			}
 		}
-
-		layers = append(layers, mfgLayerSummary{
-			Depth:        d,
-			Label:        label,
-			Items:        items,
-			TotalCost:    domain.RoundISK(totalCost),
-			MultibuyText: strings.Join(lines, "\n"),
-		})
+		walkActive(tree.RootNode)
 	}
-	return layers
+
+	out := make([]mfgShopItem, 0, len(byID))
+	for _, it := range byID {
+		out = append(out, *it)
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].TotalCost == out[j].TotalCost {
+			return out[i].Name < out[j].Name
+		}
+		return out[i].TotalCost > out[j].TotalCost
+	})
+	return out
+}
+
+func buildNodeIngredientsJSON(root domain.IndustryTreeNode) string {
+	ingMap := make(map[string]string)
+	var walk func(n domain.IndustryTreeNode)
+	walk = func(n domain.IndustryTreeNode) {
+		if len(n.Children) > 0 {
+			lines := make([]string, 0, len(n.Children))
+			for _, ch := range n.Children {
+				lines = append(lines, fmt.Sprintf("%s\t%d", ch.Name, ch.Quantity))
+			}
+			key := fmt.Sprintf("%d", n.TypeID)
+			if _, exists := ingMap[key]; !exists {
+				ingMap[key] = strings.Join(lines, "\n")
+			}
+			for _, ch := range n.Children {
+				walk(ch)
+			}
+		}
+	}
+	walk(root)
+	b, err := json.Marshal(ingMap)
+	if err != nil {
+		return "{}"
+	}
+	return string(b)
+}
+
+func buildShoppingPresetsJSON(tree *domain.IndustryTreeAnalysis) string {
+	payload := map[string][]mfgShopItem{
+		"active": buildShoppingModeItems(tree, "active"),
+		"direct": buildShoppingModeItems(tree, "direct"),
+		"raw":    buildShoppingModeItems(tree, "raw"),
+	}
+	b, err := json.Marshal(payload)
+	if err != nil {
+		return `{"active":[],"direct":[],"raw":[]}`
+	}
+	return string(b)
 }
 
 templ ManufacturePage(mode service.ModeInfo, settings domain.UserSettings, blueprints []domain.SDEBlueprint, initialResult *domain.BlueprintCalcResult) {
@@ -548,7 +578,8 @@ templ ManufactureTreePartial(res *domain.BlueprintCalcResult, errMsg string) {
 			if materialsOnly < 0 {
 				materialsOnly = 0
 			}
-			layers := buildManufactureLayers(tree)
+			presetsJSON := buildShoppingPresetsJSON(tree)
+			nodeIngJSON := buildNodeIngredientsJSON(tree.RootNode)
 			multibuy := tree.OptimalMultibuy
 			if multibuy == "" {
 				multibuy = res.MultibuyText
@@ -558,8 +589,32 @@ templ ManufactureTreePartial(res *domain.BlueprintCalcResult, errMsg string) {
 			class="space-y-5"
 			x-data={ fmt.Sprintf(`{
 				copiedKey: '',
-				activeLayer: %d,
+				shopMode: 'active',
+				presets: %s,
+				nodeIngredients: %s,
 				multibuy: %q,
+				get currentItems() {
+					return this.presets[this.shopMode] || [];
+				},
+				get checkedItems() {
+					return this.currentItems.filter(it => it.checked);
+				},
+				get checkedTotalCost() {
+					return this.checkedItems.reduce((sum, it) => sum + (Number(it.total_cost) || 0), 0);
+				},
+				get checkedMultibuy() {
+					return this.checkedItems.map(it => it.name + '\t' + it.qty).join('\n');
+				},
+				formatISKShort(v) {
+					const n = Number(v) || 0;
+					if (Math.abs(n) >= 1e9) return (n / 1e9).toFixed(2) + 'B ISK';
+					if (Math.abs(n) >= 1e6) return (n / 1e6).toFixed(2) + 'M ISK';
+					if (Math.abs(n) >= 1e3) return (n / 1e3).toFixed(1) + 'K ISK';
+					return n.toFixed(2) + ' ISK';
+				},
+				setAllChecked(val) {
+					this.currentItems.forEach(it => { it.checked = val; });
+				},
 				copyText(text, key, label) {
 					if (!text) return;
 					navigator.clipboard.writeText(text).then(() => {
@@ -569,14 +624,18 @@ templ ManufactureTreePartial(res *domain.BlueprintCalcResult, errMsg string) {
 					});
 				},
 				copyMultibuy() {
-					this.copyText(this.multibuy, 'optimal', 'Optimal EVE Multibuy');
+					this.copyText(this.multibuy, 'optimal', 'Active MAKE/BUY Multibuy');
+				},
+				copyChecked() {
+					const modeLabel = this.shopMode === 'direct' ? 'Direct Inputs' : (this.shopMode === 'raw' ? 'Base/Raw' : 'Active Plan');
+					this.copyText(this.checkedMultibuy, 'checked', modeLabel + ' (' + this.checkedItems.length + ' items)');
+				},
+				copyNodeIngredients(typeID, name) {
+					const text = this.nodeIngredients[String(typeID)];
+					if (!text) return;
+					this.copyText(text, 'node-' + typeID, name + ' Ingredients');
 				}
-			}`, func() int {
-				if len(layers) > 0 {
-					return layers[0].Depth
-				}
-				return 0
-			}(), multibuy) }
+			}`, presetsJSON, nodeIngJSON, multibuy) }
 		>
 			<!-- 4 Top Recipe Cost KPI Cards -->
 			<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -829,6 +888,16 @@ templ ManufactureTreePartial(res *domain.BlueprintCalcResult, errMsg string) {
 						>
 							<span class="font-bold text-white" x-text="focusedName"></span>
 							<span class="rounded border border-slate-700 bg-slate-900 px-1.5 py-0.5 font-mono text-[10px] text-amber-200" x-text="focusedDecision"></span>
+							<template x-if="nodeIngredients[String(focusedTypeID)]">
+								<button
+									type="button"
+									@click="copyNodeIngredients(focusedTypeID, focusedName)"
+									class="rounded-md border border-sky-400/50 bg-sky-500/20 px-2.5 py-1 font-mono text-[10.5px] font-bold text-sky-200 hover:bg-sky-500/35 cursor-pointer"
+								>
+									<span x-show="copiedKey !== ('node-' + focusedTypeID)">Copy Ingredients (Multibuy)</span>
+									<span x-cloak x-show="copiedKey === ('node-' + focusedTypeID)">Copied!</span>
+								</button>
+							</template>
 							<template x-if="focusedCanToggle">
 								<button
 									type="button"
@@ -843,144 +912,115 @@ templ ManufactureTreePartial(res *domain.BlueprintCalcResult, errMsg string) {
 				</div>
 			</div>
 
-			<!-- Layer-by-Layer Materials & Per-Layer EVE Multibuy -->
+			<!-- Smart Shopping List (3 Copy Presets + Hangar Checklist) -->
 			<div class="tactical-panel rounded-xl p-5 space-y-4">
 				<div class="flex flex-wrap items-center justify-between gap-3">
 					<div>
-						<h3 class="text-xs font-bold uppercase tracking-wider text-emerald-300">Recipe Materials &amp; Per-Layer EVE Multibuy ({ res.PriceHub.Name })</h3>
-						<p class="text-[11px] text-slate-400 mt-0.5">Select any tree layer below to inspect its deduplicated materials or copy its EVE Multibuy list in 1 click.</p>
+						<h3 class="text-xs font-bold uppercase tracking-wider text-emerald-300">Smart Shopping List &amp; Hangar Checklist ({ res.PriceHub.Name })</h3>
+						<p class="text-[11px] text-slate-400 mt-0.5">Choose your build strategy, uncheck items you already own in your hangar, and copy the exact EVE Multibuy list in 1 click. Click any craftable node in the tree above to copy its individual ingredients.</p>
 					</div>
-					<div class="flex flex-wrap items-center gap-1.5">
-						for _, ly := range layers {
-							<button
-								type="button"
-								@click={ fmt.Sprintf("copyText(%q, 'layer-%d', 'Layer %d EVE Multibuy')", ly.MultibuyText, ly.Depth, ly.Depth) }
-								class="rounded-md border border-sky-400/40 bg-sky-500/15 px-2.5 py-1.5 font-mono text-[10.5px] font-bold text-sky-200 hover:bg-sky-500/25 transition cursor-pointer"
-							>
-								<span x-show={ fmt.Sprintf("copiedKey !== 'layer-%d'", ly.Depth) }>Copy Layer { fmt.Sprintf("%d", ly.Depth) } ({ FormatISK(ly.TotalCost) })</span>
-								<span x-cloak x-show={ fmt.Sprintf("copiedKey === 'layer-%d'", ly.Depth) }>Layer { fmt.Sprintf("%d", ly.Depth) } Copied!</span>
-							</button>
-						}
-						<button
-							type="button"
-							@click="copyMultibuy()"
-							class="rounded-md border border-emerald-400/45 bg-emerald-500/15 px-2.5 py-1.5 font-mono text-[10.5px] font-bold text-emerald-200 hover:bg-emerald-500/25 transition cursor-pointer"
-						>
-							<span x-show="copiedKey !== 'optimal'">Copy Optimal</span>
-							<span x-cloak x-show="copiedKey === 'optimal'">Optimal Copied!</span>
-						</button>
-					</div>
-				</div>
-
-				<!-- Layer Selector Tabs -->
-				<div class="flex flex-wrap items-center gap-1.5 border-b border-slate-800 pb-3">
-					for _, ly := range layers {
-						<button
-							type="button"
-							@click={ fmt.Sprintf("activeLayer = %d", ly.Depth) }
-							:class={ fmt.Sprintf("activeLayer === %d ? 'border-amber-400/70 bg-amber-400/20 text-amber-200 font-bold' : 'border-slate-700 bg-slate-900/70 text-slate-300 hover:text-white'", ly.Depth) }
-							class="rounded-lg border px-3 py-1.5 font-mono text-[11px] transition cursor-pointer"
-						>
-							{ ly.Label } ({ fmt.Sprintf("%d", len(ly.Items)) }) • { FormatISK(ly.TotalCost) }
-						</button>
-					}
 					<button
 						type="button"
-						@click="activeLayer = 0"
-						:class="activeLayer === 0 ? 'border-emerald-400/70 bg-emerald-500/20 text-emerald-200 font-bold' : 'border-slate-700 bg-slate-900/70 text-slate-300 hover:text-white'"
-						class="rounded-lg border px-3 py-1.5 font-mono text-[11px] transition cursor-pointer"
+						@click="copyChecked()"
+						:disabled="checkedItems.length === 0"
+						class="rounded-md border border-emerald-400/50 bg-emerald-500/20 px-3.5 py-2 font-mono text-xs font-bold text-emerald-200 hover:bg-emerald-500/30 disabled:opacity-40 transition cursor-pointer"
 					>
-						Optimal Shopping List (MAKE/BUY)
+						<span x-show="copiedKey !== 'checked'">Copy Checked (<span x-text="checkedItems.length"></span> items • <span x-text="formatISKShort(checkedTotalCost)"></span>)</span>
+						<span x-cloak x-show="copiedKey === 'checked'">Copied to Clipboard!</span>
 					</button>
 				</div>
 
-				<!-- Per-Layer Tables + Multibuy Previews -->
-				for _, ly := range layers {
-					<div x-cloak x-show={ fmt.Sprintf("activeLayer === %d", ly.Depth) } class="grid grid-cols-1 gap-4 lg:grid-cols-12">
-						<div class="overflow-x-auto lg:col-span-8">
-							<table class="w-full text-left text-xs">
-								<thead class="border-b border-slate-800 font-mono uppercase text-[10px] text-slate-400">
-									<tr>
-										<th class="py-2 pr-3">Material ({ ly.Label })</th>
-										<th class="py-2 px-3 text-right">Qty</th>
-										<th class="py-2 px-3 text-right">Unit ({ res.PriceHub.Name })</th>
-										<th class="py-2 pl-3 text-right">Total Cost</th>
-									</tr>
-								</thead>
-								<tbody class="divide-y divide-slate-800/70 font-mono">
-									for _, m := range ly.Items {
-										<tr class="hover:bg-slate-800/30">
-											<td class="py-2 pr-3 font-sans font-semibold text-white">
-												<div class="flex items-center gap-2">
-													<img src={ EVEItemIconURL(m.TypeID, 32) } alt={ m.Name } loading="lazy" class="h-6 w-6 shrink-0 rounded border border-slate-700/80 bg-slate-950 object-contain" onerror="this.style.display='none'"/>
-													<span>{ m.Name }</span>
-												</div>
-											</td>
-											<td class="py-2 px-3 text-right text-amber-200">{ fmt.Sprintf("%d", m.Quantity) }</td>
-											<td class="py-2 px-3 text-right text-slate-400">{ FormatISK(m.UnitPrice) }</td>
-											<td class="py-2 pl-3 text-right font-bold text-white">{ FormatISK(m.TotalCost) }</td>
-										</tr>
-									}
-								</tbody>
-							</table>
-						</div>
-						<div class="lg:col-span-4 space-y-2">
-							<div class="flex items-center justify-between">
-								<label class="text-[10px] font-mono uppercase text-slate-400">Layer { fmt.Sprintf("%d", ly.Depth) } EVE Multibuy</label>
-								<button
-									type="button"
-									@click={ fmt.Sprintf("copyText(%q, 'layer-%d', 'Layer %d EVE Multibuy')", ly.MultibuyText, ly.Depth, ly.Depth) }
-									class="rounded border border-sky-400/40 bg-sky-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-sky-200 hover:bg-sky-500/25 cursor-pointer"
-								>
-									Copy Layer { fmt.Sprintf("%d", ly.Depth) }
-								</button>
-							</div>
-							<textarea readonly rows="7" class="w-full rounded-lg border border-slate-700 bg-slate-950 p-3 font-mono text-xs text-sky-200">{ ly.MultibuyText }</textarea>
-						</div>
+				<!-- 3 Smart Copy Strategy Presets + Check All / None -->
+				<div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+					<div class="flex flex-wrap items-center gap-1.5">
+						<button
+							type="button"
+							@click="shopMode = 'active'"
+							:class="shopMode === 'active' ? 'border-emerald-400/70 bg-emerald-500/20 text-emerald-200 font-bold' : 'border-slate-700 bg-slate-900/70 text-slate-300 hover:text-white'"
+							class="rounded-lg border px-3 py-1.5 font-mono text-[11px] transition cursor-pointer"
+						>
+							Active Plan (MAKE/BUY)
+						</button>
+						<button
+							type="button"
+							@click="shopMode = 'direct'"
+							:class="shopMode === 'direct' ? 'border-sky-400/70 bg-sky-500/20 text-sky-200 font-bold' : 'border-slate-700 bg-slate-900/70 text-slate-300 hover:text-white'"
+							class="rounded-lg border px-3 py-1.5 font-mono text-[11px] transition cursor-pointer"
+						>
+							Buy Direct Inputs (Layer 1)
+						</button>
+						<button
+							type="button"
+							@click="shopMode = 'raw'"
+							:class="shopMode === 'raw' ? 'border-amber-400/70 bg-amber-400/20 text-amber-200 font-bold' : 'border-slate-700 bg-slate-900/70 text-slate-300 hover:text-white'"
+							class="rounded-lg border px-3 py-1.5 font-mono text-[11px] transition cursor-pointer"
+						>
+							All Base / Raw (Make Everything)
+						</button>
 					</div>
-				}
 
-				<!-- Optimal Shopping List Tab -->
-				<div x-cloak x-show="activeLayer === 0" class="grid grid-cols-1 gap-4 lg:grid-cols-12">
+					<div class="flex items-center gap-2 font-mono text-[10.5px]">
+						<button type="button" @click="setAllChecked(true)" class="text-sky-300 hover:text-sky-200 underline cursor-pointer">Check All</button>
+						<span class="text-slate-600">•</span>
+						<button type="button" @click="setAllChecked(false)" class="text-slate-400 hover:text-slate-200 underline cursor-pointer">Uncheck All</button>
+					</div>
+				</div>
+
+				<!-- Checklist Table + Live EVE Multibuy Preview -->
+				<div class="grid grid-cols-1 gap-4 lg:grid-cols-12">
 					<div class="overflow-x-auto lg:col-span-8">
 						<table class="w-full text-left text-xs">
 							<thead class="border-b border-slate-800 font-mono uppercase text-[10px] text-slate-400">
 								<tr>
-									<th class="py-2 pr-3">Direct Material</th>
+									<th class="py-2 pr-2 w-8">Buy</th>
+									<th class="py-2 pr-3">Material</th>
 									<th class="py-2 px-3 text-right">Qty</th>
 									<th class="py-2 px-3 text-right">Unit ({ res.PriceHub.Name })</th>
 									<th class="py-2 pl-3 text-right">Total Cost</th>
 								</tr>
 							</thead>
 							<tbody class="divide-y divide-slate-800/70 font-mono">
-								for _, m := range res.Materials {
-									<tr class="hover:bg-slate-800/30">
-										<td class="py-2 pr-3 font-sans font-semibold text-white">
-											<div class="flex items-center gap-2">
-												<img src={ EVEItemIconURL(m.MaterialTypeID, 32) } alt={ m.MaterialName } loading="lazy" class="h-6 w-6 shrink-0 rounded border border-slate-700/80 bg-slate-950 object-contain" onerror="this.style.display='none'"/>
-												<span>{ m.MaterialName }</span>
-											</div>
+								<template x-for="m in currentItems" :key="shopMode + '-' + m.id">
+									<tr :class="m.checked ? 'hover:bg-slate-800/30' : 'opacity-45 hover:bg-slate-800/20'">
+										<td class="py-2 pr-2">
+											<input
+												type="checkbox"
+												x-model="m.checked"
+												class="h-4 w-4 rounded border-slate-600 bg-slate-900 text-emerald-400 focus:ring-emerald-400 cursor-pointer"
+											/>
 										</td>
-										<td class="py-2 px-3 text-right text-amber-200">{ fmt.Sprintf("%d", m.AdjustedQty) }</td>
-										<td class="py-2 px-3 text-right text-slate-400">{ FormatISK(m.UnitPrice) }</td>
-										<td class="py-2 pl-3 text-right font-bold text-white">{ FormatISK(m.TotalCost) }</td>
+										<td class="py-2 pr-3 font-sans font-semibold text-white">
+											<label class="flex items-center gap-2 cursor-pointer" @click="m.checked = !m.checked">
+												<img
+													:src="'https://images.evetech.net/types/' + m.id + '/icon?size=32'"
+													:alt="m.name"
+													loading="lazy"
+													class="h-6 w-6 shrink-0 rounded border border-slate-700/80 bg-slate-950 object-contain"
+													onerror="this.style.display='none'"
+												/>
+												<span :class="m.checked ? '' : 'line-through text-slate-400'" x-text="m.name"></span>
+											</label>
+										</td>
+										<td class="py-2 px-3 text-right text-amber-200" x-text="Number(m.qty).toLocaleString()"></td>
+										<td class="py-2 px-3 text-right text-slate-400" x-text="formatISKShort(m.unit_price)"></td>
+										<td class="py-2 pl-3 text-right font-bold text-white" x-text="formatISKShort(m.total_cost)"></td>
 									</tr>
-								}
+								</template>
 							</tbody>
 						</table>
 					</div>
 					<div class="lg:col-span-4 space-y-2">
 						<div class="flex items-center justify-between">
-							<label class="text-[10px] font-mono uppercase text-slate-400">Optimal EVE Multibuy (Active MAKE/BUY)</label>
-							<button
-								type="button"
-								@click="copyMultibuy()"
-								class="rounded border border-emerald-400/45 bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-200 hover:bg-emerald-500/25 cursor-pointer"
-							>
-								Copy Optimal
-							</button>
+							<label class="text-[10px] font-mono uppercase text-slate-400">EVE Multibuy (Checked Items)</label>
+							<span class="font-mono text-[10px] text-emerald-300" x-text="formatISKShort(checkedTotalCost)"></span>
 						</div>
-						<textarea readonly rows="7" class="w-full rounded-lg border border-slate-700 bg-slate-950 p-3 font-mono text-xs text-emerald-300">{ multibuy }</textarea>
+						<textarea
+							readonly
+							rows="8"
+							x-model="checkedMultibuy"
+							placeholder="Check at least 1 material on the left to generate EVE Multibuy..."
+							class="w-full rounded-lg border border-slate-700 bg-slate-950 p-3 font-mono text-xs text-emerald-300"
+						></textarea>
 					</div>
 				</div>
 			</div>
