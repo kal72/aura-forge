@@ -64,6 +64,12 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 		// Built-in EVE Online Wiki & UI Color Guide (accessible via Topbar)
 		r.Get("/wiki", h.HandleWikiPage)
 
+		// Dedicated EVE Online Pilot Hub (accessible via Topbar Account Chip when EVE SSO is connected)
+		r.Route("/pilot", func(r chi.Router) {
+			r.Get("/", h.HandlePilotHub)
+			r.With(adminOnly).Post("/sync-capital", h.HandlePilotSyncCapital)
+		})
+
 		// Live EVE Marketplace Browser (Public ESI — read/search for all, add-catalog for admin only)
 		r.Route("/marketplace", func(r chi.Router) {
 			r.Get("/", h.HandleMarketplace)

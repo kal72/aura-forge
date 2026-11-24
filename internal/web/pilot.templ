@@ -1,0 +1,573 @@
+package web
+
+import (
+	"fmt"
+	"net/url"
+	"time"
+
+	"aura-forge/internal/domain"
+	"aura-forge/internal/service"
+)
+
+func pilotJobProgress(j domain.CharacterJob) (pct int, remainLabel string, isReady bool) {
+	now := time.Now()
+	if j.Status == "ready" || (!j.EndDate.IsZero() && now.After(j.EndDate)) {
+		return 100, "READY TO DELIVER", true
+	}
+	total := j.EndDate.Sub(j.StartDate).Seconds()
+	elapsed := now.Sub(j.StartDate).Seconds()
+	if total > 0 && elapsed > 0 {
+		pct = int((elapsed / total) * 100)
+		if pct > 99 {
+			pct = 99
+		}
+	}
+	rem := j.EndDate.Sub(now)
+	days := int(rem.Hours()) / 24
+	hours := int(rem.Hours()) % 24
+	mins := int(rem.Minutes()) % 60
+	if days > 0 {
+		remainLabel = fmt.Sprintf("%dd %dh left", days, hours)
+	} else if hours > 0 {
+		remainLabel = fmt.Sprintf("%dh %dm left", hours, mins)
+	} else {
+		remainLabel = fmt.Sprintf("%dm left", mins)
+	}
+	return pct, remainLabel, false
+}
+
+func pilotActivityBadge(activityID int) (string, string) {
+	switch activityID {
+	case 1:
+		return "MFG", "border-amber-400/45 bg-amber-500/20 text-amber-200"
+	case 3:
+		return "TE RES", "border-sky-400/45 bg-sky-500/20 text-sky-200"
+	case 4:
+		return "ME RES", "border-violet-400/45 bg-violet-500/20 text-violet-200"
+	case 5:
+		return "COPY", "border-cyan-400/45 bg-cyan-500/20 text-cyan-200"
+	case 8:
+		return "INVENT", "border-fuchsia-400/45 bg-fuchsia-500/20 text-fuchsia-200"
+	default:
+		return "JOB", "border-slate-600 bg-slate-800 text-slate-300"
+	}
+}
+
+func pilotPageURL(tab, q, filter string, page int) string {
+	v := url.Values{}
+	v.Set("tab", tab)
+	if q != "" {
+		v.Set("q", q)
+	}
+	if filter != "" {
+		v.Set("filter", filter)
+	}
+	if page > 1 {
+		v.Set("page", fmt.Sprintf("%d", page))
+	}
+	return "/pilot?" + v.Encode()
+}
+
+func eveBlueprintIconURL(typeID int32, isCopy bool) string {
+	if isCopy {
+		return fmt.Sprintf("https://images.evetech.net/types/%d/bpc?size=64", typeID)
+	}
+	return fmt.Sprintf("https://images.evetech.net/types/%d/bp?size=64", typeID)
+}
+
+func formatUnitsLabel(qty int64) string {
+	s := fmt.Sprintf("%d", qty)
+	n := len(s)
+	if n > 3 {
+		var out []byte
+		rem := n % 3
+		if rem > 0 {
+			out = append(out, s[:rem]...)
+		}
+		for i := rem; i < n; i += 3 {
+			if len(out) > 0 {
+				out = append(out, ',')
+			}
+			out = append(out, s[i:i+3]...)
+		}
+		s = string(out)
+	}
+	if qty == 1 {
+		return s + " unit"
+	}
+	return s + " units"
+}
+
+templ pilotHubTabLink(activeTab, tabKey, label string, count int, countColor string) {
+	<a
+		href={ templ.SafeURL("/pilot?tab=" + tabKey) }
+		hx-get={ "/pilot?tab=" + tabKey }
+		hx-target="#pilot-tab-content"
+		hx-select="#pilot-tab-content"
+		hx-swap="outerHTML"
+		hx-push-url="true"
+		class={ "inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-xs font-bold transition cursor-pointer " + func() string {
+			if activeTab == tabKey {
+				return "bg-violet-500/30 border-violet-400/60 text-white shadow-[0_0_12px_rgba(139,92,246,0.25)]"
+			}
+			return "border-slate-800 bg-slate-900/50 text-slate-300 hover:text-white"
+		}() }
+	>
+		<span>{ label }</span>
+		<span class={ "rounded bg-slate-950/70 px-1.5 py-0.5 font-mono text-[10px] " + countColor }>{ fmt.Sprintf("%d", count) }</span>
+	</a>
+}
+
+templ pilotPaginationBar(view *service.PilotHubViewData) {
+	if view.TotalFiltered > 0 {
+		<div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-800/80 bg-slate-950/40 px-4 py-3 text-xs font-mono text-slate-400">
+			<div>
+				Showing <strong class="text-slate-200">{ fmt.Sprintf("%d–%d", view.StartIdx, view.EndIdx) }</strong> of <strong class="text-slate-200">{ fmt.Sprintf("%d", view.TotalFiltered) }</strong>
+			</div>
+			if view.TotalPages > 1 {
+				<div class="flex items-center gap-2">
+					if view.Page > 1 {
+						<a
+							href={ templ.SafeURL(pilotPageURL(view.ActiveTab, view.SearchQuery, view.TypeFilter, view.Page-1)) }
+							hx-get={ pilotPageURL(view.ActiveTab, view.SearchQuery, view.TypeFilter, view.Page-1) }
+							hx-target="#pilot-tab-content"
+							hx-select="#pilot-tab-content"
+							hx-swap="outerHTML"
+							hx-push-url="true"
+							class="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1 text-slate-200 hover:border-violet-400/50 hover:text-white transition"
+						>
+							← Prev
+						</a>
+					} else {
+						<span class="rounded-lg border border-slate-800 bg-slate-950/50 px-2.5 py-1 text-slate-600">← Prev</span>
+					}
+					<span class="px-1 text-slate-300">{ fmt.Sprintf("Page %d / %d", view.Page, view.TotalPages) }</span>
+					if view.Page < view.TotalPages {
+						<a
+							href={ templ.SafeURL(pilotPageURL(view.ActiveTab, view.SearchQuery, view.TypeFilter, view.Page+1)) }
+							hx-get={ pilotPageURL(view.ActiveTab, view.SearchQuery, view.TypeFilter, view.Page+1) }
+							hx-target="#pilot-tab-content"
+							hx-select="#pilot-tab-content"
+							hx-swap="outerHTML"
+							hx-push-url="true"
+							class="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1 text-slate-200 hover:border-violet-400/50 hover:text-white transition"
+						>
+							Next →
+						</a>
+					} else {
+						<span class="rounded-lg border border-slate-800 bg-slate-950/50 px-2.5 py-1 text-slate-600">Next →</span>
+					}
+				</div>
+			}
+		</div>
+	}
+}
+
+templ PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) {
+	@Layout("EVE Pilot Hub", "pilot", mode) {
+		<div class="space-y-6">
+			if !mode.SSOConnected || view == nil || view.Profile == nil {
+				<div class="tactical-panel rounded-xl p-8 text-center space-y-3">
+					<h1 class="text-xl font-bold text-white">EVE Online Pilot Hub</h1>
+					<p class="text-xs text-slate-300 max-w-lg mx-auto">
+						Connect your EVE Online character via optional EVE SSO to view live Wallet Balance, Active Industry Jobs, Open Market Orders, Owned Blueprints (BPO/BPC), and Hangar Stock in one dedicated hub.
+					</p>
+					if mode.SSOEnabled {
+						<a href="/auth/login" class="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-emerald-400 transition">
+							Connect EVE SSO
+						</a>
+					} else {
+						<div class="text-xs font-mono text-amber-300">
+							Set <code>ESI_CLIENT_ID</code> and <code>ESI_CLIENT_SECRET</code> in <code>.env</code> to enable EVE SSO.
+						</div>
+					}
+				</div>
+			} else {
+				<!-- Pilot Header Strip -->
+				<div class="tactical-panel rounded-xl p-5 flex flex-wrap items-center justify-between gap-4">
+					<div class="flex items-center gap-4">
+						<div class="relative h-16 w-16 shrink-0 rounded-xl border border-amber-400/50 bg-slate-900 overflow-hidden">
+							<img
+								src={ fmt.Sprintf("https://images.evetech.net/characters/%d/portrait?size=128", view.Profile.CharacterID) }
+								alt={ view.Profile.CharacterName }
+								class="h-full w-full object-cover"
+							/>
+							<span class="absolute bottom-1 right-1 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-slate-950"></span>
+						</div>
+						<div>
+							<div class="flex flex-wrap items-center gap-2">
+								<h1 class="text-2xl font-bold tracking-tight text-white">{ view.Profile.CharacterName }</h1>
+								<span class="rounded border border-emerald-400/45 bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-200">EVE SSO LIVE</span>
+							</div>
+							<div class="mt-1 text-xs font-mono text-slate-400">
+								Character ID #{ fmt.Sprintf("%d", view.Profile.CharacterID) }
+								if !view.Profile.UpdatedAt.IsZero() {
+									<span> • Last Synced { view.Profile.UpdatedAt.UTC().Format("2006-01-02 15:04 UTC") }</span>
+								}
+							</div>
+						</div>
+					</div>
+
+					<div class="flex flex-wrap items-center gap-2">
+						<button
+							type="button"
+							hx-post="/auth/sync"
+							hx-swap="none"
+							hx-indicator="#pilot-sync-spin"
+							class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/50 bg-emerald-500/20 px-3.5 py-2 text-xs font-bold text-emerald-100 hover:bg-emerald-500/30 transition cursor-pointer"
+						>
+							<span id="pilot-sync-spin" class="htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-emerald-300 border-t-transparent"></span>
+							<span>Sync Now (Private ESI)</span>
+						</button>
+						<a
+							href="/tracker?tab=ledger"
+							class="rounded-lg border border-sky-400/40 bg-sky-500/15 px-3 py-2 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition"
+						>
+							Buy &amp; Sell Ledger →
+						</a>
+						if mode.IsAdmin() {
+							<button
+								type="button"
+								hx-post="/auth/disconnect"
+								hx-swap="none"
+								hx-confirm="Disconnect EVE SSO for this character?"
+								class="rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-300 hover:bg-rose-500/20 transition cursor-pointer"
+							>
+								Disconnect
+							</button>
+						}
+					</div>
+				</div>
+
+				<!-- 4 Pilot Summary KPIs (Aligned with Dashboard Capital) -->
+				<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+					<div class="tactical-panel rounded-xl p-4">
+						<div class="text-[10px] font-mono uppercase tracking-wider text-emerald-300/90">Live EVE Wallet</div>
+						<div class="mt-1 text-2xl font-bold font-mono text-emerald-300">{ FormatISK(view.Profile.WalletBalance) }</div>
+						<div class="mt-0.5 text-[11px] text-slate-400">Synced directly from CCP ESI</div>
+					</div>
+					<div class="tactical-panel rounded-xl p-4">
+						<div class="text-[10px] font-mono uppercase tracking-wider text-amber-300/90">Available Capital</div>
+						<div class="mt-1 text-2xl font-bold font-mono text-amber-200">{ FormatISK(view.AvailableCapital) }</div>
+						<div class="mt-0.5 text-[11px] text-slate-400">{ view.CapitalSource }</div>
+					</div>
+					<div class="tactical-panel rounded-xl p-4">
+						<div class="text-[10px] font-mono uppercase tracking-wider text-violet-300/90">Industry &amp; Science Slots</div>
+						<div class="mt-1 text-2xl font-bold font-mono text-white">
+							{ fmt.Sprintf("%d/%d", view.Profile.UsedManufacturingSlots, view.Profile.TotalManufacturingSlots) }
+							<span class="text-sm font-normal text-slate-400">MFG</span>
+						</div>
+						<div class="mt-0.5 text-[11px] text-slate-400">
+							{ fmt.Sprintf("%d/%d SCI • %d ready to deliver", view.Profile.UsedScienceSlots, view.Profile.TotalScienceSlots, view.ReadyJobsCount) }
+						</div>
+					</div>
+					<div class="tactical-panel rounded-xl p-4">
+						<div class="text-[10px] font-mono uppercase tracking-wider text-sky-300/90">Open Orders Value</div>
+						<div class="mt-1 text-2xl font-bold font-mono text-sky-200">{ FormatISK(view.TotalSellISK + view.TotalBuyISK) }</div>
+						<div class="mt-0.5 text-[11px] text-slate-400">
+							Sell { FormatISK(view.TotalSellISK) } • Buy { FormatISK(view.TotalBuyISK) }
+						</div>
+					</div>
+				</div>
+
+				<!-- 4 Pilot Data Tabs + Content (Instant HTMX Partial Swap — Zero Blink / Zero Reload) -->
+				<div id="pilot-tab-content" class="space-y-4">
+				<div class="flex flex-wrap items-center gap-2 border-b border-violet-400/20 pb-3">
+					@pilotHubTabLink(view.ActiveTab, "jobs", "Active Industry Jobs", view.TotalJobs, "text-amber-300")
+					@pilotHubTabLink(view.ActiveTab, "orders", "Open Market Orders", view.TotalOrders, "text-sky-300")
+					@pilotHubTabLink(view.ActiveTab, "blueprints", "My Blueprints (BPO/BPC)", view.TotalBlueprints, "text-violet-300")
+					@pilotHubTabLink(view.ActiveTab, "assets", "Hangar Stock", view.TotalHangarItems, "text-emerald-300")
+				</div>
+
+				<!-- Search & Type Filter Bar -->
+				<form
+					method="GET"
+					action="/pilot"
+					hx-get="/pilot"
+					hx-target="#pilot-tab-content"
+					hx-select="#pilot-tab-content"
+					hx-swap="outerHTML"
+					hx-push-url="true"
+					class="flex flex-wrap items-center justify-between gap-2"
+				>
+					<input type="hidden" name="tab" value={ view.ActiveTab }/>
+					<div class="flex flex-wrap items-center gap-2">
+						<input
+							type="text"
+							name="q"
+							value={ view.SearchQuery }
+							placeholder="Search item or blueprint name..."
+							class="w-64 rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-xs text-white placeholder-slate-500"
+						/>
+						if view.ActiveTab == "jobs" {
+							<select name="filter" class="rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-xs text-slate-200">
+								<option value="" selected?={ view.TypeFilter == "" }>All Activities</option>
+								<option value="MFG" selected?={ view.TypeFilter == "MFG" }>Manufacturing Only</option>
+								<option value="RESEARCH" selected?={ view.TypeFilter == "RESEARCH" }>Research / Invention / Copy</option>
+							</select>
+						} else if view.ActiveTab == "orders" {
+							<select name="filter" class="rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-xs text-slate-200">
+								<option value="" selected?={ view.TypeFilter == "" }>All Orders (BUY &amp; SELL)</option>
+								<option value="SELL" selected?={ view.TypeFilter == "SELL" }>SELL Orders Only</option>
+								<option value="BUY" selected?={ view.TypeFilter == "BUY" }>BUY Orders Only</option>
+							</select>
+						} else if view.ActiveTab == "blueprints" {
+							<select name="filter" class="rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-xs text-slate-200">
+								<option value="" selected?={ view.TypeFilter == "" }>All Blueprints (BPO &amp; BPC)</option>
+								<option value="BPO" selected?={ view.TypeFilter == "BPO" }>Originals (BPO) Only</option>
+								<option value="BPC" selected?={ view.TypeFilter == "BPC" }>Copies (BPC) Only</option>
+							</select>
+						}
+						<button type="submit" class="rounded-lg border border-violet-400/45 bg-violet-500/20 px-3 py-1.5 text-xs font-semibold text-violet-100 hover:bg-violet-500/30 cursor-pointer">
+							Filter
+						</button>
+						if view.SearchQuery != "" || view.TypeFilter != "" {
+							<a
+								href={ templ.SafeURL("/pilot?tab=" + view.ActiveTab) }
+								hx-get={ "/pilot?tab=" + view.ActiveTab }
+								hx-target="#pilot-tab-content"
+								hx-select="#pilot-tab-content"
+								hx-swap="outerHTML"
+								hx-push-url="true"
+								class="text-xs text-slate-400 hover:text-white underline"
+							>
+								Reset
+							</a>
+						}
+					</div>
+					if view.TotalFiltered > 0 {
+						<span class="font-mono text-[11px] text-slate-400">
+							{ fmt.Sprintf("%d matched", view.TotalFiltered) }
+						</span>
+					}
+				</form>
+
+				<!-- Tab 1: Active Industry Jobs -->
+				if view.ActiveTab == "jobs" {
+					<div class="tactical-panel rounded-xl overflow-hidden">
+						if len(view.Jobs) == 0 {
+							<div class="p-10 text-center space-y-2">
+								<div class="text-sm font-semibold text-slate-200">No industry jobs match this filter.</div>
+								<div class="text-xs text-slate-400">Click <strong>Sync Now (Private ESI)</strong> to refresh your character's running manufacturing, invention, or research jobs.</div>
+							</div>
+						} else {
+							<div class="divide-y divide-slate-800/80">
+								for _, j := range view.Jobs {
+									{{ pct, remLabel, isReady := pilotJobProgress(j) }}
+									{{ actTxt, actCls := pilotActivityBadge(j.ActivityID) }}
+									<div class="px-5 py-3.5 flex flex-wrap items-center justify-between gap-4 hover:bg-violet-500/5 transition">
+										<div class="flex items-center gap-3 min-w-0">
+											if j.TypeID > 0 {
+												<img src={ EVEItemIconURL(j.TypeID, 64) } alt={ j.TypeName } loading="lazy" class="h-9 w-9 shrink-0 rounded-lg border border-slate-700 bg-slate-900 p-0.5 object-contain" onerror="this.style.display='none'"/>
+											}
+											<div class="min-w-0">
+												<div class="flex items-center gap-2">
+													<span class={ "rounded border px-1.5 py-0.5 font-mono text-[10px] font-bold " + actCls }>{ actTxt }</span>
+													<span class="font-semibold text-white text-sm truncate">{ j.TypeName }</span>
+													<span class="font-mono text-xs text-slate-400">× { fmt.Sprintf("%d", j.Runs) } runs</span>
+												</div>
+												<div class="mt-2 flex items-center gap-2">
+													<div class="h-1.5 w-48 rounded-full bg-slate-800 overflow-hidden">
+														if isReady {
+															<div class="h-full rounded-full bg-emerald-400" style="width: 100%"></div>
+														} else {
+															<div class="h-full rounded-full bg-amber-400" style={ fmt.Sprintf("width: %d%%", pct) }></div>
+														}
+													</div>
+													<span class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%d%%", pct) }</span>
+												</div>
+											</div>
+										</div>
+										<div class="text-right font-mono text-xs shrink-0">
+											if isReady {
+												<span class="rounded border border-emerald-400/50 bg-emerald-500/20 px-2.5 py-1 text-[11px] font-bold text-emerald-200">READY TO DELIVER</span>
+											} else {
+												<div class="font-bold text-amber-200">{ remLabel }</div>
+												<div class="text-[10px] text-slate-400">Ends { j.EndDate.UTC().Format("Jan 02 15:04 UTC") }</div>
+											}
+										</div>
+									</div>
+								}
+							</div>
+							@pilotPaginationBar(view)
+						}
+					</div>
+				}
+
+				<!-- Tab 2: Open Market Orders -->
+				if view.ActiveTab == "orders" {
+					<div class="tactical-panel rounded-xl overflow-hidden">
+						if len(view.Orders) == 0 {
+							<div class="p-10 text-center space-y-2">
+								<div class="text-sm font-semibold text-slate-200">No open market orders match this filter.</div>
+								<div class="text-xs text-slate-400">Click <strong>Sync Now (Private ESI)</strong> to fetch your active regional Buy and Sell orders.</div>
+							</div>
+						} else {
+							<div class="overflow-x-auto">
+								<table class="w-full text-left text-xs">
+									<thead class="border-b border-violet-400/20 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400">
+										<tr>
+											<th class="px-4 py-3">Side &amp; Item</th>
+											<th class="px-3 py-3 text-right">Volume Remain</th>
+											<th class="px-3 py-3 text-right">Unit Price</th>
+											<th class="px-3 py-3 text-right">Remaining Value</th>
+											<th class="px-4 py-3 text-right">Action</th>
+										</tr>
+									</thead>
+									<tbody class="divide-y divide-slate-800/80">
+										for _, o := range view.Orders {
+											<tr class="hover:bg-violet-500/5 transition">
+												<td class="px-4 py-2.5">
+													<div class="flex items-center gap-2.5">
+														if o.TypeID > 0 {
+															<img src={ EVEItemIconURL(o.TypeID, 32) } alt={ o.TypeName } loading="lazy" class="h-7 w-7 rounded border border-slate-700 bg-slate-900 p-0.5 object-contain" onerror="this.style.display='none'"/>
+														}
+														<div>
+															<div class="flex items-center gap-1.5">
+																if o.IsBuyOrder {
+																	<span class="rounded bg-rose-500/20 px-1.5 py-0.5 font-mono text-[9px] font-bold text-rose-200">BUY</span>
+																} else {
+																	<span class="rounded bg-emerald-500/20 px-1.5 py-0.5 font-mono text-[9px] font-bold text-emerald-200">SELL</span>
+																}
+																<span class="font-semibold text-white">{ o.TypeName }</span>
+															</div>
+															<div class="text-[10px] font-mono text-slate-400">Issued { o.IssuedAt.UTC().Format("2006-01-02 15:04") }</div>
+														</div>
+													</div>
+												</td>
+												<td class="px-3 py-2.5 text-right font-mono text-slate-200">{ fmt.Sprintf("%d / %d", o.VolumeRemain, o.VolumeTotal) }</td>
+												<td class="px-3 py-2.5 text-right font-mono text-sky-300">{ FormatISK(o.Price) }</td>
+												<td class="px-3 py-2.5 text-right font-mono font-bold text-white">{ FormatISK(o.Price * float64(o.VolumeRemain)) }</td>
+												<td class="px-4 py-2.5 text-right">
+													<a
+														href={ templ.SafeURL("/marketplace?hub=" + view.ActiveHub.Key + "&q=" + url.QueryEscape(o.TypeName)) }
+														class="rounded border border-sky-400/35 bg-sky-500/15 px-2.5 py-1 text-[10px] font-semibold text-sky-200 hover:bg-sky-500/30 transition"
+													>
+														Order Book →
+													</a>
+												</td>
+											</tr>
+										}
+									</tbody>
+								</table>
+							</div>
+							@pilotPaginationBar(view)
+						}
+					</div>
+				}
+
+				<!-- Tab 3: My Blueprints (BPO/BPC) -->
+				if view.ActiveTab == "blueprints" {
+					<div class="tactical-panel rounded-xl overflow-hidden">
+						if len(view.Blueprints) == 0 {
+							<div class="p-10 text-center space-y-2">
+								<div class="text-sm font-semibold text-slate-200">No blueprints match this filter.</div>
+								<div class="text-xs text-slate-400">Click <strong>Sync Now (Private ESI)</strong> to load your BPOs and BPCs with their real ME &amp; TE levels.</div>
+							</div>
+						} else {
+							<div class="overflow-x-auto">
+								<table class="w-full text-left text-xs">
+									<thead class="border-b border-violet-400/20 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400">
+										<tr>
+											<th class="px-4 py-3">Blueprint</th>
+											<th class="px-3 py-3 text-center">Type</th>
+											<th class="px-3 py-3 text-right">Material Efficiency / Time Efficiency</th>
+											<th class="px-3 py-3 text-right">Runs</th>
+											<th class="px-4 py-3 text-right">Action</th>
+										</tr>
+									</thead>
+									<tbody class="divide-y divide-slate-800/80">
+										for _, bp := range view.Blueprints {
+											<tr class="hover:bg-violet-500/5 transition">
+												<td class="px-4 py-2.5">
+													<div class="flex items-center gap-3">
+														if bp.TypeID > 0 {
+															<img
+																src={ eveBlueprintIconURL(bp.TypeID, bp.IsCopy) }
+																data-fallback={ EVEItemIconURL(bp.TypeID, 64) }
+																alt={ bp.TypeName }
+																loading="lazy"
+																class="h-9 w-9 shrink-0 rounded-lg border border-sky-400/35 bg-slate-900 p-0.5 object-contain"
+																onerror="if(this.dataset.fallback && this.src!==this.dataset.fallback){this.src=this.dataset.fallback}else{this.style.display='none'}"
+															/>
+														}
+														<span class="font-semibold text-white text-sm">{ bp.TypeName }</span>
+													</div>
+												</td>
+												<td class="px-3 py-2.5 text-center">
+													if bp.IsCopy {
+														<span class="rounded border border-violet-400/40 bg-violet-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-violet-200">BPC</span>
+													} else {
+														<span class="rounded border border-sky-400/40 bg-sky-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-sky-200">BPO</span>
+													}
+												</td>
+												<td class="px-3 py-2.5 text-right font-mono">
+													<div class="text-xs font-semibold text-emerald-300">
+														Material Efficiency (ME): { fmt.Sprintf("%d%%", bp.MaterialEfficiency) }
+													</div>
+													<div class="text-[11px] text-sky-300/90 mt-0.5">
+														Time Efficiency (TE): { fmt.Sprintf("%d%%", bp.TimeEfficiency) }
+													</div>
+												</td>
+												<td class="px-3 py-2.5 text-right font-mono text-slate-300">
+													if bp.IsCopy {
+														{ fmt.Sprintf("%d runs", bp.Runs) }
+													} else {
+														<span class="text-sky-300">Unlimited</span>
+													}
+												</td>
+												<td class="px-4 py-2.5 text-right">
+													<a
+														href={ templ.SafeURL(fmt.Sprintf("/manufacture?bp=%d&me=%d&te=%d", bp.TypeID, bp.MaterialEfficiency, bp.TimeEfficiency)) }
+														class="rounded border border-amber-400/45 bg-amber-500/15 px-2.5 py-1 text-[10px] font-bold text-amber-200 hover:bg-amber-500/30 transition"
+													>
+														Manufacture →
+													</a>
+												</td>
+											</tr>
+										}
+									</tbody>
+								</table>
+							</div>
+							@pilotPaginationBar(view)
+						}
+					</div>
+				}
+
+				<!-- Tab 4: Hangar Stock -->
+				if view.ActiveTab == "assets" {
+					<div class="tactical-panel rounded-xl overflow-hidden">
+						if len(view.HangarItems) == 0 {
+							<div class="p-10 text-center space-y-2">
+								<div class="text-sm font-semibold text-slate-200">No hangar items match this filter.</div>
+								<div class="text-xs text-slate-400">Click <strong>Sync Now (Private ESI)</strong> to import hangar materials (automatically deducted from your Weekly Planner shopping list).</div>
+							</div>
+						} else {
+							<div class="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
+								for _, item := range view.HangarItems {
+									<div class="rounded-xl border border-slate-800 bg-slate-950/60 p-3 flex items-center gap-3.5 hover:border-violet-400/35 transition">
+										if item.TypeID > 0 {
+											<img
+												src={ EVEItemIconURL(item.TypeID, 64) }
+												alt={ item.TypeName }
+												loading="lazy"
+												class="h-11 w-11 shrink-0 rounded-lg border border-slate-700/90 bg-slate-900 p-1 object-contain"
+												onerror="this.style.display='none'"
+											/>
+										}
+										<div class="min-w-0 flex-1">
+											<div class="text-xs font-semibold text-white truncate" title={ item.TypeName }>{ item.TypeName }</div>
+											<div class="mt-1 font-mono text-xs font-bold text-emerald-300">{ formatUnitsLabel(item.TotalQty) }</div>
+										</div>
+									</div>
+								}
+							</div>
+							@pilotPaginationBar(view)
+						}
+					</div>
+				}
+				</div>
+			}
+		</div>
+	}
+}

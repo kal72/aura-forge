@@ -481,14 +481,45 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 							</button>
 
 							if mode.CurrentUser != nil {
-								<div class="hidden sm:flex items-center gap-2 rounded-lg border border-violet-400/30 bg-violet-950/45 px-2.5 py-1.5 text-xs">
-									<span class="font-medium text-white max-w-[130px] truncate">{ mode.CurrentUser.DisplayName }</span>
-									if mode.CurrentUser.IsAdmin() {
-										<span class="rounded border border-amber-400/45 bg-amber-500/20 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-amber-200">ADMIN</span>
-									} else {
-										<span class="rounded border border-sky-400/35 bg-sky-500/15 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-sky-200">USER</span>
-									}
-								</div>
+								if mode.SSOConnected {
+									<a
+										href="/pilot"
+										title={ fmt.Sprintf("EVE Pilot Hub (%s — Live Wallet %s) • Account: %s", mode.CharacterName, FormatISK(mode.WalletBalance), mode.CurrentUser.DisplayName) }
+										class={ "hidden sm:inline-flex items-center gap-2 rounded-lg border px-2.5 py-1 text-xs transition " + func() string {
+											if activeNav == "pilot" {
+												return "border-emerald-400/70 bg-emerald-500/20 text-white shadow-[0_0_12px_rgba(16,185,129,0.25)]"
+											}
+											return "border-emerald-400/45 bg-violet-950/55 text-white hover:border-emerald-300/75 hover:bg-emerald-500/15"
+										}() }
+									>
+										<span class="relative h-5 w-5 shrink-0 rounded-md overflow-hidden border border-amber-400/50 bg-slate-900">
+											<img
+												src={ fmt.Sprintf("https://images.evetech.net/characters/%d/portrait?size=64", mode.CharacterID) }
+												alt={ mode.CharacterName }
+												class="h-full w-full object-cover"
+											/>
+											<span class="absolute bottom-0 right-0 h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+										</span>
+										<span class="font-semibold text-white max-w-[120px] truncate">{ mode.CharacterName }</span>
+										if mode.WalletBalance > 0 {
+											<span class="hidden md:inline font-mono text-[10.5px] font-bold text-amber-300">{ FormatISK(mode.WalletBalance) }</span>
+										}
+										if mode.CurrentUser.IsAdmin() {
+											<span class="rounded border border-amber-400/45 bg-amber-500/20 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-amber-200">ADMIN</span>
+										} else {
+											<span class="rounded border border-sky-400/35 bg-sky-500/15 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-sky-200">USER</span>
+										}
+									</a>
+								} else {
+									<div class="hidden sm:flex items-center gap-2 rounded-lg border border-violet-400/30 bg-violet-950/45 px-2.5 py-1.5 text-xs">
+										<span class="font-medium text-white max-w-[130px] truncate">{ mode.CurrentUser.DisplayName }</span>
+										if mode.CurrentUser.IsAdmin() {
+											<span class="rounded border border-amber-400/45 bg-amber-500/20 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-amber-200">ADMIN</span>
+										} else {
+											<span class="rounded border border-sky-400/35 bg-sky-500/15 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-sky-200">USER</span>
+										}
+									</div>
+								}
 								<form method="POST" action="/logout">
 									<button
 										type="submit"

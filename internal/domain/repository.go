@@ -126,6 +126,11 @@ type SDETypeSearchRepository interface {
 	BrowseTypesPaged(ctx context.Context, query, category, groupName string, page, pageSize int) (*MarketTypePageResult, error)
 }
 
+// SDETypeNameResolver is an optional extension on SDERepository for instant local TypeID -> Name resolution.
+type SDETypeNameResolver interface {
+	GetTypeNamesByIDs(ctx context.Context, typeIDs []int32) (map[int32]string, error)
+}
+
 // NetWorthRepository specifies storage operations for daily Net Worth tracking snapshots.
 type NetWorthRepository interface {
 	ListSnapshots(ctx context.Context, limit int) ([]NetWorthSnapshot, error)

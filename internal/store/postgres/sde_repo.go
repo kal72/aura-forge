@@ -59,6 +59,42 @@ func (r *SDERepo) SearchBlueprints(ctx context.Context, query, category string, 
 	return out, rows.Err()
 }
 
+// GetTypeNamesByIDs resolves a batch of EVE TypeIDs to human-readable names from local sde_types and sde_blueprints.
+func (r *SDERepo) GetTypeNamesByIDs(ctx context.Context, typeIDs []int32) (map[int32]string, error) {
+	out := make(map[int32]string, len(typeIDs))
+	if len(typeIDs) == 0 {
+		return out, nil
+	}
+
+	rows, err := r.pool.Query(ctx, `SELECT type_id, name FROM sde_types WHERE type_id = ANY($1)`, typeIDs)
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			var id int32
+			var name string
+			if err := rows.Scan(&id, &name); err == nil && name != "" {
+				out[id] = name
+			}
+		}
+	}
+
+	bpRows, err := r.pool.Query(ctx, `SELECT blueprint_type_id, name FROM sde_blueprints WHERE blueprint_type_id = ANY($1)`, typeIDs)
+	if err == nil {
+		defer bpRows.Close()
+		for bpRows.Next() {
+			var id int32
+			var name string
+			if err := bpRows.Scan(&id, &name); err == nil && name != "" {
+				if _, exists := out[id]; !exists {
+					out[id] = name
+				}
+			}
+		}
+	}
+
+	return out, nil
+}
+
 // SearchTypes searches sde_types for instant local Marketplace autocomplete (0 ESI calls).
 // Prioritizes exact/prefix matches and non-blueprint tradable items first.
 func (r *SDERepo) SearchTypes(ctx context.Context, query string, limit int) ([]domain.SDEType, error) {

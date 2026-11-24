@@ -174,6 +174,11 @@ func (tr *TemplRenderer) RenderWiki(w http.ResponseWriter, r *http.Request, mode
 	return WikiPage(mode).Render(r.Context(), w)
 }
 
+func (tr *TemplRenderer) RenderPilotHub(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, view *service.PilotHubViewData) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return PilotHubPage(mode, view).Render(r.Context(), w)
+}
+
 func (tr *TemplRenderer) RenderPI(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, items []domain.PICommodity, selectedTree *domain.PIRecipeAnalysis, colonies []domain.PIColony) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	return PIPage(mode, items, selectedTree, colonies).Render(r.Context(), w)
