@@ -1,0 +1,263 @@
+name: Deployment
+
+on:
+  push:
+    branches:
+      - main       # Auto-run triggers on push or merge to main (deploys to dev with image tag :dev)
+  pull_request:
+    branches:
+      - main       # Auto-run triggers on pull request targeting main (deploys to dev with image tag :dev)
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target deployment environment'
+        required: true
+        type: choice
+        default: 'dev'
+        options:
+          - dev
+          - prod
+      version:
+        description: 'Image version for prod (e.g. v1.0). Ignored for dev (dev always uses :dev)'
+        required: false
+        type: string
+        default: 'v1.0'
+      branch:
+        description: 'Branch or Git ref to deploy (leave empty to use selected branch)'
+        required: false
+        type: string
+        default: ''
+      skip_tests:
+        description: 'Skip CI test checks before building and deploying'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: cd-${{ inputs.environment || 'dev' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  ci-check:
+    name: Run CI Checks
+    if: ${{ !inputs.skip_tests }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch != '' && inputs.branch || github.ref }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      - name: Install templ CLI & generate templates
+        run: |
+          go install github.com/a-h/templ/cmd/templ@v0.3.833
+          templ generate
+
+      - name: Run Go tests and vet
+        run: |
+          go test -race -count=1 ./...
+          go vet ./...
+
+  build-and-push:
+    name: Build & Push Image to GitHub (GHCR)
+    needs: [ci-check]
+    if: always() && (needs.ci-check.result == 'success' || needs.ci-check.result == 'skipped' || inputs.skip_tests == true)
+    runs-on: ubuntu-latest
+    outputs:
+      image_name: ${{ steps.build.outputs.image_name }}
+      target_env: ${{ steps.meta.outputs.target_env }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch != '' && inputs.branch || github.ref }}
+
+      - name: Resolve metadata
+        id: meta
+        env:
+          INPUT_ENV: ${{ inputs.environment }}
+          INPUT_VERSION: ${{ inputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          # Target environment logic:
+          # Auto-run on push to main ALWAYS deploys to 'dev' (:dev).
+          # 'prod' deployment MUST be triggered manually via workflow_dispatch.
+          if [ -n "${INPUT_ENV}" ]; then
+            TARGET_ENV="${INPUT_ENV}"
+          else
+            TARGET_ENV="dev"
+          fi
+
+          # Versioning rule:
+          # If dev: image version is always 'dev'
+          # If prod: use version input (e.g. v1.0) or git tag (v*), fallback to 'v1.0'
+          if [ "${TARGET_ENV}" = "dev" ]; then
+            IMAGE_TAG="dev"
+          else
+            if [ -n "${INPUT_VERSION}" ]; then
+              IMAGE_TAG="${INPUT_VERSION}"
+            elif [[ "${REF_NAME}" =~ ^v[0-9] ]]; then
+              IMAGE_TAG="${REF_NAME}"
+            else
+              IMAGE_TAG="v1.0"
+            fi
+          fi
+
+          REPO_LOWER=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_BASE="ghcr.io/${REPO_LOWER}"
+          FULL_IMAGE="${IMAGE_BASE}:${IMAGE_TAG}"
+
+          echo "target_env=${TARGET_ENV}" >> "$GITHUB_OUTPUT"
+          echo "image_base=${IMAGE_BASE}" >> "$GITHUB_OUTPUT"
+          echo "image_tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+          echo "image_name=${FULL_IMAGE}" >> "$GITHUB_OUTPUT"
+
+          echo "=========================================================="
+          echo " Target Environment : ${TARGET_ENV}"
+          echo " Image Version Tag  : ${IMAGE_TAG}"
+          echo " Full Image Name    : ${FULL_IMAGE}"
+          echo " Commit SHA         : ${GITHUB_SHA}"
+          echo "=========================================================="
+
+      - name: Log in to GitHub Container Registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build and push container image
+        id: build
+        env:
+          TARGET_ENV: ${{ steps.meta.outputs.target_env }}
+          IMAGE_NAME: ${{ steps.meta.outputs.image_name }}
+          IMAGE_BASE: ${{ steps.meta.outputs.image_base }}
+        run: |
+          echo "--> Building image ${IMAGE_NAME}..."
+          COMMIT_TAG="${{ github.event.pull_request.head.sha || github.sha }}"
+          BUILD_TAGS="-t ${IMAGE_NAME} -t ${IMAGE_BASE}:${COMMIT_TAG}"
+          if [ "${TARGET_ENV}" = "prod" ]; then
+            BUILD_TAGS="${BUILD_TAGS} -t ${IMAGE_BASE}:latest"
+          fi
+
+          # shellcheck disable=SC2086
+          podman build $BUILD_TAGS -f Dockerfile .
+
+          echo "--> Pushing ${IMAGE_NAME} to ghcr.io..."
+          podman push "${IMAGE_NAME}"
+          podman push "${IMAGE_BASE}:${COMMIT_TAG}"
+          if [ "${TARGET_ENV}" = "prod" ]; then
+            podman push "${IMAGE_BASE}:latest"
+          fi
+
+          echo "image_name=${IMAGE_NAME}" >> "$GITHUB_OUTPUT"
+
+  deploy-vps:
+    name: Deploy to VPS (${{ needs.build-and-push.outputs.target_env }})
+    needs: [build-and-push]
+    if: always() && (needs.build-and-push.result == 'success') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ needs.build-and-push.outputs.target_env }}
+      url: ${{ vars.PUBLIC_BASE_URL }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch != '' && inputs.branch || github.ref }}
+
+      - name: Setup SSH client & authentication (Password or Key)
+        env:
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD || vars.SSH_PASSWORD }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT || vars.SSH_PORT || '22' }}
+        run: |
+          if [ -z "${SSH_HOST}" ]; then
+            echo "Error: SSH_HOST is not defined in GitHub Secrets or Variables." >&2
+            exit 1
+          fi
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -p "${SSH_PORT}" -H "${SSH_HOST}" >> ~/.ssh/known_hosts 2>/dev/null
+          chmod 644 ~/.ssh/known_hosts
+
+          if [ -n "${SSH_PASSWORD}" ]; then
+            echo "--> Configuring SSH password authentication via sshpass..."
+            sudo apt-get update -qq && sudo apt-get install -y -qq sshpass
+            echo "SSH_AUTH=password" >> "$GITHUB_ENV"
+          elif [ -n "${SSH_PRIVATE_KEY}" ]; then
+            echo "--> Configuring SSH key authentication..."
+            echo "${SSH_PRIVATE_KEY}" | tr -d '\r' > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            echo "SSH_AUTH=key" >> "$GITHUB_ENV"
+          else
+            echo "Error: Neither SSH_PASSWORD nor SSH_PRIVATE_KEY is defined in GitHub Secrets." >&2
+            exit 1
+          fi
+
+      - name: Deploy container with Podman via SSH
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT || vars.SSH_PORT || '22' }}
+          SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER }}
+          SSHPASS: ${{ secrets.SSH_PASSWORD || vars.SSH_PASSWORD }}
+          TARGET_ENV: ${{ needs.build-and-push.outputs.target_env }}
+          IMAGE_NAME: ${{ needs.build-and-push.outputs.image_name }}
+          APP_PORT: ${{ vars.APP_PORT || '8081' }}
+          APP_BIND: ${{ vars.APP_BIND || '127.0.0.1' }}
+          PODMAN_EXTRA_ARGS: ${{ vars.PODMAN_EXTRA_ARGS || '' }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+
+          # Core aura-forge runtime variables (supports both GitHub Secrets and Variables)
+          DATABASE_URL: ${{ secrets.DATABASE_URL || vars.DATABASE_URL }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET || vars.SESSION_SECRET }}
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME || vars.ADMIN_USERNAME || '' }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD || vars.ADMIN_PASSWORD || '' }}
+
+          # EVE Online ESI & Optional SSO
+          ESI_USER_AGENT: ${{ vars.ESI_USER_AGENT || 'aura-forge/1.0 (EVE Market & Industry Copilot; contact: pilot@new-eden.org)' }}
+          ESI_CLIENT_ID: ${{ secrets.ESI_CLIENT_ID || vars.ESI_CLIENT_ID || '' }}
+          ESI_CLIENT_SECRET: ${{ secrets.ESI_CLIENT_SECRET || vars.ESI_CLIENT_SECRET || '' }}
+          ESI_CALLBACK_URL: ${{ secrets.ESI_CALLBACK_URL || vars.ESI_CALLBACK_URL || '' }}
+
+          # Optional Aura AI (OpenAI-Compatible)
+          AI_BASE_URL: ${{ secrets.AI_BASE_URL || vars.AI_BASE_URL || 'https://api.openai.com/v1' }}
+          AI_API_KEY: ${{ secrets.AI_API_KEY || vars.AI_API_KEY || '' }}
+          AI_MODEL: ${{ secrets.AI_MODEL || vars.AI_MODEL || 'gpt-4.1-mini' }}
+          AI_TIMEOUT_SECONDS: ${{ secrets.AI_TIMEOUT_SECONDS || vars.AI_TIMEOUT_SECONDS || '60' }}
+        run: |
+          echo "=========================================================="
+          echo " Triggering Podman deploy on remote host: ${SSH_USER}@${SSH_HOST}"
+          echo " Image : ${IMAGE_NAME}"
+          echo " Port  : ${APP_BIND}:${APP_PORT}"
+          echo " Auth  : ${SSH_AUTH}"
+          echo "=========================================================="
+
+          if [ "${SSH_AUTH}" = "password" ]; then
+            SSH_CMD=(sshpass -e ssh -o StrictHostKeyChecking=accept-new -p "${SSH_PORT}")
+          else
+            SSH_CMD=(ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=accept-new -p "${SSH_PORT}")
+          fi
+
+          # Safely shell-escape every variable before piping deploy/podman-deploy.sh over SSH
+          REMOTE_ENV=$(printf \
+            'GHCR_TOKEN=%q GHCR_USER=%q DATABASE_URL=%q SESSION_SECRET=%q ADMIN_USERNAME=%q ADMIN_PASSWORD=%q ESI_USER_AGENT=%q ESI_CLIENT_ID=%q ESI_CLIENT_SECRET=%q ESI_CALLBACK_URL=%q AI_BASE_URL=%q AI_API_KEY=%q AI_MODEL=%q AI_TIMEOUT_SECONDS=%q PODMAN_EXTRA_ARGS=%q bash -s -- %q %q %q %q' \
+            "${GHCR_TOKEN}" "${GHCR_USER}" \
+            "${DATABASE_URL}" "${SESSION_SECRET}" "${ADMIN_USERNAME}" "${ADMIN_PASSWORD}" \
+            "${ESI_USER_AGENT}" "${ESI_CLIENT_ID}" "${ESI_CLIENT_SECRET}" "${ESI_CALLBACK_URL}" \
+            "${AI_BASE_URL}" "${AI_API_KEY}" "${AI_MODEL}" "${AI_TIMEOUT_SECONDS}" \
+            "${PODMAN_EXTRA_ARGS}" \
+            "${TARGET_ENV}" "${IMAGE_NAME}" "${APP_PORT}" "${APP_BIND}")
+
+          "${SSH_CMD[@]}" "${SSH_USER}@${SSH_HOST}" "${REMOTE_ENV}" < deploy/podman-deploy.sh

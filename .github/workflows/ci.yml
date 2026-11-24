@@ -1,0 +1,57 @@
+name: Quality Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      - name: Install templ CLI
+        run: go install github.com/a-h/templ/cmd/templ@v0.3.833
+
+      - name: Generate templ components
+        run: templ generate
+
+      - name: Run Go unit and race tests
+        run: go test -race -count=1 ./...
+
+      - name: Run Go vet
+        run: go vet ./...
+
+      - name: Verify standalone binary build
+        run: CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o bin/aura-forge ./cmd/server
+
+  container-check:
+    name: Podman Container Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build container image with Podman
+        run: podman build -t aura-forge:ci -f Dockerfile .
+
+      - name: Inspect container image
+        run: |
+          podman images aura-forge:ci
+          podman inspect aura-forge:ci --format 'Image Architecture: {{.Architecture}}, OS: {{.Os}}, Size: {{.Size}} bytes'
