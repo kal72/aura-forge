@@ -18,23 +18,9 @@ templ LoginPage(errMsg string, username string) {
 					margin: 0;
 				}
 				[x-cloak] { display: none !important; }
-				html.af-fouc-guard body { opacity: 0; }
-				body { transition: opacity 140ms ease-out; }
 			</style>
-			<script>
-				(function () {
-					document.documentElement.classList.add('af-fouc-guard');
-					function reveal() {
-						document.documentElement.classList.remove('af-fouc-guard');
-					}
-					window.addEventListener('DOMContentLoaded', function () {
-						requestAnimationFrame(function () { requestAnimationFrame(reveal); });
-					});
-					setTimeout(reveal, 250);
-				})();
-			</script>
+			<link rel="stylesheet" href="/static/tailwind.css"/>
 			<link rel="stylesheet" href="/static/app.css"/>
-			<script src="https://cdn.tailwindcss.com"></script>
 			<script>
 				tailwind.config = {
 					darkMode: 'class',

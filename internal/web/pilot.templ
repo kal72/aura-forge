@@ -173,7 +173,7 @@ templ PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) {
 						Connect your EVE Online character via optional EVE SSO to view live Wallet Balance, Active Industry Jobs, Open Market Orders, Owned Blueprints (BPO/BPC), and Hangar Stock in one dedicated hub.
 					</p>
 					if mode.SSOEnabled {
-						<a href="/auth/login" class="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-emerald-400 transition">
+						<a href="/auth/login" hx-boost="false" class="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-emerald-400 transition">
 							Connect EVE SSO
 						</a>
 					} else {

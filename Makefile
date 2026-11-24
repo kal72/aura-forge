@@ -1,4 +1,4 @@
-.PHONY: all build run test clean templ db-up db-down docker-up docker-run docker-rebuild docker-down docker-logs migrate-up migrate-down migrate-status migrate-new
+.PHONY: all build run test clean templ css db-up db-down docker-up docker-run docker-rebuild docker-down docker-logs migrate-up migrate-down migrate-status migrate-new
 
 export GOCACHE := /tmp/gocache
 TEMPL := $(shell which templ 2>/dev/null || echo $(HOME)/go/bin/templ)
@@ -8,6 +8,10 @@ all: build
 templ:
 	@echo "Generating templ templates..."
 	@$(TEMPL) generate
+
+css:
+	@echo "Compiling pre-built Tailwind CSS to web/static/tailwind.css..."
+	@npx --yes tailwindcss@3.4.17 -c tailwind.config.js -i web/static/tailwind.input.css -o web/static/tailwind.css --minify
 
 build:
 	@echo "Building aura-forge..."
