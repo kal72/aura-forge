@@ -19,20 +19,8 @@ templ LoginPage(errMsg string, username string) {
 				}
 				[x-cloak] { display: none !important; }
 			</style>
-			<link rel="stylesheet" href="/static/tailwind.css"/>
-			<link rel="stylesheet" href="/static/app.css"/>
-			<script>
-				tailwind.config = {
-					darkMode: 'class',
-					theme: {
-						extend: {
-							fontFamily: {
-								mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
-							}
-						}
-					}
-				}
-			</script>
+			<link rel="stylesheet" href={ StaticAssetURL("/static/tailwind.css") }/>
+			<link rel="stylesheet" href={ StaticAssetURL("/static/app.css") }/>
 			<script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
 		</head>
 		<body class="min-h-screen af-orbital-bg antialiased flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">

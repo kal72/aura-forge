@@ -18,6 +18,7 @@ import (
 const (
 	PulseCategoryMinerals   = "minerals"
 	PulseCategoryGas        = "gas"
+	PulseCategoryReactions  = "reactions"
 	PulseCategoryPI         = "pi"
 	PulseCategoryMacro      = "macro"
 	PulseCategoryBlueprints = "blueprints"
@@ -63,6 +64,16 @@ var marketPulseSeeds = []pulseSeed{
 	{TypeID: 28694, Name: "Amber Mykoserocin", FallbackSell: 19500, FallbackBuy: 17600, Category: PulseCategoryGas},
 	{TypeID: 28697, Name: "Golden Mykoserocin", FallbackSell: 28500, FallbackBuy: 25800, Category: PulseCategoryGas},
 
+	// 8 Core Gas Reaction / Hybrid Polymer Materials (Refined from Fullerite Gas for T3 & Tech II/Capital Industry)
+	{TypeID: 30303, Name: "C3-FTM Acid", FallbackSell: 14500, FallbackBuy: 13200, Category: PulseCategoryReactions},
+	{TypeID: 30305, Name: "Carbon-86 Epoxy Resin", FallbackSell: 15800, FallbackBuy: 14400, Category: PulseCategoryReactions},
+	{TypeID: 30306, Name: "Fullerene Intercalated Graphite", FallbackSell: 18200, FallbackBuy: 16500, Category: PulseCategoryReactions},
+	{TypeID: 30307, Name: "Fulleroferrocene", FallbackSell: 12500, FallbackBuy: 11200, Category: PulseCategoryReactions},
+	{TypeID: 30308, Name: "Graphene Nanoribbons", FallbackSell: 24500, FallbackBuy: 22200, Category: PulseCategoryReactions},
+	{TypeID: 30309, Name: "Lanthanum Metallofullerene", FallbackSell: 19200, FallbackBuy: 17500, Category: PulseCategoryReactions},
+	{TypeID: 30310, Name: "Methanofullerene", FallbackSell: 16800, FallbackBuy: 15200, Category: PulseCategoryReactions},
+	{TypeID: 30311, Name: "PPD Fullerene Fibers", FallbackSell: 13900, FallbackBuy: 12600, Category: PulseCategoryReactions},
+
 	// 6 High-Liquidity PI Benchmarks (P2 - P4)
 	{TypeID: 3689, Name: "Mechanical Parts", FallbackSell: 11500, FallbackBuy: 10400, Category: PulseCategoryPI, IsPI: true},
 	{TypeID: 9832, Name: "Coolant", FallbackSell: 10800, FallbackBuy: 9800, Category: PulseCategoryPI, IsPI: true},
@@ -95,6 +106,8 @@ func NormalizePulseCategory(raw string) string {
 	switch strings.ToLower(strings.TrimSpace(raw)) {
 	case PulseCategoryGas:
 		return PulseCategoryGas
+	case PulseCategoryReactions:
+		return PulseCategoryReactions
 	case PulseCategoryPI:
 		return PulseCategoryPI
 	case PulseCategoryMacro:

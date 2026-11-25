@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main       # Auto-run triggers on push or merge to main (deploys to dev with image tag :dev)
-  pull_request:
-    branches:
-      - main       # Auto-run triggers on pull request targeting main (deploys to dev with image tag :dev)
   workflow_dispatch:
     inputs:
       environment:

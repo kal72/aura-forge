@@ -613,3 +613,100 @@ func (s *CopilotService) ScanInterHubArbitrageOpportunitiesV2(
 	domain.SortArbitrageOpportunities(results)
 	return results, nil
 }
+
+// ScanLocalStockoutOpportunities detects high-demand items that are stocked out (0 sell orders),
+// have thin seller competition (<=3 sellers), or trade at a >=15% local premium over Jita at the chosen Trade Hub.
+func (s *CopilotService) ScanLocalStockoutOpportunities(ctx context.Context, hubKey, category string) ([]domain.StockoutOpportunity, error) {
+	if s.market == nil {
+		return nil, fmt.Errorf("Public ESI market provider is not available")
+	}
+
+	settings, _ := s.GetSettings(ctx)
+	hub := settings.ActiveTradeHub()
+	if strings.TrimSpace(hubKey) != "" {
+		hub = domain.LookupTradeHub(hubKey)
+	}
+	jitaHub := domain.LookupTradeHub("jita")
+	catFilter := strings.TrimSpace(category)
+
+	basket := make([]scannerBasketItem, 0, len(defaultStationTradeBasket)+16)
+	seen := make(map[int32]struct{})
+	for _, b := range defaultStationTradeBasket {
+		if catFilter != "" && !strings.EqualFold(b.Category, catFilter) {
+			continue
+		}
+		basket = append(basket, b)
+		seen[b.TypeID] = struct{}{}
+	}
+	if s.items != nil {
+		if catalogItems, err := s.items.ListItems(ctx); err == nil {
+			for _, it := range catalogItems {
+				if it.TypeID <= 0 {
+					continue
+				}
+				if _, ok := seen[it.TypeID]; ok {
+					continue
+				}
+				if catFilter != "" && !strings.EqualFold(string(it.Category), catFilter) {
+					continue
+				}
+				basket = append(basket, scannerBasketItem{
+					TypeID:   it.TypeID,
+					Name:     it.Name,
+					Category: string(it.Category),
+				})
+				seen[it.TypeID] = struct{}{}
+			}
+		}
+	}
+
+	typeIDs := make([]int32, 0, len(basket))
+	for _, b := range basket {
+		typeIDs = append(typeIDs, b.TypeID)
+	}
+
+	var (
+		hubPrices  map[int32]domain.JitaPrice
+		jitaPrices map[int32]domain.JitaPrice
+		hubVols    map[int32]float64
+		hubErr     error
+		wg         sync.WaitGroup
+	)
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		hubPrices, hubErr = s.fetchHubPrices(ctx, hub, typeIDs)
+	}()
+	go func() {
+		defer wg.Done()
+		if hub.Key == "jita" {
+			return
+		}
+		jitaPrices, _ = s.fetchHubPrices(ctx, jitaHub, typeIDs)
+	}()
+	go func() {
+		defer wg.Done()
+		hubVols = s.fetchHubDailyVolumesBatch(ctx, hub, typeIDs)
+	}()
+	wg.Wait()
+
+	if hubErr != nil {
+		return nil, fmt.Errorf("fetching %s stockout prices: %w", hub.Name, hubErr)
+	}
+	if hub.Key == "jita" {
+		jitaPrices = hubPrices
+	}
+
+	results := make([]domain.StockoutOpportunity, 0, len(basket)/2+1)
+	for _, item := range basket {
+		hp := hubPrices[item.TypeID]
+		jp := jitaPrices[item.TypeID]
+		vol := hubVols[item.TypeID]
+		if opp, ok := domain.EvaluateStockoutOpportunity(item.TypeID, item.Name, item.Category, hub, hp, jp, vol); ok {
+			results = append(results, opp)
+		}
+	}
+
+	domain.SortStockoutOpportunities(results)
+	return results, nil
+}

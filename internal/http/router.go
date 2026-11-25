@@ -80,12 +80,13 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.With(adminOnly).Post("/add-catalog", h.HandleMarketplaceAddCatalog)
 		})
 
-		// Opportunity Scanner (Manufacturing ISK/hr, Station Trading, Inter-Hub Arbitrage)
+		// Opportunity Scanner (Manufacturing ISK/hr, Station Trading, Inter-Hub Arbitrage, Local Stockouts)
 		r.Route("/scanner", func(r chi.Router) {
 			r.Get("/", h.HandleScannerPage)
 			r.Post("/manufacturing", h.HandleScanManufacturing)
 			r.Post("/station-trading", h.HandleScanStationTrading)
 			r.Post("/arbitrage", h.HandleScanArbitrage)
+			r.Post("/stockouts", h.HandleScanStockouts)
 		})
 
 		// Public ESI actions (lookup & market pulse for all; sync/undercuts for admin only)

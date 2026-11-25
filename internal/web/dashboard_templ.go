@@ -295,7 +295,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\"><div class=\"flex flex-wrap items-center justify-between gap-3\"><div class=\"flex items-center gap-2\"><span class=\"h-2 w-2 rounded-full bg-emerald-400 animate-pulse\"></span><h2 class=\"text-xs font-bold uppercase tracking-wider text-amber-200\">Live Market Pulse</h2><span id=\"pulse-spinner\" class=\"htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-amber-300 border-t-transparent\"></span></div><div class=\"flex flex-wrap items-center gap-2 ml-auto\"><!-- 6 Category Tabs --><div class=\"inline-flex flex-wrap rounded-lg border border-violet-400/30 bg-slate-950/70 p-0.5\"><button type=\"button\" @click=\"setCat(&#39;minerals&#39;)\" :class=\"pulseCat === &#39;minerals&#39; ? &#39;bg-amber-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">Minerals (8)</button> <button type=\"button\" @click=\"setCat(&#39;gas&#39;)\" :class=\"pulseCat === &#39;gas&#39; ? &#39;bg-teal-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">Gas (8)</button> <button type=\"button\" @click=\"setCat(&#39;pi&#39;)\" :class=\"pulseCat === &#39;pi&#39; ? &#39;bg-violet-500 text-white shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">PI (6)</button> <button type=\"button\" @click=\"setCat(&#39;macro&#39;)\" :class=\"pulseCat === &#39;macro&#39; ? &#39;bg-sky-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">Macro &amp; Fuel (6)</button> <button type=\"button\" @click=\"setCat(&#39;blueprints&#39;)\" :class=\"pulseCat === &#39;blueprints&#39; ? &#39;bg-emerald-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">Hot Blueprints</button> <button type=\"button\" @click=\"setCat(&#39;global&#39;)\" :class=\"pulseCat === &#39;global&#39; ? &#39;bg-rose-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">Global Movers</button></div><!-- Sort Toggle for Hot Blueprints (Hot Demand vs Price Rising) --><div x-cloak x-show=\"pulseCat === &#39;blueprints&#39;\" class=\"inline-flex rounded-lg border border-emerald-400/35 bg-slate-950/70 p-0.5\"><button type=\"button\" @click=\"setSort(&#39;demand&#39;)\" :class=\"pulseSort === &#39;demand&#39; ? &#39;bg-amber-400 text-slate-950&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer\">Hot Demand</button> <button type=\"button\" @click=\"setSort(&#39;price&#39;)\" :class=\"pulseSort === &#39;price&#39; ? &#39;bg-rose-400 text-slate-950&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer\">Price Rising ↑</button></div><!-- Trade Hub Selector --><select x-model=\"pulseHub\" @change=\"loadPulse()\" class=\"rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1 text-[11px] font-mono font-semibold text-amber-200 focus:border-amber-300/60 focus:outline-none\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\"><div class=\"flex flex-wrap items-center justify-between gap-3\"><div class=\"flex items-center gap-2\"><span class=\"h-2 w-2 rounded-full bg-emerald-400 animate-pulse\"></span><h2 class=\"text-xs font-bold uppercase tracking-wider text-amber-200\">Live Market Pulse</h2><span id=\"pulse-spinner\" class=\"htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-amber-300 border-t-transparent\"></span></div><div class=\"flex flex-wrap items-center gap-2 ml-auto\"><!-- 6 Category Tabs --><div class=\"inline-flex flex-wrap rounded-lg border border-violet-400/30 bg-slate-950/70 p-0.5\"><button type=\"button\" @click=\"setCat(&#39;minerals&#39;)\" :class=\"pulseCat === &#39;minerals&#39; ? &#39;bg-amber-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">Minerals (8)</button> <button type=\"button\" @click=\"setCat(&#39;gas&#39;)\" :class=\"pulseCat === &#39;gas&#39; ? &#39;bg-teal-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">Gas (8)</button> <button type=\"button\" @click=\"setCat(&#39;reactions&#39;)\" :class=\"pulseCat === &#39;reactions&#39; ? &#39;bg-cyan-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">Gas Reactions (8)</button> <button type=\"button\" @click=\"setCat(&#39;pi&#39;)\" :class=\"pulseCat === &#39;pi&#39; ? &#39;bg-violet-500 text-white shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">PI (6)</button> <button type=\"button\" @click=\"setCat(&#39;macro&#39;)\" :class=\"pulseCat === &#39;macro&#39; ? &#39;bg-sky-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">Macro &amp; Fuel (6)</button> <button type=\"button\" @click=\"setCat(&#39;blueprints&#39;)\" :class=\"pulseCat === &#39;blueprints&#39; ? &#39;bg-emerald-400 text-slate-950 shadow-xs&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer\">Hot Blueprints</button></div><!-- Trade Hub Selector --><select x-model=\"pulseHub\" @change=\"loadPulse()\" class=\"rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1 text-[11px] font-mono font-semibold text-amber-200 focus:border-amber-300/60 focus:outline-none\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -307,7 +307,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(h.Key)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 278, Col: 29}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 258, Col: 29}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -320,7 +320,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(h.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 278, Col: 40}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 258, Col: 40}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
@@ -331,14 +331,14 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</select> <button type=\"button\" @click=\"loadPulse()\" class=\"rounded-lg border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-[11px] font-semibold text-violet-200 hover:bg-violet-500/25 cursor-pointer\">Refresh</button></div></div><div id=\"live-mineral-ticker\" hx-get=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</select> <button type=\"button\" @click=\"loadPulse()\" class=\"rounded-lg border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-[11px] font-semibold text-violet-200 hover:bg-violet-500/25 cursor-pointer\">Refresh</button></div></div><!-- Dedicated Sub-Bar for Hot Blueprints Sort Toggle (prevents top tab row from shifting) --><div x-cloak x-show=\"pulseCat === &#39;blueprints&#39;\" class=\"flex flex-wrap items-center justify-between gap-2 rounded-lg border border-emerald-400/25 bg-slate-950/60 px-3 py-1.5\"><div class=\"flex items-center gap-2 text-[11px] text-slate-300\"><span class=\"font-mono text-[10px] font-bold uppercase tracking-wider text-emerald-300\">Hot Blueprints</span> <span class=\"text-slate-500\">•</span> <span class=\"text-slate-400\">Sort manufactured items by 7d demand surge or price momentum</span></div><div class=\"inline-flex rounded-lg border border-emerald-400/35 bg-slate-950/80 p-0.5\"><button type=\"button\" @click=\"setSort(&#39;demand&#39;)\" :class=\"pulseSort === &#39;demand&#39; ? &#39;bg-amber-400 text-slate-950&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2.5 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer\">Hot Demand</button> <button type=\"button\" @click=\"setSort(&#39;price&#39;)\" :class=\"pulseSort === &#39;price&#39; ? &#39;bg-rose-400 text-slate-950&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded px-2.5 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer\">Price Rising ↑</button></div></div><div id=\"live-mineral-ticker\" hx-get=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/esi/minerals?category=minerals&hub=%s&sort=demand", dashboardHubKey(data.ActiveHub)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 294, Col: 112}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 305, Col: 112}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -356,7 +356,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 				var templ_7745c5c3_Var14 string
 				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(dashboardHubName(data.ActiveHub))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 312, Col: 145}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 323, Col: 145}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 				if templ_7745c5c3_Err != nil {
@@ -369,7 +369,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 				var templ_7745c5c3_Var15 string
 				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d BRIEFING", len(data.CopilotActions)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 315, Col: 62}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 326, Col: 62}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 				if templ_7745c5c3_Err != nil {
@@ -409,7 +409,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 					var templ_7745c5c3_Var18 string
 					templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(act.Priority)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 326, Col: 27}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 337, Col: 27}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 					if templ_7745c5c3_Err != nil {
@@ -422,7 +422,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 					var templ_7745c5c3_Var19 string
 					templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(act.Title)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 328, Col: 66}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 339, Col: 66}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 					if templ_7745c5c3_Err != nil {
@@ -435,7 +435,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 					var templ_7745c5c3_Var20 string
 					templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(act.Detail)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 330, Col: 77}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 341, Col: 77}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 					if templ_7745c5c3_Err != nil {
@@ -458,7 +458,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 						var templ_7745c5c3_Var22 string
 						templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(act.ActionPost)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 337, Col: 36}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 348, Col: 36}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 						if templ_7745c5c3_Err != nil {
@@ -484,7 +484,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 						var templ_7745c5c3_Var24 string
 						templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(act.ActionLabel)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 341, Col: 29}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 352, Col: 29}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 						if templ_7745c5c3_Err != nil {
@@ -529,7 +529,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 						var templ_7745c5c3_Var28 string
 						templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(act.ActionLabel)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 348, Col: 29}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 359, Col: 29}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 						if templ_7745c5c3_Err != nil {
@@ -557,7 +557,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 					var templ_7745c5c3_Var29 string
 					templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(data.ActivePlan.Title)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 359, Col: 74}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 370, Col: 74}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 					if templ_7745c5c3_Err != nil {
@@ -570,7 +570,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 					var templ_7745c5c3_Var30 string
 					templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(data.ActivePlan.TotalEstimatedProfit))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 361, Col: 112}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 372, Col: 112}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 					if templ_7745c5c3_Err != nil {
@@ -583,7 +583,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 					var templ_7745c5c3_Var31 string
 					templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(data.ActivePlan.ProjectedROI))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 362, Col: 55}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 373, Col: 55}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 					if templ_7745c5c3_Err != nil {
@@ -648,7 +648,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 						}
 					}`, dashboardHubName(data.ActiveHub)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 393, Col: 42}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 404, Col: 42}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 			if templ_7745c5c3_Err != nil {
@@ -661,7 +661,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 			var templ_7745c5c3_Var35 string
 			templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(dashboardHubName(data.ActiveHub))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 407, Col: 130}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 418, Col: 130}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 			if templ_7745c5c3_Err != nil {
@@ -674,7 +674,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 			var templ_7745c5c3_Var36 string
 			templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(dashboardHubName(data.ActiveHub))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 411, Col: 49}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 422, Col: 49}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 			if templ_7745c5c3_Err != nil {
@@ -728,7 +728,7 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 				var templ_7745c5c3_Var38 string
 				templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d EVE items recorded", pulse.GlobalStats.LatestItems))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 459, Col: 128}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 470, Col: 128}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 				if templ_7745c5c3_Err != nil {
@@ -785,7 +785,7 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 				var templ_7745c5c3_Var40 string
 				templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Open %s order book in %s Marketplace", m.Name, m.HubName))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 491, Col: 85}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 502, Col: 85}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 				if templ_7745c5c3_Err != nil {
@@ -798,7 +798,7 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 				var templ_7745c5c3_Var41 string
 				templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(m.TypeID, 64))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 495, Col: 42}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 506, Col: 42}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
 				if templ_7745c5c3_Err != nil {
@@ -811,7 +811,7 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 				var templ_7745c5c3_Var42 string
 				templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(m.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 496, Col: 20}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 507, Col: 20}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 				if templ_7745c5c3_Err != nil {
@@ -824,7 +824,7 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 				var templ_7745c5c3_Var43 string
 				templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(m.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 502, Col: 105}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 513, Col: 105}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 				if templ_7745c5c3_Err != nil {
@@ -842,7 +842,7 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 					var templ_7745c5c3_Var44 string
 					templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(m.BlueprintCategory)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 505, Col: 61}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 516, Col: 61}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 					if templ_7745c5c3_Err != nil {
@@ -860,7 +860,7 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 				var templ_7745c5c3_Var45 string
 				templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(m.HubName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 508, Col: 26}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 519, Col: 26}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 				if templ_7745c5c3_Err != nil {
@@ -911,7 +911,7 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 					var templ_7745c5c3_Var48 string
 					templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f× HOT", m.VolumeRatio))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 523, Col: 50}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 534, Col: 50}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 					if templ_7745c5c3_Err != nil {
@@ -921,7 +921,7 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 					var templ_7745c5c3_Var49 string
 					templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%+.1f%% %s", m.Change7dPercent, m.Signal))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 525, Col: 64}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 536, Col: 64}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var49))
 					if templ_7745c5c3_Err != nil {
@@ -931,7 +931,7 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 					var templ_7745c5c3_Var50 string
 					templ_7745c5c3_Var50, templ_7745c5c3_Err = templ.JoinStringErrs(m.Signal)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 527, Col: 18}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 538, Col: 18}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var50))
 					if templ_7745c5c3_Err != nil {
@@ -960,7 +960,7 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 				var templ_7745c5c3_Var51 string
 				templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.JoinStringErrs(formatPulsePrice(m.LowestSell))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 542, Col: 109}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 553, Col: 109}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var51))
 				if templ_7745c5c3_Err != nil {
@@ -978,7 +978,7 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 					var templ_7745c5c3_Var52 string
 					templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.JoinStringErrs(pulseSparklineColor(m.Signal))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 548, Col: 47}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 559, Col: 47}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var52))
 					if templ_7745c5c3_Err != nil {
@@ -991,7 +991,7 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 					var templ_7745c5c3_Var53 string
 					templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.JoinStringErrs(m.SparklinePoints)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 552, Col: 35}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 563, Col: 35}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var53))
 					if templ_7745c5c3_Err != nil {
@@ -1019,7 +1019,7 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 						var templ_7745c5c3_Var54 string
 						templ_7745c5c3_Var54, templ_7745c5c3_Err = templ.JoinStringErrs(formatCompactVol(m.DailyVolume7d))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 563, Col: 81}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 574, Col: 81}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var54))
 						if templ_7745c5c3_Err != nil {
@@ -1037,7 +1037,7 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 						var templ_7745c5c3_Var55 string
 						templ_7745c5c3_Var55, templ_7745c5c3_Err = templ.JoinStringErrs(formatPulsePrice(m.HighestBuy))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 565, Col: 76}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 576, Col: 76}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var55))
 						if templ_7745c5c3_Err != nil {
@@ -1060,7 +1060,7 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 					var templ_7745c5c3_Var56 string
 					templ_7745c5c3_Var56, templ_7745c5c3_Err = templ.JoinStringErrs(formatPulsePrice(m.HighestBuy))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 569, Col: 98}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 580, Col: 98}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var56))
 					if templ_7745c5c3_Err != nil {
@@ -1106,7 +1106,7 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 					var templ_7745c5c3_Var59 string
 					templ_7745c5c3_Var59, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%+.1f%%", m.Change7dPercent))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 579, Col: 57}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 590, Col: 57}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var59))
 					if templ_7745c5c3_Err != nil {
@@ -1124,7 +1124,7 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 					var templ_7745c5c3_Var60 string
 					templ_7745c5c3_Var60, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.1f%%", m.SpreadPercent))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 581, Col: 106}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 592, Col: 106}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var60))
 					if templ_7745c5c3_Err != nil {

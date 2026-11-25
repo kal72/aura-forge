@@ -64,6 +64,14 @@ templ ScannerPage(mode service.ModeInfo, settings domain.UserSettings) {
 					>
 						Inter-Hub Arbitrage
 					</button>
+					<button
+						type="button"
+						@click="tab = 'stockouts'"
+						:class="tab === 'stockouts' ? 'bg-violet-400 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'"
+						class="rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
+					>
+						Local Stockouts
+					</button>
 				</div>
 			</div>
 
@@ -321,6 +329,61 @@ templ ScannerPage(mode service.ModeInfo, settings domain.UserSettings) {
 					</div>
 				</div>
 			</div>
+
+			<!-- TAB 4: LOCAL HUB STOCKOUT & THIN-SUPPLY DETECTOR -->
+			<div x-cloak x-show="tab === 'stockouts'" class="space-y-5">
+				<div class="tactical-panel rounded-xl p-5 space-y-4">
+					<div>
+						<h2 class="text-sm font-bold uppercase tracking-wider text-violet-300">Local Hub Stockout &amp; Thin-Supply Detector</h2>
+						<p class="text-xs text-slate-300/80 mt-0.5">
+							Finds high-demand items at non-Jita hubs (e.g. <strong>Amarr VIII</strong>) that have <strong>0 sell orders (STOCKOUT)</strong>, <strong>&le;3 sellers (THIN SUPPLY)</strong>, or trade at a <strong>+15%+ local premium</strong> over Jita — ideal low-undercut opportunities.
+						</p>
+					</div>
+
+					<form
+						hx-post="/scanner/stockouts"
+						hx-target="#scan-stockout-results"
+						hx-swap="innerHTML"
+						hx-indicator="#scan-stockout-spinner"
+						class="grid grid-cols-1 gap-3 sm:grid-cols-4 items-end"
+					>
+						<div>
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Target Trade Hub</label>
+							<select name="hub" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs text-white">
+								for _, h := range domain.MajorTradeHubs {
+									<option value={ h.Key } selected?={ h.Key == settings.ActiveTradeHub().Key }>{ h.Name }</option>
+								}
+							</select>
+						</div>
+						<div>
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Category</label>
+							<select name="category" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs text-white">
+								<option value="">All High-Demand Items</option>
+								<option value="Drones">Drones</option>
+								<option value="Modules">Modules</option>
+								<option value="Ships">Ships</option>
+								<option value="PI & Fuel">PI &amp; Fuel</option>
+								<option value="Commodities">Commodities</option>
+							</select>
+						</div>
+						<div class="sm:col-span-2 flex justify-end">
+							<button
+								type="submit"
+								class="inline-flex items-center gap-2 rounded-lg bg-violet-400 px-5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-violet-300 transition cursor-pointer"
+							>
+								<span id="scan-stockout-spinner" class="htmx-indicator h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent"></span>
+								<span>Detect Stockouts &amp; Thin Supply (Live ESI)</span>
+							</button>
+						</div>
+					</form>
+				</div>
+
+				<div id="scan-stockout-results">
+					<div class="tactical-panel rounded-xl p-8 text-center text-xs text-slate-300/80">
+						Select a Trade Hub (e.g. <strong>Amarr VIII</strong>) and click <strong>Detect Stockouts &amp; Thin Supply</strong> to uncover low-competition local market gaps.
+					</div>
+				</div>
+			</div>
 		</div>
 	}
 }
@@ -553,6 +616,94 @@ templ ScannerArbitragePartial(results []domain.ArbitrageOpportunity, errMsg stri
 								<td class="px-4 py-3 text-right font-sans whitespace-nowrap">
 									<a href={ templ.SafeURL("/marketplace?q=" + url.QueryEscape(r.Name) + "&hub=" + r.DestHub.Key) } class="rounded border border-emerald-400/35 bg-emerald-500/15 px-2.5 py-1 text-[10px] font-semibold text-emerald-200 hover:bg-emerald-500/25">
 										Inspect Hub →
+									</a>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	}
+}
+
+func stockoutSignalBadgeClass(s domain.StockoutSignal) string {
+	switch s {
+	case domain.SignalStockout:
+		return "border-rose-400/60 bg-rose-500/25 text-rose-100"
+	case domain.SignalThinSupply:
+		return "border-amber-400/55 bg-amber-500/20 text-amber-100"
+	default:
+		return "border-violet-400/50 bg-violet-500/20 text-violet-100"
+	}
+}
+
+templ ScannerStockoutsPartial(results []domain.StockoutOpportunity, errMsg string) {
+	if errMsg != "" {
+		<div class="tactical-panel rounded-xl p-4 border-rose-400/40 text-xs text-rose-200">{ errMsg }</div>
+	} else if len(results) == 0 {
+		<div class="tactical-panel rounded-xl p-8 text-center text-xs text-slate-400">No local stockouts or thin-supply anomalies found at this hub right now — supply looks well-stocked.</div>
+	} else {
+		<div class="tactical-panel rounded-xl overflow-hidden">
+			<div class="overflow-x-auto">
+				<table class="w-full text-left text-xs">
+					<thead class="border-b border-violet-400/20 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400">
+						<tr>
+							<th class="px-4 py-3">Item &amp; Signal</th>
+							<th class="px-3 py-3 text-right">Competitors</th>
+							<th class="px-3 py-3 text-right">7d Regional Vol</th>
+							<th class="px-3 py-3 text-right">Hub Sell vs Jita</th>
+							<th class="px-3 py-3 text-right">Est. Daily Market</th>
+							<th class="px-4 py-3 text-right">Action</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-slate-800/80 font-mono">
+						for _, r := range results {
+							<tr class="hover:bg-violet-500/5 transition">
+								<td class="px-4 py-3 font-sans">
+									<div class="flex items-center gap-2.5">
+										if r.TypeID > 0 {
+											<img src={ EVEItemIconURL(r.TypeID, 32) } alt={ r.Name } loading="lazy" class="h-7 w-7 rounded border border-slate-700 bg-slate-900 p-0.5 object-contain" onerror="this.style.display='none'"/>
+										}
+										<div>
+											<div class="font-semibold text-white">{ r.Name }</div>
+											<div class="mt-0.5 flex items-center gap-1.5">
+												<span class={ "inline-block rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold " + stockoutSignalBadgeClass(r.Signal) }>
+													{ string(r.Signal) }
+												</span>
+												<span class="text-[10px] text-slate-400">{ r.Category } • { r.HubName }</span>
+											</div>
+										</div>
+									</div>
+								</td>
+								<td class="px-3 py-3 text-right whitespace-nowrap">
+									if r.SellOrdersCount == 0 {
+										<span class="font-bold text-rose-300">0 sellers!</span>
+									} else {
+										<span class="font-bold text-amber-200">{ fmt.Sprintf("%d sellers", r.SellOrdersCount) }</span>
+									}
+									<div class="text-[10px] text-slate-400">{ fmt.Sprintf("%d buy orders", r.BuyOrdersCount) }</div>
+								</td>
+								<td class="px-3 py-3 text-right text-sky-200 whitespace-nowrap">{ FormatVolume(r.DailyVolume7d) }/d</td>
+								<td class="px-3 py-3 text-right whitespace-nowrap">
+									if r.HubLowestSell > 0 {
+										<div class="text-white font-semibold">{ FormatISK(r.HubLowestSell) }</div>
+									} else {
+										<div class="text-rose-300 font-bold">NO SUPPLY</div>
+									}
+									if r.JitaLowestSell > 0 {
+										<div class="text-[10px] text-emerald-300">
+											Jita { FormatISK(r.JitaLowestSell) }
+											if r.PremiumOverJitaPct > 0 {
+												<span> (+{ FormatPercent(r.PremiumOverJitaPct) })</span>
+											}
+										</div>
+									}
+								</td>
+								<td class="px-3 py-3 text-right font-bold text-emerald-300 whitespace-nowrap">{ FormatISK(r.EstDailyMarketISK) }/d</td>
+								<td class="px-4 py-3 text-right font-sans whitespace-nowrap">
+									<a href={ templ.SafeURL("/marketplace?q=" + url.QueryEscape(r.Name) + "&hub=" + r.HubKey) } class="rounded border border-violet-400/40 bg-violet-500/15 px-2.5 py-1 text-[10px] font-semibold text-violet-100 hover:bg-violet-500/30">
+										Order Book →
 									</a>
 								</td>
 							</tr>

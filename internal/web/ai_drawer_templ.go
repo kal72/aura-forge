@@ -62,6 +62,8 @@ func aiActionCardAccent(kind string) string {
 		return "border-emerald-400/45 bg-emerald-500/10"
 	case "create_batch":
 		return "border-amber-400/45 bg-amber-500/10"
+	case "save_playbook":
+		return "border-violet-400/50 bg-violet-500/15"
 	default:
 		return "border-sky-400/45 bg-sky-500/10"
 	}
@@ -73,6 +75,8 @@ func aiActionButtonClass(kind string) string {
 		return "bg-emerald-400 text-slate-950 hover:bg-emerald-300"
 	case "create_batch":
 		return "bg-amber-400 text-slate-950 hover:bg-amber-300"
+	case "save_playbook":
+		return "bg-violet-400 text-slate-950 hover:bg-violet-300"
 	default:
 		return "border border-sky-400/50 bg-sky-500/20 text-sky-100 hover:bg-sky-500/35"
 	}
@@ -106,7 +110,7 @@ func AIDrawerThreadPartial(mode service.ModeInfo, convs []domain.AIConversation,
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("auraConvID = %d; $nextTick(() => { const el = $el.querySelector('[data-aura-scroll]'); if (el) el.scrollTop = el.scrollHeight; })", activeConvID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 76, Col: 169}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 80, Col: 169}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -134,7 +138,7 @@ func AIDrawerThreadPartial(mode service.ModeInfo, convs []domain.AIConversation,
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", c.ID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 87, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 91, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -157,7 +161,7 @@ func AIDrawerThreadPartial(mode service.ModeInfo, convs []domain.AIConversation,
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(c.Title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 88, Col: 16}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 92, Col: 16}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -180,7 +184,7 @@ func AIDrawerThreadPartial(mode service.ModeInfo, convs []domain.AIConversation,
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/ai/conversations/%d", activeConvID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 95, Col: 67}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 99, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -203,7 +207,7 @@ func AIDrawerThreadPartial(mode service.ModeInfo, convs []domain.AIConversation,
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 119, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 123, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -220,7 +224,7 @@ func AIDrawerThreadPartial(mode service.ModeInfo, convs []domain.AIConversation,
 				return templ_7745c5c3_Err
 			}
 			if mode.IsAdmin() {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<button type=\"button\" @click=\"sendAuraPrompt(&#39;Cek kondisi bisnis saya sekarang (modal, slot kosong, undercut, PI) dan rekomendasikan 3 langkah paling aman hari ini menuju 100B+ Total Wealth.&#39;)\" class=\"rounded-lg border border-slate-700/80 bg-slate-900/75 px-3 py-2 text-left text-xs text-slate-200 hover:border-amber-400/55 hover:text-white transition cursor-pointer\">📊 Audit kondisi bisnis hari ini &amp; 3 langkah terbaik</button> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<button type=\"button\" @click=\"sendAuraPrompt(&#39;Jalankan Opportunity Radar lengkap (cek BPO/BPC &amp; stok Hangar milik saya, Manufacturing ISK/jam, Station Trading, Arbitrage, dan Market Movers 24h) lalu rekomendasikan 3 peluang paling cuan &amp; aman hari ini beserta Action Card-nya.&#39;)\" class=\"rounded-lg border border-amber-400/45 bg-amber-500/15 px-3 py-2 text-left text-xs font-semibold text-amber-100 hover:bg-amber-500/25 transition cursor-pointer\">🎯 Hunt Best Opportunities Now (Owned BPO + Market Radar)</button> <button type=\"button\" @click=\"sendAuraPrompt(&#39;Rancang kerangka kerja harian &amp; mingguan (SOP pembagian modal, jadwal MFG/Trading/PI, dan aturan anti-rugi) berdasarkan modal, BPO/BPC, Hangar, dan Realized P&amp;L saya sekarang, lalu siapkan Action Card untuk menyimpannya ke Pilot Playbook.&#39;)\" class=\"rounded-lg border border-violet-400/45 bg-violet-500/15 px-3 py-2 text-left text-xs font-semibold text-violet-100 hover:bg-violet-500/25 transition cursor-pointer\">📋 Build My Weekly Framework (SOP) &amp; Save Playbook</button> <button type=\"button\" @click=\"sendAuraPrompt(&#39;Cek kondisi bisnis saya sekarang (modal, slot kosong, undercut, PI, Realized P&amp;L) dan rekomendasikan 3 langkah paling aman hari ini menuju 100B+ Total Wealth.&#39;)\" class=\"rounded-lg border border-slate-700/80 bg-slate-900/75 px-3 py-2 text-left text-xs text-slate-200 hover:border-amber-400/55 hover:text-white transition cursor-pointer\">📊 Audit kondisi bisnis hari ini &amp; 3 langkah terbaik</button> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -239,7 +243,7 @@ func AIDrawerThreadPartial(mode service.ModeInfo, convs []domain.AIConversation,
 					var templ_7745c5c3_Var7 string
 					templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(m.Content)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 170, Col: 19}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 188, Col: 19}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 					if templ_7745c5c3_Err != nil {
@@ -262,7 +266,7 @@ func AIDrawerThreadPartial(mode service.ModeInfo, convs []domain.AIConversation,
 						var templ_7745c5c3_Var8 string
 						templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(m.ToolTraces)))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 179, Col: 70}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 197, Col: 70}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 						if templ_7745c5c3_Err != nil {
@@ -280,7 +284,7 @@ func AIDrawerThreadPartial(mode service.ModeInfo, convs []domain.AIConversation,
 							var templ_7745c5c3_Var9 string
 							templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(tr.ToolName)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 184, Col: 68}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 202, Col: 68}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 							if templ_7745c5c3_Err != nil {
@@ -293,7 +297,7 @@ func AIDrawerThreadPartial(mode service.ModeInfo, convs []domain.AIConversation,
 							var templ_7745c5c3_Var10 string
 							templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(tr.Summary)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 185, Col: 73}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 203, Col: 73}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 							if templ_7745c5c3_Err != nil {
@@ -352,7 +356,7 @@ func AIDrawerThreadPartial(mode service.ModeInfo, convs []domain.AIConversation,
 							var templ_7745c5c3_Var13 string
 							templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(card.Title)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 203, Col: 66}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 221, Col: 66}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 							if templ_7745c5c3_Err != nil {
@@ -370,7 +374,7 @@ func AIDrawerThreadPartial(mode service.ModeInfo, convs []domain.AIConversation,
 								var templ_7745c5c3_Var14 string
 								templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(card.Description)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 205, Col: 78}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 223, Col: 78}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 								if templ_7745c5c3_Err != nil {
@@ -393,7 +397,7 @@ func AIDrawerThreadPartial(mode service.ModeInfo, convs []domain.AIConversation,
 								var templ_7745c5c3_Var15 string
 								templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(card.URL)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 209, Col: 36}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 227, Col: 36}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 								if templ_7745c5c3_Err != nil {
@@ -411,7 +415,7 @@ func AIDrawerThreadPartial(mode service.ModeInfo, convs []domain.AIConversation,
 									var templ_7745c5c3_Var16 string
 									templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(k)
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 211, Col: 43}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 229, Col: 43}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 									if templ_7745c5c3_Err != nil {
@@ -424,7 +428,7 @@ func AIDrawerThreadPartial(mode service.ModeInfo, convs []domain.AIConversation,
 									var templ_7745c5c3_Var17 string
 									templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(v)
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 211, Col: 55}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 229, Col: 55}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 									if templ_7745c5c3_Err != nil {
@@ -460,7 +464,7 @@ func AIDrawerThreadPartial(mode service.ModeInfo, convs []domain.AIConversation,
 								var templ_7745c5c3_Var20 string
 								templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(card.ButtonLabel)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 217, Col: 32}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 235, Col: 32}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 								if templ_7745c5c3_Err != nil {
@@ -505,7 +509,7 @@ func AIDrawerThreadPartial(mode service.ModeInfo, convs []domain.AIConversation,
 								var templ_7745c5c3_Var24 string
 								templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(card.ButtonLabel)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 225, Col: 31}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/ai_drawer.templ`, Line: 243, Col: 31}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 								if templ_7745c5c3_Err != nil {

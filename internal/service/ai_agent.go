@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"aura-forge/internal/domain"
@@ -277,8 +279,10 @@ func buildAuraSystemPrompt(
 	b.WriteString("1. LANGUAGE: Always reply in the SAME language the user writes in (Indonesian if they write Indonesian, English if they write English).\n")
 	b.WriteString("2. NEVER GUESS NUMBERS: Always call your live tools to check prices, order books, opportunities, blueprints, catalog, batches, PI, or appraisal before stating ISK figures.\n")
 	b.WriteString("3. BEGINNER SAFETY FIRST: Protect against slow movers, price spikes (>25% above 7d avg), unprofitable undercuts (check Safe Relist Floor), >35% single-item capital lock-up, and High-Sec Gank Risk (>200M ISK per T1 hauler trip). Always preserve a 10-15% Cash Buffer.\n")
-	b.WriteString("4. HUMAN-IN-THE-LOOP ACTIONS: When you recommend a concrete next step (adding a viable item to Catalog, recording a Draft Batch, or opening Manufacture/Marketplace), call `propose_action_card` so the user gets a 1-click button.\n")
-	b.WriteString("5. CONCISE & STRUCTURED: Use crisp Markdown bullets/bold numbers, clear verdicts (SAFE / CAUTION / AVOID), and concrete next actions.\n\n")
+	b.WriteString("4. OPPORTUNITY HUNTING: When the user asks for opportunities, what to build/trade, or how to grow ISK, ALWAYS call `find_best_opportunities` (and `get_pilot_blueprints_and_hangar` for Admins) to cross-check their OWN BPO/BPCs, Manufacturing ISK/hr, Station Trading flips, Inter-Hub Arbitrage, and 24h Market Movers before recommending.\n")
+	b.WriteString("5. WORKFLOW & FRAMEWORK DESIGN: When asked to design a daily/weekly business framework or SOP, combine their real capital, owned BPOs, hangar stock, and Realized P&L (`get_trade_ledger`) into a concrete phased routine, AND attach a `save_playbook` Action Card so they can save the framework in 1 click.\n")
+	b.WriteString("6. HUMAN-IN-THE-LOOP ACTIONS: When you recommend a concrete next step (adding a viable item to Catalog, recording a Draft Batch/Trade Flip, saving a Playbook framework, or opening Manufacture/Marketplace), call `propose_action_card` so the user gets a 1-click button.\n")
+	b.WriteString("7. CONCISE & STRUCTURED: Use crisp Markdown bullets/bold numbers, clear verdicts (SAFE / CAUTION / AVOID), and concrete next actions.\n\n")
 
 	b.WriteString(fmt.Sprintf("CURRENT CONTEXT:\n- Active Trade Hub: %s (%s, key=%s)\n- Active Page: %s\n- User Role: %s\n",
 		hub.Name, hub.RegionName, hub.Key,
@@ -336,10 +340,16 @@ func buildAuraToolDefinitions(isAdmin bool) []domain.AIToolDefinition {
 			def("get_trade_ledger",
 				"Get the pilot's closed-loop Buy & Sell Ledger and Realized P&L analytics: Cash In/Out, Realized Net Profit & ROI (weighted-average cost basis), Top Cash Cows, Capital Drains, Fee & Tax Leak breakdown (Broker/Relist/Sales/Industry/PI), and Active & Historical Order Fill Rates.",
 				`{"type":"object","properties":{"period_days":{"type":"integer","description":"Lookback window in days (default 30; use 0 for all-time)"}}}`),
+			def("get_pilot_blueprints_and_hangar",
+				"Inspect the connected EVE SSO pilot's live Wallet, Active Industry Jobs (including ready-to-deliver), Open Market Orders, Owned Blueprints (BPO/BPC with real ME/TE & runs), and top Hangar Stock materials.",
+				`{"type":"object","properties":{}}`),
 		)
 	}
 
 	tools = append(tools,
+		def("find_best_opportunities",
+			"Unified Cross-Domain Opportunity Hunter: simultaneously scans (1) Profitable Blueprints the pilot ALREADY OWNS with real ME/TE, (2) Top Manufacturing ISK/hr blueprints fitting capital, (3) Top Station Trading flips at the active hub, (4) Top Inter-Hub Arbitrage routes, and (5) 24h Global Market Price Movers (surges & dip-buys).",
+			`{"type":"object","properties":{"hub":{"type":"string","description":"Primary hub key: jita, amarr, dodixie, rens, hek (defaults to pilot's Primary Trade Hub)"},"capital_isk":{"type":"number","description":"Optional capital override in ISK"}}}`),
 		def("search_marketplace",
 			"Inspect live EVE Online Marketplace data for one item at a Trade Hub: lowest sell, highest buy, 5-hub price comparison, 7d/30d price trend & spike signal, daily volume, Net Flip Margin, top sell walls, and SDE Craft-vs-Buy comparison.",
 			`{"type":"object","properties":{"item":{"type":"string","description":"Exact or partial EVE item name (e.g. Hobgoblin I, Caracal, Coolant, Damage Control II)"},"hub":{"type":"string","description":"Optional hub key: jita, amarr, dodixie, rens, hek (defaults to pilot's Primary Trade Hub)"}},"required":["item"]}`),
@@ -356,8 +366,8 @@ func buildAuraToolDefinitions(isAdmin bool) []domain.AIToolDefinition {
 			"Appraise pasted EVE Online inventory/cargo/loot/fit text at a Trade Hub for Total Sell, Total Buy, post-tax net ISK, Buyback value, volume m3, and High-Sec Gank Risk.",
 			`{"type":"object","properties":{"paste_text":{"type":"string","description":"Raw EVE item lines with quantities"},"hub":{"type":"string","description":"Trade hub key"},"buyback_pct":{"type":"number","description":"Buyback percentage (default 90)"}},"required":["paste_text"]}`),
 		def("propose_action_card",
-			"Attach a Human-in-the-Loop 1-click Action Card under your reply so the user can approve and execute a concrete action (open a page, or for Admins: add an item to Catalog or create a Draft Batch/Trade Flip).",
-			`{"type":"object","properties":{"kind":{"type":"string","enum":["open_link","add_catalog","create_batch"]},"entry_type":{"type":"string","enum":["MANUFACTURING","TRADE"],"description":"For create_batch: MANUFACTURING for production runs or TRADE for station trading / arbitrage flips"},"title":{"type":"string"},"description":{"type":"string"},"button_label":{"type":"string"},"item_name":{"type":"string"},"type_id":{"type":"integer"},"category":{"type":"string"},"runs":{"type":"integer"},"output_qty":{"type":"integer"},"unit_sell_price":{"type":"number"},"material_cost":{"type":"number","description":"Total build cost (MFG) or total buy cost (TRADE)"},"daily_volume":{"type":"number"},"url":{"type":"string","description":"For open_link kind, relative app path like /manufacture, /marketplace?q=Caracal&hub=amarr, /scanner, /tracker, /pi"}},"required":["kind","title","button_label"]}`),
+			"Attach a Human-in-the-Loop 1-click Action Card under your reply so the user can approve and execute a concrete action (open a page, save a Pilot Playbook framework, or for Admins: add an item to Catalog or create a Draft Batch/Trade Flip).",
+			`{"type":"object","properties":{"kind":{"type":"string","enum":["open_link","add_catalog","create_batch","save_playbook"]},"entry_type":{"type":"string","enum":["MANUFACTURING","TRADE"],"description":"For create_batch: MANUFACTURING for production runs or TRADE for station trading / arbitrage flips"},"title":{"type":"string"},"description":{"type":"string"},"button_label":{"type":"string"},"item_name":{"type":"string"},"type_id":{"type":"integer"},"category":{"type":"string"},"runs":{"type":"integer"},"output_qty":{"type":"integer"},"unit_sell_price":{"type":"number"},"material_cost":{"type":"number","description":"Total build cost (MFG) or total buy cost (TRADE)"},"daily_volume":{"type":"number"},"playstyle_notes":{"type":"string","description":"For save_playbook: concise operational framework/SOP text to save into Pilot Playbook Memory"},"risk_tolerance":{"type":"string","enum":["CONSERVATIVE","BALANCED","AGGRESSIVE"]},"daily_playtime":{"type":"string","description":"e.g. 30-60 mins/day"},"url":{"type":"string","description":"For open_link kind, relative app path like /manufacture, /marketplace?q=Caracal&hub=amarr, /scanner, /tracker, /pilot, /pi"}},"required":["kind","title","button_label"]}`),
 	)
 	return tools
 }
@@ -540,6 +550,264 @@ func (s *CopilotService) executeAuraTool(
 			"orders_summary":      rep.Orders,
 			"top_cash_cows":       rep.TopCashCows,
 			"capital_drains":      rep.CapitalDrains,
+		}), trace, nil
+
+	case "get_pilot_blueprints_and_hangar":
+		if !isAdmin {
+			trace.Error = "admin only"
+			return `{"error":"get_pilot_blueprints_and_hangar is restricted to Admin accounts"}`, trace, nil
+		}
+		mode := s.GetModeInfo(ctx)
+		if !mode.SSOConnected {
+			trace.Summary = "EVE SSO not connected"
+			return `{"sso_connected":false,"hint":"EVE SSO is not connected yet. Use Catalog, Scanner, or ask user what blueprints/capital they have."}`, trace, nil
+		}
+		jobsView, _ := s.GetPilotHubView(ctx, "jobs", "", "", 1)
+		bpsView, _ := s.GetPilotHubView(ctx, "blueprints", "", "", 1)
+		assetsView, _ := s.GetPilotHubView(ctx, "assets", "", "", 1)
+		ordersView, _ := s.GetPilotHubView(ctx, "orders", "", "", 1)
+
+		type bpLite struct {
+			TypeID int32  `json:"blueprint_type_id"`
+			Name   string `json:"name"`
+			IsCopy bool   `json:"is_bpc"`
+			ME     int    `json:"me_pct"`
+			TE     int    `json:"te_pct"`
+			Runs   int    `json:"runs"`
+		}
+		var bpOut []bpLite
+		if bpsView != nil {
+			for i := 0; i < len(bpsView.Blueprints) && i < 20; i++ {
+				b := bpsView.Blueprints[i]
+				bpOut = append(bpOut, bpLite{
+					TypeID: b.TypeID, Name: b.TypeName, IsCopy: b.IsCopy,
+					ME: b.MaterialEfficiency, TE: b.TimeEfficiency, Runs: b.Runs,
+				})
+			}
+		}
+		var hangarOut []PilotHangarItem
+		if assetsView != nil {
+			for i := 0; i < len(assetsView.HangarItems) && i < 20; i++ {
+				hangarOut = append(hangarOut, assetsView.HangarItems[i])
+			}
+		}
+		var jobsOut []map[string]any
+		if jobsView != nil {
+			for i := 0; i < len(jobsView.Jobs) && i < 15; i++ {
+				j := jobsView.Jobs[i]
+				jobsOut = append(jobsOut, map[string]any{
+					"name": j.TypeName, "activity": j.ActivityName, "runs": j.Runs,
+					"status": j.Status, "ends_at": j.EndDate.UTC().Format(time.RFC3339),
+				})
+			}
+		}
+		var ordersOut []map[string]any
+		if ordersView != nil {
+			for i := 0; i < len(ordersView.Orders) && i < 15; i++ {
+				o := ordersView.Orders[i]
+				side := "SELL"
+				if o.IsBuyOrder {
+					side = "BUY"
+				}
+				ordersOut = append(ordersOut, map[string]any{
+					"side": side, "name": o.TypeName, "price": o.Price,
+					"remain": o.VolumeRemain, "total": o.VolumeTotal,
+				})
+			}
+		}
+		trace.Summary = fmt.Sprintf("Pilot %s: %d BPs, %d jobs, %d orders, %d hangar items",
+			mode.CharacterName, len(bpOut), len(jobsOut), len(ordersOut), len(hangarOut))
+		return toJSON(map[string]any{
+			"sso_connected":   true,
+			"character_name":  mode.CharacterName,
+			"wallet_isk":      mode.WalletBalance,
+			"ready_jobs":      func() int { if jobsView != nil { return jobsView.ReadyJobsCount }; return 0 }(),
+			"active_jobs":     jobsOut,
+			"open_orders":     ordersOut,
+			"owned_blueprints": bpOut,
+			"top_hangar_stock": hangarOut,
+		}), trace, nil
+
+	case "find_best_opportunities":
+		var args struct {
+			Hub        string  `json:"hub"`
+			CapitalISK float64 `json:"capital_isk"`
+		}
+		_ = json.Unmarshal([]byte(argsRaw), &args)
+		hubKey := strings.TrimSpace(args.Hub)
+		if hubKey == "" {
+			hubKey = defaultHub.Key
+		}
+		settings, _ := s.GetSettings(ctx)
+		capISK := args.CapitalISK
+		if capISK <= 0 && settings != nil {
+			_, avail, _ := s.resolveProfileAndCapital(ctx, *settings)
+			capISK = avail
+		}
+		destKey := "amarr"
+		originKey := "jita"
+		if hubKey != "amarr" && hubKey != "jita" {
+			originKey = "jita"
+			destKey = hubKey
+		}
+
+		type ownedBPOpp struct {
+			BlueprintID int32   `json:"blueprint_type_id"`
+			ProductName string  `json:"product_name"`
+			ME          int     `json:"me_pct"`
+			IsCopy      bool    `json:"is_bpc"`
+			Runs        int     `json:"runs"`
+			NetProfit   float64 `json:"net_profit"`
+			ROIPct      float64 `json:"roi_pct"`
+			ISKPerHour  float64 `json:"isk_per_hour"`
+			SellPrice   float64 `json:"unit_sell_price"`
+			BuildCost   float64 `json:"build_cost"`
+		}
+
+		var (
+			ownedOpps    []ownedBPOpp
+			mfgOpps      []domain.ManufacturingOpportunity
+			tradeOpps    []domain.StationTradeOpportunity
+			arbOpps      []domain.ArbitrageOpportunity
+			stockoutOpps []domain.StockoutOpportunity
+			movers       []domain.GlobalPriceMover
+			wg           sync.WaitGroup
+		)
+
+		wg.Add(6)
+		// 1. Evaluate Pilot's OWN Blueprints with real ME/TE (if SSO connected & Admin)
+		go func() {
+			defer wg.Done()
+			if !isAdmin || s.chars == nil || s.sde == nil {
+				return
+			}
+			mode := s.GetModeInfo(ctx)
+			if !mode.SSOConnected {
+				return
+			}
+			bps, err := s.chars.ListBlueprints(ctx, mode.CharacterID)
+			if err != nil || len(bps) == 0 {
+				return
+			}
+			seen := make(map[int32]bool)
+			checked := 0
+			for _, bp := range bps {
+				if checked >= 10 || seen[bp.TypeID] {
+					continue
+				}
+				seen[bp.TypeID] = true
+				runs := 10
+				if bp.IsCopy && bp.Runs > 0 && bp.Runs < runs {
+					runs = bp.Runs
+				}
+				in := domain.BlueprintCalcInput{
+					BlueprintTypeID:     bp.TypeID,
+					Runs:                runs,
+					ME:                  bp.MaterialEfficiency,
+					TE:                  bp.TimeEfficiency,
+					HubKey:              hubKey,
+					MaterialPriceSource: "jita_sell",
+					SystemCostIndex:     settings.SystemCostIndex,
+					FacilityTaxPercent:  settings.FacilityTaxPercent,
+					BrokerFeePercent:    settings.BrokerFeePercent,
+					SalesTaxPercent:     settings.SalesTaxPercent,
+					RelistFeePercent:    settings.RelistFeePercent,
+					EstimatedRelists:    1,
+					BatchesPerWeek:      1,
+				}
+				if res, err := s.CalculateBlueprintProfit(ctx, in); err == nil && res != nil && res.Profit.NetProfitPerBatch > 0 {
+					ownedOpps = append(ownedOpps, ownedBPOpp{
+						BlueprintID: bp.TypeID,
+						ProductName: res.Blueprint.ProductName,
+						ME:          bp.MaterialEfficiency,
+						IsCopy:      bp.IsCopy,
+						Runs:        runs,
+						NetProfit:   res.Profit.NetProfitPerBatch,
+						ROIPct:      res.Profit.ROIPercent,
+						ISKPerHour:  res.ISKPerHour,
+						SellPrice:   res.ProductUnitSellPrice,
+						BuildCost:   res.Profit.TotalDirectCost,
+					})
+					checked++
+				}
+			}
+			sort.Slice(ownedOpps, func(i, j int) bool {
+				return ownedOpps[i].ISKPerHour > ownedOpps[j].ISKPerHour
+			})
+			if len(ownedOpps) > 5 {
+				ownedOpps = ownedOpps[:5]
+			}
+		}()
+
+		// 2. Top Manufacturing ISK/hr
+		go func() {
+			defer wg.Done()
+			if rows, err := s.ScanManufacturingOpportunitiesV2(ctx, ManufacturingScanRequest{
+				HubKey: hubKey, Runs: 10, ME: 10, TE: 20, StructureKey: "npc_station",
+				MaterialPriceSource: "jita_sell", ProfitableOnly: true, FitsCapitalOnly: true, SortBy: "isk_hr",
+			}); err == nil {
+				if len(rows) > 5 {
+					rows = rows[:5]
+				}
+				mfgOpps = rows
+			}
+		}()
+
+		// 3. Top Station Trading Flips
+		go func() {
+			defer wg.Done()
+			if rows, err := s.ScanStationTradingOpportunitiesV2(ctx, hubKey, "", true); err == nil {
+				if len(rows) > 5 {
+					rows = rows[:5]
+				}
+				tradeOpps = rows
+			}
+		}()
+
+		// 4. Top Inter-Hub Arbitrage
+		go func() {
+			defer wg.Done()
+			if rows, err := s.ScanInterHubArbitrageOpportunitiesV2(ctx, originKey, destKey, "", 5000, capISK, true); err == nil {
+				if len(rows) > 5 {
+					rows = rows[:5]
+				}
+				arbOpps = rows
+			}
+		}()
+
+		// 5. Top 24h Global Market Movers (surges & dip-buys)
+		go func() {
+			defer wg.Done()
+			if s.globalSnapshots != nil {
+				if m, err := s.globalSnapshots.ListTopPriceMovers(ctx, 5, 10000); err == nil {
+					movers = m
+				}
+			}
+		}()
+
+		// 6. Local Hub Stockouts & Thin-Supply Goldmines (0-3 sellers with real demand)
+		go func() {
+			defer wg.Done()
+			if rows, err := s.ScanLocalStockoutOpportunities(ctx, hubKey, ""); err == nil {
+				if len(rows) > 5 {
+					rows = rows[:5]
+				}
+				stockoutOpps = rows
+			}
+		}()
+
+		wg.Wait()
+		trace.Summary = fmt.Sprintf("Radar (%s): %d owned BP, %d MFG, %d Flip, %d Arb, %d Stockout, %d Movers",
+			hubKey, len(ownedOpps), len(mfgOpps), len(tradeOpps), len(arbOpps), len(stockoutOpps), len(movers))
+		return toJSON(map[string]any{
+			"hub":                   hubKey,
+			"capital_isk":           capISK,
+			"owned_blueprint_opps":  ownedOpps,
+			"top_manufacturing":     mfgOpps,
+			"top_station_trading":   tradeOpps,
+			"top_arbitrage":         arbOpps,
+			"local_stockout_opps":   stockoutOpps,
+			"global_price_movers":   movers,
 		}), trace, nil
 
 	case "search_marketplace":
@@ -812,9 +1080,12 @@ func (s *CopilotService) executeAuraTool(
 			Runs          int     `json:"runs"`
 			OutputQty     int     `json:"output_qty"`
 			UnitSellPrice float64 `json:"unit_sell_price"`
-			MaterialCost  float64 `json:"material_cost"`
-			DailyVolume   float64 `json:"daily_volume"`
-			URL           string  `json:"url"`
+			MaterialCost   float64 `json:"material_cost"`
+			DailyVolume    float64 `json:"daily_volume"`
+			PlaystyleNotes string  `json:"playstyle_notes"`
+			RiskTolerance  string  `json:"risk_tolerance"`
+			DailyPlaytime  string  `json:"daily_playtime"`
+			URL            string  `json:"url"`
 		}
 		_ = json.Unmarshal([]byte(argsRaw), &args)
 
@@ -880,6 +1151,22 @@ func (s *CopilotService) executeAuraTool(
 				"actual_production_cost": fmt.Sprintf("%.2f", args.MaterialCost),
 				"actual_sell_price":      fmt.Sprintf("%.2f", args.UnitSellPrice),
 				"status":                 "DRAFT",
+			}
+		case "save_playbook":
+			card.Method = "POST"
+			card.URL = "/ai/memory"
+			risk := strings.ToUpper(strings.TrimSpace(args.RiskTolerance))
+			if risk == "" {
+				risk = "CONSERVATIVE"
+			}
+			playtime := strings.TrimSpace(args.DailyPlaytime)
+			if playtime == "" {
+				playtime = "30-60 mins/day"
+			}
+			card.Payload = map[string]string{
+				"playstyle_notes": strings.TrimSpace(args.PlaystyleNotes),
+				"risk_tolerance":  risk,
+				"daily_playtime":  playtime,
 			}
 		default:
 			card.Kind = "open_link"

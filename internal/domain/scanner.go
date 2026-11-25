@@ -106,6 +106,122 @@ type ArbitrageOpportunity struct {
 	Verdict             OpportunityVerdict `json:"verdict"`
 }
 
+// StockoutSignal classifies local trade-hub supply tightness for high-demand items.
+type StockoutSignal string
+
+const (
+	SignalStockout     StockoutSignal = "STOCKOUT"      // 0 active sell orders at hub despite regional demand
+	SignalThinSupply   StockoutSignal = "THIN_SUPPLY"   // <= 3 active sell orders (very low undercut competition)
+	SignalLocalPremium StockoutSignal = "LOCAL_PREMIUM" // Hub sell trades >= 15% above Jita benchmark
+)
+
+// StockoutOpportunity represents a local trade-hub supply crunch or low-competition premium item.
+type StockoutOpportunity struct {
+	TypeID             int32              `json:"type_id"`
+	Name               string             `json:"name"`
+	Category           string             `json:"category"`
+	HubKey             string             `json:"hub_key"`
+	HubName            string             `json:"hub_name"`
+	HubLowestSell      float64            `json:"hub_lowest_sell"`
+	JitaLowestSell     float64            `json:"jita_lowest_sell"`
+	PremiumOverJitaPct float64            `json:"premium_over_jita_pct"`
+	SellOrdersCount    int                `json:"sell_orders_count"`
+	BuyOrdersCount     int                `json:"buy_orders_count"`
+	DailyVolume7d      float64            `json:"daily_volume_7d"`
+	EstDailyMarketISK  float64            `json:"est_daily_market_isk"`
+	Signal             StockoutSignal     `json:"signal"`
+	Verdict            OpportunityVerdict `json:"verdict"`
+}
+
+// EvaluateStockoutOpportunity checks whether an item with real regional demand is stocked out,
+// has thin local competition (<=3 sellers), or commands a >=15% local premium over Jita.
+func EvaluateStockoutOpportunity(
+	typeID int32, name, category string,
+	hub TradeHub, hubPrice, jitaPrice JitaPrice, dailyVol7d float64,
+) (StockoutOpportunity, bool) {
+	// Require meaningful regional demand so we never flag dead/junk items
+	if dailyVol7d < 5 {
+		return StockoutOpportunity{}, false
+	}
+
+	var premPct float64
+	if jitaPrice.LowestSell > 0 && hubPrice.LowestSell > 0 {
+		premPct = RoundPercent(((hubPrice.LowestSell - jitaPrice.LowestSell) / jitaPrice.LowestSell) * 100.0)
+	}
+
+	var signal StockoutSignal
+	var verdict OpportunityVerdict
+
+	switch {
+	case hubPrice.SellOrdersCount == 0 || hubPrice.LowestSell <= 0:
+		signal = SignalStockout
+		verdict = VerdictStrong
+	case hubPrice.SellOrdersCount <= 3 && (premPct >= 8.0 || dailyVol7d >= 25):
+		signal = SignalThinSupply
+		if premPct >= 15.0 || dailyVol7d >= 100 {
+			verdict = VerdictStrong
+		} else {
+			verdict = VerdictModerate
+		}
+	case premPct >= 15.0 && hubPrice.SellOrdersCount <= 12:
+		signal = SignalLocalPremium
+		if premPct >= 25.0 {
+			verdict = VerdictStrong
+		} else {
+			verdict = VerdictModerate
+		}
+	default:
+		return StockoutOpportunity{}, false
+	}
+
+	refPrice := hubPrice.LowestSell
+	if refPrice <= 0 {
+		refPrice = jitaPrice.LowestSell * 1.20
+	}
+	estDailyISK := RoundISK(dailyVol7d * refPrice)
+
+	return StockoutOpportunity{
+		TypeID:             typeID,
+		Name:               name,
+		Category:           category,
+		HubKey:             hub.Key,
+		HubName:            hub.Name,
+		HubLowestSell:      RoundISK(hubPrice.LowestSell),
+		JitaLowestSell:     RoundISK(jitaPrice.LowestSell),
+		PremiumOverJitaPct: premPct,
+		SellOrdersCount:    hubPrice.SellOrdersCount,
+		BuyOrdersCount:     hubPrice.BuyOrdersCount,
+		DailyVolume7d:      RoundISK(dailyVol7d),
+		EstDailyMarketISK:  estDailyISK,
+		Signal:             signal,
+		Verdict:            verdict,
+	}, true
+}
+
+// SortStockoutOpportunities ranks STOCKOUT first, then THIN_SUPPLY, then LOCAL_PREMIUM, breaking ties by EstDailyMarketISK.
+func SortStockoutOpportunities(opps []StockoutOpportunity) {
+	sigRank := func(s StockoutSignal) int {
+		switch s {
+		case SignalStockout:
+			return 0
+		case SignalThinSupply:
+			return 1
+		default:
+			return 2
+		}
+	}
+	sort.Slice(opps, func(i, j int) bool {
+		ri, rj := sigRank(opps[i].Signal), sigRank(opps[j].Signal)
+		if ri != rj {
+			return ri < rj
+		}
+		if opps[i].PremiumOverJitaPct != opps[j].PremiumOverJitaPct {
+			return opps[i].PremiumOverJitaPct > opps[j].PremiumOverJitaPct
+		}
+		return opps[i].EstDailyMarketISK > opps[j].EstDailyMarketISK
+	})
+}
+
 // EvaluateStationTrade computes true net station-trading flip profit after Buy Broker Fee, Sell Broker Fee, and Sales Tax.
 func EvaluateStationTrade(typeID int32, name, category string, jp JitaPrice, brokerFeePct, salesTaxPct float64) StationTradeOpportunity {
 	return EvaluateStationTradeForHub(typeID, name, category, LookupTradeHub("jita"), jp, 0, brokerFeePct, salesTaxPct)

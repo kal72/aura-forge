@@ -216,6 +216,14 @@ templ DashboardPage(data *service.DashboardSummary) {
 							</button>
 							<button
 								type="button"
+								@click="setCat('reactions')"
+								:class="pulseCat === 'reactions' ? 'bg-cyan-400 text-slate-950 shadow-xs' : 'text-slate-300 hover:text-white'"
+								class="rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
+							>
+								Gas Reactions (8)
+							</button>
+							<button
+								type="button"
 								@click="setCat('pi')"
 								:class="pulseCat === 'pi' ? 'bg-violet-500 text-white shadow-xs' : 'text-slate-300 hover:text-white'"
 								class="rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
@@ -238,34 +246,6 @@ templ DashboardPage(data *service.DashboardSummary) {
 							>
 								Hot Blueprints
 							</button>
-							<button
-								type="button"
-								@click="setCat('global')"
-								:class="pulseCat === 'global' ? 'bg-rose-400 text-slate-950 shadow-xs' : 'text-slate-300 hover:text-white'"
-								class="rounded-md px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
-							>
-								Global Movers
-							</button>
-						</div>
-
-						<!-- Sort Toggle for Hot Blueprints (Hot Demand vs Price Rising) -->
-						<div x-cloak x-show="pulseCat === 'blueprints'" class="inline-flex rounded-lg border border-emerald-400/35 bg-slate-950/70 p-0.5">
-							<button
-								type="button"
-								@click="setSort('demand')"
-								:class="pulseSort === 'demand' ? 'bg-amber-400 text-slate-950' : 'text-slate-300 hover:text-white'"
-								class="rounded px-2 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer"
-							>
-								Hot Demand
-							</button>
-							<button
-								type="button"
-								@click="setSort('price')"
-								:class="pulseSort === 'price' ? 'bg-rose-400 text-slate-950' : 'text-slate-300 hover:text-white'"
-								class="rounded px-2 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer"
-							>
-								Price Rising ↑
-							</button>
 						</div>
 
 						<!-- Trade Hub Selector -->
@@ -285,6 +265,37 @@ templ DashboardPage(data *service.DashboardSummary) {
 							class="rounded-lg border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-[11px] font-semibold text-violet-200 hover:bg-violet-500/25 cursor-pointer"
 						>
 							Refresh
+						</button>
+					</div>
+				</div>
+
+				<!-- Dedicated Sub-Bar for Hot Blueprints Sort Toggle (prevents top tab row from shifting) -->
+				<div
+					x-cloak
+					x-show="pulseCat === 'blueprints'"
+					class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-emerald-400/25 bg-slate-950/60 px-3 py-1.5"
+				>
+					<div class="flex items-center gap-2 text-[11px] text-slate-300">
+						<span class="font-mono text-[10px] font-bold uppercase tracking-wider text-emerald-300">Hot Blueprints</span>
+						<span class="text-slate-500">•</span>
+						<span class="text-slate-400">Sort manufactured items by 7d demand surge or price momentum</span>
+					</div>
+					<div class="inline-flex rounded-lg border border-emerald-400/35 bg-slate-950/80 p-0.5">
+						<button
+							type="button"
+							@click="setSort('demand')"
+							:class="pulseSort === 'demand' ? 'bg-amber-400 text-slate-950' : 'text-slate-300 hover:text-white'"
+							class="rounded px-2.5 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer"
+						>
+							Hot Demand
+						</button>
+						<button
+							type="button"
+							@click="setSort('price')"
+							:class="pulseSort === 'price' ? 'bg-rose-400 text-slate-950' : 'text-slate-300 hover:text-white'"
+							class="rounded px-2.5 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer"
+						>
+							Price Rising ↑
 						</button>
 					</div>
 				</div>

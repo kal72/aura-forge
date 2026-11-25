@@ -110,3 +110,26 @@ func (h *Handlers) HandleScanArbitrage(w http.ResponseWriter, r *http.Request) {
 	}
 	_ = h.renderer.RenderScannerArbitrage(w, r, results, errMsg)
 }
+
+// HandleScanStockouts runs a live Local Hub Stockout & Thin-Supply Detector scan via Public ESI.
+func (h *Handlers) HandleScanStockouts(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	hubKey := strings.TrimSpace(r.FormValue("hub"))
+	category := strings.TrimSpace(r.FormValue("category"))
+
+	results, err := h.svc.ScanLocalStockoutOpportunities(r.Context(), hubKey, category)
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
+
+	if h.renderer == nil {
+		h.writeJSON(w, http.StatusOK, map[string]any{"results": results, "error": errMsg})
+		return
+	}
+	_ = h.renderer.RenderScannerStockouts(w, r, results, errMsg)
+}

@@ -209,6 +209,17 @@ templ PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) {
 					</div>
 
 					<div class="flex flex-wrap items-center gap-2">
+						if mode.AI.Enabled {
+							<button
+								type="button"
+								data-prompt={ fmt.Sprintf("Inspect my owned Blueprints, Hangar Stock, Active Jobs, and run the full Opportunity Radar at %s. Tell me which of my owned BPO/BPCs or market flips I should execute right now, and attach 1-click Action Cards.", view.ActiveHub.Name) }
+								data-ctx={ fmt.Sprintf("EVE Pilot Hub (%s): Wallet %s, Available Capital %s, MFG Slots %d/%d, Ready Jobs %d, Owned Blueprints %d, Hangar Distinct Items %d, Open Orders %d.", view.Profile.CharacterName, FormatISK(view.Profile.WalletBalance), FormatISK(view.AvailableCapital), view.Profile.UsedManufacturingSlots, view.Profile.TotalManufacturingSlots, view.ReadyJobsCount, view.TotalBlueprints, view.TotalHangarItems, view.TotalOrders) }
+								@click="window.dispatchEvent(new CustomEvent('open-aura-ai', { detail: { page: 'EVE Pilot Hub', context: $el.dataset.ctx, prompt: $el.dataset.prompt } }))"
+								class="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/55 bg-gradient-to-r from-violet-600/35 to-amber-500/25 px-3 py-2 text-xs font-bold text-amber-100 hover:border-amber-300/80 transition cursor-pointer"
+							>
+								<span>⚡ AI Opportunity Radar</span>
+							</button>
+						}
 						<button
 							type="button"
 							hx-post="/auth/sync"
