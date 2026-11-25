@@ -154,6 +154,11 @@ func (tr *TemplRenderer) RenderScannerStockouts(w http.ResponseWriter, r *http.R
 	return ScannerStockoutsPartial(results, errMsg).Render(r.Context(), w)
 }
 
+func (tr *TemplRenderer) RenderScannerReactions(w http.ResponseWriter, r *http.Request, results []domain.ReactionOpportunity, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return ScannerReactionsPartial(results, errMsg).Render(r.Context(), w)
+}
+
 func (tr *TemplRenderer) RenderWealth(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, summary *domain.WealthSummary) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	return WealthPage(mode, summary).Render(r.Context(), w)

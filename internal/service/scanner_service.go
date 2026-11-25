@@ -844,3 +844,125 @@ func (s *CopilotService) ScanLocalStockoutOpportunities(ctx context.Context, hub
 	domain.SortStockoutOpportunities(results)
 	return results, nil
 }
+
+// GasReactionScanRequest configures a live Hybrid Polymer Gas Reaction profitability scan.
+type GasReactionScanRequest struct {
+	HubKey              string
+	MaterialHubKey      string
+	RefineryKey         string
+	Runs                int // <= 0 = Auto ~24h cycle
+	MaterialPriceSource string
+	ProfitableOnly      bool
+}
+
+// ScanGasReactions evaluates all 8 EVE Online Fullerite Hybrid Polymer reaction formulas
+// with cross-hub material sourcing, refinery rig ME/TE bonuses, fees, break-even floor, and 7d volume.
+func (s *CopilotService) ScanGasReactions(ctx context.Context, req GasReactionScanRequest) ([]domain.ReactionOpportunity, error) {
+	if s.market == nil {
+		return nil, fmt.Errorf("Public ESI market provider is not available")
+	}
+
+	settings, _ := s.GetSettings(ctx)
+	sellHub := settings.ActiveTradeHub()
+	if strings.TrimSpace(req.HubKey) != "" {
+		sellHub = domain.LookupTradeHub(req.HubKey)
+	}
+	matHub := sellHub
+	if strings.TrimSpace(req.MaterialHubKey) != "" {
+		matHub = domain.LookupTradeHub(req.MaterialHubKey)
+	}
+	refinery := domain.LookupRefineryProfile(req.RefineryKey)
+	crossHub := matHub.Key != sellHub.Key
+
+	seenMat := make(map[int32]struct{})
+	matIDs := make([]int32, 0, 20)
+	prodIDs := make([]int32, 0, len(domain.HybridPolymerFormulas))
+	allIDs := make([]int32, 0, 28)
+	seenAll := make(map[int32]struct{})
+
+	for _, f := range domain.HybridPolymerFormulas {
+		prodIDs = append(prodIDs, f.ProductTypeID)
+		if _, ok := seenAll[f.ProductTypeID]; !ok {
+			seenAll[f.ProductTypeID] = struct{}{}
+			allIDs = append(allIDs, f.ProductTypeID)
+		}
+		for _, inp := range f.Inputs {
+			if _, ok := seenMat[inp.TypeID]; !ok {
+				seenMat[inp.TypeID] = struct{}{}
+				matIDs = append(matIDs, inp.TypeID)
+			}
+			if _, ok := seenAll[inp.TypeID]; !ok {
+				seenAll[inp.TypeID] = struct{}{}
+				allIDs = append(allIDs, inp.TypeID)
+			}
+		}
+	}
+
+	var (
+		sellPrices map[int32]domain.JitaPrice
+		matPrices  map[int32]domain.JitaPrice
+		vols       map[int32]float64
+		sellErr    error
+		matErr     error
+		wg         sync.WaitGroup
+	)
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		if crossHub {
+			sellPrices, sellErr = s.fetchHubPrices(ctx, sellHub, prodIDs)
+		} else {
+			sellPrices, sellErr = s.fetchHubPrices(ctx, sellHub, allIDs)
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		vols = s.fetchHubDailyVolumesBatch(ctx, sellHub, prodIDs)
+	}()
+	if crossHub {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			matPrices, matErr = s.fetchHubPrices(ctx, matHub, matIDs)
+		}()
+	}
+	wg.Wait()
+
+	if sellErr != nil {
+		return nil, fmt.Errorf("fetching %s polymer prices: %w", sellHub.Name, sellErr)
+	}
+	if matErr != nil {
+		return nil, fmt.Errorf("fetching %s reaction input prices: %w", matHub.Name, matErr)
+	}
+	if !crossHub {
+		matPrices = sellPrices
+	}
+
+	params := domain.ReactionCalcParams{
+		Runs:                req.Runs,
+		Refinery:            refinery,
+		SellHub:             sellHub,
+		MaterialHub:         matHub,
+		MaterialPriceSource: req.MaterialPriceSource,
+		SystemCostIndex:     settings.SystemCostIndex,
+		FacilityTaxPercent:  settings.FacilityTaxPercent,
+		BrokerFeePercent:    settings.BrokerFeePercent,
+		SalesTaxPercent:     settings.SalesTaxPercent,
+		RelistFeePercent:    settings.RelistFeePercent,
+	}
+
+	results := make([]domain.ReactionOpportunity, 0, len(domain.HybridPolymerFormulas))
+	for _, f := range domain.HybridPolymerFormulas {
+		opp, ok := domain.EvaluateGasReaction(f, params, matPrices, sellPrices, vols[f.ProductTypeID])
+		if !ok {
+			continue
+		}
+		if req.ProfitableOnly && opp.Verdict == domain.VerdictAvoid {
+			continue
+		}
+		results = append(results, opp)
+	}
+
+	domain.SortReactionOpportunities(results)
+	return results, nil
+}

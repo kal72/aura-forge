@@ -84,6 +84,7 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 		r.Route("/scanner", func(r chi.Router) {
 			r.Get("/", h.HandleScannerPage)
 			r.Post("/manufacturing", h.HandleScanManufacturing)
+			r.Post("/reactions", h.HandleScanReactions)
 			r.Post("/station-trading", h.HandleScanStationTrading)
 			r.Post("/arbitrage", h.HandleScanArbitrage)
 			r.Post("/stockouts", h.HandleScanStockouts)

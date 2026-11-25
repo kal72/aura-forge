@@ -148,3 +148,37 @@ func (h *Handlers) HandleScanStockouts(w http.ResponseWriter, r *http.Request) {
 	}
 	_ = h.renderer.RenderScannerStockouts(w, r, results, errMsg)
 }
+
+// HandleScanReactions runs a live Hybrid Polymer Gas Reaction profitability scan via Public ESI.
+func (h *Handlers) HandleScanReactions(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	runs := 0
+	if rawRuns := strings.TrimSpace(r.FormValue("runs")); rawRuns != "" {
+		runs = parseIntDefault(rawRuns, 0)
+	}
+
+	req := service.GasReactionScanRequest{
+		HubKey:              strings.TrimSpace(r.FormValue("hub")),
+		MaterialHubKey:      strings.TrimSpace(r.FormValue("material_hub")),
+		RefineryKey:         strings.TrimSpace(r.FormValue("refinery_key")),
+		Runs:                runs,
+		MaterialPriceSource: strings.TrimSpace(r.FormValue("material_price_source")),
+		ProfitableOnly:      r.FormValue("profitable_only") == "on" || r.FormValue("profitable_only") == "true",
+	}
+
+	results, err := h.svc.ScanGasReactions(r.Context(), req)
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
+
+	if h.renderer == nil {
+		h.writeJSON(w, http.StatusOK, map[string]any{"results": results, "error": errMsg})
+		return
+	}
+	_ = h.renderer.RenderScannerReactions(w, r, results, errMsg)
+}

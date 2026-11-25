@@ -30,15 +30,15 @@ func defaultArbDestHubKey(activeHubKey string) string {
 
 templ ScannerPage(mode service.ModeInfo, settings domain.UserSettings) {
 	@Layout("Opportunity Scanner", "scanner", mode) {
-		<div class="space-y-6" x-data="{ tab: 'manufacturing' }">
+		<div class="space-y-6" x-data="{ tab: new URLSearchParams(window.location.search).get('tab') || 'manufacturing' }">
 			<!-- Header -->
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-white">Opportunity Scanner</h1>
-					<p class="text-xs text-slate-300/80 mt-0.5">Discover profitable manufacturing runs, multi-hub station flips, and gank-safe inter-hub hauling routes across all 5 Empire Trade Hubs.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">Discover profitable manufacturing runs, gas reactions, multi-hub station flips, gank-safe hauling routes, and local stockouts across all 5 Empire Trade Hubs.</p>
 				</div>
 
-				<!-- 3-Mode Scanner Switcher -->
+				<!-- 5-Mode Scanner Switcher -->
 				<div class="inline-flex flex-wrap rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur">
 					<button
 						type="button"
@@ -47,6 +47,14 @@ templ ScannerPage(mode service.ModeInfo, settings domain.UserSettings) {
 						class="rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
 					>
 						Manufacturing ISK/hr
+					</button>
+					<button
+						type="button"
+						@click="tab = 'reactions'"
+						:class="tab === 'reactions' ? 'bg-cyan-400 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'"
+						class="rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
+					>
+						Gas Reactions
 					</button>
 					<button
 						type="button"
@@ -221,6 +229,86 @@ templ ScannerPage(mode service.ModeInfo, settings domain.UserSettings) {
 				<div id="scan-mfg-results">
 					<div class="tactical-panel rounded-xl p-8 text-center text-xs text-slate-300/80">
 						Choose your Trade Hub and click <strong>Run Manufacturing Scan</strong> to evaluate live SDE blueprint profitability, ISK/Hour, and 7d Daily Volume.
+					</div>
+				</div>
+			</div>
+
+			<!-- TAB 1B: GAS REACTIONS (HYBRID POLYMERS) PROFIT CALCULATOR & SCANNER -->
+			<div x-cloak x-show="tab === 'reactions'" class="space-y-5">
+				<div class="tactical-panel rounded-xl p-5 space-y-4">
+					<div class="flex flex-wrap items-center justify-between gap-2">
+						<div>
+							<h2 class="text-sm font-bold uppercase tracking-wider text-cyan-300">Gas Reactions — Hybrid Polymer Profit Scanner (8 Formulas)</h2>
+							<p class="text-xs text-slate-300/80 mt-0.5">Calculates live profit for all 8 Fullerite Hybrid Polymers (<strong>Gas + Mineral + Fuel Block → Polymer</strong>) with Athanor/Tatara rig bonuses, Cross-Hub sourcing, Break-Even Floor, and 1-click EVE Multibuy.</p>
+						</div>
+						<span class="text-[10px] font-mono text-slate-400">
+							{ fmt.Sprintf("SCI %.4f • Broker %.2f%% • Tax %.2f%%", settings.SystemCostIndex, settings.BrokerFeePercent, settings.SalesTaxPercent) }
+						</span>
+					</div>
+
+					<form
+						hx-post="/scanner/reactions"
+						hx-target="#scan-reactions-results"
+						hx-swap="innerHTML"
+						hx-indicator="#scan-reactions-spinner"
+						class="grid grid-cols-2 gap-3 sm:grid-cols-6"
+					>
+						<div>
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Sell Hub</label>
+							<select name="hub" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs text-white">
+								for _, h := range domain.MajorTradeHubs {
+									<option value={ h.Key } selected?={ h.Key == settings.ActiveTradeHub().Key }>{ h.Name }</option>
+								}
+							</select>
+						</div>
+						<div>
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Material Hub</label>
+							<select name="material_hub" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs text-white">
+								<option value="">Same as Sell Hub</option>
+								for _, h := range domain.MajorTradeHubs {
+									<option value={ h.Key }>{ h.Name }</option>
+								}
+							</select>
+						</div>
+						<div class="col-span-2">
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Refinery &amp; Rig Profile</label>
+							<select name="refinery_key" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs text-white">
+								for _, rp := range domain.DefaultRefineryProfiles {
+									<option value={ rp.Key }>{ rp.Name }</option>
+								}
+							</select>
+						</div>
+						<div>
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Runs <span class="text-slate-500">(blank=24h)</span></label>
+							<input type="number" name="runs" value="" placeholder="Auto (24h)" min="1" max="1000" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs font-mono text-white placeholder-slate-500"/>
+						</div>
+						<div>
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Input Pricing</label>
+							<select name="material_price_source" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs text-white">
+								<option value="jita_sell">Hub Sell</option>
+								<option value="jita_buy">Hub Buy</option>
+							</select>
+						</div>
+
+						<div class="col-span-2 sm:col-span-6 flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-violet-400/15">
+							<label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+								<input type="checkbox" name="profitable_only" class="rounded bg-slate-800 border-slate-600"/>
+								<span>Profitable Only (Hide AVOID)</span>
+							</label>
+							<button
+								type="submit"
+								class="inline-flex items-center gap-2 rounded-lg bg-cyan-400 px-5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-cyan-300 transition cursor-pointer"
+							>
+								<span id="scan-reactions-spinner" class="htmx-indicator h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent"></span>
+								<span>Scan Gas Reactions (Live ESI)</span>
+							</button>
+						</div>
+					</form>
+				</div>
+
+				<div id="scan-reactions-results">
+					<div class="tactical-panel rounded-xl p-8 text-center text-xs text-slate-300/80">
+						Select your Sell Hub, optional Material Hub, and Refinery Rig setup, then click <strong>Scan Gas Reactions</strong> to rank all 8 Fullerite Hybrid Polymers by ISK/Hour and Margin %.
 					</div>
 				</div>
 			</div>
@@ -783,6 +871,104 @@ templ ScannerStockoutsPartial(results []domain.StockoutOpportunity, errMsg strin
 									<a href={ templ.SafeURL("/marketplace?q=" + url.QueryEscape(r.Name) + "&hub=" + r.HubKey) } class="rounded border border-violet-400/40 bg-violet-500/15 px-2.5 py-1 text-[10px] font-semibold text-violet-100 hover:bg-violet-500/30">
 										Order Book →
 									</a>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	}
+}
+
+
+templ ScannerReactionsPartial(results []domain.ReactionOpportunity, errMsg string) {
+	if errMsg != "" {
+		<div class="tactical-panel rounded-xl p-4 border-rose-400/40 text-xs text-rose-200">{ errMsg }</div>
+	} else if len(results) == 0 {
+		<div class="tactical-panel rounded-xl p-8 text-center text-xs text-slate-400">No profitable Hybrid Polymer reactions match your selected hub &amp; filter right now.</div>
+	} else {
+		<div class="tactical-panel rounded-xl overflow-hidden">
+			<div class="overflow-x-auto">
+				<table class="w-full text-left text-xs">
+					<thead class="bg-slate-950/50 font-mono uppercase text-[10px] tracking-wider text-slate-400 border-b border-violet-400/15">
+						<tr>
+							<th class="px-4 py-3">Hybrid Polymer &amp; Gas Inputs</th>
+							<th class="px-3 py-3 text-right">Daily Vol (7d)</th>
+							<th class="px-3 py-3 text-right">Inputs + Job</th>
+							<th class="px-3 py-3 text-right">Rec. Sell / Floor</th>
+							<th class="px-3 py-3 text-right">Net Profit</th>
+							<th class="px-3 py-3 text-right">Margin / ROI</th>
+							<th class="px-3 py-3 text-right">ISK / Hour</th>
+							<th class="px-3 py-3">Verdict</th>
+							<th class="px-4 py-3 text-right">Action</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-violet-400/15">
+						for _, r := range results {
+							<tr class="hover:bg-white/5">
+								<td class="px-4 py-3">
+									<div class="flex items-center gap-2.5">
+										<img src={ EVEItemIconURL(r.ProductTypeID, 32) } alt={ r.ProductName } loading="lazy" class="h-8 w-8 shrink-0 rounded border border-cyan-400/30 bg-slate-950/80 object-contain" onerror="this.style.display='none'"/>
+										<div>
+											<div class="flex flex-wrap items-center gap-1.5">
+												<span class="font-semibold text-white">{ r.ProductName }</span>
+												<span class="rounded border border-cyan-400/35 bg-cyan-500/15 px-1.5 py-0.2 font-mono text-[9px] text-cyan-200">{ r.InputsSummary }</span>
+											</div>
+											<div class="font-mono text-[10px] text-slate-400">
+												if r.MaterialHubKey != "" && r.MaterialHubKey != r.HubKey {
+													<span class="text-sky-300 font-semibold">{ r.MaterialHubName } → { r.HubName }</span>
+												} else {
+													<span>{ r.HubName }</span>
+												}
+												<span>{ fmt.Sprintf(" • %dx runs (%d u) • %s", r.Runs, r.OutputQty, r.DurationFormatted) }</span>
+											</div>
+										</div>
+									</div>
+								</td>
+								<td class="px-3 py-3 text-right font-mono text-sky-200 whitespace-nowrap">{ FormatVolume(r.DailyVolume7d) }/d</td>
+								<td class="px-3 py-3 text-right font-mono whitespace-nowrap">
+									<div class="text-slate-200">{ FormatISK(r.InputCost + r.JobFeeISK) }</div>
+									<div class="text-[9.5px] text-slate-400">Job { FormatISK(r.JobFeeISK) }</div>
+								</td>
+								<td class="px-3 py-3 text-right font-mono whitespace-nowrap">
+									<div class="text-amber-200 font-semibold" title={ fmt.Sprintf("Recommended 4-sig-fig EVE sell price (lowest hub sell: %s)", FormatISK(r.ProductUnitSell)) }>
+										{ FormatISK(r.RecommendedSell) }
+									</div>
+									if r.BreakEvenSell > 0 {
+										<div class={ "text-[9.5px] " + func() string {
+											if r.RecommendedSell <= r.BreakEvenSell {
+												return "text-rose-300"
+											}
+											return "text-slate-400"
+										}() }>
+											Floor { FormatISK(r.BreakEvenSell) }
+										</div>
+									}
+								</td>
+								<td class={ "px-3 py-3 text-right font-mono font-bold whitespace-nowrap " + profitColor(r.NetProfit) }>{ FormatISK(r.NetProfit) }</td>
+								<td class="px-3 py-3 text-right font-mono text-slate-200 whitespace-nowrap">{ FormatPercent(r.NetMarginPercent) } / { FormatPercent(r.ROIPercent) }</td>
+								<td class={ "px-3 py-3 text-right font-mono font-bold whitespace-nowrap " + profitColor(r.ISKPerHour) }>{ FormatISK(r.ISKPerHour) }/h</td>
+								<td class="px-3 py-3">
+									<span class={ "inline-block rounded border px-2 py-0.5 font-mono text-[10px] font-bold " + verdictBadgeClass(r.Verdict) }>
+										{ string(r.Verdict) }
+									</span>
+								</td>
+								<td class="px-4 py-3 text-right whitespace-nowrap">
+									<div class="inline-flex items-center gap-1">
+										<button
+											type="button"
+											data-multibuy={ r.MultibuyText }
+											onclick="navigator.clipboard.writeText(this.dataset.multibuy); this.textContent='Copied!'; setTimeout(()=>this.textContent='Multibuy',1400)"
+											title="Copy Gas + Mineral + Fuel Block shopping list for EVE Online Multibuy"
+											class="rounded border border-cyan-400/40 bg-cyan-500/15 px-2 py-1 text-[10px] font-semibold text-cyan-200 hover:bg-cyan-500/30 cursor-pointer"
+										>
+											Multibuy
+										</button>
+										<a href={ templ.SafeURL("/marketplace?hub=" + r.HubKey + "&q=" + url.QueryEscape(r.ProductName)) } class="rounded border border-violet-400/35 bg-violet-500/15 px-2 py-1 text-[10px] font-semibold text-violet-100 hover:bg-violet-500/25">
+											Market
+										</a>
+									</div>
 								</td>
 							</tr>
 						}
