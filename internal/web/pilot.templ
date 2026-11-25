@@ -518,7 +518,7 @@ templ PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) {
 												</td>
 												<td class="px-4 py-2.5 text-right">
 													<a
-														href={ templ.SafeURL(fmt.Sprintf("/manufacture?bp=%d&me=%d&te=%d", bp.TypeID, bp.MaterialEfficiency, bp.TimeEfficiency)) }
+														href={ templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&me=%d&te=%d", bp.TypeID, bp.MaterialEfficiency, bp.TimeEfficiency)) }
 														class="rounded border border-amber-400/45 bg-amber-500/15 px-2.5 py-1 text-[10px] font-bold text-amber-200 hover:bg-amber-500/30 transition"
 													>
 														Manufacture →

@@ -126,17 +126,33 @@ func (h *Handlers) HandleManufacturePage(w http.ResponseWriter, r *http.Request)
 	blueprints, _ := h.svc.SearchBlueprints(r.Context(), "", "", 100)
 
 	var initialRes *domain.BlueprintCalcResult
-	if rawBP := strings.TrimSpace(r.URL.Query().Get("bp_id")); rawBP != "" {
+	rawBP := strings.TrimSpace(r.URL.Query().Get("bp_id"))
+	if rawBP == "" {
+		rawBP = strings.TrimSpace(r.URL.Query().Get("bp"))
+	}
+	if rawBP != "" {
 		if bpID, err := strconv.ParseInt(rawBP, 10, 32); err == nil && bpID > 0 {
 			hubKey := strings.TrimSpace(r.URL.Query().Get("hub"))
 			if hubKey == "" && settings != nil {
 				hubKey = settings.ActiveTradeHub().Key
 			}
+			me := 10
+			if rawME := strings.TrimSpace(r.URL.Query().Get("me")); rawME != "" {
+				if v, err := strconv.Atoi(rawME); err == nil && v >= 0 && v <= 10 {
+					me = v
+				}
+			}
+			te := 20
+			if rawTE := strings.TrimSpace(r.URL.Query().Get("te")); rawTE != "" {
+				if v, err := strconv.Atoi(rawTE); err == nil && v >= 0 && v <= 20 {
+					te = v
+				}
+			}
 			in := domain.BlueprintCalcInput{
 				BlueprintTypeID:     int32(bpID),
 				Runs:                parseIntDefault(r.URL.Query().Get("runs"), 1),
-				ME:                  parseIntDefault(r.URL.Query().Get("me"), 10),
-				TE:                  20,
+				ME:                  me,
+				TE:                  te,
 				HubKey:              hubKey,
 				MaterialPriceSource: "jita_sell",
 				SystemCostIndex:     settings.SystemCostIndex,
