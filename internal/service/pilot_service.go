@@ -44,9 +44,11 @@ type PilotHubViewData struct {
 	Orders           []domain.CharacterOrder     `json:"orders"`
 	Blueprints       []domain.CharacterBlueprint `json:"blueprints"`
 	HangarItems      []PilotHangarItem           `json:"hangar_items"`
-	TotalSellISK     float64                     `json:"total_sell_isk"`
-	TotalBuyISK      float64                     `json:"total_buy_isk"`
-	ReadyJobsCount   int                         `json:"ready_jobs_count"`
+	TotalSellISK     float64                            `json:"total_sell_isk"`
+	TotalBuyISK      float64                            `json:"total_buy_isk"`
+	ReadyJobsCount   int                                `json:"ready_jobs_count"`
+	UndercutCount    int                                `json:"undercut_count"`
+	OrderWatch       map[int64]domain.OrderWatchResult  `json:"order_watch,omitempty"`
 }
 
 // GetPilotHubView loads the connected character's profile, industry jobs, open orders, blueprints, and hangar stock
@@ -210,12 +212,66 @@ func (s *CopilotService) GetPilotHubView(ctx context.Context, activeTab, searchQ
 		view.Jobs = filtered[sIdx:eIdx]
 
 	case "orders":
+		// Live Undercut Watchdog: compare open orders against cache-first hub best prices
+		view.OrderWatch = make(map[int64]domain.OrderWatchResult, len(orders))
+		if s.market != nil && len(orders) > 0 {
+			type hubBatch struct {
+				hub     domain.TradeHub
+				typeIDs []int32
+				seen    map[int32]struct{}
+			}
+			batches := make(map[string]*hubBatch)
+			for _, o := range orders {
+				if o.TypeID <= 0 {
+					continue
+				}
+				h := domain.LookupTradeHubByRegion(o.RegionID, view.ActiveHub)
+				b, ok := batches[h.Key]
+				if !ok {
+					b = &hubBatch{hub: h, seen: make(map[int32]struct{})}
+					batches[h.Key] = b
+				}
+				if _, dup := b.seen[o.TypeID]; !dup {
+					b.seen[o.TypeID] = struct{}{}
+					b.typeIDs = append(b.typeIDs, o.TypeID)
+				}
+			}
+			hubPrices := make(map[string]map[int32]domain.JitaPrice, len(batches))
+			for key, b := range batches {
+				if p, err := s.fetchHubPrices(ctx, b.hub, b.typeIDs); err == nil {
+					hubPrices[key] = p
+				}
+			}
+			for _, o := range orders {
+				h := domain.LookupTradeHubByRegion(o.RegionID, view.ActiveHub)
+				hp := hubPrices[h.Key][o.TypeID]
+				w := domain.EvaluateOrderUndercut(o, hp)
+				view.OrderWatch[o.OrderID] = w
+				if w.Status == domain.OrderStatusUndercut {
+					view.UndercutCount++
+				}
+			}
+		}
+
+		// Surface undercut orders first, then sort by remaining order value descending
+		sort.SliceStable(orders, func(i, j int) bool {
+			wi := view.OrderWatch[orders[i].OrderID].Status == domain.OrderStatusUndercut
+			wj := view.OrderWatch[orders[j].OrderID].Status == domain.OrderStatusUndercut
+			if wi != wj {
+				return wi
+			}
+			return orders[i].Price*float64(orders[i].VolumeRemain) > orders[j].Price*float64(orders[j].VolumeRemain)
+		})
+
 		filtered := make([]domain.CharacterOrder, 0, len(orders))
 		for _, o := range orders {
 			if tf == "BUY" && !o.IsBuyOrder {
 				continue
 			}
 			if tf == "SELL" && o.IsBuyOrder {
+				continue
+			}
+			if tf == "UNDERCUT" && view.OrderWatch[o.OrderID].Status != domain.OrderStatusUndercut {
 				continue
 			}
 			if qLower != "" && !strings.Contains(strings.ToLower(o.TypeName), qLower) {

@@ -44,6 +44,8 @@ type ManufacturingOpportunity struct {
 	TechLevel         int                `json:"tech_level"`
 	HubKey            string             `json:"hub_key"`
 	HubName           string             `json:"hub_name"`
+	MaterialHubKey    string             `json:"material_hub_key,omitempty"`
+	MaterialHubName   string             `json:"material_hub_name,omitempty"`
 	Runs              int                `json:"runs"`
 	ME                int                `json:"me"`
 	TE                int                `json:"te"`

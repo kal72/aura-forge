@@ -41,6 +41,7 @@ func (h *Handlers) HandleScanManufacturing(w http.ResponseWriter, r *http.Reques
 
 	req := service.ManufacturingScanRequest{
 		HubKey:              strings.TrimSpace(r.FormValue("hub")),
+		MaterialHubKey:      strings.TrimSpace(r.FormValue("material_hub")),
 		Category:            strings.TrimSpace(r.FormValue("category")),
 		TechLevel:           parseIntDefault(r.FormValue("tech_level"), 0),
 		SearchQuery:         strings.TrimSpace(r.FormValue("q")),

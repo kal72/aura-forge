@@ -319,9 +319,15 @@ templ PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) {
 						} else if view.ActiveTab == "orders" {
 							<select name="filter" class="rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-xs text-slate-200">
 								<option value="" selected?={ view.TypeFilter == "" }>All Orders (BUY &amp; SELL)</option>
+								<option value="UNDERCUT" selected?={ view.TypeFilter == "UNDERCUT" }>Undercut Only</option>
 								<option value="SELL" selected?={ view.TypeFilter == "SELL" }>SELL Orders Only</option>
 								<option value="BUY" selected?={ view.TypeFilter == "BUY" }>BUY Orders Only</option>
 							</select>
+							if view.UndercutCount > 0 {
+								<span class="rounded-md border border-rose-400/50 bg-rose-500/20 px-2 py-1 font-mono text-[10px] font-bold text-rose-200">
+									{ fmt.Sprintf("%d UNDERCUT", view.UndercutCount) }
+								</span>
+							}
 						} else if view.ActiveTab == "blueprints" {
 							<select name="filter" class="rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-xs text-slate-200">
 								<option value="" selected?={ view.TypeFilter == "" }>All Blueprints (BPO &amp; BPC)</option>
@@ -420,13 +426,15 @@ templ PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) {
 										<tr>
 											<th class="px-4 py-3">Side &amp; Item</th>
 											<th class="px-3 py-3 text-right">Volume Remain</th>
-											<th class="px-3 py-3 text-right">Unit Price</th>
+											<th class="px-3 py-3 text-right">Your Price</th>
+											<th class="px-3 py-3 text-right">Market Watch (Undercut)</th>
 											<th class="px-3 py-3 text-right">Remaining Value</th>
 											<th class="px-4 py-3 text-right">Action</th>
 										</tr>
 									</thead>
 									<tbody class="divide-y divide-slate-800/80">
 										for _, o := range view.Orders {
+											{{ w := view.OrderWatch[o.OrderID] }}
 											<tr class="hover:bg-violet-500/5 transition">
 												<td class="px-4 py-2.5">
 													<div class="flex items-center gap-2.5">
@@ -446,9 +454,38 @@ templ PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) {
 														</div>
 													</div>
 												</td>
-												<td class="px-3 py-2.5 text-right font-mono text-slate-200">{ fmt.Sprintf("%d / %d", o.VolumeRemain, o.VolumeTotal) }</td>
-												<td class="px-3 py-2.5 text-right font-mono text-sky-300">{ FormatISK(o.Price) }</td>
-												<td class="px-3 py-2.5 text-right font-mono font-bold text-white">{ FormatISK(o.Price * float64(o.VolumeRemain)) }</td>
+												<td class="px-3 py-2.5 text-right font-mono text-slate-200 whitespace-nowrap">{ fmt.Sprintf("%d / %d", o.VolumeRemain, o.VolumeTotal) }</td>
+												<td class="px-3 py-2.5 text-right font-mono text-sky-300 whitespace-nowrap">{ FormatISK(o.Price) }</td>
+												<td class="px-3 py-2.5 text-right font-mono whitespace-nowrap">
+													if w.Status == domain.OrderStatusUndercut {
+														<div class="inline-flex items-center gap-1.5">
+															<span class="rounded border border-rose-400/50 bg-rose-500/20 px-1.5 py-0.5 text-[9px] font-bold text-rose-200">
+																UNDERCUT ({ FormatPercent(w.GapPercent) })
+															</span>
+														</div>
+														<div class="mt-0.5 text-[10px] text-slate-400">
+															Best: <span class="text-slate-200">{ FormatISK(w.MarketBestPrice) }</span>
+														</div>
+														if w.RecommendedPrice > 0 {
+															<div class="text-[10px] text-amber-200 font-semibold">
+																Rec: { FormatISK(w.RecommendedPrice) }
+																<button
+																	type="button"
+																	data-copy={ fmt.Sprintf("%.2f", w.RecommendedPrice) }
+																	onclick="navigator.clipboard.writeText(this.dataset.copy); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy',1200)"
+																	class="ml-1 rounded border border-amber-400/40 bg-amber-500/15 px-1 py-0.2 text-[9px] text-amber-200 hover:bg-amber-500/30 cursor-pointer"
+																>
+																	Copy
+																</button>
+															</div>
+														}
+													} else if w.Status == domain.OrderStatusTop {
+														<span class="rounded border border-emerald-400/45 bg-emerald-500/15 px-2 py-0.5 text-[9.5px] font-bold text-emerald-200">#1 TOP ORDER</span>
+													} else {
+														<span class="text-slate-500 text-[10px]">—</span>
+													}
+												</td>
+												<td class="px-3 py-2.5 text-right font-mono font-bold text-white whitespace-nowrap">{ FormatISK(o.Price * float64(o.VolumeRemain)) }</td>
 												<td class="px-4 py-2.5 text-right">
 													<a
 														href={ templ.SafeURL("/marketplace?hub=" + view.ActiveHub.Key + "&q=" + url.QueryEscape(o.TypeName)) }

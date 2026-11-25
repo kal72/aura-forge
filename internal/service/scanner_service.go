@@ -12,6 +12,7 @@ import (
 // ManufacturingScanRequest encapsulates all filters for Opportunity Scanner v2 Tab 1 (Manufacturing ISK/hr).
 type ManufacturingScanRequest struct {
 	HubKey              string
+	MaterialHubKey      string // Optional: separate hub to buy materials (blank = same as HubKey)
 	Category            string
 	TechLevel           int // 0 = All, 1 = T1, 2 = T2, 3 = T3
 	SearchQuery         string
@@ -284,6 +285,11 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 	if strings.TrimSpace(req.HubKey) != "" {
 		hub = domain.LookupTradeHub(req.HubKey)
 	}
+	matHub := hub
+	if strings.TrimSpace(req.MaterialHubKey) != "" {
+		matHub = domain.LookupTradeHub(req.MaterialHubKey)
+	}
+	crossHub := matHub.Key != hub.Key
 
 	// Optional instant local PostgreSQL lookup of connected pilot's owned blueprints (0ms, zero ESI call)
 	ownedByTypeID := make(map[int32]domain.CharacterBlueprint)
@@ -312,21 +318,32 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 	}
 
 	matsByBP := make(map[int32][]domain.SDEMaterialRequirement, len(bps))
-	seen := make(map[int32]struct{})
-	typeIDs := make([]int32, 0, len(bps)+24)
+	seenSell := make(map[int32]struct{})
+	seenMat := make(map[int32]struct{})
+	sellTypeIDs := make([]int32, 0, len(bps)+24)
+	matTypeIDs := make([]int32, 0, len(bps)+24)
 	productIDs := make([]int32, 0, len(bps))
-	addID := func(id int32) {
+	addSellID := func(id int32) {
 		if id <= 0 {
 			return
 		}
-		if _, ok := seen[id]; !ok {
-			seen[id] = struct{}{}
-			typeIDs = append(typeIDs, id)
+		if _, ok := seenSell[id]; !ok {
+			seenSell[id] = struct{}{}
+			sellTypeIDs = append(sellTypeIDs, id)
+		}
+	}
+	addMatID := func(id int32) {
+		if id <= 0 {
+			return
+		}
+		if _, ok := seenMat[id]; !ok {
+			seenMat[id] = struct{}{}
+			matTypeIDs = append(matTypeIDs, id)
 		}
 	}
 
 	for _, bp := range bps {
-		addID(bp.ProductTypeID)
+		addSellID(bp.ProductTypeID)
 		productIDs = append(productIDs, bp.ProductTypeID)
 		reqs, mErr := s.sde.GetBlueprintMaterials(ctx, bp.BlueprintTypeID)
 		if mErr != nil || len(reqs) == 0 {
@@ -334,17 +351,49 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 		}
 		matsByBP[bp.BlueprintTypeID] = reqs
 		for _, r := range reqs {
-			addID(r.MaterialTypeID)
+			if crossHub {
+				addMatID(r.MaterialTypeID)
+			} else {
+				addSellID(r.MaterialTypeID)
+			}
 		}
 	}
 
-	prices, err := s.fetchHubPrices(ctx, hub, typeIDs)
-	if err != nil {
-		return nil, fmt.Errorf("fetching live %s prices from Public ESI: %w", hub.Name, err)
+	var (
+		sellPrices map[int32]domain.JitaPrice
+		matPrices  map[int32]domain.JitaPrice
+		vols       map[int32]float64
+		sellErr    error
+		matErr     error
+		wg         sync.WaitGroup
+	)
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		sellPrices, sellErr = s.fetchHubPrices(ctx, hub, sellTypeIDs)
+	}()
+	go func() {
+		defer wg.Done()
+		vols = s.fetchHubDailyVolumesBatch(ctx, hub, productIDs)
+	}()
+	if crossHub {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			matPrices, matErr = s.fetchHubPrices(ctx, matHub, matTypeIDs)
+		}()
 	}
+	wg.Wait()
 
-	// Fetch 7d daily hub volume BEFORE run sizing so Auto Runs respects 20% daily liquidity cap
-	vols := s.fetchHubDailyVolumesBatch(ctx, hub, productIDs)
+	if sellErr != nil {
+		return nil, fmt.Errorf("fetching live %s prices from Public ESI: %w", hub.Name, sellErr)
+	}
+	if matErr != nil {
+		return nil, fmt.Errorf("fetching live %s material prices from Public ESI: %w", matHub.Name, matErr)
+	}
+	if !crossHub {
+		matPrices = sellPrices
+	}
 
 	results := make([]domain.ManufacturingOpportunity, 0, len(bps))
 
@@ -395,13 +444,27 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 
 		dailyVol := vols[bp.ProductTypeID]
 
+		// Build per-blueprint price map so Cross-Hub Manufacturing buys materials at matHub and sells product at hub
+		bpPrices := sellPrices
+		if crossHub {
+			bpPrices = make(map[int32]domain.JitaPrice, len(reqs)+1)
+			for _, r := range reqs {
+				if mp, ok := matPrices[r.MaterialTypeID]; ok {
+					bpPrices[r.MaterialTypeID] = mp
+				}
+			}
+			if sp, ok := sellPrices[bp.ProductTypeID]; ok {
+				bpPrices[bp.ProductTypeID] = sp
+			}
+		}
+
 		if req.Runs > 0 {
 			runs, runReason, autoSized = domain.RecommendManufacturingRuns(0, 0, bp.ProductQtyPerRun, dailyVol, availCap, req.Runs)
 			baseInput.Runs = runs
-			calcRes, cErr = domain.CalculateBlueprintManufacturing(bp, reqs, baseInput, prices)
+			calcRes, cErr = domain.CalculateBlueprintManufacturing(bp, reqs, baseInput, bpPrices)
 		} else {
 			// Evaluate 1-run baseline to measure exact duration & direct cost, then auto-size optimal runs
-			singleRes, sErr := domain.CalculateBlueprintManufacturing(bp, reqs, baseInput, prices)
+			singleRes, sErr := domain.CalculateBlueprintManufacturing(bp, reqs, baseInput, bpPrices)
 			if sErr != nil || singleRes.ProductUnitSellPrice <= 0 {
 				continue
 			}
@@ -421,7 +484,7 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 				calcRes, cErr = singleRes, nil
 			} else {
 				baseInput.Runs = runs
-				calcRes, cErr = domain.CalculateBlueprintManufacturing(bp, reqs, baseInput, prices)
+				calcRes, cErr = domain.CalculateBlueprintManufacturing(bp, reqs, baseInput, bpPrices)
 			}
 		}
 
@@ -451,6 +514,8 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 			TechLevel:         tech,
 			HubKey:            hub.Key,
 			HubName:           hub.Name,
+			MaterialHubKey:    matHub.Key,
+			MaterialHubName:   matHub.Name,
 			Runs:              runs,
 			ME:                me,
 			TE:                te,

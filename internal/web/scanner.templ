@@ -97,16 +97,25 @@ templ ScannerPage(mode service.ModeInfo, settings domain.UserSettings) {
 						class="grid grid-cols-2 gap-3 sm:grid-cols-6"
 					>
 						<div>
-							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Trade Hub</label>
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Sell Hub</label>
 							<select name="hub" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs text-white">
 								for _, h := range domain.MajorTradeHubs {
 									<option value={ h.Key } selected?={ h.Key == settings.ActiveTradeHub().Key }>{ h.Name }</option>
 								}
 							</select>
 						</div>
-						<div class="col-span-2 sm:col-span-2">
-							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Search Blueprint (Optional)</label>
-							<input type="text" name="q" placeholder="e.g. Hobgoblin, Venture, Missile, Shield..." class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs text-white placeholder-slate-500"/>
+						<div>
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Material Hub</label>
+							<select name="material_hub" title="Choose a different hub to buy materials (e.g. buy in Jita, sell in Amarr)" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs text-white">
+								<option value="">Same as Sell Hub</option>
+								for _, h := range domain.MajorTradeHubs {
+									<option value={ h.Key }>{ h.Name }</option>
+								}
+							</select>
+						</div>
+						<div>
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Search Blueprint</label>
+							<input type="text" name="q" placeholder="Hobgoblin, Venture..." class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs text-white placeholder-slate-500"/>
 						</div>
 						<div>
 							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Category</label>
@@ -449,7 +458,12 @@ templ ScannerManufacturingPartial(isAdmin bool, results []domain.ManufacturingOp
 												}
 											</div>
 											<div class="font-mono text-[10px] text-slate-400">
-												{ fmt.Sprintf("%s • %s • %dx runs (%d u) • %s", r.HubName, r.Category, r.Runs, r.OutputQty, r.DurationFormatted) }
+												if r.MaterialHubKey != "" && r.MaterialHubKey != r.HubKey {
+													<span class="text-sky-300 font-semibold">{ r.MaterialHubName } → { r.HubName }</span>
+												} else {
+													<span>{ r.HubName }</span>
+												}
+												<span>{ fmt.Sprintf(" • %s • %dx runs (%d u) • %s", r.Category, r.Runs, r.OutputQty, r.DurationFormatted) }</span>
 												if r.RunSizingReason != "" {
 													<span class="text-amber-300/90"> • { r.RunSizingReason }</span>
 												}
