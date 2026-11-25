@@ -126,6 +126,7 @@ func main() {
 	bgCtx, bgCancel := context.WithCancel(context.Background())
 	defer bgCancel()
 	copilotSvc.StartBackgroundPriceUpdater(bgCtx)
+	copilotSvc.StartBackgroundOpportunityRadar(bgCtx)
 
 	router := apphttp.NewRouterWithAuth(copilotSvc, authSvc, web.NewRenderer())
 

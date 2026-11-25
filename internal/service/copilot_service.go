@@ -133,6 +133,7 @@ type CopilotService struct {
 	ledger          domain.TradeLedgerRepository
 	priceSync       *priceSyncState
 	sdeImport       *sdeImportState
+	radar           *opportunityRadarState
 }
 
 // SetGlobalPriceSnapshotRepository attaches the optional PostgreSQL global price snapshot repository.

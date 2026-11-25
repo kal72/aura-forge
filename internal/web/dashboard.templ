@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"net/url"
 
 	"aura-forge/internal/domain"
 	"aura-forge/internal/service"
@@ -312,6 +313,20 @@ templ DashboardPage(data *service.DashboardSummary) {
 				</div>
 			</div>
 
+			<!-- Background Top-Opportunities Radar (Auto-Sweeps up to 160 Blueprints across 6 Categories) -->
+			<div
+				id="dashboard-opportunity-radar"
+				hx-get="/radar/top"
+				hx-trigger="load"
+				hx-swap="outerHTML"
+				class="tactical-panel rounded-xl p-4"
+			>
+				<div class="flex items-center gap-2 text-xs font-mono text-slate-400">
+					<span class="h-2 w-2 rounded-full bg-amber-400 animate-pulse"></span>
+					<span>Loading Background Top-Opportunities Radar...</span>
+				</div>
+			</div>
+
 			<!-- Two-Column Workspace: Daily Copilot Assistant (Admin Only) + Quick HTMX Calculator -->
 			<div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
 				<!-- Daily Copilot Assistant (Admin Only) -->
@@ -614,4 +629,150 @@ templ MineralTickerPartial(pulse service.MarketPulseResponse) {
 			}
 		</div>
 	}
+}
+
+
+templ DashboardRadarPartial(snap service.RadarSnapshot) {
+	<div
+		id="dashboard-opportunity-radar"
+		if snap.Running {
+			hx-get="/radar/top"
+			hx-trigger="every 3s"
+			hx-swap="outerHTML"
+		}
+		class="tactical-panel rounded-xl p-4 space-y-3"
+	>
+		<div class="flex flex-wrap items-center justify-between gap-2">
+			<div class="flex flex-wrap items-center gap-2">
+				if snap.Running {
+					<span class="h-2.5 w-2.5 animate-spin rounded-full border-2 border-amber-300 border-t-transparent"></span>
+				} else {
+					<span class="h-2 w-2 rounded-full bg-amber-400"></span>
+				}
+				<h2 class="text-xs font-bold uppercase tracking-wider text-amber-200">Top Opportunities Radar</h2>
+				if snap.EvaluatedCount > 0 {
+					<span class="rounded border border-emerald-400/35 bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-200">
+						{ fmt.Sprintf("%d Blueprints Scanned • %d Profitable", snap.EvaluatedCount, snap.ProfitableCount) }
+					</span>
+				}
+				if snap.HubName != "" {
+					<span class="font-mono text-[10px] text-slate-400">
+						{ snap.HubName } • { service.FormatRadarAge(snap.UpdatedAt) }
+					</span>
+				}
+			</div>
+
+			<div class="flex items-center gap-2">
+				<button
+					type="button"
+					hx-post="/radar/refresh"
+					hx-target="#dashboard-opportunity-radar"
+					hx-swap="outerHTML"
+					disabled?={ snap.Running }
+					class="rounded-lg border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-[11px] font-semibold text-amber-200 hover:bg-amber-500/25 disabled:opacity-50 cursor-pointer"
+				>
+					if snap.Running {
+						Scanning 160 BPs...
+					} else {
+						Rescan Now
+					}
+				</button>
+				<a
+					href="/scanner"
+					class="rounded-lg border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-[11px] font-semibold text-violet-200 hover:bg-violet-500/25"
+				>
+					Full Scanner →
+				</a>
+			</div>
+		</div>
+
+		if snap.LastError != "" && len(snap.TopOpportunities) == 0 {
+			<div class="rounded-lg border border-rose-400/30 bg-slate-950/60 p-3 text-xs text-rose-200">
+				{ snap.LastError }
+			</div>
+		} else if len(snap.TopOpportunities) == 0 {
+			<div class="rounded-lg border border-violet-400/20 bg-slate-950/60 p-4 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300">
+				if snap.Running {
+					<span>Sweeping up to <strong>160 blueprints</strong> across Drones, Ammo, Ships, Modules, Rigs &amp; Components using cache-first ESI — results will appear automatically in a few seconds...</span>
+				} else {
+					<span>Background 160-blueprint sweep runs automatically ~25s after server startup (every 30m), or click <strong>Rescan Now</strong> to run immediately.</span>
+				}
+			</div>
+		} else {
+			<div class="overflow-x-auto rounded-lg border border-violet-400/15 bg-slate-950/55">
+				<table class="w-full text-left text-xs">
+					<thead class="bg-slate-950/60 font-mono uppercase text-[9.5px] tracking-wider text-slate-400 border-b border-violet-400/15">
+						<tr>
+							<th class="px-3 py-2">Blueprint / Auto-Sizing</th>
+							<th class="px-2.5 py-2 text-right">Daily Vol</th>
+							<th class="px-2.5 py-2 text-right">Rec. Sell / Floor</th>
+							<th class="px-2.5 py-2 text-right">Net Profit</th>
+							<th class="px-2.5 py-2 text-right">Margin</th>
+							<th class="px-2.5 py-2 text-right">ISK / Hour</th>
+							<th class="px-2.5 py-2">Verdict</th>
+							<th class="px-3 py-2 text-right">Action</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-violet-400/10">
+						for _, r := range snap.TopOpportunities {
+							<tr class="hover:bg-white/5">
+								<td class="px-3 py-2">
+									<div class="flex items-center gap-2">
+										<img src={ EVEItemIconURL(r.ProductTypeID, 32) } alt={ r.ProductName } loading="lazy" class="h-7 w-7 shrink-0 rounded border border-violet-400/25 bg-slate-900 object-contain" onerror="this.style.display='none'"/>
+										<div class="min-w-0">
+											<div class="flex flex-wrap items-center gap-1">
+												<span class="font-semibold text-white truncate">{ r.ProductName }</span>
+												<span class="rounded bg-slate-800 px-1 font-mono text-[9px] text-amber-300">T{ fmt.Sprintf("%d", r.TechLevel) }</span>
+												<span class="rounded border border-violet-400/30 bg-violet-500/15 px-1 font-mono text-[9px] text-violet-200">{ fmt.Sprintf("ME%d/TE%d", r.ME, r.TE) }</span>
+												if r.OwnedBPO {
+													<span class="rounded border border-emerald-400/40 bg-emerald-500/20 px-1 font-mono text-[8.5px] font-bold text-emerald-200">OWNED</span>
+												}
+											</div>
+											<div class="font-mono text-[9.5px] text-slate-400">
+												{ fmt.Sprintf("%s • %dx runs (%d u) • %s", r.Category, r.Runs, r.OutputQty, r.DurationFormatted) }
+												if r.RunSizingReason != "" {
+													<span class="text-amber-300/85"> • { r.RunSizingReason }</span>
+												}
+											</div>
+										</div>
+									</div>
+								</td>
+								<td class="px-2.5 py-2 text-right font-mono text-sky-200 whitespace-nowrap">{ FormatVolume(r.DailyVolume7d) }/d</td>
+								<td class="px-2.5 py-2 text-right font-mono whitespace-nowrap">
+									<div class="text-amber-200 font-semibold">{ FormatISK(r.RecommendedSell) }</div>
+									if r.BreakEvenSell > 0 {
+										<div class="text-[9px] text-slate-400">Floor { FormatISK(r.BreakEvenSell) }</div>
+									}
+								</td>
+								<td class={ "px-2.5 py-2 text-right font-mono font-bold whitespace-nowrap " + profitColor(r.NetProfit) }>{ FormatISK(r.NetProfit) }</td>
+								<td class="px-2.5 py-2 text-right font-mono text-slate-200 whitespace-nowrap">{ FormatPercent(r.NetMarginPercent) }</td>
+								<td class={ "px-2.5 py-2 text-right font-mono font-bold whitespace-nowrap " + profitColor(r.ISKPerHour) }>{ FormatISK(r.ISKPerHour) }/h</td>
+								<td class="px-2.5 py-2 whitespace-nowrap">
+									<span class={ "inline-block rounded border px-1.5 py-0.5 font-mono text-[9.5px] font-bold " + verdictBadgeClass(r.Verdict) }>
+										{ string(r.Verdict) }
+									</span>
+								</td>
+								<td class="px-3 py-2 text-right whitespace-nowrap">
+									<div class="inline-flex items-center gap-1">
+										<a
+											href={ templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&me=%d&te=%d", r.BlueprintTypeID, r.ME, r.TE)) }
+											class="rounded border border-emerald-400/35 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-200 hover:bg-emerald-500/25"
+										>
+											Craft →
+										</a>
+										<a
+											href={ templ.SafeURL("/marketplace?hub=" + r.HubKey + "&q=" + url.QueryEscape(r.ProductName)) }
+											class="rounded border border-violet-400/35 bg-violet-500/15 px-2 py-0.5 text-[10px] font-semibold text-violet-100 hover:bg-violet-500/25"
+										>
+											Market
+										</a>
+									</div>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		}
+	</div>
 }

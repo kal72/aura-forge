@@ -90,6 +90,10 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.Post("/stockouts", h.HandleScanStockouts)
 		})
 
+		// Background Top-Opportunities Radar (Dashboard auto-sweep >40 blueprints)
+		r.Get("/radar/top", h.HandleDashboardRadar)
+		r.Post("/radar/refresh", h.HandleTriggerRadarRefresh)
+
 		// Public ESI actions (lookup & market pulse for all; sync/undercuts for admin only)
 		r.Route("/esi", func(r chi.Router) {
 			r.Get("/lookup", h.HandleLookupItemESI)

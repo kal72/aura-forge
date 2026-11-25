@@ -159,6 +159,11 @@ func (tr *TemplRenderer) RenderScannerReactions(w http.ResponseWriter, r *http.R
 	return ScannerReactionsPartial(results, errMsg).Render(r.Context(), w)
 }
 
+func (tr *TemplRenderer) RenderDashboardRadar(w http.ResponseWriter, r *http.Request, snap service.RadarSnapshot) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return DashboardRadarPartial(snap).Render(r.Context(), w)
+}
+
 func (tr *TemplRenderer) RenderWealth(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, summary *domain.WealthSummary) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	return WealthPage(mode, summary).Render(r.Context(), w)

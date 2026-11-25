@@ -44,6 +44,7 @@ type Renderer interface {
 	RenderScannerArbitrage(w http.ResponseWriter, r *http.Request, results []domain.ArbitrageOpportunity, errMsg string) error
 	RenderScannerStockouts(w http.ResponseWriter, r *http.Request, results []domain.StockoutOpportunity, errMsg string) error
 	RenderScannerReactions(w http.ResponseWriter, r *http.Request, results []domain.ReactionOpportunity, errMsg string) error
+	RenderDashboardRadar(w http.ResponseWriter, r *http.Request, snap service.RadarSnapshot) error
 	RenderWealth(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, summary *domain.WealthSummary) error
 	RenderInvention(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings) error
 	RenderInventionResult(w http.ResponseWriter, r *http.Request, res *domain.InventionOptimizationResult, errMsg string) error

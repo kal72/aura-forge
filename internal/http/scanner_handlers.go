@@ -182,3 +182,24 @@ func (h *Handlers) HandleScanReactions(w http.ResponseWriter, r *http.Request) {
 	}
 	_ = h.renderer.RenderScannerReactions(w, r, results, errMsg)
 }
+
+// HandleDashboardRadar returns the cached Background Top-Opportunities Radar partial for the Dashboard (0ms read).
+func (h *Handlers) HandleDashboardRadar(w http.ResponseWriter, r *http.Request) {
+	snap := h.svc.GetRadarSnapshot(r.Context())
+	if h.renderer == nil {
+		h.writeJSON(w, http.StatusOK, snap)
+		return
+	}
+	_ = h.renderer.RenderDashboardRadar(w, r, snap)
+}
+
+// HandleTriggerRadarRefresh starts a non-blocking background 160-blueprint radar sweep and returns the live status partial.
+func (h *Handlers) HandleTriggerRadarRefresh(w http.ResponseWriter, r *http.Request) {
+	h.svc.TriggerRadarRefresh()
+	snap := h.svc.GetRadarSnapshot(r.Context())
+	if h.renderer == nil {
+		h.writeJSON(w, http.StatusOK, snap)
+		return
+	}
+	_ = h.renderer.RenderDashboardRadar(w, r, snap)
+}
