@@ -89,6 +89,7 @@ templ ScannerPage(mode service.ModeInfo, settings domain.UserSettings) {
 					</div>
 
 					<form
+						x-data="{ showAdvanced: false }"
 						hx-post="/scanner/manufacturing"
 						hx-target="#scan-mfg-results"
 						hx-swap="innerHTML"
@@ -138,32 +139,52 @@ templ ScannerPage(mode service.ModeInfo, settings domain.UserSettings) {
 							</select>
 						</div>
 
-						<div>
-							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Runs</label>
-							<input type="number" name="runs" value="10" min="1" max="1000" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs font-mono text-white"/>
+						<!-- Smart Auto-Sizing Strip + Collapsible Override Toggle -->
+						<div class="col-span-2 sm:col-span-6 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-400/25 bg-slate-950/55 px-3 py-2">
+							<div class="flex flex-wrap items-center gap-2 text-[11px] text-slate-300">
+								<span class="rounded border border-emerald-400/40 bg-emerald-500/15 px-1.5 py-0.5 font-mono text-[9.5px] font-bold uppercase text-emerald-200">Auto-Sizing Active</span>
+								<span>
+									Runs auto-sized to <strong class="text-amber-200">24h slot</strong>, <strong class="text-amber-200">25% capital</strong> &amp; <strong class="text-amber-200">20% daily vol</strong> • ME/TE auto-set by Tech (<strong class="text-white">T1 10/20</strong>, <strong class="text-white">T2 2/4</strong>) or your <strong class="text-emerald-300">Owned BPO</strong>.
+								</span>
+							</div>
+							<button
+								type="button"
+								@click="showAdvanced = !showAdvanced"
+								class="shrink-0 rounded-md border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 font-mono text-[10px] font-bold text-violet-200 hover:bg-violet-500/25 transition cursor-pointer"
+							>
+								<span x-text="showAdvanced ? 'Hide Overrides ▲' : 'Customize Runs / ME / TE ▼'"></span>
+							</button>
 						</div>
-						<div>
-							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">ME (0–10)</label>
-							<input type="number" name="me" value="10" min="0" max="10" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs font-mono text-white"/>
-						</div>
-						<div>
-							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">TE (0–20)</label>
-							<input type="number" name="te" value="20" min="0" max="20" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs font-mono text-white"/>
-						</div>
-						<div class="col-span-2">
-							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Structure</label>
-							<select name="structure_key" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs text-white">
-								for _, st := range domain.DefaultStructureProfiles {
-									<option value={ st.Key }>{ st.Name }</option>
-								}
-							</select>
-						</div>
-						<div>
-							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Material Cost</label>
-							<select name="material_price_source" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs text-white">
-								<option value="jita_sell">Hub Sell</option>
-								<option value="jita_buy">Hub Buy</option>
-							</select>
+
+						<!-- Optional Manual Overrides (blank = Auto) -->
+						<div x-cloak x-show="showAdvanced" class="col-span-2 sm:col-span-6 grid grid-cols-2 gap-3 sm:grid-cols-6 rounded-lg border border-violet-400/20 bg-slate-950/45 p-3">
+							<div>
+								<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Runs <span class="text-slate-500">(blank = Auto)</span></label>
+								<input type="number" name="runs" value="" placeholder="Auto" min="1" max="1000" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs font-mono text-white placeholder-slate-500"/>
+							</div>
+							<div>
+								<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">ME 0–10 <span class="text-slate-500">(blank = Auto)</span></label>
+								<input type="number" name="me" value="" placeholder="Auto" min="0" max="10" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs font-mono text-white placeholder-slate-500"/>
+							</div>
+							<div>
+								<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">TE 0–20 <span class="text-slate-500">(blank = Auto)</span></label>
+								<input type="number" name="te" value="" placeholder="Auto" min="0" max="20" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs font-mono text-white placeholder-slate-500"/>
+							</div>
+							<div class="col-span-2">
+								<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Structure</label>
+								<select name="structure_key" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs text-white">
+									for _, st := range domain.DefaultStructureProfiles {
+										<option value={ st.Key }>{ st.Name }</option>
+									}
+								</select>
+							</div>
+							<div>
+								<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Material Cost</label>
+								<select name="material_price_source" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs text-white">
+									<option value="jita_sell">Hub Sell</option>
+									<option value="jita_buy">Hub Buy</option>
+								</select>
+							</div>
 						</div>
 
 						<div class="col-span-2 sm:col-span-6 flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-violet-400/15">
@@ -402,7 +423,7 @@ templ ScannerManufacturingPartial(isAdmin bool, results []domain.ManufacturingOp
 							<th class="px-4 py-3">Product / Tech / Hub</th>
 							<th class="px-3 py-3 text-right">Daily Vol (7d)</th>
 							<th class="px-3 py-3 text-right">Material Cost</th>
-							<th class="px-3 py-3 text-right">Hub Sell / Unit</th>
+							<th class="px-3 py-3 text-right">Rec. Sell / Floor</th>
 							<th class="px-3 py-3 text-right">Net Profit</th>
 							<th class="px-3 py-3 text-right">Margin / ROI</th>
 							<th class="px-3 py-3 text-right">ISK / Hour</th>
@@ -417,11 +438,22 @@ templ ScannerManufacturingPartial(isAdmin bool, results []domain.ManufacturingOp
 									<div class="flex items-center gap-2.5">
 										<img src={ EVEItemIconURL(r.ProductTypeID, 32) } alt={ r.ProductName } loading="lazy" class="h-8 w-8 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain" onerror="this.style.display='none'"/>
 										<div>
-											<div class="flex items-center gap-1.5">
+											<div class="flex flex-wrap items-center gap-1.5">
 												<span class="font-semibold text-white">{ r.ProductName }</span>
 												<span class="rounded bg-slate-800 px-1 py-0.2 font-mono text-[9px] text-amber-300">T{ fmt.Sprintf("%d", r.TechLevel) }</span>
+												<span class="rounded border border-violet-400/30 bg-violet-500/15 px-1.5 py-0.2 font-mono text-[9px] text-violet-200">
+													{ fmt.Sprintf("ME %d / TE %d", r.ME, r.TE) }
+												</span>
+												if r.OwnedBPO {
+													<span class="rounded border border-emerald-400/40 bg-emerald-500/20 px-1.5 py-0.2 font-mono text-[9px] font-bold text-emerald-200">OWNED BPO</span>
+												}
 											</div>
-											<div class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%s • %s • %dx runs (%d u) • %s", r.HubName, r.Category, r.Runs, r.OutputQty, r.DurationFormatted) }</div>
+											<div class="font-mono text-[10px] text-slate-400">
+												{ fmt.Sprintf("%s • %s • %dx runs (%d u) • %s", r.HubName, r.Category, r.Runs, r.OutputQty, r.DurationFormatted) }
+												if r.RunSizingReason != "" {
+													<span class="text-amber-300/90"> • { r.RunSizingReason }</span>
+												}
+											</div>
 										</div>
 									</div>
 								</td>
@@ -437,7 +469,21 @@ templ ScannerManufacturingPartial(isAdmin bool, results []domain.ManufacturingOp
 										<div class="text-[9px] text-rose-300">OVER CAP</div>
 									}
 								</td>
-								<td class="px-3 py-3 text-right font-mono text-amber-200 whitespace-nowrap">{ FormatISK(r.ProductUnitSell) }</td>
+								<td class="px-3 py-3 text-right font-mono whitespace-nowrap">
+									<div class="text-amber-200 font-semibold" title={ fmt.Sprintf("Recommended 4-sig-fig EVE sell price (lowest hub sell: %s)", FormatISK(r.ProductUnitSell)) }>
+										{ FormatISK(r.RecommendedSell) }
+									</div>
+									if r.BreakEvenSell > 0 {
+										<div class={ "text-[9.5px] " + func() string {
+											if r.RecommendedSell <= r.BreakEvenSell {
+												return "text-rose-300"
+											}
+											return "text-slate-400"
+										}() } title="Break-even floor after materials, job fee, broker fee, sales tax & relist fee — do not undercut below this price">
+											Floor { FormatISK(r.BreakEvenSell) }
+										</div>
+									}
+								</td>
 								<td class={ "px-3 py-3 text-right font-mono font-bold whitespace-nowrap " + profitColor(r.NetProfit) }>{ FormatISK(r.NetProfit) }</td>
 								<td class="px-3 py-3 text-right font-mono text-slate-200 whitespace-nowrap">{ FormatPercent(r.NetMarginPercent) } / { FormatPercent(r.ROIPercent) }</td>
 								<td class={ "px-3 py-3 text-right font-mono font-bold whitespace-nowrap " + profitColor(r.ISKPerHour) }>{ FormatISK(r.ISKPerHour) }/h</td>
@@ -448,8 +494,12 @@ templ ScannerManufacturingPartial(isAdmin bool, results []domain.ManufacturingOp
 								</td>
 								<td class="px-4 py-3 text-right whitespace-nowrap">
 									<div class="inline-flex items-center gap-1">
-										<a href="/calculator?mode=blueprint" title="Open Blueprint SDE Calculator" class="rounded border border-emerald-400/35 bg-emerald-500/15 px-2 py-1 text-[10px] font-semibold text-emerald-200 hover:bg-emerald-500/25">
-											Calc
+										<a
+											href={ templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&me=%d&te=%d", r.BlueprintTypeID, r.ME, r.TE)) }
+											title="Open in Blueprint Manufacturing Calculator with this ME/TE"
+											class="rounded border border-emerald-400/35 bg-emerald-500/15 px-2 py-1 text-[10px] font-semibold text-emerald-200 hover:bg-emerald-500/25"
+										>
+											Craft →
 										</a>
 										<a href={ templ.SafeURL("/marketplace?hub=" + r.HubKey + "&q=" + url.QueryEscape(r.ProductName)) } class="rounded border border-violet-400/35 bg-violet-500/15 px-2 py-1 text-[10px] font-semibold text-violet-100 hover:bg-violet-500/25">
 											Market
@@ -587,8 +637,15 @@ templ ScannerArbitragePartial(results []domain.ArbitrageOpportunity, errMsg stri
 								</td>
 								<td class="px-3 py-3 text-right text-sky-200 whitespace-nowrap">{ FormatVolume(r.DestDailyVolume7d) }</td>
 								<td class="px-3 py-3 text-right whitespace-nowrap">
-									<div class="text-emerald-200">{ FormatISK(r.OriginBuyPrice) }</div>
-									<div class="text-[10px] text-amber-200">→ { FormatISK(r.DestSellPrice) }</div>
+									<div class="text-emerald-200 text-[10px]">Buy { FormatISK(r.OriginBuyPrice) }</div>
+									<div class="text-amber-200 font-semibold" title={ fmt.Sprintf("Recommended 4-sig-fig sell order at %s (current lowest: %s)", r.DestHub.Name, FormatISK(r.DestSellPrice)) }>
+										Rec { FormatISK(r.RecommendedSell) }
+									</div>
+									if r.BreakEvenSell > 0 {
+										<div class="text-[9.5px] text-slate-400" title="Minimum break-even sell price after purchase, hauling, broker fee & sales tax">
+											Floor { FormatISK(r.BreakEvenSell) }
+										</div>
+									}
 								</td>
 								<td class="px-3 py-3 text-right whitespace-nowrap">
 									<div class={ "font-bold " + profitColor(r.NetProfitUnit) }>{ FormatISK(r.NetProfitUnit) }</div>
@@ -686,10 +743,17 @@ templ ScannerStockoutsPartial(results []domain.StockoutOpportunity, errMsg strin
 								</td>
 								<td class="px-3 py-3 text-right text-sky-200 whitespace-nowrap">{ FormatVolume(r.DailyVolume7d) }/d</td>
 								<td class="px-3 py-3 text-right whitespace-nowrap">
-									if r.HubLowestSell > 0 {
+									if r.RecommendedSell > 0 {
+										<div class="text-amber-200 font-semibold" title="Recommended 4-sig-fig EVE list price (1 tick under hub sell, or Jita +18% when stocked out)">
+											Rec { FormatISK(r.RecommendedSell) }
+										</div>
+									} else if r.HubLowestSell > 0 {
 										<div class="text-white font-semibold">{ FormatISK(r.HubLowestSell) }</div>
 									} else {
 										<div class="text-rose-300 font-bold">NO SUPPLY</div>
+									}
+									if r.HubLowestSell <= 0 {
+										<div class="text-[9.5px] text-rose-300 font-bold">STOCKOUT (Jita +18%)</div>
 									}
 									if r.JitaLowestSell > 0 {
 										<div class="text-[10px] text-emerald-300">

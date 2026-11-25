@@ -273,9 +273,6 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 	if s.market == nil {
 		return nil, fmt.Errorf("Public ESI market provider is not available")
 	}
-	if req.Runs <= 0 {
-		req.Runs = 10
-	}
 
 	settings, _ := s.GetSettings(ctx)
 	_, availCap, _ := s.resolveProfileAndCapital(ctx, *settings)
@@ -286,6 +283,23 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 	hub := settings.ActiveTradeHub()
 	if strings.TrimSpace(req.HubKey) != "" {
 		hub = domain.LookupTradeHub(req.HubKey)
+	}
+
+	// Optional instant local PostgreSQL lookup of connected pilot's owned blueprints (0ms, zero ESI call)
+	ownedByTypeID := make(map[int32]domain.CharacterBlueprint)
+	if s.chars != nil {
+		mode := s.GetModeInfo(ctx)
+		if mode.CharacterID > 0 {
+			if pilotBPs, err := s.chars.ListBlueprints(ctx, mode.CharacterID); err == nil {
+				for _, pbp := range pilotBPs {
+					prev, exists := ownedByTypeID[pbp.TypeID]
+					if !exists || pbp.MaterialEfficiency > prev.MaterialEfficiency ||
+						(pbp.MaterialEfficiency == prev.MaterialEfficiency && pbp.TimeEfficiency > prev.TimeEfficiency) {
+						ownedByTypeID[pbp.TypeID] = pbp
+					}
+				}
+			}
+		}
 	}
 
 	const maxScanBlueprints = 40
@@ -300,6 +314,7 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 	matsByBP := make(map[int32][]domain.SDEMaterialRequirement, len(bps))
 	seen := make(map[int32]struct{})
 	typeIDs := make([]int32, 0, len(bps)+24)
+	productIDs := make([]int32, 0, len(bps))
 	addID := func(id int32) {
 		if id <= 0 {
 			return
@@ -312,6 +327,7 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 
 	for _, bp := range bps {
 		addID(bp.ProductTypeID)
+		productIDs = append(productIDs, bp.ProductTypeID)
 		reqs, mErr := s.sde.GetBlueprintMaterials(ctx, bp.BlueprintTypeID)
 		if mErr != nil || len(reqs) == 0 {
 			continue
@@ -327,19 +343,35 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 		return nil, fmt.Errorf("fetching live %s prices from Public ESI: %w", hub.Name, err)
 	}
 
+	// Fetch 7d daily hub volume BEFORE run sizing so Auto Runs respects 20% daily liquidity cap
+	vols := s.fetchHubDailyVolumesBatch(ctx, hub, productIDs)
+
 	results := make([]domain.ManufacturingOpportunity, 0, len(bps))
-	volProductIDs := make([]int32, 0, len(bps))
 
 	for _, bp := range bps {
 		reqs := matsByBP[bp.BlueprintTypeID]
 		if len(reqs) == 0 {
 			continue
 		}
-		calcRes, cErr := domain.CalculateBlueprintManufacturing(bp, reqs, domain.BlueprintCalcInput{
+
+		tech := bp.TechLevel
+		if tech <= 0 {
+			tech = 1
+		}
+
+		var ownedPtr *domain.CharacterBlueprint
+		if owned, ok := ownedByTypeID[bp.BlueprintTypeID]; ok {
+			ownedCopy := owned
+			ownedPtr = &ownedCopy
+		}
+
+		me, te, ownedMatched, _ := domain.RecommendManufacturingMETE(tech, ownedPtr, req.ME, req.TE)
+
+		baseInput := domain.BlueprintCalcInput{
 			BlueprintTypeID:     bp.BlueprintTypeID,
-			Runs:                req.Runs,
-			ME:                  req.ME,
-			TE:                  req.TE,
+			Runs:                1,
+			ME:                  me,
+			TE:                  te,
 			StructureKey:        req.StructureKey,
 			HubKey:              hub.Key,
 			MaterialPriceSource: req.MaterialPriceSource,
@@ -351,7 +383,48 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 			RelistFeePercent:    settings.RelistFeePercent,
 			EstimatedRelists:    1,
 			BatchesPerWeek:      4,
-		}, prices)
+		}
+
+		var (
+			calcRes   domain.BlueprintCalcResult
+			cErr      error
+			runs      int
+			runReason string
+			autoSized bool
+		)
+
+		dailyVol := vols[bp.ProductTypeID]
+
+		if req.Runs > 0 {
+			runs, runReason, autoSized = domain.RecommendManufacturingRuns(0, 0, bp.ProductQtyPerRun, dailyVol, availCap, req.Runs)
+			baseInput.Runs = runs
+			calcRes, cErr = domain.CalculateBlueprintManufacturing(bp, reqs, baseInput, prices)
+		} else {
+			// Evaluate 1-run baseline to measure exact duration & direct cost, then auto-size optimal runs
+			singleRes, sErr := domain.CalculateBlueprintManufacturing(bp, reqs, baseInput, prices)
+			if sErr != nil || singleRes.ProductUnitSellPrice <= 0 {
+				continue
+			}
+			outPerRun := bp.ProductQtyPerRun
+			if outPerRun <= 0 {
+				outPerRun = 1
+			}
+			runs, runReason, autoSized = domain.RecommendManufacturingRuns(
+				float64(singleRes.EstimatedDurationSeconds),
+				singleRes.Profit.TotalDirectCost,
+				outPerRun,
+				dailyVol,
+				availCap,
+				0,
+			)
+			if runs == 1 {
+				calcRes, cErr = singleRes, nil
+			} else {
+				baseInput.Runs = runs
+				calcRes, cErr = domain.CalculateBlueprintManufacturing(bp, reqs, baseInput, prices)
+			}
+		}
+
 		if cErr != nil || calcRes.ProductUnitSellPrice <= 0 {
 			continue
 		}
@@ -365,10 +438,6 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 			continue
 		}
 
-		tech := bp.TechLevel
-		if tech <= 0 {
-			tech = 1
-		}
 		recSell := domain.RoundEVETick(calcRes.ProductUnitSellPrice * 0.999)
 		if recSell <= 0 {
 			recSell = calcRes.ProductUnitSellPrice
@@ -382,11 +451,18 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 			TechLevel:         tech,
 			HubKey:            hub.Key,
 			HubName:           hub.Name,
-			Runs:              req.Runs,
+			Runs:              runs,
+			ME:                me,
+			TE:                te,
+			OwnedBPO:          ownedMatched,
+			AutoSized:         autoSized,
+			RunSizingReason:   runReason,
 			OutputQty:         calcRes.TotalOutputQty,
 			MaterialCost:      calcRes.TotalMaterialCost,
 			ProductUnitSell:   calcRes.ProductUnitSellPrice,
 			RecommendedSell:   recSell,
+			BreakEvenSell:     calcRes.Profit.BreakEvenUnitPrice,
+			DailyVolume7d:     dailyVol,
 			FitsCapital:       fitsCap,
 			NetProfit:         calcRes.Profit.NetProfitPerBatch,
 			NetMarginPercent:  calcRes.Profit.NetMarginPercent,
@@ -395,13 +471,6 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 			DurationFormatted: calcRes.DurationFormatted,
 			Verdict:           verdict,
 		})
-		volProductIDs = append(volProductIDs, bp.ProductTypeID)
-	}
-
-	// Enrich with 7d daily volume at the selected hub (4 bounded workers, cached in esi_cache)
-	vols := s.fetchHubDailyVolumesBatch(ctx, hub, volProductIDs)
-	for i := range results {
-		results[i].DailyVolume7d = vols[results[i].ProductTypeID]
 	}
 
 	domain.SortManufacturingOpportunitiesBy(results, req.SortBy)

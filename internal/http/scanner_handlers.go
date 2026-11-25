@@ -25,14 +25,28 @@ func (h *Handlers) HandleScanManufacturing(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// Blank inputs default to Auto mode: Runs=0 (auto-sized), ME=-1 / TE=-1 (auto by Tech Level / Owned BPO)
+	runs := 0
+	if rawRuns := strings.TrimSpace(r.FormValue("runs")); rawRuns != "" {
+		runs = parseIntDefault(rawRuns, 0)
+	}
+	me := -1
+	if rawME := strings.TrimSpace(r.FormValue("me")); rawME != "" {
+		me = parseIntDefault(rawME, -1)
+	}
+	te := -1
+	if rawTE := strings.TrimSpace(r.FormValue("te")); rawTE != "" {
+		te = parseIntDefault(rawTE, -1)
+	}
+
 	req := service.ManufacturingScanRequest{
 		HubKey:              strings.TrimSpace(r.FormValue("hub")),
 		Category:            strings.TrimSpace(r.FormValue("category")),
 		TechLevel:           parseIntDefault(r.FormValue("tech_level"), 0),
 		SearchQuery:         strings.TrimSpace(r.FormValue("q")),
-		Runs:                parseIntDefault(r.FormValue("runs"), 10),
-		ME:                  parseIntDefault(r.FormValue("me"), 10),
-		TE:                  parseIntDefault(r.FormValue("te"), 20),
+		Runs:                runs,
+		ME:                  me,
+		TE:                  te,
 		StructureKey:        strings.TrimSpace(r.FormValue("structure_key")),
 		MaterialPriceSource: strings.TrimSpace(r.FormValue("material_price_source")),
 		ProfitableOnly:      r.FormValue("profitable_only") == "on" || r.FormValue("profitable_only") == "true",

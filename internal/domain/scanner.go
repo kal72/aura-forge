@@ -45,10 +45,16 @@ type ManufacturingOpportunity struct {
 	HubKey            string             `json:"hub_key"`
 	HubName           string             `json:"hub_name"`
 	Runs              int                `json:"runs"`
+	ME                int                `json:"me"`
+	TE                int                `json:"te"`
+	OwnedBPO          bool               `json:"owned_bpo"`
+	AutoSized         bool               `json:"auto_sized"`
+	RunSizingReason   string             `json:"run_sizing_reason,omitempty"`
 	OutputQty         int                `json:"output_qty"`
 	MaterialCost      float64            `json:"material_cost"`
 	ProductUnitSell   float64            `json:"product_unit_sell"`
 	RecommendedSell   float64            `json:"recommended_sell"`
+	BreakEvenSell     float64            `json:"break_even_sell"`
 	DailyVolume7d     float64            `json:"daily_volume_7d"`
 	FitsCapital       bool               `json:"fits_capital"`
 	NetProfit         float64            `json:"net_profit"`
@@ -89,9 +95,11 @@ type ArbitrageOpportunity struct {
 	Category            string             `json:"category"`
 	OriginHub           TradeHub           `json:"origin_hub"`
 	DestHub             TradeHub           `json:"dest_hub"`
-	OriginBuyPrice      float64            `json:"origin_buy_price"`  // Lowest Sell at origin (instant buy)
-	DestSellPrice       float64            `json:"dest_sell_price"`   // Lowest Sell at destination
-	DestBuyPrice        float64            `json:"dest_buy_price"`    // Highest Buy at destination (instant dump)
+	OriginBuyPrice      float64            `json:"origin_buy_price"` // Lowest Sell at origin (instant buy)
+	DestSellPrice       float64            `json:"dest_sell_price"`  // Lowest Sell at destination
+	DestBuyPrice        float64            `json:"dest_buy_price"`   // Highest Buy at destination (instant dump)
+	RecommendedSell     float64            `json:"recommended_sell"` // Suggested 4-sig-fig EVE sell order price at destination
+	BreakEvenSell       float64            `json:"break_even_sell"`  // Minimum sell price to break even after hauling + fees
 	UnitVolumeM3        float64            `json:"unit_volume_m3"`
 	DestDailyVolume7d   float64            `json:"dest_daily_volume_7d"`
 	HaulCostPerUnit     float64            `json:"haul_cost_per_unit"`
@@ -124,6 +132,7 @@ type StockoutOpportunity struct {
 	HubName            string             `json:"hub_name"`
 	HubLowestSell      float64            `json:"hub_lowest_sell"`
 	JitaLowestSell     float64            `json:"jita_lowest_sell"`
+	RecommendedSell    float64            `json:"recommended_sell"`
 	PremiumOverJitaPct float64            `json:"premium_over_jita_pct"`
 	SellOrdersCount    int                `json:"sell_orders_count"`
 	BuyOrdersCount     int                `json:"buy_orders_count"`
@@ -175,8 +184,15 @@ func EvaluateStockoutOpportunity(
 	}
 
 	refPrice := hubPrice.LowestSell
+	var recSell float64
 	if refPrice <= 0 {
-		refPrice = jitaPrice.LowestSell * 1.20
+		refPrice = jitaPrice.LowestSell * 1.18
+		recSell = RoundEVETick(refPrice)
+	} else {
+		recSell = RoundEVETick(refPrice * 0.999)
+		if recSell <= 0 {
+			recSell = RoundISK(refPrice)
+		}
 	}
 	estDailyISK := RoundISK(dailyVol7d * refPrice)
 
@@ -188,6 +204,7 @@ func EvaluateStockoutOpportunity(
 		HubName:            hub.Name,
 		HubLowestSell:      RoundISK(hubPrice.LowestSell),
 		JitaLowestSell:     RoundISK(jitaPrice.LowestSell),
+		RecommendedSell:    recSell,
 		PremiumOverJitaPct: premPct,
 		SellOrdersCount:    hubPrice.SellOrdersCount,
 		BuyOrdersCount:     hubPrice.BuyOrdersCount,
@@ -331,8 +348,18 @@ func EvaluateArbitrageWithTrip(
 	}
 
 	totalCost := originLowestSell + opp.HaulCostPerUnit
-	netRevenue := destLowestSell * (1.0 - (brokerFeePct+salesTaxPct)/100.0)
+	feeFactor := 1.0 - (brokerFeePct+salesTaxPct)/100.0
+	netRevenue := destLowestSell * feeFactor
 	netProfit := RoundISK(netRevenue - totalCost)
+
+	recSell := RoundEVETick(destLowestSell * 0.999)
+	if recSell <= 0 {
+		recSell = RoundISK(destLowestSell)
+	}
+	opp.RecommendedSell = recSell
+	if feeFactor > 0 {
+		opp.BreakEvenSell = RoundISK(totalCost / feeFactor)
+	}
 
 	opp.NetProfitUnit = netProfit
 	opp.NetMarginPct = RoundPercent((netProfit / destLowestSell) * 100.0)
