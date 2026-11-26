@@ -281,6 +281,196 @@ func mapActivityIDToName(id int) string {
 	}
 }
 
+type esiWalletTransaction struct {
+	TransactionID int64   `json:"transaction_id"`
+	Date          string  `json:"date"`
+	TypeID        int32   `json:"type_id"`
+	LocationID    int64   `json:"location_id"`
+	UnitPrice     float64 `json:"unit_price"`
+	Quantity      int     `json:"quantity"`
+	IsBuy         bool    `json:"is_buy"`
+}
+
+// SyncWalletTransactions fetches recent realized buy/sell transactions via Private ESI
+// using the existing esi-wallet.read_character_wallet.v1 scope.
+func (c *CharacterSyncClient) SyncWalletTransactions(ctx context.Context, token *domain.EVEToken) ([]domain.MarketTransaction, error) {
+	validTok, err := c.requireValidToken(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+
+	path := fmt.Sprintf("/characters/%d/wallet/transactions/?datasource=tranquility", validTok.CharacterID)
+	body, err := c.esiClient.DoGet(ctx, path, validTok.AccessToken, false)
+	if err != nil {
+		return nil, fmt.Errorf("syncing wallet transactions: %w", err)
+	}
+
+	var raw []esiWalletTransaction
+	if err := json.Unmarshal(body, &raw); err != nil {
+		return nil, fmt.Errorf("decoding wallet transactions: %w", err)
+	}
+
+	out := make([]domain.MarketTransaction, 0, len(raw))
+	for _, r := range raw {
+		ts, _ := time.Parse(time.RFC3339, r.Date)
+		if ts.IsZero() {
+			ts = time.Now().UTC()
+		}
+		side := domain.TransactionSideSell
+		if r.IsBuy {
+			side = domain.TransactionSideBuy
+		}
+		extID := r.TransactionID
+		tx := domain.MarketTransaction{
+			CharacterID:  validTok.CharacterID,
+			ExternalTxID: &extID,
+			TransactedAt: ts.UTC(),
+			Side:         side,
+			TypeID:       r.TypeID,
+			ItemName:     fmt.Sprintf("Type #%d", r.TypeID),
+			Quantity:     r.Quantity,
+			UnitPrice:    domain.RoundISK(r.UnitPrice),
+			TotalISK:     domain.RoundISK(r.UnitPrice * float64(r.Quantity)),
+			LocationID:   r.LocationID,
+			HubName:      mapStationIDToHubName(r.LocationID),
+			Source:       domain.TransactionSourceESI,
+		}
+		tx.DedupHash = domain.ComputeTransactionDedupHash(tx)
+		out = append(out, tx)
+	}
+	return out, nil
+}
+
+type esiWalletJournalEntry struct {
+	ID          int64   `json:"id"`
+	Date        string  `json:"date"`
+	RefType     string  `json:"ref_type"`
+	Amount      float64 `json:"amount"`
+	Description string  `json:"description"`
+}
+
+// SyncWalletJournalFees fetches market/industry/PI tax & broker fee entries from Private ESI wallet/journal.
+func (c *CharacterSyncClient) SyncWalletJournalFees(ctx context.Context, token *domain.EVEToken) ([]domain.WalletFeeEntry, error) {
+	validTok, err := c.requireValidToken(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+
+	path := fmt.Sprintf("/characters/%d/wallet/journal/?datasource=tranquility&page=1", validTok.CharacterID)
+	body, err := c.esiClient.DoGet(ctx, path, validTok.AccessToken, false)
+	if err != nil {
+		return nil, fmt.Errorf("syncing wallet journal fees: %w", err)
+	}
+
+	var raw []esiWalletJournalEntry
+	if err := json.Unmarshal(body, &raw); err != nil {
+		return nil, fmt.Errorf("decoding wallet journal: %w", err)
+	}
+
+	trackedTypes := map[string]bool{
+		"brokers_fee":          true,
+		"transaction_tax":      true,
+		"industry_job_tax":     true,
+		"planetary_import_tax": true,
+		"planetary_export_tax": true,
+	}
+
+	out := make([]domain.WalletFeeEntry, 0, len(raw)/4+1)
+	for _, r := range raw {
+		if !trackedTypes[r.RefType] {
+			continue
+		}
+		ts, _ := time.Parse(time.RFC3339, r.Date)
+		if ts.IsZero() {
+			ts = time.Now().UTC()
+		}
+		amt := r.Amount
+		if amt < 0 {
+			amt = -amt
+		}
+		out = append(out, domain.WalletFeeEntry{
+			CharacterID: validTok.CharacterID,
+			JournalID:   r.ID,
+			RecordedAt:  ts.UTC(),
+			RefType:     r.RefType,
+			AmountISK:   domain.RoundISK(amt),
+			Description: r.Description,
+		})
+	}
+	return out, nil
+}
+
+type esiOrderHistory struct {
+	OrderID      int64   `json:"order_id"`
+	TypeID       int32   `json:"type_id"`
+	IsBuyOrder   bool    `json:"is_buy_order"`
+	Price        float64 `json:"price"`
+	VolumeTotal  int     `json:"volume_total"`
+	VolumeRemain int     `json:"volume_remain"`
+	State        string  `json:"state"`
+	RegionID     int32   `json:"region_id"`
+	LocationID   int64   `json:"location_id"`
+	Issued       string  `json:"issued"`
+	Duration     int     `json:"duration"`
+}
+
+// SyncOrderHistory fetches completed, expired, and cancelled orders from the last 90 days via Private ESI.
+func (c *CharacterSyncClient) SyncOrderHistory(ctx context.Context, token *domain.EVEToken) ([]domain.CharacterOrderHistory, error) {
+	validTok, err := c.requireValidToken(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+
+	path := fmt.Sprintf("/characters/%d/orders/history/?datasource=tranquility&page=1", validTok.CharacterID)
+	body, err := c.esiClient.DoGet(ctx, path, validTok.AccessToken, false)
+	if err != nil {
+		return nil, fmt.Errorf("syncing order history: %w", err)
+	}
+
+	var raw []esiOrderHistory
+	if err := json.Unmarshal(body, &raw); err != nil {
+		return nil, fmt.Errorf("decoding order history: %w", err)
+	}
+
+	now := time.Now().UTC()
+	out := make([]domain.CharacterOrderHistory, 0, len(raw))
+	for _, r := range raw {
+		issued, _ := time.Parse(time.RFC3339, r.Issued)
+		if issued.IsZero() {
+			issued = now
+		}
+		out = append(out, domain.CharacterOrderHistory{
+			OrderID:      r.OrderID,
+			CharacterID:  validTok.CharacterID,
+			TypeID:       r.TypeID,
+			TypeName:     fmt.Sprintf("Type #%d", r.TypeID),
+			IsBuyOrder:   r.IsBuyOrder,
+			Price:        domain.RoundISK(r.Price),
+			VolumeTotal:  r.VolumeTotal,
+			VolumeRemain: r.VolumeRemain,
+			State:        r.State,
+			RegionID:     r.RegionID,
+			LocationID:   r.LocationID,
+			IssuedAt:     issued.UTC(),
+			DurationDays: r.Duration,
+			UpdatedAt:    now,
+		})
+	}
+	return out, nil
+}
+
+func mapStationIDToHubName(locationID int64) string {
+	for _, h := range domain.MajorTradeHubs {
+		if h.StationID == locationID {
+			return h.Name
+		}
+	}
+	if locationID > 0 {
+		return fmt.Sprintf("Station #%d", locationID)
+	}
+	return ""
+}
+
 // NoOpCharacterSyncProvider is a safe fallback when EVE SSO is not configured in .env.
 type NoOpCharacterSyncProvider struct{}
 
@@ -305,5 +495,17 @@ func (n *NoOpCharacterSyncProvider) SyncBlueprints(ctx context.Context, token *d
 }
 
 func (n *NoOpCharacterSyncProvider) SyncAssets(ctx context.Context, token *domain.EVEToken) ([]domain.HangarAsset, error) {
+	return nil, ErrSSODisabled
+}
+
+func (n *NoOpCharacterSyncProvider) SyncWalletTransactions(ctx context.Context, token *domain.EVEToken) ([]domain.MarketTransaction, error) {
+	return nil, ErrSSODisabled
+}
+
+func (n *NoOpCharacterSyncProvider) SyncWalletJournalFees(ctx context.Context, token *domain.EVEToken) ([]domain.WalletFeeEntry, error) {
+	return nil, ErrSSODisabled
+}
+
+func (n *NoOpCharacterSyncProvider) SyncOrderHistory(ctx context.Context, token *domain.EVEToken) ([]domain.CharacterOrderHistory, error) {
 	return nil, ErrSSODisabled
 }

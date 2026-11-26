@@ -1,0 +1,662 @@
+package web
+
+import (
+	"fmt"
+	"net/url"
+
+	"aura-forge/internal/domain"
+	"aura-forge/internal/service"
+)
+
+func pnlClassBadge(cls domain.ItemPnLClass) (string, string) {
+	switch cls {
+	case domain.ItemPnLCashCow:
+		return "CASH COW", "border-emerald-400/50 bg-emerald-500/20 text-emerald-200"
+	case domain.ItemPnLHealthy:
+		return "HEALTHY", "border-sky-400/45 bg-sky-500/15 text-sky-200"
+	case domain.ItemPnLThinMargin:
+		return "THIN MARGIN", "border-amber-400/45 bg-amber-500/15 text-amber-200"
+	case domain.ItemPnLLossMaker:
+		return "LOSS MAKER", "border-rose-400/50 bg-rose-500/20 text-rose-200"
+	default:
+		return "ACCUMULATING", "border-slate-600/60 bg-slate-800/70 text-slate-300"
+	}
+}
+
+func periodLabel(days int) string {
+	switch days {
+	case 0:
+		return "All Time"
+	case 7:
+		return "Last 7 Days"
+	case 30:
+		return "Last 30 Days"
+	case 90:
+		return "Last 90 Days"
+	default:
+		return fmt.Sprintf("Last %d Days", days)
+	}
+}
+
+templ ledgerPeriodLink(tab string, days int, activeDays int, side string, q string, label string) {
+	if days == activeDays {
+		<a
+			href={ templ.SafeURL(fmt.Sprintf("/tracker?tab=%s&days=%d&side=%s&q=%s", tab, days, url.QueryEscape(side), url.QueryEscape(q))) }
+			class="rounded-lg bg-amber-400 px-2.5 py-1 font-mono text-[11px] font-extrabold text-slate-950"
+		>
+			{ label }
+		</a>
+	} else {
+		<a
+			href={ templ.SafeURL(fmt.Sprintf("/tracker?tab=%s&days=%d&side=%s&q=%s", tab, days, url.QueryEscape(side), url.QueryEscape(q))) }
+			class="rounded-lg border border-slate-700/80 bg-slate-900/60 px-2.5 py-1 font-mono text-[11px] text-slate-300 hover:text-white transition"
+		>
+			{ label }
+		</a>
+	}
+}
+
+templ TrackerLedgerTab(mode service.ModeInfo, hub domain.TradeHub, ledger *service.TradeLedgerViewData) {
+	if ledger != nil {
+		<div class="space-y-5" x-data="{ showPaste: false, showManual: false }">
+			<!-- 4 Cash Flow & Fee KPIs -->
+			<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase tracking-wider text-rose-300/90">Total Purchases (Cash Out)</div>
+					<div class="mt-1 text-2xl font-bold font-mono text-rose-200">{ FormatISK(ledger.Report.TotalCashOutISK) }</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">{ fmt.Sprintf("%d BUY tx • %s", ledger.Report.TotalBuyCount, periodLabel(ledger.PeriodDays)) }</div>
+				</div>
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase tracking-wider text-emerald-300/90">Total Sales (Cash In)</div>
+					<div class="mt-1 text-2xl font-bold font-mono text-emerald-300">{ FormatISK(ledger.Report.TotalCashInISK) }</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">{ fmt.Sprintf("%d SELL tx • %s", ledger.Report.TotalSellCount, periodLabel(ledger.PeriodDays)) }</div>
+				</div>
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase tracking-wider text-sky-300/90">Net Cash Flow</div>
+					<div class={ "mt-1 text-2xl font-bold font-mono " + profitColor(ledger.Report.NetCashFlowISK) }>{ FormatISK(ledger.Report.NetCashFlowISK) }</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">Cash In minus Cash Out</div>
+				</div>
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase tracking-wider text-amber-300/90">Realized Fees &amp; Taxes</div>
+					<div class="mt-1 text-2xl font-bold font-mono text-amber-300">{ FormatISK(ledger.Report.FeeLeak.TotalFeesISK) }</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">
+						if ledger.Report.FeeLeak.UsingJournalData {
+							<span class="text-emerald-300">Exact ESI Journal ({ FormatPercent(ledger.Report.FeeLeak.FeeToSalesPct) } of sales)</span>
+						} else {
+							<span>Est. Fees ({ FormatPercent(ledger.Report.FeeLeak.FeeToSalesPct) } of sales)</span>
+						}
+					</div>
+				</div>
+			</div>
+
+			<!-- Action Bar: Private ESI Sync + Paste EVE Wallet + Manual Entry + Period Filters -->
+			<div class="tactical-panel rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
+				<div class="flex flex-wrap items-center gap-2">
+					if mode.SSOConnected {
+						<button
+							type="button"
+							hx-post="/tracker/ledger/sync-esi"
+							hx-swap="none"
+							hx-indicator="#ledger-esi-spin"
+							class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/50 bg-emerald-500/20 px-3 py-1.5 text-xs font-bold text-emerald-200 hover:bg-emerald-500/30 transition cursor-pointer"
+						>
+							<span id="ledger-esi-spin" class="htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-emerald-300 border-t-transparent"></span>
+							<span>Sync Private ESI (Wallet &amp; Orders)</span>
+						</button>
+					} else {
+						<span class="rounded-lg border border-slate-700/70 bg-slate-900/60 px-2.5 py-1.5 text-[11px] font-mono text-slate-400" title="Configure ESI_CLIENT_ID &amp; ESI_CLIENT_SECRET in .env to enable 1-click Private ESI Wallet Sync">
+							EVE SSO Optional — Using Paste / Manual Mode
+						</span>
+					}
+					<button
+						type="button"
+						@click="showPaste = !showPaste; if (showPaste) showManual = false"
+						class="rounded-lg border border-violet-400/50 bg-violet-500/20 px-3 py-1.5 text-xs font-bold text-violet-100 hover:bg-violet-500/30 transition cursor-pointer"
+					>
+						Paste EVE Wallet (1-Click)
+					</button>
+					<button
+						type="button"
+						@click="showManual = !showManual; if (showManual) showPaste = false"
+						class="rounded-lg border border-amber-400/45 bg-amber-500/15 px-3 py-1.5 text-xs font-bold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer"
+					>
+						+ Manual BUY / SELL
+					</button>
+				</div>
+
+				<div class="flex flex-wrap items-center gap-1.5">
+					@ledgerPeriodLink("ledger", 7, ledger.PeriodDays, ledger.SideFilter, ledger.SearchQuery, "7d")
+					@ledgerPeriodLink("ledger", 30, ledger.PeriodDays, ledger.SideFilter, ledger.SearchQuery, "30d")
+					@ledgerPeriodLink("ledger", 90, ledger.PeriodDays, ledger.SideFilter, ledger.SearchQuery, "90d")
+					@ledgerPeriodLink("ledger", 0, ledger.PeriodDays, ledger.SideFilter, ledger.SearchQuery, "All")
+				</div>
+			</div>
+
+			<!-- 1-Click EVE Wallet Transactions Paste Panel -->
+			<div x-cloak x-show="showPaste" x-transition class="tactical-panel rounded-xl p-5 space-y-3 border border-violet-400/35">
+				<div class="flex items-center justify-between gap-2">
+					<div>
+						<h3 class="text-sm font-bold uppercase tracking-wider text-violet-200">Import from EVE Online Wallet → Transactions</h3>
+						<p class="text-xs text-slate-400 mt-0.5">
+							In EVE Online, open <strong>Wallet → Transactions</strong>, press <kbd class="rounded bg-slate-800 px-1 py-0.5 font-mono text-[10px]">Ctrl+A</kbd> then <kbd class="rounded bg-slate-800 px-1 py-0.5 font-mono text-[10px]">Ctrl+C</kbd>, and paste below. Repeated pastes are automatically deduplicated.
+						</p>
+					</div>
+				</div>
+				<form hx-post="/tracker/ledger/import-paste" hx-swap="none" class="space-y-3">
+					<input type="hidden" name="hub_name" value={ hub.Name }/>
+					<textarea
+						name="paste_text"
+						rows="5"
+						required
+						placeholder="2026.11.22 14:30	Hobgoblin I	14,500.00 ISK	100	-1,450,000.00 ISK	Seller	Amarr VIII (Oris) - Emperor Family Academy&#10;or compact: BUY | Hobgoblin I | 100 | 14500"
+						class="w-full rounded-lg border border-slate-700 bg-slate-950/90 p-3 font-mono text-xs text-slate-100 placeholder-slate-500"
+					></textarea>
+					<div class="flex justify-end gap-2">
+						<button type="button" @click="showPaste = false" class="rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-300 cursor-pointer">Cancel</button>
+						<button type="submit" class="rounded-lg bg-violet-500 px-4 py-1.5 text-xs font-extrabold uppercase tracking-wider text-white hover:bg-violet-400 cursor-pointer">
+							Import Transactions
+						</button>
+					</div>
+				</form>
+			</div>
+
+			<!-- Quick Manual Transaction Panel -->
+			<div x-cloak x-show="showManual" x-transition class="tactical-panel rounded-xl p-5 space-y-3 border border-amber-400/35">
+				<h3 class="text-sm font-bold uppercase tracking-wider text-amber-300">Record Manual Buy / Sell Transaction</h3>
+				<form hx-post="/tracker/ledger/manual" hx-swap="none" class="grid grid-cols-1 gap-3 sm:grid-cols-6">
+					<div>
+						<label class="block text-[10px] font-mono uppercase text-slate-300">Side</label>
+						<select name="side" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs font-bold text-white">
+							<option value="BUY">BUY (Purchase)</option>
+							<option value="SELL">SELL (Sale)</option>
+						</select>
+					</div>
+					<div class="sm:col-span-2">
+						<label class="block text-[10px] font-mono uppercase text-slate-300">Item Name</label>
+						<input type="text" name="item_name" required placeholder="Hobgoblin I" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white"/>
+					</div>
+					<div>
+						<label class="block text-[10px] font-mono uppercase text-slate-300">Quantity</label>
+						<input type="number" name="quantity" min="1" value="1" required class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[10px] font-mono uppercase text-slate-300">Unit Price (ISK)</label>
+						<input type="number" step="0.01" name="unit_price" min="0.01" required placeholder="14500" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white"/>
+					</div>
+					<div>
+						<label class="block text-[10px] font-mono uppercase text-slate-300">Date</label>
+						<input type="date" name="transacted_at" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs font-mono text-white"/>
+					</div>
+					<div class="sm:col-span-2">
+						<label class="block text-[10px] font-mono uppercase text-slate-300">Hub / Station</label>
+						<input type="text" name="hub_name" value={ hub.Name } class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white"/>
+					</div>
+					<div class="sm:col-span-2">
+						<label class="block text-[10px] font-mono uppercase text-slate-300">Notes (Optional)</label>
+						<input type="text" name="notes" placeholder="e.g. Amarr buyback or PI export" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white"/>
+					</div>
+					<div class="sm:col-span-2 flex items-end justify-end gap-2">
+						<button type="button" @click="showManual = false" class="rounded-lg border border-slate-700 px-3 py-2 text-xs text-slate-300 cursor-pointer">Cancel</button>
+						<button type="submit" class="rounded-lg bg-amber-400 px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 cursor-pointer">Save Tx</button>
+					</div>
+				</form>
+			</div>
+
+			<!-- Side, Search & Show-Excluded Filter Bar -->
+			<div class="flex flex-wrap items-center justify-between gap-2">
+				<form method="GET" action="/tracker" class="flex flex-wrap items-center gap-2">
+					<input type="hidden" name="tab" value="ledger"/>
+					<input type="hidden" name="days" value={ fmt.Sprintf("%d", ledger.PeriodDays) }/>
+					if ledger.ShowExcluded {
+						<input type="hidden" name="show_excluded" value="1"/>
+					}
+					<select name="side" class="rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-xs text-slate-200">
+						<option value="" selected?={ ledger.SideFilter == "" }>All Sides (BUY &amp; SELL)</option>
+						<option value="BUY" selected?={ ledger.SideFilter == "BUY" }>BUY Only</option>
+						<option value="SELL" selected?={ ledger.SideFilter == "SELL" }>SELL Only</option>
+					</select>
+					<input
+						type="text"
+						name="q"
+						value={ ledger.SearchQuery }
+						placeholder="Filter item, hub, or note..."
+						class="w-60 rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-xs text-white placeholder-slate-500"
+					/>
+					<button type="submit" class="rounded-lg border border-violet-400/45 bg-violet-500/20 px-3 py-1.5 text-xs font-semibold text-violet-100 hover:bg-violet-500/30 cursor-pointer">
+						Filter
+					</button>
+				</form>
+
+				<div class="flex items-center gap-2">
+					if ledger.ShowExcluded {
+						<a
+							href={ templ.SafeURL(fmt.Sprintf("/tracker?tab=ledger&days=%d&side=%s&q=%s", ledger.PeriodDays, url.QueryEscape(ledger.SideFilter), url.QueryEscape(ledger.SearchQuery))) }
+							class="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/50 bg-amber-500/20 px-3 py-1.5 font-mono text-[11px] font-bold text-amber-200 hover:bg-amber-500/30 transition"
+						>
+							<span>Showing Excluded ({ fmt.Sprintf("%d", ledger.ExcludedCount) }) • Hide</span>
+						</a>
+					} else {
+						<a
+							href={ templ.SafeURL(fmt.Sprintf("/tracker?tab=ledger&days=%d&side=%s&q=%s&show_excluded=1", ledger.PeriodDays, url.QueryEscape(ledger.SideFilter), url.QueryEscape(ledger.SearchQuery))) }
+							class="inline-flex items-center gap-1.5 rounded-lg border border-slate-700/80 bg-slate-900/60 px-3 py-1.5 font-mono text-[11px] text-slate-300 hover:text-white transition"
+						>
+							<span>Show Excluded / Personal ({ fmt.Sprintf("%d", ledger.ExcludedCount) })</span>
+						</a>
+					}
+				</div>
+			</div>
+
+			<!-- Transactions Ledger Table with Multi-Select Exclude (Anti-Resurrection on ESI Sync) -->
+			<div
+				class="tactical-panel rounded-xl overflow-hidden"
+				x-data="{
+					selectedIds: [],
+					toggleAll(checked) {
+						if (checked) {
+							this.selectedIds = Array.from(this.$root.querySelectorAll('input[data-tx-id]')).map(el => el.dataset.txId);
+						} else {
+							this.selectedIds = [];
+						}
+					},
+					toggleOne(id, checked) {
+						if (checked) {
+							if (!this.selectedIds.includes(id)) this.selectedIds.push(id);
+						} else {
+							this.selectedIds = this.selectedIds.filter(x => x !== id);
+						}
+					}
+				}"
+			>
+				<!-- Contextual Bulk Action Bar -->
+				<div
+					x-cloak
+					x-show="selectedIds.length > 0"
+					x-transition
+					class="flex flex-wrap items-center justify-between gap-2 border-b border-amber-400/35 bg-amber-500/12 px-4 py-2.5 text-xs"
+				>
+					<div class="font-mono text-amber-200">
+						<strong x-text="selectedIds.length"></strong> transaction(s) selected — exclude personal/non-industry orders so Private ESI sync won't re-import them.
+					</div>
+					<div class="flex items-center gap-2">
+						<form hx-post="/tracker/ledger/exclude" hx-swap="none" class="inline">
+							<input type="hidden" name="excluded" value="true"/>
+							<input type="hidden" name="ids" :value="selectedIds.join(',')"/>
+							<button type="submit" class="rounded-lg border border-rose-400/55 bg-rose-500/20 px-3 py-1 text-[11px] font-bold text-rose-100 hover:bg-rose-500/35 cursor-pointer">
+								Exclude Selected (Non-Industry)
+							</button>
+						</form>
+						if ledger.ShowExcluded {
+							<form hx-post="/tracker/ledger/exclude" hx-swap="none" class="inline">
+								<input type="hidden" name="excluded" value="false"/>
+								<input type="hidden" name="ids" :value="selectedIds.join(',')"/>
+								<button type="submit" class="rounded-lg border border-emerald-400/55 bg-emerald-500/20 px-3 py-1 text-[11px] font-bold text-emerald-100 hover:bg-emerald-500/35 cursor-pointer">
+									Restore Selected
+								</button>
+							</form>
+						}
+						<button type="button" @click="selectedIds = []" class="text-[11px] text-slate-400 hover:text-white cursor-pointer">Clear</button>
+					</div>
+				</div>
+
+				if len(ledger.Transactions) == 0 {
+					<div class="p-10 text-center space-y-2">
+						<div class="text-sm font-semibold text-slate-200">No market transactions recorded in { periodLabel(ledger.PeriodDays) }.</div>
+						<div class="text-xs text-slate-400">
+							Click <strong>Sync Private ESI</strong> (if EVE SSO is connected), <strong>Paste EVE Wallet (1-Click)</strong>, or <strong>+ Manual BUY / SELL</strong> to build your closed-loop P&amp;L ledger.
+						</div>
+					</div>
+				} else {
+					<div class="overflow-x-auto">
+						<table class="w-full text-left text-xs">
+							<thead class="border-b border-violet-400/20 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400">
+								<tr>
+									<th class="px-3 py-3 w-8">
+										<input
+											type="checkbox"
+											title="Select all visible transactions"
+											@change="toggleAll($event.target.checked)"
+											class="rounded border-slate-600 bg-slate-950 text-amber-400 cursor-pointer"
+										/>
+									</th>
+									<th class="px-3 py-3">Date (UTC)</th>
+									<th class="px-3 py-3">Side</th>
+									<th class="px-3 py-3">Item</th>
+									<th class="px-3 py-3 text-right">Qty</th>
+									<th class="px-3 py-3 text-right">Unit Price</th>
+									<th class="px-3 py-3 text-right">Total ISK</th>
+									<th class="px-3 py-3">Hub / Source</th>
+									<th class="px-4 py-3 text-right">Action</th>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-slate-800/80">
+								for _, tx := range ledger.Transactions {
+									{{ txIDStr := fmt.Sprintf("%d", tx.ID) }}
+									<tr class={ "hover:bg-violet-500/5 transition " + func() string { if tx.IsExcluded { return "opacity-55 bg-slate-950/50" }; return "" }() }>
+										<td class="px-3 py-2.5">
+											<input
+												type="checkbox"
+												data-tx-id={ txIDStr }
+												:checked={ fmt.Sprintf("selectedIds.includes(%q)", txIDStr) }
+												@change={ fmt.Sprintf("toggleOne(%q, $event.target.checked)", txIDStr) }
+												class="rounded border-slate-600 bg-slate-950 text-amber-400 cursor-pointer"
+											/>
+										</td>
+										<td class="px-3 py-2.5 font-mono text-[11px] text-slate-300 whitespace-nowrap">
+											{ tx.TransactedAt.UTC().Format("2006-01-02 15:04") }
+										</td>
+										<td class="px-3 py-2.5">
+											<div class="flex items-center gap-1">
+												if tx.Side == domain.TransactionSideBuy {
+													<span class="rounded border border-rose-400/45 bg-rose-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-rose-200">BUY</span>
+												} else {
+													<span class="rounded border border-emerald-400/45 bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-200">SELL</span>
+												}
+												if tx.IsExcluded {
+													<span class="rounded border border-slate-600 bg-slate-800 px-1.5 py-0.5 font-mono text-[9px] font-bold text-slate-300">EXCLUDED</span>
+												}
+											</div>
+										</td>
+										<td class="px-3 py-2.5">
+											<div class="flex items-center gap-2">
+												if tx.TypeID > 0 {
+													<img src={ EVEItemIconURL(tx.TypeID, 32) } alt={ tx.ItemName } loading="lazy" class="h-6 w-6 rounded border border-slate-700 bg-slate-900 p-0.5 object-contain" onerror="this.style.display='none'"/>
+												}
+												<div>
+													<div class="font-semibold text-white">{ tx.ItemName }</div>
+													if tx.Notes != "" {
+														<div class="text-[10px] text-slate-400">{ tx.Notes }</div>
+													}
+												</div>
+											</div>
+										</td>
+										<td class="px-3 py-2.5 text-right font-mono text-slate-200">{ fmt.Sprintf("%d", tx.Quantity) }</td>
+										<td class="px-3 py-2.5 text-right font-mono text-slate-300">{ FormatISK(tx.UnitPrice) }</td>
+										<td class={ "px-3 py-2.5 text-right font-mono font-bold " + func() string { if tx.Side == domain.TransactionSideBuy { return "text-rose-200" }; return "text-emerald-300" }() }>
+											if tx.Side == domain.TransactionSideBuy {
+												-{ FormatISK(tx.TotalISK) }
+											} else {
+												+{ FormatISK(tx.TotalISK) }
+											}
+										</td>
+										<td class="px-3 py-2.5 text-[11px] text-slate-300">
+											<div>{ tx.HubName }</div>
+											<span class="font-mono text-[9px] uppercase text-slate-500">{ string(tx.Source) }</span>
+										</td>
+										<td class="px-4 py-2.5 text-right whitespace-nowrap">
+											<div class="inline-flex items-center gap-2">
+												if !tx.IsExcluded {
+													<form hx-post="/tracker/ledger/exclude" hx-swap="none" class="inline">
+														<input type="hidden" name="excluded" value="true"/>
+														<input type="hidden" name="ids" value={ txIDStr }/>
+														<button
+															type="submit"
+															title="Exclude from P&amp;L and prevent re-import on future Private ESI syncs"
+															class="rounded border border-slate-700 bg-slate-900 px-2 py-0.5 text-[10px] font-semibold text-slate-300 hover:border-rose-400/50 hover:text-rose-200 cursor-pointer"
+														>
+															Exclude
+														</button>
+													</form>
+												} else {
+													<form hx-post="/tracker/ledger/exclude" hx-swap="none" class="inline">
+														<input type="hidden" name="excluded" value="false"/>
+														<input type="hidden" name="ids" value={ txIDStr }/>
+														<button
+															type="submit"
+															class="rounded border border-emerald-400/45 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-200 hover:bg-emerald-500/30 cursor-pointer"
+														>
+															Restore
+														</button>
+													</form>
+												}
+												if tx.Source == domain.TransactionSourceManual {
+													<button
+														type="button"
+														hx-delete={ fmt.Sprintf("/tracker/ledger/tx/%d", tx.ID) }
+														hx-swap="none"
+														hx-confirm="Permanently delete this manual entry?"
+														class="text-[10px] text-rose-400 hover:underline cursor-pointer"
+													>
+														Delete
+													</button>
+												}
+											</div>
+										</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+					<div class="border-t border-slate-800/80 bg-slate-950/40 px-4 py-2 text-[11px] text-slate-400">
+						Tip: Use <strong>Exclude</strong> (single or multi-select) for personal/PvP/non-industry orders. Excluded rows are removed from P&amp;L &amp; Aura AI audits and will <strong>never be re-imported</strong> on future Private ESI syncs.
+					</div>
+				}
+			</div>
+		</div>
+	}
+}
+
+templ TrackerPnLTab(mode service.ModeInfo, hub domain.TradeHub, ledger *service.TradeLedgerViewData) {
+	if ledger != nil {
+		<div class="space-y-6">
+			<!-- Header Controls: Period Switcher + AI P&L Audit Button -->
+			<div class="flex flex-wrap items-center justify-between gap-3">
+				<div class="flex flex-wrap items-center gap-1.5">
+					@ledgerPeriodLink("pnl", 7, ledger.PeriodDays, "", "", "7d")
+					@ledgerPeriodLink("pnl", 30, ledger.PeriodDays, "", "", "30d")
+					@ledgerPeriodLink("pnl", 90, ledger.PeriodDays, "", "", "90d")
+					@ledgerPeriodLink("pnl", 0, ledger.PeriodDays, "", "", "All Time")
+				</div>
+				<div class="flex items-center gap-2">
+					if mode.AI.Enabled {
+						<button
+							type="button"
+							data-prompt={ fmt.Sprintf("Audit my Realized P&L & Trade Execution Ledger for the last %d days. Identify my top Cash Cows, Capital Drains, Broker/Relist Fee leaks, and give concrete actions to scale faster toward 100B ISK.", ledger.PeriodDays) }
+							data-ctx={ fmt.Sprintf("Tracker Realized P&L (%s): Realized Profit %s (ROI %.1f%%), Cash In %s, Cash Out %s, Total Fees %s (%.1f%% of sales), Open Inventory Cost Basis %s, Active Orders %d, Order History Avg Fill %.1f%%.", periodLabel(ledger.PeriodDays), FormatISK(ledger.Report.RealizedProfitISK), ledger.Report.RealizedROIPct, FormatISK(ledger.Report.TotalCashInISK), FormatISK(ledger.Report.TotalCashOutISK), FormatISK(ledger.Report.FeeLeak.TotalFeesISK), ledger.Report.FeeLeak.FeeToSalesPct, FormatISK(ledger.Report.OpenInventoryISK), ledger.Report.Orders.ActiveOrdersCount, ledger.Report.Orders.HistoryAvgFillPct) }
+							@click="window.dispatchEvent(new CustomEvent('open-aura-ai', { detail: { page: 'Tracker Realized P&L', context: $el.dataset.ctx, prompt: $el.dataset.prompt } }))"
+							class="inline-flex items-center gap-1.5 rounded-lg border border-violet-400/55 bg-violet-500/20 px-3 py-1.5 text-xs font-bold text-violet-100 hover:bg-violet-500/35 transition cursor-pointer"
+						>
+							<span>⚡ AI P&amp;L Audit</span>
+						</button>
+					}
+				</div>
+			</div>
+
+			<!-- 4 Closed-Loop Accounting KPIs -->
+			<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase tracking-wider text-emerald-300/90">Realized Net Profit</div>
+					<div class={ "mt-1 text-2xl font-bold font-mono " + profitColor(ledger.Report.RealizedProfitISK) }>{ FormatISK(ledger.Report.RealizedProfitISK) }</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">Weighted-Avg ROI: <strong class="text-slate-200">{ FormatPercent(ledger.Report.RealizedROIPct) }</strong></div>
+				</div>
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase tracking-wider text-amber-300/90">Open Inventory Cost Basis</div>
+					<div class="mt-1 text-2xl font-bold font-mono text-amber-200">{ FormatISK(ledger.Report.OpenInventoryISK) }</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">Unsold bought stock still held</div>
+				</div>
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase tracking-wider text-rose-300/90">Fee &amp; Tax Burden</div>
+					<div class="mt-1 text-2xl font-bold font-mono text-rose-200">{ FormatISK(ledger.Report.FeeLeak.TotalFeesISK) }</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">{ FormatPercent(ledger.Report.FeeLeak.FeeToSalesPct) } of gross sales</div>
+				</div>
+				<div class="tactical-panel rounded-xl p-4">
+					<div class="text-[10px] font-mono uppercase tracking-wider text-sky-300/90">Order Fill Rate (90d)</div>
+					<div class="mt-1 text-2xl font-bold font-mono text-sky-200">{ FormatPercent(ledger.Report.Orders.HistoryAvgFillPct) }</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">{ fmt.Sprintf("%d active • %d cancelled", ledger.Report.Orders.ActiveOrdersCount, ledger.Report.Orders.CancelledCount) }</div>
+				</div>
+			</div>
+
+			<!-- Fee & Tax Leak Detector Card -->
+			<div class="tactical-panel rounded-xl p-5 space-y-3">
+				<div class="flex flex-wrap items-center justify-between gap-2">
+					<h3 class="text-sm font-bold uppercase tracking-wider text-amber-300">Fee &amp; Tax Leak Detector</h3>
+					if ledger.Report.FeeLeak.UsingJournalData {
+						<span class="rounded border border-emerald-400/40 bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-200">EXACT PRIVATE ESI JOURNAL</span>
+					} else {
+						<span class="rounded border border-slate-700 bg-slate-900/70 px-2 py-0.5 font-mono text-[10px] text-slate-400">ESTIMATED FROM LEDGER FEES</span>
+					}
+				</div>
+				<div class="grid grid-cols-2 gap-3 sm:grid-cols-4 text-xs font-mono">
+					<div class="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+						<div class="text-[10px] text-slate-400 uppercase">Broker &amp; Relist</div>
+						<div class="mt-1 text-sm font-bold text-amber-200">{ FormatISK(ledger.Report.FeeLeak.BrokerAndRelistISK) }</div>
+					</div>
+					<div class="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+						<div class="text-[10px] text-slate-400 uppercase">Sales Tax</div>
+						<div class="mt-1 text-sm font-bold text-sky-200">{ FormatISK(ledger.Report.FeeLeak.SalesTaxISK) }</div>
+					</div>
+					<div class="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+						<div class="text-[10px] text-slate-400 uppercase">Industry Job Tax</div>
+						<div class="mt-1 text-sm font-bold text-violet-200">{ FormatISK(ledger.Report.FeeLeak.IndustryJobTaxISK) }</div>
+					</div>
+					<div class="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+						<div class="text-[10px] text-slate-400 uppercase">PI Import / Export</div>
+						<div class="mt-1 text-sm font-bold text-emerald-200">{ FormatISK(ledger.Report.FeeLeak.PITaxISK) }</div>
+					</div>
+				</div>
+				if ledger.Report.FeeLeak.LeakWarning != "" {
+					<div class="rounded-lg border border-rose-500/45 bg-rose-950/40 px-3.5 py-2.5 text-xs text-rose-200">
+						<strong>Leak Warning:</strong> { ledger.Report.FeeLeak.LeakWarning }
+					</div>
+				}
+			</div>
+
+			<!-- Realized P&L per Item (Weighted-Average Cost Basis) -->
+			<div class="tactical-panel rounded-xl overflow-hidden">
+				<div class="border-b border-violet-400/20 px-4 py-3 flex items-center justify-between">
+					<h3 class="text-sm font-bold uppercase tracking-wider text-white">Realized Profit &amp; Cost Basis by Item</h3>
+					<span class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%d items tracked", len(ledger.Report.Items)) }</span>
+				</div>
+				if len(ledger.Report.Items) == 0 {
+					<div class="p-8 text-center text-xs text-slate-400">
+						Import or sync transactions in the <strong>Buy &amp; Sell Ledger</strong> tab to compute per-item Realized P&amp;L and Cash Cow rankings.
+					</div>
+				} else {
+					<div class="overflow-x-auto">
+						<table class="w-full text-left text-xs">
+							<thead class="border-b border-violet-400/20 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400">
+								<tr>
+									<th class="px-4 py-2.5">Item &amp; Verdict</th>
+									<th class="px-3 py-2.5 text-right">Bought / Avg Buy</th>
+									<th class="px-3 py-2.5 text-right">Sold / Avg Sell</th>
+									<th class="px-3 py-2.5 text-right">Realized Net P&amp;L</th>
+									<th class="px-3 py-2.5 text-right">Realized ROI</th>
+									<th class="px-4 py-2.5 text-right">Open Inventory</th>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-slate-800/80">
+								for _, it := range ledger.Report.Items {
+									{{ badgeTxt, badgeCls := pnlClassBadge(it.Classification) }}
+									<tr class="hover:bg-violet-500/5 transition">
+										<td class="px-4 py-2.5">
+											<div class="flex items-center gap-2">
+												if it.TypeID > 0 {
+													<img src={ EVEItemIconURL(it.TypeID, 32) } alt={ it.ItemName } loading="lazy" class="h-6 w-6 rounded border border-slate-700 bg-slate-900 p-0.5 object-contain" onerror="this.style.display='none'"/>
+												}
+												<div>
+													<div class="font-semibold text-white">{ it.ItemName }</div>
+													<span class={ "mt-0.5 inline-block rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold " + badgeCls }>{ badgeTxt }</span>
+												</div>
+											</div>
+										</td>
+										<td class="px-3 py-2.5 text-right font-mono text-slate-300">
+											<div>{ fmt.Sprintf("%d u", it.QtyBought) }</div>
+											<div class="text-[10px] text-slate-400">{ FormatISK(it.AvgBuyPrice) }/u</div>
+										</td>
+										<td class="px-3 py-2.5 text-right font-mono text-slate-300">
+											<div>{ fmt.Sprintf("%d u", it.QtySold) }</div>
+											<div class="text-[10px] text-sky-300">{ FormatISK(it.AvgSellPrice) }/u</div>
+										</td>
+										<td class={ "px-3 py-2.5 text-right font-mono font-bold " + profitColor(it.RealizedProfitISK) }>
+											{ FormatISK(it.RealizedProfitISK) }
+										</td>
+										<td class="px-3 py-2.5 text-right font-mono text-slate-200">{ FormatPercent(it.RealizedROIPct) }</td>
+										<td class="px-4 py-2.5 text-right font-mono text-slate-300">
+											<div>{ fmt.Sprintf("%d u", it.OpenUnits) }</div>
+											<div class="text-[10px] text-amber-300">{ FormatISK(it.OpenCostBasisISK) }</div>
+										</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				}
+			</div>
+
+			<!-- Active & Historical Private ESI Market Orders -->
+			<div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+				<!-- Active Orders -->
+				<div class="tactical-panel rounded-xl overflow-hidden">
+					<div class="border-b border-violet-400/20 px-4 py-3 flex items-center justify-between">
+						<h3 class="text-xs font-bold uppercase tracking-wider text-sky-200">Active Market Orders (Private ESI)</h3>
+						<span class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%d open", len(ledger.ActiveOrders)) }</span>
+					</div>
+					if len(ledger.ActiveOrders) == 0 {
+						<div class="p-6 text-center text-xs text-slate-400">
+							No active character orders synced. Connect EVE SSO and click <strong>Sync Private ESI</strong> to track live open orders.
+						</div>
+					} else {
+						<div class="divide-y divide-slate-800/80 max-h-96 overflow-y-auto">
+							for _, o := range ledger.ActiveOrders {
+								<div class="px-4 py-2.5 flex items-center justify-between gap-2 text-xs">
+									<div class="min-w-0">
+										<div class="flex items-center gap-1.5">
+											if o.IsBuyOrder {
+												<span class="rounded bg-rose-500/20 px-1.5 py-0.5 font-mono text-[9px] font-bold text-rose-200">BUY</span>
+											} else {
+												<span class="rounded bg-emerald-500/20 px-1.5 py-0.5 font-mono text-[9px] font-bold text-emerald-200">SELL</span>
+											}
+											<span class="font-semibold text-white truncate">{ o.TypeName }</span>
+										</div>
+										<div class="mt-0.5 font-mono text-[10px] text-slate-400">
+											{ fmt.Sprintf("%d / %d remain • %s/u", o.VolumeRemain, o.VolumeTotal, FormatISK(o.Price)) }
+										</div>
+									</div>
+									<div class="text-right font-mono text-[11px] text-slate-200 shrink-0">
+										{ FormatISK(o.Price * float64(o.VolumeRemain)) }
+									</div>
+								</div>
+							}
+						</div>
+					}
+				</div>
+
+				<!-- Historical Orders (90d Archive) -->
+				<div class="tactical-panel rounded-xl overflow-hidden">
+					<div class="border-b border-violet-400/20 px-4 py-3 flex items-center justify-between">
+						<h3 class="text-xs font-bold uppercase tracking-wider text-violet-200">Order History Archive (Expired / Cancelled)</h3>
+						<span class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%d archived", len(ledger.OrderHistory)) }</span>
+					</div>
+					if len(ledger.OrderHistory) == 0 {
+						<div class="p-6 text-center text-xs text-slate-400">
+							No historical orders archived yet. Private ESI sync permanently archives your 90-day order history into PostgreSQL.
+						</div>
+					} else {
+						<div class="divide-y divide-slate-800/80 max-h-96 overflow-y-auto">
+							for _, h := range ledger.OrderHistory {
+								<div class="px-4 py-2.5 flex items-center justify-between gap-2 text-xs">
+									<div class="min-w-0">
+										<div class="flex items-center gap-1.5">
+											if h.IsBuyOrder {
+												<span class="rounded bg-rose-500/20 px-1.5 py-0.5 font-mono text-[9px] font-bold text-rose-200">BUY</span>
+											} else {
+												<span class="rounded bg-emerald-500/20 px-1.5 py-0.5 font-mono text-[9px] font-bold text-emerald-200">SELL</span>
+											}
+											<span class="font-semibold text-white truncate">{ h.TypeName }</span>
+											<span class="rounded border border-slate-700 bg-slate-900 px-1.5 py-0.5 font-mono text-[9px] uppercase text-slate-300">{ h.State }</span>
+										</div>
+										<div class="mt-0.5 font-mono text-[10px] text-slate-400">
+											{ fmt.Sprintf("Filled %d / %d (%.0f%%) @ %s/u", h.FilledUnits(), h.VolumeTotal, h.FillPercent(), FormatISK(h.Price)) }
+										</div>
+									</div>
+									<div class="text-right font-mono text-[10px] text-slate-400 shrink-0">
+										{ h.IssuedAt.UTC().Format("2006-01-02") }
+									</div>
+								</div>
+							}
+						</div>
+					}
+				</div>
+			</div>
+		</div>
+	}
+}

@@ -190,16 +190,21 @@ func (s *CopilotService) runOfficialCCPSDEImport(ctx context.Context, metaURL, z
 	log.Printf("[INFO] Downloaded official CCP SDE JSONL archive (%.1f MB, build=%d).", float64(written)/(1024*1024), buildNum)
 
 	// 3. Parse JSONL files directly from ZIP
-	s.sdeImport.setStage("parsing", "Parsing official categories, groups, types, and blueprints JSONL...")
-	types, blueprints, materials, matCount, err := ParseCCPSDEZip(tmpPath)
+	s.sdeImport.setStage("parsing", "Parsing official categories, groups, types, blueprints & T2 inventions JSONL...")
+	types, blueprints, materials, matCount, inventions, invMaterials, err := ParseCCPSDEZipFull(tmpPath)
 	if err != nil {
 		return err
 	}
 
 	// 4. Bulk upsert into PostgreSQL via UNNEST
-	s.sdeImport.setStage("saving", fmt.Sprintf("Saving %d blueprints & %d types to PostgreSQL...", len(blueprints), len(types)))
+	s.sdeImport.setStage("saving", fmt.Sprintf("Saving %d blueprints, %d T2 inventions & %d types to PostgreSQL...", len(blueprints), len(inventions), len(types)))
 	if err := s.sde.UpsertSDEData(ctx, types, blueprints, materials); err != nil {
 		return fmt.Errorf("upserting CCP SDE into PostgreSQL: %w", err)
+	}
+	if invRepo, ok := s.sde.(domain.SDEInventionRepository); ok && invRepo != nil && len(inventions) > 0 {
+		if err := invRepo.UpsertInventionData(ctx, inventions, invMaterials); err != nil {
+			return fmt.Errorf("upserting CCP SDE inventions into PostgreSQL: %w", err)
+		}
 	}
 
 	if ext, ok := s.sde.(domain.SDEExtendedRepository); ok && ext != nil {
@@ -210,11 +215,12 @@ func (s *CopilotService) runOfficialCCPSDEImport(ctx context.Context, metaURL, z
 			TypesCount:      len(types),
 			BlueprintsCount: len(blueprints),
 			MaterialsCount:  matCount,
+			InventionsCount: len(inventions),
 		})
 	}
 
-	s.sdeImport.setStage("done", fmt.Sprintf("Imported %d blueprints (%d materials) from official CCP SDE build #%d.", len(blueprints), matCount, buildNum))
-	log.Printf("[INFO] Official CCP SDE import complete: %d types, %d blueprints, %d material lines (build #%d).", len(types), len(blueprints), matCount, buildNum)
+	s.sdeImport.setStage("done", fmt.Sprintf("Imported %d blueprints, %d T2 inventions (%d materials) from official CCP SDE build #%d.", len(blueprints), len(inventions), matCount, buildNum))
+	log.Printf("[INFO] Official CCP SDE import complete: %d types, %d blueprints, %d inventions, %d material lines (build #%d).", len(types), len(blueprints), len(inventions), matCount, buildNum)
 	return nil
 }
 
@@ -302,8 +308,9 @@ type ccpBlueprintMaterial struct {
 }
 
 type ccpBlueprintProduct struct {
-	TypeID   int32 `json:"typeID"`
-	Quantity int   `json:"quantity"`
+	TypeID      int32   `json:"typeID"`
+	Quantity    int     `json:"quantity"`
+	Probability float64 `json:"probability"`
 }
 
 type ccpBlueprintActivity struct {
@@ -317,15 +324,31 @@ type ccpBlueprintRow struct {
 	Activities struct {
 		Manufacturing *ccpBlueprintActivity `json:"manufacturing"`
 		Reaction      *ccpBlueprintActivity `json:"reaction"`
+		Invention     *ccpBlueprintActivity `json:"invention"`
 	} `json:"activities"`
 }
 
-// ParseCCPSDEZip reads categories.jsonl, groups.jsonl, types.jsonl, and blueprints.jsonl from
-// an official CCP SDE JSONL ZIP archive and builds clean domain slices ready for bulk PostgreSQL upsert.
+// ParseCCPSDEZip is a backward-compatible wrapper around ParseCCPSDEZipFull.
 func ParseCCPSDEZip(zipPath string) ([]domain.SDEType, []domain.SDEBlueprint, map[int32][]domain.SDEMaterialRequirement, int, error) {
+	types, blueprints, materials, totalMatLines, _, _, err := ParseCCPSDEZipFull(zipPath)
+	return types, blueprints, materials, totalMatLines, err
+}
+
+// ParseCCPSDEZipFull reads categories.jsonl, groups.jsonl, types.jsonl, and blueprints.jsonl from
+// an official CCP SDE JSONL ZIP archive and builds clean domain slices including manufacturing,
+// reaction formulas (activity_type), and T1 -> T2 invention pathways + datacore materials.
+func ParseCCPSDEZipFull(zipPath string) (
+	[]domain.SDEType,
+	[]domain.SDEBlueprint,
+	map[int32][]domain.SDEMaterialRequirement,
+	int,
+	[]domain.SDEInvention,
+	map[int32][]domain.SDEInventionMaterial,
+	error,
+) {
 	zr, err := zip.OpenReader(zipPath)
 	if err != nil {
-		return nil, nil, nil, 0, fmt.Errorf("opening CCP SDE zip: %w", err)
+		return nil, nil, nil, 0, nil, nil, fmt.Errorf("opening CCP SDE zip: %w", err)
 	}
 	defer zr.Close()
 
@@ -390,19 +413,77 @@ func ParseCCPSDEZip(zipPath string) ([]domain.SDEType, []domain.SDEBlueprint, ma
 			typeInfo[row.Key] = row
 		}
 	}); err != nil {
-		return nil, nil, nil, 0, err
+		return nil, nil, nil, 0, nil, nil, err
 	}
 
-	// 4. Blueprints (required)
+	// 4. Blueprints (required) — manufacturing, reactions, and T1 -> T2 invention pathways
 	blueprints := make([]domain.SDEBlueprint, 0, 6000)
+	bpByID := make(map[int32]domain.SDEBlueprint, 6000)
 	materials := make(map[int32][]domain.SDEMaterialRequirement, 6000)
 	neededTypeIDs := make(map[int32]struct{}, 15000)
 	totalMatLines := 0
+
+	type rawInvention struct {
+		t1BPID   int32
+		t2BPID   int32
+		prob     float64
+		runs     int
+		timeSec  int
+		mats     []domain.SDEInventionMaterial
+	}
+	rawInventions := make([]rawInvention, 0, 2000)
 
 	if err := readLines("blueprints.jsonl", func(line []byte) {
 		var row ccpBlueprintRow
 		if json.Unmarshal(line, &row) != nil || row.Key <= 0 {
 			return
+		}
+
+		// Capture T1 -> T2 invention activity if present
+		if row.Activities.Invention != nil && len(row.Activities.Invention.Products) > 0 && len(row.Activities.Invention.Materials) > 0 {
+			invAct := row.Activities.Invention
+			invMats := make([]domain.SDEInventionMaterial, 0, len(invAct.Materials))
+			for _, m := range invAct.Materials {
+				if m.TypeID <= 0 || m.Quantity <= 0 {
+					continue
+				}
+				if _, ok := typeInfo[m.TypeID]; !ok {
+					continue
+				}
+				neededTypeIDs[m.TypeID] = struct{}{}
+				invMats = append(invMats, domain.SDEInventionMaterial{
+					T1BlueprintTypeID: row.Key,
+					MaterialTypeID:    m.TypeID,
+					Quantity:          int(m.Quantity),
+				})
+			}
+			if len(invMats) > 0 {
+				invTime := invAct.Time
+				if invTime <= 0 {
+					invTime = 3600
+				}
+				for _, p := range invAct.Products {
+					if p.TypeID <= 0 {
+						continue
+					}
+					prob := p.Probability
+					if prob <= 0 {
+						prob = 0.26
+					}
+					runs := p.Quantity
+					if runs <= 0 {
+						runs = 1
+					}
+					rawInventions = append(rawInventions, rawInvention{
+						t1BPID:  row.Key,
+						t2BPID:  p.TypeID,
+						prob:    prob,
+						runs:    runs,
+						timeSec: invTime,
+						mats:    invMats,
+					})
+				}
+			}
 		}
 
 		var act *ccpBlueprintActivity
@@ -470,8 +551,12 @@ func ParseCCPSDEZip(zipPath string) ([]domain.SDEType, []domain.SDEBlueprint, ma
 			return
 		}
 
+		activityType := "manufacturing"
+		if isReaction {
+			activityType = "reaction"
+		}
 		neededTypeIDs[prod.TypeID] = struct{}{}
-		blueprints = append(blueprints, domain.SDEBlueprint{
+		bp := domain.SDEBlueprint{
 			BlueprintTypeID:  row.Key,
 			Name:             bpName,
 			ProductTypeID:    prod.TypeID,
@@ -480,11 +565,35 @@ func ParseCCPSDEZip(zipPath string) ([]domain.SDEType, []domain.SDEBlueprint, ma
 			BaseTimeSeconds:  baseTime,
 			TechLevel:        techLevel,
 			Category:         category,
-		})
+			ActivityType:     activityType,
+		}
+		blueprints = append(blueprints, bp)
+		bpByID[row.Key] = bp
 		materials[row.Key] = matList
 		totalMatLines += len(matList)
 	}); err != nil {
-		return nil, nil, nil, 0, err
+		return nil, nil, nil, 0, nil, nil, err
+	}
+
+	// Resolve T1 -> T2 invention rows against parsed T2 blueprints so every invention carries its T2 ProductTypeID & Name
+	inventions := make([]domain.SDEInvention, 0, len(rawInventions))
+	invMaterials := make(map[int32][]domain.SDEInventionMaterial, len(rawInventions))
+	for _, ri := range rawInventions {
+		t2BP, ok := bpByID[ri.t2BPID]
+		if !ok || t2BP.ProductTypeID <= 0 {
+			continue
+		}
+		inventions = append(inventions, domain.SDEInvention{
+			T1BlueprintTypeID: ri.t1BPID,
+			T2BlueprintTypeID: ri.t2BPID,
+			T2ProductTypeID:   t2BP.ProductTypeID,
+			T2ProductName:     t2BP.ProductName,
+			BaseProbability:   ri.prob,
+			BaseRuns:          ri.runs,
+			BaseTimeSeconds:   ri.timeSec,
+			Category:          t2BP.Category,
+		})
+		invMaterials[ri.t1BPID] = ri.mats
 	}
 
 	// Include 100% of published tradable EVE Market items (marketGroupID > 0) + published blueprints
@@ -524,7 +633,7 @@ func ParseCCPSDEZip(zipPath string) ([]domain.SDEType, []domain.SDEBlueprint, ma
 		})
 	}
 
-	return types, blueprints, materials, totalMatLines, nil
+	return types, blueprints, materials, totalMatLines, inventions, invMaterials, nil
 }
 
 func normalizeMarketTypeCategory(rawCat, groupName string) string {

@@ -36,6 +36,11 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 	if _, err := os.Stat(staticDir); err == nil {
 		fs := http.FileServer(http.Dir(staticDir))
 		r.Handle("/static/*", http.StripPrefix("/static/", fs))
+		r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "image/svg+xml")
+			w.Header().Set("Cache-Control", "public, max-age=86400")
+			http.ServeFile(w, r, filepath.Join(staticDir, "favicon.svg"))
+		})
 	}
 
 	// Health check (public)
@@ -59,6 +64,12 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 		// Built-in EVE Online Wiki & UI Color Guide (accessible via Topbar)
 		r.Get("/wiki", h.HandleWikiPage)
 
+		// Dedicated EVE Online Pilot Hub (accessible via Topbar Account Chip when EVE SSO is connected)
+		r.Route("/pilot", func(r chi.Router) {
+			r.Get("/", h.HandlePilotHub)
+			r.With(adminOnly).Post("/sync-capital", h.HandlePilotSyncCapital)
+		})
+
 		// Live EVE Marketplace Browser (Public ESI — read/search for all, add-catalog for admin only)
 		r.Route("/marketplace", func(r chi.Router) {
 			r.Get("/", h.HandleMarketplace)
@@ -69,13 +80,19 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.With(adminOnly).Post("/add-catalog", h.HandleMarketplaceAddCatalog)
 		})
 
-		// Opportunity Scanner (Manufacturing ISK/hr, Station Trading, Inter-Hub Arbitrage)
+		// Opportunity Scanner (Manufacturing ISK/hr, Station Trading, Inter-Hub Arbitrage, Local Stockouts)
 		r.Route("/scanner", func(r chi.Router) {
 			r.Get("/", h.HandleScannerPage)
 			r.Post("/manufacturing", h.HandleScanManufacturing)
+			r.Post("/reactions", h.HandleScanReactions)
 			r.Post("/station-trading", h.HandleScanStationTrading)
 			r.Post("/arbitrage", h.HandleScanArbitrage)
+			r.Post("/stockouts", h.HandleScanStockouts)
 		})
+
+		// Background Top-Opportunities Radar (Dashboard auto-sweep >40 blueprints)
+		r.Get("/radar/top", h.HandleDashboardRadar)
+		r.Post("/radar/refresh", h.HandleTriggerRadarRefresh)
 
 		// Public ESI actions (lookup & market pulse for all; sync/undercuts for admin only)
 		r.Route("/esi", func(r chi.Router) {
@@ -106,6 +123,15 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 		r.Route("/manufacture", func(r chi.Router) {
 			r.Get("/", h.HandleManufacturePage)
 			r.Post("/tree", h.HandleManufactureTree)
+		})
+
+		// Aura AI Level-4 Agentic Copilot (Optional OpenAI-Compatible API)
+		r.Route("/ai", func(r chi.Router) {
+			r.Get("/drawer", h.HandleAIDrawer)
+			r.Post("/chat", h.HandleAIChat)
+			r.Delete("/conversations/{id}", h.HandleAIDeleteConversation)
+			r.Post("/memory", h.HandleAISaveMemory)
+			r.With(adminOnly).Post("/test", h.HandleAITestConnection)
 		})
 
 		// Planetary Industry (PI) Hub (Research tabs for all; My Colonies mutations for admin only)
@@ -157,13 +183,18 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 				r.Post("/convert-batches", h.HandlePlannerConvertBatches)
 			})
 
-			// Production, Inventory & Market Order Tracker
+			// Production, Inventory & Market Order Tracker (+ Buy/Sell Ledger & Realized P&L)
 			r.Route("/tracker", func(r chi.Router) {
 				r.Get("/", h.HandleTracker)
 				r.Post("/batches", h.HandleSaveBatch)
 				r.Post("/batches/{id}/status", h.HandleUpdateBatchStatus)
 				r.Delete("/batches/{id}", h.HandleDeleteBatch)
 				r.Post("/batches/{id}/relist-check", h.HandleRelistCheck)
+				r.Post("/ledger/sync-esi", h.HandleLedgerSyncESI)
+				r.Post("/ledger/import-paste", h.HandleLedgerImportPaste)
+				r.Post("/ledger/manual", h.HandleLedgerAddManual)
+				r.Post("/ledger/exclude", h.HandleLedgerSetExcluded)
+				r.Delete("/ledger/tx/{id}", h.HandleLedgerDeleteTx)
 			})
 
 			// Settings, Official CCP SDE Importer & Background Price Updater

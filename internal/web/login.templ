@@ -6,6 +6,8 @@ templ LoginPage(errMsg string, username string) {
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<meta name="theme-color" content="#0d1021"/>
+			<link rel="icon" type="image/svg+xml" href="/static/favicon.svg"/>
 			<title>Login — aura-forge // EVE Market &amp; Industry Copilot</title>
 			<style>
 				html, body {
@@ -16,35 +18,9 @@ templ LoginPage(errMsg string, username string) {
 					margin: 0;
 				}
 				[x-cloak] { display: none !important; }
-				html.af-fouc-guard body { opacity: 0; }
-				body { transition: opacity 140ms ease-out; }
 			</style>
-			<script>
-				(function () {
-					document.documentElement.classList.add('af-fouc-guard');
-					function reveal() {
-						document.documentElement.classList.remove('af-fouc-guard');
-					}
-					window.addEventListener('DOMContentLoaded', function () {
-						requestAnimationFrame(function () { requestAnimationFrame(reveal); });
-					});
-					setTimeout(reveal, 250);
-				})();
-			</script>
-			<link rel="stylesheet" href="/static/app.css"/>
-			<script src="https://cdn.tailwindcss.com"></script>
-			<script>
-				tailwind.config = {
-					darkMode: 'class',
-					theme: {
-						extend: {
-							fontFamily: {
-								mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
-							}
-						}
-					}
-				}
-			</script>
+			<link rel="stylesheet" href={ StaticAssetURL("/static/tailwind.css") }/>
+			<link rel="stylesheet" href={ StaticAssetURL("/static/app.css") }/>
 			<script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
 		</head>
 		<body class="min-h-screen af-orbital-bg antialiased flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">

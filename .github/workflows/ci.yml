@@ -1,0 +1,94 @@
+name: Quality Check
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      - name: Install templ CLI
+        run: go install github.com/a-h/templ/cmd/templ@v0.3.833
+
+      - name: Generate templ components
+        run: templ generate
+
+      - name: Run Go unit and race tests
+        run: |
+          set -o pipefail
+          if ! go test -race -count=1 ./... 2>&1 | tee /tmp/go-test.log; then
+            echo "## ❌ Go Unit & Race Tests Failed" >> "$GITHUB_STEP_SUMMARY"
+            echo '```text' >> "$GITHUB_STEP_SUMMARY"
+            grep -E "(FAIL|--- FAIL|Error|panic|violates|\.go:[0-9]+:)" /tmp/go-test.log | tail -n 60 >> "$GITHUB_STEP_SUMMARY" || tail -n 60 /tmp/go-test.log >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "::error title=Go Unit & Race Tests Failed::Check the Job Summary below for failing test details."
+            exit 1
+          fi
+
+      - name: Run Go vet
+        run: |
+          set -o pipefail
+          if ! go vet ./... 2>&1 | tee /tmp/go-vet.log; then
+            echo "## ❌ Go Vet Failed" >> "$GITHUB_STEP_SUMMARY"
+            echo '```text' >> "$GITHUB_STEP_SUMMARY"
+            tail -n 60 /tmp/go-vet.log >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "::error title=Go Vet Failed::go vet reported issues. See Job Summary."
+            exit 1
+          fi
+
+      - name: Verify standalone binary build
+        run: |
+          set -o pipefail
+          if ! CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o bin/aura-forge ./cmd/server 2>&1 | tee /tmp/go-build.log; then
+            echo "## ❌ Go Build Failed" >> "$GITHUB_STEP_SUMMARY"
+            echo '```text' >> "$GITHUB_STEP_SUMMARY"
+            tail -n 60 /tmp/go-build.log >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "::error title=Go Build Failed::Binary compilation failed. See Job Summary."
+            exit 1
+          fi
+
+  container-check:
+    name: Podman Container Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build container image with Podman
+        run: |
+          set -o pipefail
+          if ! podman build -t aura-forge:ci -f Dockerfile . 2>&1 | tee /tmp/podman-build.log; then
+            echo "## ❌ Podman Container Build Failed" >> "$GITHUB_STEP_SUMMARY"
+            echo '```text' >> "$GITHUB_STEP_SUMMARY"
+            tail -n 60 /tmp/podman-build.log >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "::error title=Podman Build Failed::Container build failed. See Job Summary."
+            exit 1
+          fi
+
+      - name: Inspect container image
+        run: |
+          podman images aura-forge:ci
+          podman inspect aura-forge:ci --format 'Image Architecture: {{.Architecture}}, OS: {{.Os}}, Size: {{.Size}} bytes'

@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"aura-forge/internal/ai"
 	"aura-forge/internal/config"
 	"aura-forge/internal/domain"
 	"aura-forge/internal/esi"
@@ -33,6 +34,11 @@ func main() {
 	} else {
 		fmt.Println("EVE SSO Status  : DISABLED (Standard Mode: Public ESI + Manual/Import)")
 	}
+	if cfg.IsAIEnabled() {
+		fmt.Printf("Aura AI Status  : ENABLED (Model: %s @ %s)\n", cfg.AIModel, cfg.AIBaseURL)
+	} else {
+		fmt.Println("Aura AI Status  : DISABLED (Optional: Set AI_API_KEY in .env for Level 4 Copilot)")
+	}
 	fmt.Println("================================================================")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -50,6 +56,8 @@ func main() {
 		wealthRepo         domain.NetWorthRepository
 		piRepo             domain.PIRepository
 		globalSnapshotRepo domain.GlobalPriceSnapshotRepository
+		aiRepo             domain.AIRepository
+		ledgerRepo         domain.TradeLedgerRepository
 	)
 
 	db, err := postgres.NewDB(ctx, cfg.DatabaseURL)
@@ -70,6 +78,8 @@ func main() {
 		wealthRepo = postgres.NewWealthRepo(db.Pool)
 		piRepo = postgres.NewPIRepo(db.Pool)
 		globalSnapshotRepo = postgres.NewMarketSnapshotRepo(db.Pool)
+		aiRepo = postgres.NewAIRepo(db.Pool)
+		ledgerRepo = postgres.NewLedgerRepo(db.Pool)
 	}
 
 	// Initialize Application Auth & seed initial Admin account if database has no users yet
@@ -107,11 +117,16 @@ func main() {
 	copilotSvc.SetNetWorthRepository(wealthRepo)
 	copilotSvc.SetPIRepository(piRepo)
 	copilotSvc.SetGlobalPriceSnapshotRepository(globalSnapshotRepo)
+	copilotSvc.SetAIRepository(aiRepo)
+	copilotSvc.SetTradeLedgerRepository(ledgerRepo)
+	aiClient := ai.NewOpenAIClient(cfg.AIBaseURL, cfg.AIAPIKey, cfg.AIModel, time.Duration(cfg.AITimeoutSeconds)*time.Second)
+	copilotSvc.SetAIProvider(aiClient)
 
 	// Start supervised background Jita price updater (Catalog + PI P1-P4 + SDE Blueprints)
 	bgCtx, bgCancel := context.WithCancel(context.Background())
 	defer bgCancel()
 	copilotSvc.StartBackgroundPriceUpdater(bgCtx)
+	copilotSvc.StartBackgroundOpportunityRadar(bgCtx)
 
 	router := apphttp.NewRouterWithAuth(copilotSvc, authSvc, web.NewRenderer())
 

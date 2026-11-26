@@ -26,7 +26,7 @@ func (r *BatchRepo) ListBatches(ctx context.Context, status *domain.BatchStatus)
 
 	if status != nil && *status != "" {
 		query = `
-			SELECT id, plan_id, type_id, item_name, runs, units_output,
+			SELECT id, plan_id, entry_type, type_id, item_name, runs, units_output,
 			       total_material_cost, actual_production_cost, actual_sell_price,
 			       total_revenue, net_profit, roi, status, market_order_id,
 			       current_market_price, is_undercut, safe_relist_price,
@@ -38,7 +38,7 @@ func (r *BatchRepo) ListBatches(ctx context.Context, status *domain.BatchStatus)
 		args = append(args, *status)
 	} else {
 		query = `
-			SELECT id, plan_id, type_id, item_name, runs, units_output,
+			SELECT id, plan_id, entry_type, type_id, item_name, runs, units_output,
 			       total_material_cost, actual_production_cost, actual_sell_price,
 			       total_revenue, net_profit, roi, status, market_order_id,
 			       current_market_price, is_undercut, safe_relist_price,
@@ -58,7 +58,7 @@ func (r *BatchRepo) ListBatches(ctx context.Context, status *domain.BatchStatus)
 	for rows.Next() {
 		var b domain.BatchRecord
 		err := rows.Scan(
-			&b.ID, &b.PlanID, &b.TypeID, &b.ItemName, &b.Runs, &b.UnitsOutput,
+			&b.ID, &b.PlanID, &b.EntryType, &b.TypeID, &b.ItemName, &b.Runs, &b.UnitsOutput,
 			&b.TotalMaterialCost, &b.ActualProductionCost, &b.ActualSellPrice,
 			&b.TotalRevenue, &b.NetProfit, &b.ROI, &b.Status, &b.MarketOrderID,
 			&b.CurrentMarketPrice, &b.IsUndercut, &b.SafeRelistPrice,
@@ -76,7 +76,7 @@ func (r *BatchRepo) ListBatches(ctx context.Context, status *domain.BatchStatus)
 
 func (r *BatchRepo) GetBatchByID(ctx context.Context, id int64) (*domain.BatchRecord, error) {
 	query := `
-		SELECT id, plan_id, type_id, item_name, runs, units_output,
+		SELECT id, plan_id, entry_type, type_id, item_name, runs, units_output,
 		       total_material_cost, actual_production_cost, actual_sell_price,
 		       total_revenue, net_profit, roi, status, market_order_id,
 		       current_market_price, is_undercut, safe_relist_price,
@@ -87,7 +87,7 @@ func (r *BatchRepo) GetBatchByID(ctx context.Context, id int64) (*domain.BatchRe
 
 	var b domain.BatchRecord
 	err := r.pool.QueryRow(ctx, query, id).Scan(
-		&b.ID, &b.PlanID, &b.TypeID, &b.ItemName, &b.Runs, &b.UnitsOutput,
+		&b.ID, &b.PlanID, &b.EntryType, &b.TypeID, &b.ItemName, &b.Runs, &b.UnitsOutput,
 		&b.TotalMaterialCost, &b.ActualProductionCost, &b.ActualSellPrice,
 		&b.TotalRevenue, &b.NetProfit, &b.ROI, &b.Status, &b.MarketOrderID,
 		&b.CurrentMarketPrice, &b.IsUndercut, &b.SafeRelistPrice,
@@ -107,21 +107,22 @@ func (r *BatchRepo) GetBatchByID(ctx context.Context, id int64) (*domain.BatchRe
 func (r *BatchRepo) SaveBatch(ctx context.Context, batch *domain.BatchRecord) error {
 	now := time.Now()
 	batch.UpdatedAt = now
+	batch.EntryType = batch.NormalizedEntryType()
 
 	if batch.ID == 0 {
 		query := `
 			INSERT INTO production_batches (
-				plan_id, type_id, item_name, runs, units_output,
+				plan_id, entry_type, type_id, item_name, runs, units_output,
 				total_material_cost, actual_production_cost, actual_sell_price,
 				total_revenue, net_profit, roi, status, market_order_id,
 				current_market_price, is_undercut, safe_relist_price,
 				remaining_safe_margin, started_at, finished_at, listed_at, sold_at,
 				created_at, updated_at
-			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
 			RETURNING id, created_at`
 
 		return r.pool.QueryRow(ctx, query,
-			batch.PlanID, batch.TypeID, batch.ItemName, batch.Runs, batch.UnitsOutput,
+			batch.PlanID, batch.EntryType, batch.TypeID, batch.ItemName, batch.Runs, batch.UnitsOutput,
 			batch.TotalMaterialCost, batch.ActualProductionCost, batch.ActualSellPrice,
 			batch.TotalRevenue, batch.NetProfit, batch.ROI, batch.Status, batch.MarketOrderID,
 			batch.CurrentMarketPrice, batch.IsUndercut, batch.SafeRelistPrice,
@@ -132,16 +133,16 @@ func (r *BatchRepo) SaveBatch(ctx context.Context, batch *domain.BatchRecord) er
 
 	query := `
 		UPDATE production_batches SET
-			plan_id = $1, type_id = $2, item_name = $3, runs = $4, units_output = $5,
-			total_material_cost = $6, actual_production_cost = $7, actual_sell_price = $8,
-			total_revenue = $9, net_profit = $10, roi = $11, status = $12,
-			market_order_id = $13, current_market_price = $14, is_undercut = $15,
-			safe_relist_price = $16, remaining_safe_margin = $17, started_at = $18,
-			finished_at = $19, listed_at = $20, sold_at = $21, updated_at = $22
-		WHERE id = $23`
+			plan_id = $1, entry_type = $2, type_id = $3, item_name = $4, runs = $5, units_output = $6,
+			total_material_cost = $7, actual_production_cost = $8, actual_sell_price = $9,
+			total_revenue = $10, net_profit = $11, roi = $12, status = $13,
+			market_order_id = $14, current_market_price = $15, is_undercut = $16,
+			safe_relist_price = $17, remaining_safe_margin = $18, started_at = $19,
+			finished_at = $20, listed_at = $21, sold_at = $22, updated_at = $23
+		WHERE id = $24`
 
 	_, err := r.pool.Exec(ctx, query,
-		batch.PlanID, batch.TypeID, batch.ItemName, batch.Runs, batch.UnitsOutput,
+		batch.PlanID, batch.EntryType, batch.TypeID, batch.ItemName, batch.Runs, batch.UnitsOutput,
 		batch.TotalMaterialCost, batch.ActualProductionCost, batch.ActualSellPrice,
 		batch.TotalRevenue, batch.NetProfit, batch.ROI, batch.Status,
 		batch.MarketOrderID, batch.CurrentMarketPrice, batch.IsUndercut,
@@ -190,17 +191,17 @@ func (r *BatchRepo) CreateBatchesFromPlan(ctx context.Context, planID int64, bat
 
 	query := `
 		INSERT INTO production_batches (
-			plan_id, type_id, item_name, runs, units_output,
+			plan_id, entry_type, type_id, item_name, runs, units_output,
 			total_material_cost, actual_production_cost, actual_sell_price,
 			total_revenue, net_profit, roi, status, market_order_id,
 			current_market_price, is_undercut, safe_relist_price,
 			remaining_safe_margin, created_at, updated_at
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)`
 
 	now := time.Now()
 	for _, b := range batches {
 		_, err := tx.Exec(ctx, query,
-			planID, b.TypeID, b.ItemName, b.Runs, b.UnitsOutput,
+			planID, b.NormalizedEntryType(), b.TypeID, b.ItemName, b.Runs, b.UnitsOutput,
 			b.TotalMaterialCost, b.ActualProductionCost, b.ActualSellPrice,
 			b.TotalRevenue, b.NetProfit, b.ROI, domain.BatchStatusDraft, nil,
 			b.CurrentMarketPrice, false, b.SafeRelistPrice,

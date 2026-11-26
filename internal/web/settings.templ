@@ -7,7 +7,7 @@ import (
 	"aura-forge/internal/service"
 )
 
-templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatus service.SDEImportStatus, saved bool) {
+templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatus service.SDEImportStatus, pilotMem *domain.AIPilotMemory, saved bool) {
 	@Layout("Settings", "settings", mode) {
 		<div class="space-y-6">
 			<div>
@@ -203,7 +203,7 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 							<div class="rounded-lg border border-sky-500/40 bg-sky-950/30 p-4 space-y-3">
 								<div class="text-sm font-bold text-sky-300">EVE SSO Credentials Detected in .env</div>
 								<p class="text-xs text-slate-300">Click below to connect your EVE Online character and enable Auto-Sync for Wallet, Orders, Jobs, Blueprints &amp; Hangar Assets.</p>
-								<a href="/auth/login" class="inline-block rounded-md bg-amber-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-amber-400 transition">
+								<a href="/auth/login" hx-boost="false" class="inline-block rounded-md bg-amber-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-amber-400 transition">
 									Connect EVE SSO →
 								</a>
 							</div>
@@ -223,6 +223,110 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 								</div>
 							</div>
 						}
+					</div>
+
+					<!-- Aura AI Level-4 Agentic Copilot (OpenAI-Compatible) Card -->
+					<div class="tactical-panel rounded-xl p-5 space-y-4">
+						<div class="flex items-center justify-between gap-2">
+							<h2 class="text-sm font-bold uppercase tracking-wider text-violet-300">Aura AI Copilot (OpenAI-Compatible)</h2>
+							if mode.AI.Enabled {
+								<span class="rounded-full border border-emerald-400/45 bg-emerald-500/20 px-2.5 py-0.5 font-mono text-[10px] font-bold text-emerald-200">
+									ACTIVE
+								</span>
+							} else {
+								<span class="rounded-full border border-slate-500/45 bg-slate-700/40 px-2.5 py-0.5 font-mono text-[10px] font-bold text-slate-300">
+									OPTIONAL / OFF
+								</span>
+							}
+						</div>
+
+						if mode.AI.Enabled {
+							<div class="rounded-lg border border-violet-400/30 bg-slate-900/65 p-3 font-mono text-[11px] space-y-1">
+								<div class="flex justify-between gap-2">
+									<span class="text-slate-400">Model</span>
+									<span class="text-amber-200 font-bold truncate">{ mode.AI.Model }</span>
+								</div>
+								<div class="flex justify-between gap-2">
+									<span class="text-slate-400">Base URL</span>
+									<span class="text-sky-300 truncate">{ mode.AI.BaseURL }</span>
+								</div>
+							</div>
+							<div class="flex flex-wrap gap-2">
+								<button
+									type="button"
+									hx-post="/ai/test"
+									hx-swap="none"
+									class="rounded-md border border-emerald-400/45 bg-emerald-500/15 px-3 py-1.5 text-xs font-bold text-emerald-200 hover:bg-emerald-500/25 transition cursor-pointer"
+								>
+									Test AI Connection
+								</button>
+								<button
+									type="button"
+									@click="window.dispatchEvent(new CustomEvent('open-aura-ai', { detail: {} }))"
+									class="rounded-md border border-amber-400/45 bg-amber-500/15 px-3 py-1.5 text-xs font-bold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer"
+								>
+									Open Ask Aura Drawer
+								</button>
+							</div>
+						} else {
+							<div class="rounded-lg border border-slate-700 bg-slate-900/70 p-3.5 space-y-2.5">
+								<p class="text-xs text-slate-300 leading-relaxed">
+									Enable Level-4 Agentic AI Copilot (with live 5-Hub market, SDE recipe, PI, and Appraisal tool calling) by adding any <strong>OpenAI-compatible</strong> provider to <code class="text-amber-200">.env</code> and restarting Docker:
+								</p>
+								<div class="rounded bg-slate-950 p-3 font-mono text-[11px] text-slate-300 space-y-1">
+									<div>AI_BASE_URL=<span class="text-sky-300">https://api.openai.com/v1</span></div>
+									<div>AI_API_KEY=<span class="text-amber-300">your_api_key</span></div>
+									<div>AI_MODEL=<span class="text-emerald-300">gpt-4.1-mini</span></div>
+								</div>
+							</div>
+						}
+
+						<!-- Pilot Playbook Memory (Used by Aura AI across every session) -->
+						<form hx-post="/ai/memory" hx-swap="none" class="space-y-3 border-t border-slate-800 pt-3.5">
+							<div class="text-[11px] font-mono uppercase tracking-wider text-amber-300">Pilot Playbook Memory</div>
+							<div class="grid grid-cols-2 gap-2.5">
+								<div>
+									<label class="block text-[10px] font-mono uppercase text-slate-400 mb-1">Risk Tolerance</label>
+									<select name="risk_tolerance" class="w-full rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-white">
+										<option value="conservative" selected?={ pilotMem != nil && pilotMem.RiskTolerance == "conservative" }>Conservative (Safety First)</option>
+										<option value="balanced" selected?={ pilotMem == nil || pilotMem.RiskTolerance == "" || pilotMem.RiskTolerance == "balanced" }>Balanced (Recommended)</option>
+										<option value="aggressive" selected?={ pilotMem != nil && pilotMem.RiskTolerance == "aggressive" }>Aggressive (Fast Scaling)</option>
+									</select>
+								</div>
+								<div>
+									<label class="block text-[10px] font-mono uppercase text-slate-400 mb-1">Daily Playtime</label>
+									<input
+										type="text"
+										name="daily_playtime"
+										value={ func() string {
+											if pilotMem != nil && pilotMem.DailyPlaytime != "" {
+												return pilotMem.DailyPlaytime
+											}
+											return "1-2 hours/day"
+										}() }
+										placeholder="e.g. 1 hour/day, weekend active"
+										class="w-full rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-white"
+									/>
+								</div>
+							</div>
+							<div>
+								<label class="block text-[10px] font-mono uppercase text-slate-400 mb-1">Playstyle Notes (Hub, Ships, Goals, Limits)</label>
+								<textarea
+									name="playstyle_notes"
+									rows="2"
+									placeholder="e.g. Operating mostly in Amarr VIII, avoid hauling >150M ISK in T1 hauler, prefer fast T1 drones + PI..."
+									class="w-full rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-white placeholder-slate-500"
+								>{ func() string {
+									if pilotMem != nil {
+										return pilotMem.PlaystyleNotes
+									}
+									return ""
+								}() }</textarea>
+							</div>
+							<button type="submit" class="w-full rounded-md border border-violet-400/50 bg-violet-500/20 py-2 text-xs font-bold text-violet-100 hover:bg-violet-500/35 transition cursor-pointer">
+								Save Pilot Playbook Memory
+							</button>
+						</form>
 					</div>
 				</div>
 			</div>
@@ -262,12 +366,22 @@ templ SDEStatusPartial(status service.SDEImportStatus) {
 		</div>
 
 		<!-- Installed SDE Counts -->
-		<div class="grid grid-cols-3 gap-2.5 font-mono text-xs">
+		<div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 font-mono text-xs">
 			<div class="rounded-lg border border-slate-700/70 bg-slate-900/60 p-3">
 				<div class="text-[10px] uppercase text-slate-400">Blueprints</div>
 				<div class="mt-0.5 text-base font-bold text-amber-200">
 					if status.Metadata != nil {
 						{ fmt.Sprintf("%d", status.Metadata.BlueprintsCount) }
+					} else {
+						0
+					}
+				</div>
+			</div>
+			<div class="rounded-lg border border-slate-700/70 bg-slate-900/60 p-3">
+				<div class="text-[10px] uppercase text-slate-400">T2 Inventions</div>
+				<div class="mt-0.5 text-base font-bold text-emerald-300">
+					if status.Metadata != nil {
+						{ fmt.Sprintf("%d", status.Metadata.InventionsCount) }
 					} else {
 						0
 					}

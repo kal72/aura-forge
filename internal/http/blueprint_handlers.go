@@ -126,17 +126,33 @@ func (h *Handlers) HandleManufacturePage(w http.ResponseWriter, r *http.Request)
 	blueprints, _ := h.svc.SearchBlueprints(r.Context(), "", "", 100)
 
 	var initialRes *domain.BlueprintCalcResult
-	if rawBP := strings.TrimSpace(r.URL.Query().Get("bp_id")); rawBP != "" {
+	rawBP := strings.TrimSpace(r.URL.Query().Get("bp_id"))
+	if rawBP == "" {
+		rawBP = strings.TrimSpace(r.URL.Query().Get("bp"))
+	}
+	if rawBP != "" {
 		if bpID, err := strconv.ParseInt(rawBP, 10, 32); err == nil && bpID > 0 {
 			hubKey := strings.TrimSpace(r.URL.Query().Get("hub"))
 			if hubKey == "" && settings != nil {
 				hubKey = settings.ActiveTradeHub().Key
 			}
+			me := 10
+			if rawME := strings.TrimSpace(r.URL.Query().Get("me")); rawME != "" {
+				if v, err := strconv.Atoi(rawME); err == nil && v >= 0 && v <= 10 {
+					me = v
+				}
+			}
+			te := 20
+			if rawTE := strings.TrimSpace(r.URL.Query().Get("te")); rawTE != "" {
+				if v, err := strconv.Atoi(rawTE); err == nil && v >= 0 && v <= 20 {
+					te = v
+				}
+			}
 			in := domain.BlueprintCalcInput{
 				BlueprintTypeID:     int32(bpID),
 				Runs:                parseIntDefault(r.URL.Query().Get("runs"), 1),
-				ME:                  parseIntDefault(r.URL.Query().Get("me"), 10),
-				TE:                  20,
+				ME:                  me,
+				TE:                  te,
 				HubKey:              hubKey,
 				MaterialPriceSource: "jita_sell",
 				SystemCostIndex:     settings.SystemCostIndex,
@@ -174,22 +190,79 @@ func (h *Handlers) HandleManufactureTree(w http.ResponseWriter, r *http.Request)
 		hubKey = settings.ActiveTradeHub().Key
 	}
 
+	// Smart Auto defaults when Advanced Override fields are left blank (0ms deterministic)
+	sci := settings.SystemCostIndex
+	if raw := strings.TrimSpace(r.FormValue("system_cost_index")); raw != "" {
+		if v, err := strconv.ParseFloat(raw, 64); err == nil && v >= 0 {
+			sci = v
+		}
+	}
+	freightPerM3 := 0.0
+	if raw := strings.TrimSpace(r.FormValue("freight_cost_per_m3")); raw != "" {
+		if v, err := strconv.ParseFloat(raw, 64); err == nil && v >= 0 {
+			freightPerM3 = v
+		}
+	}
+	brokerFee := settings.BrokerFeePercent
+	if raw := strings.TrimSpace(r.FormValue("broker_fee_percent")); raw != "" {
+		if v, err := strconv.ParseFloat(raw, 64); err == nil && v >= 0 {
+			brokerFee = v
+		}
+	}
+	salesTax := settings.SalesTaxPercent
+	if raw := strings.TrimSpace(r.FormValue("sales_tax_percent")); raw != "" {
+		if v, err := strconv.ParseFloat(raw, 64); err == nil && v >= 0 {
+			salesTax = v
+		}
+	}
+	sellOverride := 0.0
+	if raw := strings.TrimSpace(r.FormValue("product_sell_override")); raw != "" {
+		if v, err := strconv.ParseFloat(raw, 64); err == nil && v > 0 {
+			sellOverride = v
+		}
+	}
+	extraSetup := 0.0
+	if raw := strings.TrimSpace(r.FormValue("extra_setup_cost")); raw != "" {
+		if v, err := strconv.ParseFloat(raw, 64); err == nil && v >= 0 {
+			extraSetup = v
+		}
+	}
+	// Auto relists by hub competition: Jita (2x) vs calmer Empire hubs (1x)
+	estRelists := 1
+	if strings.EqualFold(hubKey, "jita") {
+		estRelists = 2
+	}
+	if raw := strings.TrimSpace(r.FormValue("estimated_relists")); raw != "" {
+		if v, err := strconv.Atoi(raw); err == nil && v >= 0 {
+			estRelists = v
+		}
+	}
+	batchesPerWeek := 4
+	if raw := strings.TrimSpace(r.FormValue("batches_per_week")); raw != "" {
+		if v, err := strconv.Atoi(raw); err == nil && v >= 1 {
+			batchesPerWeek = v
+		}
+	}
+
 	in := domain.BlueprintCalcInput{
 		BlueprintTypeID:     int32(bpID),
 		Runs:                parseIntDefault(r.FormValue("runs"), 1),
 		ME:                  parseIntDefault(r.FormValue("me"), 10),
-		TE:                  20,
+		TE:                  parseIntDefault(r.FormValue("te"), 20),
 		StructureKey:        strings.TrimSpace(r.FormValue("structure_key")),
 		HubKey:              hubKey,
 		MaterialPriceSource: strings.TrimSpace(r.FormValue("material_price_source")),
 		MakeBuyOverrides:    domain.ParseMakeBuyOverrides(r.FormValue("make_buy_overrides")),
-		SystemCostIndex:     settings.SystemCostIndex,
+		ProductSellOverride: sellOverride,
+		ExtraSetupCost:      extraSetup,
+		SystemCostIndex:     sci,
 		FacilityTaxPercent:  settings.FacilityTaxPercent,
-		BrokerFeePercent:    settings.BrokerFeePercent,
-		SalesTaxPercent:     settings.SalesTaxPercent,
+		FreightCostPerM3:    freightPerM3,
+		BrokerFeePercent:    brokerFee,
+		SalesTaxPercent:     salesTax,
 		RelistFeePercent:    settings.RelistFeePercent,
-		EstimatedRelists:    1,
-		BatchesPerWeek:      1,
+		EstimatedRelists:    estRelists,
+		BatchesPerWeek:      batchesPerWeek,
 	}
 
 	res, err := h.svc.CalculateBlueprintProfit(r.Context(), in)

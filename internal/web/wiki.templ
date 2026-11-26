@@ -681,6 +681,61 @@ var eveWikiEntries = []wikiEntry{
 		TipEN:      "Consistency beats luck — compounding 10–15% weekly turns 100M ISK into 100B+ ISK systematically.",
 		TipID:      "Konsistensi mengalahkan keberuntungan — compounding 10–15% per minggu membawa 100M ISK menuju 100B+ ISK secara terukur.",
 	},
+	{
+		Category:   "workflow",
+		Term:       "Aura AI — Level 4 Agentic Copilot & Cross-Domain Opportunity Radar",
+		BadgeText:  "AURA AI",
+		BadgeClass: "border-amber-400/55 bg-violet-600/35 text-amber-100 font-bold",
+		WhereUsed:  "Topbar → Ask Aura, /marketplace, /manufacture, /wealth, /pilot, /tracker",
+		DescEN:     "Optional OpenAI-compatible AI copilot (configured via AI_BASE_URL, AI_API_KEY, AI_MODEL in .env). Unlike a generic chatbot, Aura executes 11 deterministic Go tools live — including Opportunity Radar (scanning your OWNED BPO/BPCs with real ME/TE, Manufacturing ISK/hr, Station Trading flips, Inter-Hub Arbitrage, and 24h Market Movers in parallel) — so all ISK math stays 100% accurate with zero hallucination.",
+		DescID:     "Kopilot AI opsional (kompatibel OpenAI SDK lewat AI_BASE_URL, AI_API_KEY, AI_MODEL di .env). Berbeda dari chatbot biasa, Aura menjalankan 11 tool Go deterministik secara live — termasuk Opportunity Radar (menyapu BPO/BPC MILIK Anda dengan ME/TE asli, Manufacturing ISK/jam, Station Trading, Arbitrage antar-hub, dan Market Movers 24 jam secara paralel) — sehingga seluruh angka ISK 100% presisi tanpa halusinasi.",
+		TipEN:      "Click 'Ask Aura' in the Topbar and choose '🎯 Hunt Best Opportunities Now' or '📋 Build My Weekly Framework (SOP)', or test your API key anytime in /settings → Test AI Connection.",
+		TipID:      "Klik 'Ask Aura' di Topbar lalu pilih '🎯 Hunt Best Opportunities Now' atau '📋 Build My Weekly Framework (SOP)', atau uji koneksi API Anda kapan saja di /settings → Test AI Connection.",
+	},
+	{
+		Category:   "workflow",
+		Term:       "Aura AI — Pilot Playbook Memory & 1-Click Action Cards (Human-in-the-Loop)",
+		BadgeText:  "ACTION CARDS",
+		BadgeClass: "border-violet-400/55 bg-violet-500/20 text-violet-100 font-bold",
+		WhereUsed:  "Ask Aura Drawer & /settings → Pilot Playbook Memory",
+		DescEN:     "Pilot Playbook Memory stores your personal strategy, risk tolerance, playtime, and SOP notes so Aura AI remembers how you play on every chat. When Aura proposes concrete executions — adding a viable item to Catalog, creating a Draft MFG/TRADE batch in Tracker, or saving a newly designed Weekly Framework — it attaches a 1-Click Action Card that executes ONLY after you review and click approve.",
+		DescID:     "Pilot Playbook Memory menyimpan strategi pribadi, toleransi risiko, jam main, dan SOP Anda agar Aura AI selalu mengingat gaya bermain Anda di setiap percakapan. Saat Aura merekomendasikan aksi konkret — tambah item ke Catalog, buat Draft Batch MFG/TRADE di Tracker, atau simpan kerangka kerja SOP baru — muncul 1-Click Action Card yang hanya dieksekusi setelah Anda klik setuju.",
+		TipEN:      "Every AI reply includes an expandable 'Verified live via N internal tool call(s)' trace so you can verify exactly which live data Aura inspected.",
+		TipID:      "Setiap jawaban AI menyertakan panel 'Verified live via N internal tool call(s)' agar Anda bisa melihat secara transparan data live mana saja yang dibaca Aura.",
+	},
+	{
+		Category:   "workflow",
+		Term:       "EVE Online Pilot Hub (/pilot) & Topbar Pilot Account Chip",
+		BadgeText:  "EVE SSO HUB",
+		BadgeClass: "border-emerald-400/50 bg-emerald-500/20 text-emerald-200 font-bold",
+		WhereUsed:  "Topbar Account Chip → /pilot",
+		DescEN:     "When optional EVE SSO is connected, your Topbar account chip automatically switches into your live EVE Character Portrait + Character Name + Wallet Balance. Clicking it opens /pilot with 4 searchable, paginated live tabs: Active Industry Jobs (with progress & READY TO DELIVER badges), Open Market Orders, My Blueprints (BPO/BPC icons with Material/Time Efficiency % and 1-click 'Manufacture →'), and aggregated Hangar Stock.",
+		DescID:     "Saat EVE SSO opsional terhubung, chip nama akun di Topbar otomatis berubah menjadi Portrait Karakter EVE + Nama + Saldo Wallet live Anda. Klik chip tersebut untuk membuka /pilot berisi 4 tab live dengan pencarian & pagination: Active Industry Jobs (progress & badge READY TO DELIVER), Open Market Orders, My Blueprints (ikon BPO/BPC + persentase Material/Time Efficiency + tombol 1-klik 'Manufacture →'), dan agregasi Hangar Stock.",
+		TipEN:      "Note: My Blueprints and Hangar Stock show your personal character assets (not Corporation Hangar). Click '⚡ AI Opportunity Radar' on /pilot to find the most profitable BPO you already own.",
+		TipID:      "Catatan: My Blueprints dan Hangar Stock menampilkan aset pribadi karakter Anda (bukan Corporation Hangar). Klik '⚡ AI Opportunity Radar' di /pilot untuk mencari BPO milik Anda yang paling cuan hari ini.",
+	},
+	{
+		Category:   "workflow",
+		Term:       "Tracker 3-Tab Loop: MFG vs TRADE, Buy & Sell Ledger & Exclude Personal Orders",
+		BadgeText:  "LEDGER / TRADE",
+		BadgeClass: "border-sky-400/50 bg-sky-500/20 text-sky-200 font-bold",
+		WhereUsed:  "/tracker (Batches & Flips | Buy & Sell Ledger | Realized P&L & Orders)",
+		DescEN:     "Order & Batch Tracker unifies both Manufacturing batches (MFG) and Station Trading / Arbitrage flips (TRADE) alongside a permanent Buy & Sell Ledger. Import transactions automatically via Private ESI ('Sync Private ESI') or 1-click copy-paste from EVE Wallet → Transactions (deduplicated automatically). Use single or multi-select 'Exclude' on personal/PvP purchases so they are removed from P&L and NEVER re-imported on future ESI syncs.",
+		DescID:     "Order & Batch Tracker menyatukan pelacakan batch Manufacturing (MFG) dan Station Trading / Arbitrage Flip (TRADE) bersama buku besar Buy & Sell Ledger permanen. Import transaksi otomatis lewat Private ESI ('Sync Private ESI') atau 1-klik copy-paste dari EVE Wallet → Transactions (otomatis anti-duplikat). Gunakan tombol 'Exclude' (satuan atau multi-select) pada pembelian pribadi/PvP agar dikeluarkan dari P&L dan TIDAK PERNAH ter-import ulang saat sync ESI berikutnya.",
+		TipEN:      "You can always inspect or undo excluded items anytime by clicking 'Show Excluded / Personal' in the Buy & Sell Ledger tab.",
+		TipID:      "Anda selalu bisa mengecek atau mengembalikan transaksi yang di-exclude kapan saja lewat tombol 'Show Excluded / Personal' di tab Buy & Sell Ledger.",
+	},
+	{
+		Category:   "workflow",
+		Term:       "Realized P&L (Weighted-Average Cost Basis) & Fee/Tax Leak Detector",
+		BadgeText:  "REALIZED P&L",
+		BadgeClass: "border-emerald-400/50 bg-emerald-500/20 text-emerald-200 font-bold",
+		WhereUsed:  "/tracker?tab=pnl",
+		DescEN:     "Computes true realized profit per item chronologically using Weighted-Average Cost Basis across staggered purchases and partial fills, classifying items as CASH COW, HEALTHY, THIN MARGIN, or LOSS MAKER. When synced with Private ESI wallet/journal, the Fee & Tax Leak Detector tracks exact Broker/Relist Fees, Sales Tax, Industry Job Tax, and PI Taxes and warns you if excessive relisting is eating your margin.",
+		DescID:     "Menghitung profit bersih riil per item secara kronologis memakai Weighted-Average Cost Basis dari pembelian bertahap dan partial fill, lalu mengelompokkan item sebagai CASH COW, HEALTHY, THIN MARGIN, atau LOSS MAKER. Saat tersinkron dengan Private ESI wallet/journal, Fee & Tax Leak Detector melacak potongan riil Broker/Relist Fee, Sales Tax, Industry Job Tax, dan PI Tax serta memberi peringatan bila biaya relist mulai memakan margin Anda.",
+		TipEN:      "Click '⚡ AI P&L Audit' on the Realized P&L tab to have Aura AI analyze your Cash Cows, Capital Drains, and Order Fill Rate over the last 30 days.",
+		TipID:      "Klik '⚡ AI P&L Audit' di tab Realized P&L agar Aura AI menganalisis item Cash Cow, Capital Drain, dan Order Fill Rate Anda selama 30 hari terakhir.",
+	},
 }
 
 templ WikiPage(mode service.ModeInfo) {
@@ -959,6 +1014,116 @@ templ WikiPage(mode service.ModeInfo) {
 						<span x-cloak x-show="lang === 'id'">1. Selalu sisakan <strong>10–15% Cash Buffer</strong> untuk pajak &amp; relist</span>
 						<span x-cloak x-show="lang === 'id'">2. Jangan taruh <strong>&gt;50% modal</strong> di 1 batch saja</span>
 						<span x-cloak x-show="lang === 'id'">3. Jangan angkut <strong>&gt;200M ISK</strong> dengan kapal hauler T1 di High-Sec</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Dashboard Radar Comparison: Hot Blueprints vs Top Opportunities Radar -->
+			<div class="tactical-panel rounded-2xl border border-violet-400/30 overflow-hidden">
+				<div class="flex flex-wrap items-center justify-between gap-2 border-b border-violet-400/20 bg-slate-950/60 px-5 py-3.5">
+					<div>
+						<div class="flex flex-wrap items-center gap-2">
+							<span class="rounded border border-emerald-400/40 bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-200">DASHBOARD GUIDE</span>
+							<h2 x-show="lang === 'en'" class="text-sm font-bold text-white">Hot Blueprints vs. Top Opportunities Radar — What's the Difference?</h2>
+							<h2 x-cloak x-show="lang === 'id'" class="text-sm font-bold text-white">Hot Blueprints vs. Top Opportunities Radar — Apa Bedanya?</h2>
+						</div>
+						<p x-show="lang === 'en'" class="mt-0.5 text-xs text-slate-300/80">Both appear on your Dashboard, but they answer two completely different questions.</p>
+						<p x-cloak x-show="lang === 'id'" class="mt-0.5 text-xs text-slate-300/80">Keduanya tampil di Dashboard, tetapi menjawab dua pertanyaan yang sangat berbeda.</p>
+					</div>
+					<a href="/" class="rounded-lg border border-amber-400/35 bg-amber-500/15 px-3 py-1 text-[11px] font-semibold text-amber-200 hover:bg-amber-500/25 transition">
+						Open Dashboard →
+					</a>
+				</div>
+
+				<div class="p-4 space-y-3">
+					<div class="overflow-x-auto rounded-xl border border-violet-400/15 bg-slate-950/55">
+						<table class="w-full text-left text-xs">
+							<thead class="bg-slate-950/70 font-mono uppercase text-[10px] tracking-wider text-slate-400 border-b border-violet-400/15">
+								<tr>
+									<th class="px-4 py-2.5 w-44">
+										<span x-show="lang === 'en'">Aspect</span>
+										<span x-cloak x-show="lang === 'id'">Aspek</span>
+									</th>
+									<th class="px-4 py-2.5 text-emerald-300">
+										<span x-show="lang === 'en'">Hot Blueprints (Live Market Pulse)</span>
+										<span x-cloak x-show="lang === 'id'">Hot Blueprints (di Live Market Pulse)</span>
+									</th>
+									<th class="px-4 py-2.5 text-amber-300">
+										<span x-show="lang === 'en'">Top Opportunities Radar (Auto 160 BPs)</span>
+										<span x-cloak x-show="lang === 'id'">Top Opportunities Radar (Otomatis 160 BP)</span>
+									</th>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-violet-400/10 text-slate-200">
+								<tr class="hover:bg-white/5">
+									<td class="px-4 py-2.5 font-semibold text-white">
+										<span x-show="lang === 'en'">Primary Focus</span>
+										<span x-cloak x-show="lang === 'id'">Fokus Utama</span>
+									</td>
+									<td class="px-4 py-2.5">
+										<span x-show="lang === 'en'"><strong>Market Trend &amp; Momentum</strong> (product side only)</span>
+										<span x-cloak x-show="lang === 'id'"><strong>Tren &amp; Momentum Pasar</strong> (sisi produk jadi saja)</span>
+									</td>
+									<td class="px-4 py-2.5">
+										<span x-show="lang === 'en'"><strong>True Net Profit &amp; Production Viability</strong></span>
+										<span x-cloak x-show="lang === 'id'"><strong>Profit Bersih &amp; Kelayakan Produksi Nyata</strong></span>
+									</td>
+								</tr>
+								<tr class="hover:bg-white/5">
+									<td class="px-4 py-2.5 font-semibold text-white">
+										<span x-show="lang === 'en'">What It Evaluates</span>
+										<span x-cloak x-show="lang === 'id'">Yang Dicek</span>
+									</td>
+									<td class="px-4 py-2.5">
+										<span x-show="lang === 'en'">7d volume surge (<strong>Hot Demand</strong>) or 7d price momentum (<strong>Price Rising ↑</strong>) on finished manufactured goods.</span>
+										<span x-cloak x-show="lang === 'id'">Lonjakan volume beli 7 hari (<strong>Hot Demand</strong>) atau kenaikan harga 7 hari (<strong>Price Rising ↑</strong>) pada produk jadi.</span>
+									</td>
+									<td class="px-4 py-2.5">
+										<span x-show="lang === 'en'">Full cost chain across <strong>160 blueprints</strong>: live material costs, auto ME/TE (or your <strong>Owned BPO</strong>), SCI, Broker Fee, Sales Tax, and Relist Fee.</span>
+										<span x-cloak x-show="lang === 'id'">Seluruh rantai biaya <strong>160 blueprint</strong>: harga bahan baku live, ME/TE otomatis (atau <strong>Owned BPO</strong> Anda), SCI, Broker Fee, Sales Tax, dan Relist Fee.</span>
+									</td>
+								</tr>
+								<tr class="hover:bg-white/5">
+									<td class="px-4 py-2.5 font-semibold text-white">
+										<span x-show="lang === 'en'">Guaranteed Profitable?</span>
+										<span x-cloak x-show="lang === 'id'">Apakah Pasti Untung?</span>
+									</td>
+									<td class="px-4 py-2.5">
+										<span x-show="lang === 'en'"><span class="text-amber-300 font-semibold">Not necessarily</span> — an item can be in high demand while its raw minerals are also expensive (thin or negative margin).</span>
+										<span x-cloak x-show="lang === 'id'"><span class="text-amber-300 font-semibold">Belum tentu</span> — barang bisa ramai dicari, tapi margin bikinnya tipis/rugi jika bahan bakunya juga sedang mahal.</span>
+									</td>
+									<td class="px-4 py-2.5">
+										<span x-show="lang === 'en'"><span class="text-emerald-300 font-semibold">Pre-filtered</span> — automatically removes losing (AVOID) &amp; dead (&lt;5/day) items, prioritizing jobs that <strong>Fit Your Capital</strong>.</span>
+										<span x-cloak x-show="lang === 'id'"><span class="text-emerald-300 font-semibold">Sudah disaring</span> — otomatis membuang item rugi (AVOID) &amp; barang mati (&lt;5/hari), memprioritaskan yang masuk modal (<strong>Fits Capital</strong>).</span>
+									</td>
+								</tr>
+								<tr class="hover:bg-white/5">
+									<td class="px-4 py-2.5 font-semibold text-white">
+										<span x-show="lang === 'en'">Decision Output</span>
+										<span x-cloak x-show="lang === 'id'">Output Keputusan</span>
+									</td>
+									<td class="px-4 py-2.5">
+										<span x-show="lang === 'en'">Market badges (<code class="text-amber-200">HOT</code>, <code class="text-rose-200">HIGH</code>, <code class="text-emerald-200">CHEAP</code>) + 7-day price sparkline.</span>
+										<span x-cloak x-show="lang === 'id'">Sinyal pasar (<code class="text-amber-200">HOT</code>, <code class="text-rose-200">HIGH</code>, <code class="text-emerald-200">CHEAP</code>) + grafik sparkline 7 hari.</span>
+									</td>
+									<td class="px-4 py-2.5">
+										<span x-show="lang === 'en'">Auto-sized <strong>Runs</strong>, <strong>Net Profit</strong>, <strong>Margin %</strong>, <strong>ISK/Hour</strong>, <strong>Rec. Sell</strong> (4-sig-fig), and <strong>Break-Even Floor</strong>.</span>
+										<span x-cloak x-show="lang === 'id'">Rekomendasi <strong>Runs</strong>, <strong>Net Profit</strong>, <strong>Margin %</strong>, <strong>ISK/Hour</strong>, <strong>Rec. Sell</strong> (4-sig-fig), dan <strong>Break-Even Floor</strong>.</span>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
+					<div class="grid grid-cols-1 gap-2.5 md:grid-cols-2 text-[11px]">
+						<div class="rounded-lg border border-emerald-400/25 bg-emerald-500/10 px-3.5 py-2.5 text-emerald-100">
+							<span x-show="lang === 'en'"><strong>Use Hot Blueprints</strong> when asking: <em>"Which manufactured items are trending or spiking in demand this week?"</em></span>
+							<span x-cloak x-show="lang === 'id'"><strong>Pakai Hot Blueprints</strong> untuk menjawab: <em>"Barang manufaktur apa yang lagi ramai dibeli atau naik harga minggu ini?"</em></span>
+						</div>
+						<div class="rounded-lg border border-amber-400/25 bg-amber-500/10 px-3.5 py-2.5 text-amber-100">
+							<span x-show="lang === 'en'"><strong>Use Top Opportunities Radar</strong> when asking: <em>"Out of 160 blueprints, which 8 are most profitable and safe to craft right now for my capital?"</em></span>
+							<span x-cloak x-show="lang === 'id'"><strong>Pakai Top Opportunities Radar</strong> untuk menjawab: <em>"Dari 160 blueprint, 8 barang mana yang paling cuan, likuid, dan aman untuk langsung saya produksi hari ini?"</em></span>
+						</div>
 					</div>
 				</div>
 			</div>

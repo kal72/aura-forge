@@ -69,6 +69,32 @@ body {
   border-right: 1px solid rgba(253, 230, 138, 0.36);
 }
 
+/* Night Mode (html.dark): Deep Amethyst Banner (#1b0f35 -> #26144a -> #311a5e) */
+html.dark .af-banner-hazard {
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(251, 191, 36, 0.62) 0px,
+    rgba(251, 191, 36, 0.62) 5px,
+    rgba(30, 17, 58, 0.98) 5px,
+    rgba(30, 17, 58, 0.98) 11px
+  );
+}
+
+html.dark .af-sidebar-upper {
+  background-color: #26144a;
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.24), transparent 58%),
+    linear-gradient(to right, rgba(253, 230, 138, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(253, 230, 138, 0.04) 1px, transparent 1px),
+    linear-gradient(180deg, #1b0f35 0%, #26144a 55%, #311a5e 100%);
+  background-size: 100% 100%, 20px 20px, 20px 20px, 100% 100%;
+}
+
+html.dark .af-banner-frame {
+  border-left: 1px solid rgba(253, 230, 138, 0.25);
+  border-right: 1px solid rgba(253, 230, 138, 0.25);
+}
+
 /* Top Bar seamlessly blended over Orbital Canvas */
 .af-topbar {
   background-color: rgba(13, 16, 33, 0.45);

@@ -1,6 +1,10 @@
 package web
 
-import "aura-forge/internal/service"
+import (
+	"fmt"
+
+	"aura-forge/internal/service"
+)
 
 templ Layout(title string, activeNav string, mode service.ModeInfo) {
 	<!DOCTYPE html>
@@ -8,6 +12,8 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<meta name="theme-color" content="#0d1021"/>
+			<link rel="icon" type="image/svg+xml" href="/static/favicon.svg"/>
 			<title>{ title } — aura-forge // EVE Market &amp; Industry Copilot</title>
 			<style>
 				html, body {
@@ -18,52 +24,56 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 					margin: 0;
 				}
 				[x-cloak] { display: none !important; }
-				html.af-fouc-guard body { opacity: 0; }
-				body { transition: opacity 140ms ease-out; }
 			</style>
 			<script>
 				(function () {
-					document.documentElement.classList.add('af-fouc-guard');
 					var saved = localStorage.getItem('af-theme');
-					var isDark = saved === 'dark';
-					document.documentElement.classList.toggle('dark', isDark);
-					function reveal() {
-						document.documentElement.classList.remove('af-fouc-guard');
-					}
-					window.addEventListener('DOMContentLoaded', function () {
-						requestAnimationFrame(function () { requestAnimationFrame(reveal); });
-					});
-					setTimeout(reveal, 250);
+					document.documentElement.classList.toggle('dark', saved === 'dark');
 				})();
 			</script>
-			<link rel="stylesheet" href="/static/app.css"/>
-			<script src="https://cdn.tailwindcss.com"></script>
-			<script>
-				tailwind.config = {
-					darkMode: 'class',
-					theme: {
-						extend: {
-							fontFamily: {
-								mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
-							}
-						}
-					}
-				}
-			</script>
+			<link rel="stylesheet" href={ StaticAssetURL("/static/tailwind.css") }/>
+			<link rel="stylesheet" href={ StaticAssetURL("/static/app.css") }/>
 			<script src="https://unpkg.com/htmx.org@2.0.4"></script>
 			<script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
 		</head>
 		<body
+			hx-boost="true"
 			class="min-h-screen af-orbital-bg antialiased"
-			x-data="{
+			x-data={ fmt.Sprintf(`{
 				sidebarOpen: false,
 				isDark: document.documentElement.classList.contains('dark'),
+				auraOpen: false,
+				auraLoaded: false,
+				auraConvID: 0,
+				auraPrompt: '',
+				auraContextPage: %q,
+				auraContextSummary: '',
 				toggleTheme() {
 					this.isDark = !this.isDark;
 					document.documentElement.classList.toggle('dark', this.isDark);
 					localStorage.setItem('af-theme', this.isDark ? 'dark' : 'light');
+				},
+				openAura(promptText, ctxSummary) {
+					this.auraOpen = true;
+					if (ctxSummary) this.auraContextSummary = ctxSummary;
+					if (!this.auraLoaded) {
+						this.auraLoaded = true;
+						htmx.ajax('GET', '/ai/drawer?conv_id=' + this.auraConvID, { target: '#aura-drawer-thread', swap: 'innerHTML' });
+					}
+					if (promptText) {
+						this.sendAuraPrompt(promptText);
+					}
+				},
+				sendAuraPrompt(text) {
+					this.auraPrompt = text;
+					this.$nextTick(() => {
+						const form = document.getElementById('aura-chat-form');
+						if (form && window.htmx) window.htmx.trigger(form, 'submit');
+					});
 				}
-			}"
+			}`, activeNav) }
+			@open-aura-ai.window="openAura($event.detail?.prompt || '', $event.detail?.context || '')"
+			@keydown.escape.window="auraOpen = false"
 		>
 			<!-- Unified Full-Viewport Orbital Shipyard + Planet Horizon Backdrop (Flows seamlessly from Sidebar into Main) -->
 			<svg
@@ -167,11 +177,12 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 								</button>
 							</div>
 
-							<!-- Unified Sidebar Menu (All Groups at Top) -->
+							<!-- Unified Sidebar Menu (13 Flat Items across 4 Logical Workflow Groups) -->
 							<nav hx-boost="true" class="py-3.5 space-y-4">
+								<!-- 01 DAILY OPERATIONS -->
 								<div>
 									<div class="px-2.5 mb-1.5 flex items-center justify-between text-[10px] font-mono font-semibold uppercase tracking-widest text-amber-200/75">
-										<span>Operations</span>
+										<span>Daily Operations</span>
 										<span class="text-[8px] opacity-60">01</span>
 									</div>
 									<div class="space-y-0.5">
@@ -181,17 +192,53 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 											</svg>
 											<span>Dashboard</span>
 										</a>
+										<a href="/scanner" class={ NavLinkUpperClass(activeNav, "scanner") }>
+											<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+												<path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+											</svg>
+											<span>Opportunity Scanner</span>
+										</a>
 										<a href="/marketplace" class={ NavLinkUpperClass(activeNav, "marketplace") }>
 											<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 												<path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
 											</svg>
 											<span>Marketplace</span>
 										</a>
-										<a href="/scanner" class={ NavLinkUpperClass(activeNav, "scanner") }>
+										if mode.IsAdmin() {
+											<a href="/tracker" class={ NavLinkUpperClass(activeNav, "tracker") }>
+												<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+													<path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+												</svg>
+												<span>Trade &amp; Batch Tracker</span>
+											</a>
+										}
+									</div>
+								</div>
+
+								<!-- 02 INDUSTRY & FOUNDRY -->
+								<div>
+									<div class="px-2.5 mb-1.5 flex items-center justify-between text-[10px] font-mono font-semibold uppercase tracking-widest text-amber-200/75">
+										<span>Industry &amp; Foundry</span>
+										<span class="text-[8px] opacity-60">02</span>
+									</div>
+									<div class="space-y-0.5">
+										<a href="/manufacture" class={ NavLinkUpperClass(activeNav, "manufacture") }>
 											<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-												<path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+												<path stroke-linecap="round" stroke-linejoin="round" d="M4 6h4v4H4V6zm12-2h4v4h-4V4zm0 12h4v4h-4v-4zM8 8h4m0 0V6h4m-4 2v10h4"></path>
 											</svg>
-											<span>Opportunity Scanner</span>
+											<span>Manufacture &amp; Profit</span>
+										</a>
+										<a href="/invention" class={ NavLinkUpperClass(activeNav, "invention") }>
+											<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+												<path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+											</svg>
+											<span>T2 Invention Lab</span>
+										</a>
+										<a href="/pi" class={ NavLinkUpperClass(activeNav, "pi") }>
+											<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+												<path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+											</svg>
+											<span>Planetary Industry (PI)</span>
 										</a>
 										if mode.IsAdmin() {
 											<a href="/catalog" class={ NavLinkUpperClass(activeNav, "catalog") }>
@@ -201,22 +248,23 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 												<span>Catalog &amp; Trap Guard</span>
 											</a>
 										}
-										<a href="/calculator" class={ NavLinkUpperClass(activeNav, "calculator") }>
-											<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-												<path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-											</svg>
-											<span>Profit Calculator</span>
-										</a>
 									</div>
 								</div>
 
-								<div>
-									<div class="px-2.5 mb-1.5 flex items-center justify-between text-[10px] font-mono font-semibold uppercase tracking-widest text-amber-200/75">
-										<span>Foundry &amp; Strategy</span>
-										<span class="text-[8px] opacity-60">02</span>
-									</div>
-									<div class="space-y-0.5">
-										if mode.IsAdmin() {
+								<!-- 03 WEALTH & STRATEGY -->
+								if mode.IsAdmin() {
+									<div>
+										<div class="px-2.5 mb-1.5 flex items-center justify-between text-[10px] font-mono font-semibold uppercase tracking-widest text-amber-200/75">
+											<span>Wealth &amp; Strategy</span>
+											<span class="text-[8px] opacity-60">03</span>
+										</div>
+										<div class="space-y-0.5">
+											<a href="/wealth" class={ NavLinkUpperClass(activeNav, "wealth") }>
+												<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+													<path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+												</svg>
+												<span>Net Worth &amp; 100B+</span>
+											</a>
 											<a href="/allocator" class={ NavLinkUpperClass(activeNav, "allocator") }>
 												<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 													<path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
@@ -230,45 +278,14 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 												</svg>
 												<span>Weekly Planner</span>
 											</a>
-											<a href="/tracker" class={ NavLinkUpperClass(activeNav, "tracker") }>
-												<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-													<path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-												</svg>
-												<span>Order &amp; Batch Tracker</span>
-											</a>
-											<a href="/wealth" class={ NavLinkUpperClass(activeNav, "wealth") }>
-												<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-													<path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-												</svg>
-												<span>Net Worth &amp; 100B+</span>
-											</a>
-										}
-										<a href="/manufacture" class={ NavLinkUpperClass(activeNav, "manufacture") }>
-											<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-												<path stroke-linecap="round" stroke-linejoin="round" d="M4 6h4v4H4V6zm12-2h4v4h-4V4zm0 12h4v4h-4v-4zM8 8h4m0 0V6h4m-4 2v10h4"></path>
-											</svg>
-											<span>Manufacture</span>
-										</a>
-										<a href="/invention" class={ NavLinkUpperClass(activeNav, "invention") }>
-											<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-												<path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
-											</svg>
-											<span>T2 Invention &amp; Make/Buy</span>
-										</a>
-										<a href="/pi" class={ NavLinkUpperClass(activeNav, "pi") }>
-											<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-												<path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-											</svg>
-											<span>Planetary Industry (PI)</span>
-										</a>
+										</div>
 									</div>
-								</div>
 
-								if mode.IsAdmin() {
+									<!-- 04 SYSTEM -->
 									<div>
 										<div class="px-2.5 mb-1.5 flex items-center justify-between text-[10px] font-mono font-semibold uppercase tracking-widest text-amber-200/75">
 											<span>System</span>
-											<span class="text-[8px] opacity-60">03</span>
+											<span class="text-[8px] opacity-60">04</span>
 										</div>
 										<div class="space-y-0.5">
 											<a href="/settings" class={ NavLinkUpperClass(activeNav, "settings") }>
@@ -324,6 +341,7 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 						if mode.SSOEnabled && mode.IsAdmin() {
 							<a
 								href="/auth/login"
+								hx-boost="false"
 								class="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-sky-400/45 bg-sky-500/20 backdrop-blur-xs px-3 py-2 text-xs font-semibold text-sky-200 hover:bg-sky-500/30 transition"
 							>
 								<span>Connect EVE SSO</span>
@@ -402,6 +420,19 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 						</div>
 
 						<div class="flex items-center gap-2">
+							<!-- Optional Level-4 Aura AI Copilot Drawer Trigger (Topbar only, zero sidebar clutter) -->
+							if mode.AI.Enabled {
+								<button
+									type="button"
+									@click="openAura('', '')"
+									title={ fmt.Sprintf("Ask Aura AI Copilot (%s)", mode.AI.Model) }
+									class="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/50 bg-gradient-to-r from-violet-600/35 to-amber-500/25 px-2.5 py-1.5 text-xs font-bold text-amber-100 hover:border-amber-300/80 hover:from-violet-500/45 hover:to-amber-400/35 shadow-[0_0_12px_rgba(139,92,246,0.28)] transition cursor-pointer"
+								>
+									<span class="h-2 w-2 rounded-full bg-amber-300 animate-pulse"></span>
+									<span>Ask Aura</span>
+								</button>
+							}
+
 							<!-- Built-in EVE Wiki & UI Guide Shortcut (Topbar only, not in sidebar) -->
 							<a
 								href="/wiki"
@@ -436,15 +467,46 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 							</button>
 
 							if mode.CurrentUser != nil {
-								<div class="hidden sm:flex items-center gap-2 rounded-lg border border-violet-400/30 bg-violet-950/45 px-2.5 py-1.5 text-xs">
-									<span class="font-medium text-white max-w-[130px] truncate">{ mode.CurrentUser.DisplayName }</span>
-									if mode.CurrentUser.IsAdmin() {
-										<span class="rounded border border-amber-400/45 bg-amber-500/20 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-amber-200">ADMIN</span>
-									} else {
-										<span class="rounded border border-sky-400/35 bg-sky-500/15 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-sky-200">USER</span>
-									}
-								</div>
-								<form method="POST" action="/logout">
+								if mode.SSOConnected {
+									<a
+										href="/pilot"
+										title={ fmt.Sprintf("EVE Pilot Hub (%s — Live Wallet %s) • Account: %s", mode.CharacterName, FormatISK(mode.WalletBalance), mode.CurrentUser.DisplayName) }
+										class={ "hidden sm:inline-flex items-center gap-2 rounded-lg border px-2.5 py-1 text-xs transition " + func() string {
+											if activeNav == "pilot" {
+												return "border-emerald-400/70 bg-emerald-500/20 text-white shadow-[0_0_12px_rgba(16,185,129,0.25)]"
+											}
+											return "border-emerald-400/45 bg-violet-950/55 text-white hover:border-emerald-300/75 hover:bg-emerald-500/15"
+										}() }
+									>
+										<span class="relative h-5 w-5 shrink-0 rounded-md overflow-hidden border border-amber-400/50 bg-slate-900">
+											<img
+												src={ fmt.Sprintf("https://images.evetech.net/characters/%d/portrait?size=64", mode.CharacterID) }
+												alt={ mode.CharacterName }
+												class="h-full w-full object-cover"
+											/>
+											<span class="absolute bottom-0 right-0 h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+										</span>
+										<span class="font-semibold text-white max-w-[120px] truncate">{ mode.CharacterName }</span>
+										if mode.WalletBalance > 0 {
+											<span class="hidden md:inline font-mono text-[10.5px] font-bold text-amber-300">{ FormatISK(mode.WalletBalance) }</span>
+										}
+										if mode.CurrentUser.IsAdmin() {
+											<span class="rounded border border-amber-400/45 bg-amber-500/20 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-amber-200">ADMIN</span>
+										} else {
+											<span class="rounded border border-sky-400/35 bg-sky-500/15 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-sky-200">USER</span>
+										}
+									</a>
+								} else {
+									<div class="hidden sm:flex items-center gap-2 rounded-lg border border-violet-400/30 bg-violet-950/45 px-2.5 py-1.5 text-xs">
+										<span class="font-medium text-white max-w-[130px] truncate">{ mode.CurrentUser.DisplayName }</span>
+										if mode.CurrentUser.IsAdmin() {
+											<span class="rounded border border-amber-400/45 bg-amber-500/20 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-amber-200">ADMIN</span>
+										} else {
+											<span class="rounded border border-sky-400/35 bg-sky-500/15 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-sky-200">USER</span>
+										}
+									</div>
+								}
+								<form method="POST" action="/logout" hx-boost="false">
 									<button
 										type="submit"
 										title="Keluar dari akun"
@@ -468,9 +530,106 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 
 				<!-- Footer -->
 				<footer class="relative z-10 border-t border-violet-500/20 py-4 text-center text-xs text-violet-300/60 font-mono">
-					aura-forge // EVE Market &amp; Industry Copilot (2026) — Public ESI Default + Optional EVE SSO Plug-and-Play
+					aura-forge // EVE Market &amp; Industry Copilot (2026) — Public ESI Default + Optional EVE SSO &amp; AI Plug-and-Play
 				</footer>
 			</div>
+
+			<!-- Optional Aura AI Copilot Slide-Over Drawer (Level 4 Agentic Assistant) -->
+			if mode.AI.Enabled {
+				<template x-teleport="body">
+					<div
+						x-cloak
+						x-show="auraOpen"
+						style="margin-top: 0;"
+						class="fixed inset-0 z-[110] flex justify-end"
+					>
+						<div
+							x-show="auraOpen"
+							x-transition.opacity.duration.150ms
+							@click="auraOpen = false"
+							class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs"
+						></div>
+
+						<div
+							x-show="auraOpen"
+							x-transition:enter="transition ease-out duration-200"
+							x-transition:enter-start="translate-x-full"
+							x-transition:enter-end="translate-x-0"
+							x-transition:leave="transition ease-in duration-150"
+							x-transition:leave-start="translate-x-0"
+							x-transition:leave-end="translate-x-full"
+							class="relative z-10 flex h-full w-full max-w-lg flex-col border-l border-violet-400/40 bg-[#0d1024]/98 shadow-2xl backdrop-blur-xl"
+						>
+							<!-- Drawer Header -->
+							<div class="flex items-center justify-between gap-3 border-b border-violet-400/25 bg-slate-950/90 px-4 py-3">
+								<div class="flex items-center gap-2.5 min-w-0">
+									<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-amber-300/50 bg-gradient-to-br from-violet-600/45 to-amber-500/30 text-amber-200">
+										<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+											<path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+										</svg>
+									</div>
+									<div class="min-w-0">
+										<div class="text-xs font-bold uppercase tracking-wider text-amber-200">Aura AI Copilot</div>
+										<div class="font-mono text-[10px] text-slate-400 truncate">
+											Level-4 Agent • { mode.AI.Model }
+										</div>
+									</div>
+								</div>
+								<button
+									type="button"
+									@click="auraOpen = false"
+									class="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs text-slate-300 hover:text-white cursor-pointer"
+								>
+									✕ Close
+								</button>
+							</div>
+
+							<!-- Conversation Body (Swapped by HTMX) -->
+							<div id="aura-drawer-thread" class="flex-1 min-h-0 overflow-hidden">
+								<div class="flex h-full items-center justify-center text-xs font-mono text-slate-400">
+									Loading Aura Copilot session...
+								</div>
+							</div>
+
+							<!-- Chat Composer -->
+							<div class="border-t border-violet-400/25 bg-slate-950/95 p-3 space-y-2">
+								<div id="aura-thinking-indicator" class="htmx-indicator items-center gap-2 rounded-lg border border-amber-400/35 bg-amber-500/10 px-3 py-1.5 font-mono text-[11px] text-amber-200">
+									<span class="inline-block h-3 w-3 animate-spin rounded-full border-2 border-amber-300 border-t-transparent"></span>
+									<span>Aura is running live EVE tools &amp; analyzing...</span>
+								</div>
+								<form
+									id="aura-chat-form"
+									hx-post="/ai/chat"
+									hx-target="#aura-drawer-thread"
+									hx-swap="innerHTML"
+									hx-indicator="#aura-thinking-indicator"
+									@htmx:after-request="if ($event.detail.successful) { auraPrompt = ''; auraContextSummary = ''; }"
+									class="flex items-end gap-2"
+								>
+									<input type="hidden" name="conversation_id" :value="auraConvID"/>
+									<input type="hidden" name="context_page" :value="auraContextPage"/>
+									<input type="hidden" name="context_summary" :value="auraContextSummary"/>
+									<textarea
+										name="prompt"
+										x-model="auraPrompt"
+										rows="2"
+										required
+										@keydown.enter="if (!$event.shiftKey) { $event.preventDefault(); $el.form.requestSubmit(); }"
+										placeholder="Ask Aura anything (ID/EN) — e.g. 'Item paling aman di Amarr modal 100M?' (Enter to send)"
+										class="flex-1 resize-none rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-400 focus:outline-none"
+									></textarea>
+									<button
+										type="submit"
+										class="shrink-0 rounded-lg bg-amber-400 px-4 py-2.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer"
+									>
+										Send
+									</button>
+								</form>
+							</div>
+						</div>
+					</div>
+				</template>
+			}
 
 			<!-- Alpine.js Toast Notification Stack -->
 			<div

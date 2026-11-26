@@ -19,9 +19,12 @@ func computeBeatRelistPrice(competitorPrice float64) float64 {
 	return beat
 }
 
-func nextBatchStatusAction(st domain.BatchStatus) (nextStatus string, label string, btnClass string) {
+func nextBatchStatusAction(st domain.BatchStatus, entryType domain.BatchEntryType) (nextStatus string, label string, btnClass string) {
 	switch st {
 	case domain.BatchStatusDraft:
+		if entryType == domain.BatchEntryTrade {
+			return string(domain.BatchStatusListed), "List Flip →", "border-sky-400/45 bg-sky-500/20 text-sky-200 hover:bg-sky-500/35"
+		}
 		return string(domain.BatchStatusInProduction), "Start Build →", "border-amber-400/45 bg-amber-500/20 text-amber-200 hover:bg-amber-500/35"
 	case domain.BatchStatusInProduction:
 		return string(domain.BatchStatusListed), "List on Market →", "border-sky-400/45 bg-sky-500/20 text-sky-200 hover:bg-sky-500/35"
@@ -32,7 +35,7 @@ func nextBatchStatusAction(st domain.BatchStatus) (nextStatus string, label stri
 	}
 }
 
-templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.TrackerSummary, batches []domain.BatchRecord, statusFilter string) {
+templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, activeTab string, summary service.TrackerSummary, batches []domain.BatchRecord, statusFilter string, ledger *service.TradeLedgerViewData) {
 	@Layout("Production & Market Tracker", "tracker", mode) {
 		<div
 			class="space-y-6"
@@ -51,25 +54,77 @@ templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tr
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-white">Production, Inventory &amp; Market Order Tracker</h1>
 					<p class="text-xs text-slate-300/80 mt-0.5">
-						Manage batch lifecycles (<code class="text-sky-300">DRAFT → IN_PRODUCTION → LISTED → SOLD</code>) and protect profit with live <strong class="text-amber-200">{ hub.Name }</strong> Undercut &amp; Safe Relist Guard.
+						Manage batch lifecycles (<code class="text-sky-300">DRAFT → IN_PRODUCTION → LISTED → SOLD</code>), audit Buy/Sell Ledger &amp; Realized P&amp;L, and protect profit at <strong class="text-amber-200">{ hub.Name }</strong>.
 					</p>
 				</div>
-				<div class="flex flex-wrap gap-2">
-					<button
-						type="button"
-						hx-post="/esi/check-undercuts"
-						hx-swap="none"
-						hx-indicator="#undercut-spinner"
-						class="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/45 bg-amber-500/15 px-3.5 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer"
-					>
-						<span id="undercut-spinner" class="htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-amber-300 border-t-transparent"></span>
-						<span>Check Live Undercuts ({ hub.Name })</span>
-					</button>
-					<button type="button" @click="showNewBatch = !showNewBatch" class="rounded-lg bg-amber-400 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer">
-						+ Record Batch
-					</button>
-				</div>
+				if activeTab == "batches" {
+					<div class="flex flex-wrap gap-2">
+						<button
+							type="button"
+							hx-post="/esi/check-undercuts"
+							hx-swap="none"
+							hx-indicator="#undercut-spinner"
+							class="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/45 bg-amber-500/15 px-3.5 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer"
+						>
+							<span id="undercut-spinner" class="htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-amber-300 border-t-transparent"></span>
+							<span>Check Live Undercuts ({ hub.Name })</span>
+						</button>
+						<button type="button" @click="showNewBatch = !showNewBatch" class="rounded-lg bg-amber-400 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer">
+							+ Record Batch
+						</button>
+					</div>
+				}
 			</div>
+
+			<!-- 3-Tab Sub-Navigation (No New Sidebar Menu) -->
+			<div class="flex flex-wrap items-center gap-2 border-b border-violet-400/20 pb-3">
+				<a
+					href="/tracker?tab=batches"
+					class={ "inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition " + func() string {
+						if activeTab == "batches" {
+							return "bg-violet-500/30 border border-violet-400/60 text-white shadow-[0_0_12px_rgba(139,92,246,0.25)]"
+						}
+						return "border border-slate-800 bg-slate-900/50 text-slate-300 hover:text-white"
+					}() }
+				>
+					<span>Batches &amp; Flips</span>
+					<span class="rounded bg-slate-950/70 px-1.5 py-0.5 font-mono text-[10px] text-amber-200">{ fmt.Sprintf("%d", summary.ActiveCount) }</span>
+				</a>
+				<a
+					href="/tracker?tab=ledger"
+					class={ "inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition " + func() string {
+						if activeTab == "ledger" {
+							return "bg-violet-500/30 border border-violet-400/60 text-white shadow-[0_0_12px_rgba(139,92,246,0.25)]"
+						}
+						return "border border-slate-800 bg-slate-900/50 text-slate-300 hover:text-white"
+					}() }
+				>
+					<span>Buy &amp; Sell Ledger</span>
+					if ledger != nil {
+						<span class="rounded bg-slate-950/70 px-1.5 py-0.5 font-mono text-[10px] text-sky-200">{ fmt.Sprintf("%d", len(ledger.Transactions)) }</span>
+					}
+				</a>
+				<a
+					href="/tracker?tab=pnl"
+					class={ "inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition " + func() string {
+						if activeTab == "pnl" {
+							return "bg-violet-500/30 border border-violet-400/60 text-white shadow-[0_0_12px_rgba(139,92,246,0.25)]"
+						}
+						return "border border-slate-800 bg-slate-900/50 text-slate-300 hover:text-white"
+					}() }
+				>
+					<span>Realized P&amp;L &amp; Orders</span>
+					if ledger != nil && ledger.Report.RealizedProfitISK != 0 {
+						<span class={ "rounded bg-slate-950/70 px-1.5 py-0.5 font-mono text-[10px] " + profitColor(ledger.Report.RealizedProfitISK) }>{ FormatISK(ledger.Report.RealizedProfitISK) }</span>
+					}
+				</a>
+			</div>
+
+			if activeTab == "ledger" {
+				@TrackerLedgerTab(mode, hub, ledger)
+			} else if activeTab == "pnl" {
+				@TrackerPnLTab(mode, hub, ledger)
+			} else {
 
 			<!-- 4 KPI Summary Cards -->
 			<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -110,6 +165,7 @@ templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tr
 				x-transition
 				class="tactical-panel rounded-xl p-5 space-y-4"
 				x-data={ fmt.Sprintf(`{
+					entryType: 'MANUFACTURING',
 					itemName: '',
 					runs: 10,
 					unitsOut: 10,
@@ -126,7 +182,14 @@ templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tr
 							if (!r.ok) { this.lookupNote = d.error || 'Item not found'; return; }
 							if (d.recommended_sell_price > 0) this.sellPrice = d.recommended_sell_price;
 							else if (d.lowest_sell > 0) this.sellPrice = d.lowest_sell;
-							if (d.sde_has_blueprint && d.sde_material_cost > 0) {
+							if (this.entryType === 'TRADE') {
+								if (d.highest_buy > 0) {
+									this.prodCost = Math.round(d.highest_buy * (Number(this.unitsOut) || 1) * 100) / 100;
+									this.lookupNote = 'Filled Trade Buy/Sell prices from ' + (d.hub_name || 'Hub') + '!';
+								} else {
+									this.lookupNote = 'Filled live sell price from ' + (d.hub_name || 'Hub') + '.';
+								}
+							} else if (d.sde_has_blueprint && d.sde_material_cost > 0) {
 								this.prodCost = d.sde_material_cost;
 								this.lookupNote = 'Filled from ' + (d.hub_name || 'Hub') + ' + SDE BOM!';
 							} else {
@@ -136,14 +199,35 @@ templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tr
 					}
 				}`, hub.Key) }
 			>
-				<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Record New Production Batch</h2>
+				<div class="flex flex-wrap items-center justify-between gap-2">
+					<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300" x-text="entryType === 'TRADE' ? 'Record New Trade / Arbitrage Flip' : 'Record New Production Batch'"></h2>
+					<div class="inline-flex rounded-lg border border-slate-700/80 bg-slate-950/70 p-0.5 text-[11px] font-mono">
+						<button
+							type="button"
+							@click="entryType = 'MANUFACTURING'"
+							:class="entryType === 'MANUFACTURING' ? 'bg-violet-500/30 text-violet-100 border border-violet-400/50' : 'text-slate-400 hover:text-slate-200 border border-transparent'"
+							class="rounded-md px-2.5 py-1 font-bold transition cursor-pointer"
+						>
+							Manufacturing (MFG)
+						</button>
+						<button
+							type="button"
+							@click="entryType = 'TRADE'; runs = 1"
+							:class="entryType === 'TRADE' ? 'bg-sky-500/30 text-sky-100 border border-sky-400/50' : 'text-slate-400 hover:text-slate-200 border border-transparent'"
+							class="rounded-md px-2.5 py-1 font-bold transition cursor-pointer"
+						>
+							Trade / Flip (TRADE)
+						</button>
+					</div>
+				</div>
 				<form hx-post="/tracker/batches" hx-swap="none" class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+					<input type="hidden" name="entry_type" :value="entryType"/>
 					<div class="sm:col-span-2">
 						<label class="block text-[10px] font-mono uppercase text-slate-300">Item Name</label>
 						<div class="mt-1 flex gap-2">
 							<input type="text" name="item_name" x-model="itemName" required placeholder="Hobgoblin I" class="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"/>
 							<button type="button" @click="autoFill()" class="shrink-0 rounded-lg border border-amber-400/45 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer">
-								Auto-Fill { hub.Name } + BOM
+								Auto-Fill { hub.Name }
 							</button>
 						</div>
 						<div x-show="lookupNote" x-text="lookupNote" class="mt-1 text-[11px] font-mono text-emerald-300"></div>
@@ -152,30 +236,30 @@ templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tr
 						<label class="block text-[10px] font-mono uppercase text-slate-300">Initial Status</label>
 						<select name="status" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white">
 							<option value="DRAFT">DRAFT</option>
-							<option value="IN_PRODUCTION">IN_PRODUCTION</option>
+							<option value="IN_PRODUCTION" x-show="entryType === 'MANUFACTURING'">IN_PRODUCTION</option>
 							<option value="LISTED">LISTED</option>
 							<option value="SOLD">SOLD</option>
 						</select>
 					</div>
-					<div>
+					<div x-show="entryType === 'MANUFACTURING'">
 						<label class="block text-[10px] font-mono uppercase text-slate-300">Runs</label>
 						<input type="number" name="runs" x-model="runs" min="1" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 					</div>
 					<div>
-						<label class="block text-[10px] font-mono uppercase text-slate-300">Total Output Units</label>
+						<label class="block text-[10px] font-mono uppercase text-slate-300" x-text="entryType === 'TRADE' ? 'Units Bought to Flip' : 'Total Output Units'"></label>
 						<input type="number" name="units_output" x-model="unitsOut" min="1" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 					</div>
 					<div>
-						<label class="block text-[10px] font-mono uppercase text-slate-300">Total Production Cost (ISK)</label>
+						<label class="block text-[10px] font-mono uppercase text-slate-300" x-text="entryType === 'TRADE' ? 'Total Buy Cost (ISK)' : 'Total Production Cost (ISK)'"></label>
 						<input type="number" step="0.01" name="actual_production_cost" x-model="prodCost" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 					</div>
 					<div>
-						<label class="block text-[10px] font-mono uppercase text-slate-300">Sell Price / Unit (ISK)</label>
+						<label class="block text-[10px] font-mono uppercase text-slate-300">Target Sell Price / Unit (ISK)</label>
 						<input type="number" step="0.01" name="actual_sell_price" x-model="sellPrice" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 					</div>
 					<div class="sm:col-span-2 flex items-end justify-end gap-2">
 						<button type="button" @click="showNewBatch = false" class="rounded-lg border border-slate-700 px-3.5 py-2 text-xs text-slate-300 cursor-pointer">Cancel</button>
-						<button type="submit" class="rounded-lg bg-amber-400 px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 cursor-pointer">Save Batch</button>
+						<button type="submit" class="rounded-lg bg-amber-400 px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 cursor-pointer" x-text="entryType === 'TRADE' ? 'Save Trade Flip' : 'Save Batch'"></button>
 					</div>
 				</form>
 			</div>
@@ -202,8 +286,8 @@ templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tr
 						<table class="w-full text-left text-xs">
 							<thead class="border-b border-violet-400/20 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400">
 								<tr>
-									<th class="px-4 py-3">Batch &amp; Status</th>
-									<th class="px-3 py-3 text-right">Build Cost</th>
+									<th class="px-4 py-3">Batch / Flip &amp; Status</th>
+									<th class="px-3 py-3 text-right">Build / Buy Cost</th>
 									<th class="px-3 py-3 text-right">Price / Safe Floor / { hub.Name } Live</th>
 									<th class="px-3 py-3 text-right">Net Profit / ROI</th>
 									<th class="px-3 py-3">Relist Guard Simulator</th>
@@ -212,8 +296,9 @@ templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tr
 							</thead>
 							<tbody class="divide-y divide-slate-800/80">
 								for _, b := range batches {
+									{{ entryType := b.NormalizedEntryType() }}
 									{{ beatPrice := computeBeatRelistPrice(b.CurrentMarketPrice) }}
-									{{ nextSt, nextLabel, nextCls := nextBatchStatusAction(b.Status) }}
+									{{ nextSt, nextLabel, nextCls := nextBatchStatusAction(b.Status, entryType) }}
 									<tr class="hover:bg-violet-500/5 transition align-top">
 										<!-- Item + Official EVE Icon (32x32) -->
 										<td class="px-4 py-3">
@@ -232,12 +317,23 @@ templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tr
 													</div>
 												}
 												<div class="min-w-0">
-													<div class="font-semibold text-white text-sm leading-snug">{ b.ItemName }</div>
+													<div class="flex items-center gap-1.5">
+														<span class="font-semibold text-white text-sm leading-snug">{ b.ItemName }</span>
+														if entryType == domain.BatchEntryTrade {
+															<span class="rounded border border-sky-400/40 bg-sky-500/15 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-sky-200">TRADE</span>
+														} else {
+															<span class="rounded border border-violet-400/40 bg-violet-500/15 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-violet-200">MFG</span>
+														}
+													</div>
 													<div class="mt-1 flex flex-wrap items-center gap-1.5">
 														<span class={ "inline-block rounded px-2 py-0.5 font-mono text-[10px] font-bold " + BatchStatusBadgeClass(b.Status) }>
 															{ string(b.Status) }
 														</span>
-														<span class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%dx run • %d u", b.Runs, b.UnitsOutput) }</span>
+														if entryType == domain.BatchEntryTrade {
+															<span class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%d u flip", b.UnitsOutput) }</span>
+														} else {
+															<span class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%dx run • %d u", b.Runs, b.UnitsOutput) }</span>
+														}
 													</div>
 												</div>
 											</div>
@@ -367,6 +463,7 @@ templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, summary service.Tr
 					</div>
 				}
 			</div>
+			}
 		</div>
 	}
 }

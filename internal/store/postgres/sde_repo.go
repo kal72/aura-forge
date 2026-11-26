@@ -32,7 +32,7 @@ func (r *SDERepo) SearchBlueprints(ctx context.Context, query, category string, 
 	category = strings.TrimSpace(category)
 
 	sqlQuery := `
-		SELECT blueprint_type_id, name, product_type_id, product_name, product_qty_per_run, base_time_seconds, tech_level, category
+		SELECT blueprint_type_id, name, product_type_id, product_name, product_qty_per_run, base_time_seconds, tech_level, category, activity_type
 		FROM sde_blueprints
 		WHERE ($1 = '' OR LOWER(name) LIKE '%' || LOWER($1) || '%' OR LOWER(product_name) LIKE '%' || LOWER($1) || '%')
 		  AND ($2 = '' OR LOWER(category) = LOWER($2))
@@ -50,13 +50,49 @@ func (r *SDERepo) SearchBlueprints(ctx context.Context, query, category string, 
 		var bp domain.SDEBlueprint
 		if err := rows.Scan(
 			&bp.BlueprintTypeID, &bp.Name, &bp.ProductTypeID, &bp.ProductName,
-			&bp.ProductQtyPerRun, &bp.BaseTimeSeconds, &bp.TechLevel, &bp.Category,
+			&bp.ProductQtyPerRun, &bp.BaseTimeSeconds, &bp.TechLevel, &bp.Category, &bp.ActivityType,
 		); err != nil {
 			return nil, fmt.Errorf("scanning sde_blueprint: %w", err)
 		}
 		out = append(out, bp)
 	}
 	return out, rows.Err()
+}
+
+// GetTypeNamesByIDs resolves a batch of EVE TypeIDs to human-readable names from local sde_types and sde_blueprints.
+func (r *SDERepo) GetTypeNamesByIDs(ctx context.Context, typeIDs []int32) (map[int32]string, error) {
+	out := make(map[int32]string, len(typeIDs))
+	if len(typeIDs) == 0 {
+		return out, nil
+	}
+
+	rows, err := r.pool.Query(ctx, `SELECT type_id, name FROM sde_types WHERE type_id = ANY($1)`, typeIDs)
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			var id int32
+			var name string
+			if err := rows.Scan(&id, &name); err == nil && name != "" {
+				out[id] = name
+			}
+		}
+	}
+
+	bpRows, err := r.pool.Query(ctx, `SELECT blueprint_type_id, name FROM sde_blueprints WHERE blueprint_type_id = ANY($1)`, typeIDs)
+	if err == nil {
+		defer bpRows.Close()
+		for bpRows.Next() {
+			var id int32
+			var name string
+			if err := bpRows.Scan(&id, &name); err == nil && name != "" {
+				if _, exists := out[id]; !exists {
+					out[id] = name
+				}
+			}
+		}
+	}
+
+	return out, nil
 }
 
 // SearchTypes searches sde_types for instant local Marketplace autocomplete (0 ESI calls).
@@ -217,12 +253,12 @@ func (r *SDERepo) BrowseTypesPaged(ctx context.Context, query, category, groupNa
 func (r *SDERepo) GetBlueprintByID(ctx context.Context, blueprintTypeID int32) (*domain.SDEBlueprint, error) {
 	var bp domain.SDEBlueprint
 	err := r.pool.QueryRow(ctx, `
-		SELECT blueprint_type_id, name, product_type_id, product_name, product_qty_per_run, base_time_seconds, tech_level, category
+		SELECT blueprint_type_id, name, product_type_id, product_name, product_qty_per_run, base_time_seconds, tech_level, category, activity_type
 		FROM sde_blueprints
 		WHERE blueprint_type_id = $1
 	`, blueprintTypeID).Scan(
 		&bp.BlueprintTypeID, &bp.Name, &bp.ProductTypeID, &bp.ProductName,
-		&bp.ProductQtyPerRun, &bp.BaseTimeSeconds, &bp.TechLevel, &bp.Category,
+		&bp.ProductQtyPerRun, &bp.BaseTimeSeconds, &bp.TechLevel, &bp.Category, &bp.ActivityType,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -236,13 +272,13 @@ func (r *SDERepo) GetBlueprintByID(ctx context.Context, blueprintTypeID int32) (
 func (r *SDERepo) GetBlueprintByProductID(ctx context.Context, productTypeID int32) (*domain.SDEBlueprint, error) {
 	var bp domain.SDEBlueprint
 	err := r.pool.QueryRow(ctx, `
-		SELECT blueprint_type_id, name, product_type_id, product_name, product_qty_per_run, base_time_seconds, tech_level, category
+		SELECT blueprint_type_id, name, product_type_id, product_name, product_qty_per_run, base_time_seconds, tech_level, category, activity_type
 		FROM sde_blueprints
 		WHERE product_type_id = $1
 		LIMIT 1
 	`, productTypeID).Scan(
 		&bp.BlueprintTypeID, &bp.Name, &bp.ProductTypeID, &bp.ProductName,
-		&bp.ProductQtyPerRun, &bp.BaseTimeSeconds, &bp.TechLevel, &bp.Category,
+		&bp.ProductQtyPerRun, &bp.BaseTimeSeconds, &bp.TechLevel, &bp.Category, &bp.ActivityType,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -336,6 +372,7 @@ func (r *SDERepo) UpsertSDEData(ctx context.Context, types []domain.SDEType, blu
 		times := make([]int32, len(chunk))
 		techs := make([]int32, len(chunk))
 		cats := make([]string, len(chunk))
+		acts := make([]string, len(chunk))
 		for i, bp := range chunk {
 			bpIDs[i] = bp.BlueprintTypeID
 			bpNames[i] = bp.Name
@@ -345,10 +382,19 @@ func (r *SDERepo) UpsertSDEData(ctx context.Context, types []domain.SDEType, blu
 			times[i] = int32(bp.BaseTimeSeconds)
 			techs[i] = int32(bp.TechLevel)
 			cats[i] = bp.Category
+			act := strings.TrimSpace(bp.ActivityType)
+			if act == "" {
+				if strings.EqualFold(bp.Category, "Reactions") {
+					act = "reaction"
+				} else {
+					act = "manufacturing"
+				}
+			}
+			acts[i] = act
 		}
 		if _, err := tx.Exec(ctx, `
-			INSERT INTO sde_blueprints (blueprint_type_id, name, product_type_id, product_name, product_qty_per_run, base_time_seconds, tech_level, category)
-			SELECT * FROM UNNEST($1::int[], $2::varchar[], $3::int[], $4::varchar[], $5::int[], $6::int[], $7::int[], $8::varchar[])
+			INSERT INTO sde_blueprints (blueprint_type_id, name, product_type_id, product_name, product_qty_per_run, base_time_seconds, tech_level, category, activity_type)
+			SELECT * FROM UNNEST($1::int[], $2::varchar[], $3::int[], $4::varchar[], $5::int[], $6::int[], $7::int[], $8::varchar[], $9::varchar[])
 			ON CONFLICT (blueprint_type_id) DO UPDATE SET
 				name = EXCLUDED.name,
 				product_type_id = EXCLUDED.product_type_id,
@@ -356,8 +402,9 @@ func (r *SDERepo) UpsertSDEData(ctx context.Context, types []domain.SDEType, blu
 				product_qty_per_run = EXCLUDED.product_qty_per_run,
 				base_time_seconds = EXCLUDED.base_time_seconds,
 				tech_level = EXCLUDED.tech_level,
-				category = EXCLUDED.category
-		`, bpIDs, bpNames, prodIDs, prodNames, qtys, times, techs, cats); err != nil {
+				category = EXCLUDED.category,
+				activity_type = EXCLUDED.activity_type
+		`, bpIDs, bpNames, prodIDs, prodNames, qtys, times, techs, cats, acts); err != nil {
 			return fmt.Errorf("bulk upserting sde_blueprints batch %d-%d: %w", start, end, err)
 		}
 	}
@@ -445,7 +492,7 @@ func (r *SDERepo) SearchBlueprintsPaged(ctx context.Context, query, category str
 	offset := (page - 1) * pageSize
 
 	rows, err := r.pool.Query(ctx, `
-		SELECT blueprint_type_id, name, product_type_id, product_name, product_qty_per_run, base_time_seconds, tech_level, category
+		SELECT blueprint_type_id, name, product_type_id, product_name, product_qty_per_run, base_time_seconds, tech_level, category, activity_type
 		FROM sde_blueprints
 		WHERE ($1 = '' OR LOWER(name) LIKE '%' || LOWER($1) || '%' OR LOWER(product_name) LIKE '%' || LOWER($1) || '%')
 		  AND ($2 = '' OR LOWER(category) = LOWER($2))
@@ -463,7 +510,7 @@ func (r *SDERepo) SearchBlueprintsPaged(ctx context.Context, query, category str
 		var bp domain.SDEBlueprint
 		if err := rows.Scan(
 			&bp.BlueprintTypeID, &bp.Name, &bp.ProductTypeID, &bp.ProductName,
-			&bp.ProductQtyPerRun, &bp.BaseTimeSeconds, &bp.TechLevel, &bp.Category,
+			&bp.ProductQtyPerRun, &bp.BaseTimeSeconds, &bp.TechLevel, &bp.Category, &bp.ActivityType,
 		); err != nil {
 			return nil, fmt.Errorf("scanning paged sde_blueprint: %w", err)
 		}
@@ -499,10 +546,10 @@ func (r *SDERepo) SearchBlueprintsPaged(ctx context.Context, query, category str
 func (r *SDERepo) GetSDEMetadata(ctx context.Context) (*domain.SDEMetadata, error) {
 	var m domain.SDEMetadata
 	err := r.pool.QueryRow(ctx, `
-		SELECT build_number, release_date, source, types_count, blueprints_count, materials_count, updated_at
+		SELECT build_number, release_date, source, types_count, blueprints_count, materials_count, inventions_count, updated_at
 		FROM sde_metadata
 		WHERE id = 1
-	`).Scan(&m.BuildNumber, &m.ReleaseDate, &m.Source, &m.TypesCount, &m.BlueprintsCount, &m.MaterialsCount, &m.UpdatedAt)
+	`).Scan(&m.BuildNumber, &m.ReleaseDate, &m.Source, &m.TypesCount, &m.BlueprintsCount, &m.MaterialsCount, &m.InventionsCount, &m.UpdatedAt)
 	if err != nil {
 		if !errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("reading sde_metadata: %w", err)
@@ -511,10 +558,11 @@ func (r *SDERepo) GetSDEMetadata(ctx context.Context) (*domain.SDEMetadata, erro
 		m.UpdatedAt = time.Now()
 	}
 
-	// Always reflect live blueprint & type counts accurately
+	// Always reflect live blueprint, type, and invention counts accurately
 	_ = r.pool.QueryRow(ctx, `SELECT COUNT(*)::int FROM sde_types`).Scan(&m.TypesCount)
 	_ = r.pool.QueryRow(ctx, `SELECT COUNT(*)::int FROM sde_blueprints`).Scan(&m.BlueprintsCount)
 	_ = r.pool.QueryRow(ctx, `SELECT COUNT(*)::int FROM sde_blueprint_materials`).Scan(&m.MaterialsCount)
+	_ = r.pool.QueryRow(ctx, `SELECT COUNT(*)::int FROM sde_inventions`).Scan(&m.InventionsCount)
 	return &m, nil
 }
 
@@ -524,8 +572,8 @@ func (r *SDERepo) SaveSDEMetadata(ctx context.Context, meta *domain.SDEMetadata)
 		return nil
 	}
 	_, err := r.pool.Exec(ctx, `
-		INSERT INTO sde_metadata (id, build_number, release_date, source, types_count, blueprints_count, materials_count, updated_at)
-		VALUES (1, $1, $2, $3, $4, $5, $6, NOW())
+		INSERT INTO sde_metadata (id, build_number, release_date, source, types_count, blueprints_count, materials_count, inventions_count, updated_at)
+		VALUES (1, $1, $2, $3, $4, $5, $6, $7, NOW())
 		ON CONFLICT (id) DO UPDATE SET
 			build_number = EXCLUDED.build_number,
 			release_date = EXCLUDED.release_date,
@@ -533,7 +581,210 @@ func (r *SDERepo) SaveSDEMetadata(ctx context.Context, meta *domain.SDEMetadata)
 			types_count = EXCLUDED.types_count,
 			blueprints_count = EXCLUDED.blueprints_count,
 			materials_count = EXCLUDED.materials_count,
+			inventions_count = EXCLUDED.inventions_count,
 			updated_at = NOW()
-	`, meta.BuildNumber, meta.ReleaseDate, meta.Source, meta.TypesCount, meta.BlueprintsCount, meta.MaterialsCount)
+	`, meta.BuildNumber, meta.ReleaseDate, meta.Source, meta.TypesCount, meta.BlueprintsCount, meta.MaterialsCount, meta.InventionsCount)
 	return err
+}
+
+// UpsertInventionData bulk-upserts official CCP SDE T1 -> T2 invention pathways and datacore requirements.
+func (r *SDERepo) UpsertInventionData(ctx context.Context, inventions []domain.SDEInvention, materials map[int32][]domain.SDEInventionMaterial) error {
+	if len(inventions) == 0 {
+		return nil
+	}
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("starting invention upsert tx: %w", err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	const batchSize = 500
+	for start := 0; start < len(inventions); start += batchSize {
+		end := start + batchSize
+		if end > len(inventions) {
+			end = len(inventions)
+		}
+		chunk := inventions[start:end]
+		t1IDs := make([]int32, len(chunk))
+		t2IDs := make([]int32, len(chunk))
+		prodIDs := make([]int32, len(chunk))
+		prodNames := make([]string, len(chunk))
+		probs := make([]float64, len(chunk))
+		runs := make([]int32, len(chunk))
+		times := make([]int32, len(chunk))
+		cats := make([]string, len(chunk))
+		for i, inv := range chunk {
+			t1IDs[i] = inv.T1BlueprintTypeID
+			t2IDs[i] = inv.T2BlueprintTypeID
+			prodIDs[i] = inv.T2ProductTypeID
+			prodNames[i] = inv.T2ProductName
+			probs[i] = inv.BaseProbability
+			runs[i] = int32(inv.BaseRuns)
+			times[i] = int32(inv.BaseTimeSeconds)
+			cats[i] = inv.Category
+		}
+		if _, err := tx.Exec(ctx, `
+			INSERT INTO sde_inventions (t1_blueprint_type_id, t2_blueprint_type_id, t2_product_type_id, t2_product_name, base_probability, base_runs, base_time_seconds, category)
+			SELECT * FROM UNNEST($1::int[], $2::int[], $3::int[], $4::varchar[], $5::double precision[], $6::int[], $7::int[], $8::varchar[])
+			ON CONFLICT (t1_blueprint_type_id, t2_blueprint_type_id) DO UPDATE SET
+				t2_product_type_id = EXCLUDED.t2_product_type_id,
+				t2_product_name = EXCLUDED.t2_product_name,
+				base_probability = EXCLUDED.base_probability,
+				base_runs = EXCLUDED.base_runs,
+				base_time_seconds = EXCLUDED.base_time_seconds,
+				category = EXCLUDED.category
+		`, t1IDs, t2IDs, prodIDs, prodNames, probs, runs, times, cats); err != nil {
+			return fmt.Errorf("bulk upserting sde_inventions: %w", err)
+		}
+	}
+
+	if len(materials) > 0 {
+		touched := make([]int32, 0, len(materials))
+		flatT1 := make([]int32, 0, len(materials)*2)
+		flatMat := make([]int32, 0, len(materials)*2)
+		flatQty := make([]int32, 0, len(materials)*2)
+		for t1ID, mats := range materials {
+			touched = append(touched, t1ID)
+			for _, m := range mats {
+				if m.MaterialTypeID <= 0 || m.Quantity <= 0 {
+					continue
+				}
+				flatT1 = append(flatT1, t1ID)
+				flatMat = append(flatMat, m.MaterialTypeID)
+				flatQty = append(flatQty, int32(m.Quantity))
+			}
+		}
+		for start := 0; start < len(touched); start += batchSize {
+			end := start + batchSize
+			if end > len(touched) {
+				end = len(touched)
+			}
+			if _, err := tx.Exec(ctx, `DELETE FROM sde_invention_materials WHERE t1_blueprint_type_id = ANY($1::int[])`, touched[start:end]); err != nil {
+				return fmt.Errorf("clearing sde_invention_materials: %w", err)
+			}
+		}
+		for start := 0; start < len(flatT1); start += batchSize {
+			end := start + batchSize
+			if end > len(flatT1) {
+				end = len(flatT1)
+			}
+			if _, err := tx.Exec(ctx, `
+				INSERT INTO sde_invention_materials (t1_blueprint_type_id, material_type_id, quantity)
+				SELECT * FROM UNNEST($1::int[], $2::int[], $3::int[])
+				ON CONFLICT (t1_blueprint_type_id, material_type_id) DO UPDATE SET
+					quantity = EXCLUDED.quantity
+			`, flatT1[start:end], flatMat[start:end], flatQty[start:end]); err != nil {
+				return fmt.Errorf("bulk upserting sde_invention_materials: %w", err)
+			}
+		}
+	}
+
+	return tx.Commit(ctx)
+}
+
+// SearchInventions searches official CCP SDE T1 -> T2 invention pathways by T2 product name.
+func (r *SDERepo) SearchInventions(ctx context.Context, query string, limit int) ([]domain.SDEInvention, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 30
+	}
+	query = strings.TrimSpace(query)
+	rows, err := r.pool.Query(ctx, `
+		SELECT t1_blueprint_type_id, t2_blueprint_type_id, t2_product_type_id, t2_product_name, base_probability, base_runs, base_time_seconds, category
+		FROM sde_inventions
+		WHERE ($1 = '' OR LOWER(t2_product_name) LIKE '%' || LOWER($1) || '%')
+		ORDER BY category ASC, t2_product_name ASC
+		LIMIT $2
+	`, query, limit)
+	if err != nil {
+		return nil, fmt.Errorf("searching sde_inventions: %w", err)
+	}
+	defer rows.Close()
+
+	out := make([]domain.SDEInvention, 0)
+	for rows.Next() {
+		var inv domain.SDEInvention
+		if err := rows.Scan(
+			&inv.T1BlueprintTypeID, &inv.T2BlueprintTypeID, &inv.T2ProductTypeID, &inv.T2ProductName,
+			&inv.BaseProbability, &inv.BaseRuns, &inv.BaseTimeSeconds, &inv.Category,
+		); err != nil {
+			return nil, fmt.Errorf("scanning sde_invention: %w", err)
+		}
+		out = append(out, inv)
+	}
+	return out, rows.Err()
+}
+
+// GetInventionByT2BlueprintID looks up the T1 invention pathway and datacore materials for a T2 BlueprintTypeID.
+func (r *SDERepo) GetInventionByT2BlueprintID(ctx context.Context, t2BlueprintTypeID int32) (*domain.SDEInvention, []domain.SDEInventionMaterial, error) {
+	var inv domain.SDEInvention
+	err := r.pool.QueryRow(ctx, `
+		SELECT t1_blueprint_type_id, t2_blueprint_type_id, t2_product_type_id, t2_product_name, base_probability, base_runs, base_time_seconds, category
+		FROM sde_inventions
+		WHERE t2_blueprint_type_id = $1
+		LIMIT 1
+	`, t2BlueprintTypeID).Scan(
+		&inv.T1BlueprintTypeID, &inv.T2BlueprintTypeID, &inv.T2ProductTypeID, &inv.T2ProductName,
+		&inv.BaseProbability, &inv.BaseRuns, &inv.BaseTimeSeconds, &inv.Category,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil, nil
+		}
+		return nil, nil, fmt.Errorf("getting sde_invention for t2 bp %d: %w", t2BlueprintTypeID, err)
+	}
+
+	matRows, err := r.pool.Query(ctx, `
+		SELECT m.t1_blueprint_type_id, m.material_type_id, t.name, m.quantity
+		FROM sde_invention_materials m
+		JOIN sde_types t ON t.type_id = m.material_type_id
+		WHERE m.t1_blueprint_type_id = $1
+		ORDER BY t.name ASC
+	`, inv.T1BlueprintTypeID)
+	if err != nil {
+		return &inv, nil, fmt.Errorf("getting sde_invention_materials: %w", err)
+	}
+	defer matRows.Close()
+
+	mats := make([]domain.SDEInventionMaterial, 0, 4)
+	for matRows.Next() {
+		var m domain.SDEInventionMaterial
+		if err := matRows.Scan(&m.T1BlueprintTypeID, &m.MaterialTypeID, &m.MaterialName, &m.Quantity); err != nil {
+			return &inv, nil, err
+		}
+		mats = append(mats, m)
+	}
+	return &inv, mats, matRows.Err()
+}
+
+// ListReactionBlueprints returns reaction formulas (activity_type = 'reaction') stored in sde_blueprints.
+func (r *SDERepo) ListReactionBlueprints(ctx context.Context, query string, limit int) ([]domain.SDEBlueprint, error) {
+	if limit <= 0 || limit > 200 {
+		limit = 60
+	}
+	query = strings.TrimSpace(query)
+	rows, err := r.pool.Query(ctx, `
+		SELECT blueprint_type_id, name, product_type_id, product_name, product_qty_per_run, base_time_seconds, tech_level, category, activity_type
+		FROM sde_blueprints
+		WHERE activity_type = 'reaction'
+		  AND ($1 = '' OR LOWER(name) LIKE '%' || LOWER($1) || '%' OR LOWER(product_name) LIKE '%' || LOWER($1) || '%')
+		ORDER BY product_name ASC
+		LIMIT $2
+	`, query, limit)
+	if err != nil {
+		return nil, fmt.Errorf("listing reaction blueprints: %w", err)
+	}
+	defer rows.Close()
+
+	out := make([]domain.SDEBlueprint, 0)
+	for rows.Next() {
+		var bp domain.SDEBlueprint
+		if err := rows.Scan(
+			&bp.BlueprintTypeID, &bp.Name, &bp.ProductTypeID, &bp.ProductName,
+			&bp.ProductQtyPerRun, &bp.BaseTimeSeconds, &bp.TechLevel, &bp.Category, &bp.ActivityType,
+		); err != nil {
+			return nil, err
+		}
+		out = append(out, bp)
+	}
+	return out, rows.Err()
 }

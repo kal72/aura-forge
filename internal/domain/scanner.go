@@ -44,11 +44,19 @@ type ManufacturingOpportunity struct {
 	TechLevel         int                `json:"tech_level"`
 	HubKey            string             `json:"hub_key"`
 	HubName           string             `json:"hub_name"`
+	MaterialHubKey    string             `json:"material_hub_key,omitempty"`
+	MaterialHubName   string             `json:"material_hub_name,omitempty"`
 	Runs              int                `json:"runs"`
+	ME                int                `json:"me"`
+	TE                int                `json:"te"`
+	OwnedBPO          bool               `json:"owned_bpo"`
+	AutoSized         bool               `json:"auto_sized"`
+	RunSizingReason   string             `json:"run_sizing_reason,omitempty"`
 	OutputQty         int                `json:"output_qty"`
 	MaterialCost      float64            `json:"material_cost"`
 	ProductUnitSell   float64            `json:"product_unit_sell"`
 	RecommendedSell   float64            `json:"recommended_sell"`
+	BreakEvenSell     float64            `json:"break_even_sell"`
 	DailyVolume7d     float64            `json:"daily_volume_7d"`
 	FitsCapital       bool               `json:"fits_capital"`
 	NetProfit         float64            `json:"net_profit"`
@@ -89,9 +97,11 @@ type ArbitrageOpportunity struct {
 	Category            string             `json:"category"`
 	OriginHub           TradeHub           `json:"origin_hub"`
 	DestHub             TradeHub           `json:"dest_hub"`
-	OriginBuyPrice      float64            `json:"origin_buy_price"`  // Lowest Sell at origin (instant buy)
-	DestSellPrice       float64            `json:"dest_sell_price"`   // Lowest Sell at destination
-	DestBuyPrice        float64            `json:"dest_buy_price"`    // Highest Buy at destination (instant dump)
+	OriginBuyPrice      float64            `json:"origin_buy_price"` // Lowest Sell at origin (instant buy)
+	DestSellPrice       float64            `json:"dest_sell_price"`  // Lowest Sell at destination
+	DestBuyPrice        float64            `json:"dest_buy_price"`   // Highest Buy at destination (instant dump)
+	RecommendedSell     float64            `json:"recommended_sell"` // Suggested 4-sig-fig EVE sell order price at destination
+	BreakEvenSell       float64            `json:"break_even_sell"`  // Minimum sell price to break even after hauling + fees
 	UnitVolumeM3        float64            `json:"unit_volume_m3"`
 	DestDailyVolume7d   float64            `json:"dest_daily_volume_7d"`
 	HaulCostPerUnit     float64            `json:"haul_cost_per_unit"`
@@ -104,6 +114,131 @@ type ArbitrageOpportunity struct {
 	EstProfitPerTrip    float64            `json:"est_profit_per_trip"`
 	GankRiskWarning     bool               `json:"gank_risk_warning"`
 	Verdict             OpportunityVerdict `json:"verdict"`
+}
+
+// StockoutSignal classifies local trade-hub supply tightness for high-demand items.
+type StockoutSignal string
+
+const (
+	SignalStockout     StockoutSignal = "STOCKOUT"      // 0 active sell orders at hub despite regional demand
+	SignalThinSupply   StockoutSignal = "THIN_SUPPLY"   // <= 3 active sell orders (very low undercut competition)
+	SignalLocalPremium StockoutSignal = "LOCAL_PREMIUM" // Hub sell trades >= 15% above Jita benchmark
+)
+
+// StockoutOpportunity represents a local trade-hub supply crunch or low-competition premium item.
+type StockoutOpportunity struct {
+	TypeID             int32              `json:"type_id"`
+	Name               string             `json:"name"`
+	Category           string             `json:"category"`
+	HubKey             string             `json:"hub_key"`
+	HubName            string             `json:"hub_name"`
+	HubLowestSell      float64            `json:"hub_lowest_sell"`
+	JitaLowestSell     float64            `json:"jita_lowest_sell"`
+	RecommendedSell    float64            `json:"recommended_sell"`
+	PremiumOverJitaPct float64            `json:"premium_over_jita_pct"`
+	SellOrdersCount    int                `json:"sell_orders_count"`
+	BuyOrdersCount     int                `json:"buy_orders_count"`
+	DailyVolume7d      float64            `json:"daily_volume_7d"`
+	EstDailyMarketISK  float64            `json:"est_daily_market_isk"`
+	Signal             StockoutSignal     `json:"signal"`
+	Verdict            OpportunityVerdict `json:"verdict"`
+}
+
+// EvaluateStockoutOpportunity checks whether an item with real regional demand is stocked out,
+// has thin local competition (<=3 sellers), or commands a >=15% local premium over Jita.
+func EvaluateStockoutOpportunity(
+	typeID int32, name, category string,
+	hub TradeHub, hubPrice, jitaPrice JitaPrice, dailyVol7d float64,
+) (StockoutOpportunity, bool) {
+	// Require meaningful regional demand so we never flag dead/junk items
+	if dailyVol7d < 5 {
+		return StockoutOpportunity{}, false
+	}
+
+	var premPct float64
+	if jitaPrice.LowestSell > 0 && hubPrice.LowestSell > 0 {
+		premPct = RoundPercent(((hubPrice.LowestSell - jitaPrice.LowestSell) / jitaPrice.LowestSell) * 100.0)
+	}
+
+	var signal StockoutSignal
+	var verdict OpportunityVerdict
+
+	switch {
+	case hubPrice.SellOrdersCount == 0 || hubPrice.LowestSell <= 0:
+		signal = SignalStockout
+		verdict = VerdictStrong
+	case hubPrice.SellOrdersCount <= 3 && (premPct >= 8.0 || dailyVol7d >= 25):
+		signal = SignalThinSupply
+		if premPct >= 15.0 || dailyVol7d >= 100 {
+			verdict = VerdictStrong
+		} else {
+			verdict = VerdictModerate
+		}
+	case premPct >= 15.0 && hubPrice.SellOrdersCount <= 12:
+		signal = SignalLocalPremium
+		if premPct >= 25.0 {
+			verdict = VerdictStrong
+		} else {
+			verdict = VerdictModerate
+		}
+	default:
+		return StockoutOpportunity{}, false
+	}
+
+	refPrice := hubPrice.LowestSell
+	var recSell float64
+	if refPrice <= 0 {
+		refPrice = jitaPrice.LowestSell * 1.18
+		recSell = RoundEVETick(refPrice)
+	} else {
+		recSell = RoundEVETick(refPrice * 0.999)
+		if recSell <= 0 {
+			recSell = RoundISK(refPrice)
+		}
+	}
+	estDailyISK := RoundISK(dailyVol7d * refPrice)
+
+	return StockoutOpportunity{
+		TypeID:             typeID,
+		Name:               name,
+		Category:           category,
+		HubKey:             hub.Key,
+		HubName:            hub.Name,
+		HubLowestSell:      RoundISK(hubPrice.LowestSell),
+		JitaLowestSell:     RoundISK(jitaPrice.LowestSell),
+		RecommendedSell:    recSell,
+		PremiumOverJitaPct: premPct,
+		SellOrdersCount:    hubPrice.SellOrdersCount,
+		BuyOrdersCount:     hubPrice.BuyOrdersCount,
+		DailyVolume7d:      RoundISK(dailyVol7d),
+		EstDailyMarketISK:  estDailyISK,
+		Signal:             signal,
+		Verdict:            verdict,
+	}, true
+}
+
+// SortStockoutOpportunities ranks STOCKOUT first, then THIN_SUPPLY, then LOCAL_PREMIUM, breaking ties by EstDailyMarketISK.
+func SortStockoutOpportunities(opps []StockoutOpportunity) {
+	sigRank := func(s StockoutSignal) int {
+		switch s {
+		case SignalStockout:
+			return 0
+		case SignalThinSupply:
+			return 1
+		default:
+			return 2
+		}
+	}
+	sort.Slice(opps, func(i, j int) bool {
+		ri, rj := sigRank(opps[i].Signal), sigRank(opps[j].Signal)
+		if ri != rj {
+			return ri < rj
+		}
+		if opps[i].PremiumOverJitaPct != opps[j].PremiumOverJitaPct {
+			return opps[i].PremiumOverJitaPct > opps[j].PremiumOverJitaPct
+		}
+		return opps[i].EstDailyMarketISK > opps[j].EstDailyMarketISK
+	})
 }
 
 // EvaluateStationTrade computes true net station-trading flip profit after Buy Broker Fee, Sell Broker Fee, and Sales Tax.
@@ -215,8 +350,18 @@ func EvaluateArbitrageWithTrip(
 	}
 
 	totalCost := originLowestSell + opp.HaulCostPerUnit
-	netRevenue := destLowestSell * (1.0 - (brokerFeePct+salesTaxPct)/100.0)
+	feeFactor := 1.0 - (brokerFeePct+salesTaxPct)/100.0
+	netRevenue := destLowestSell * feeFactor
 	netProfit := RoundISK(netRevenue - totalCost)
+
+	recSell := RoundEVETick(destLowestSell * 0.999)
+	if recSell <= 0 {
+		recSell = RoundISK(destLowestSell)
+	}
+	opp.RecommendedSell = recSell
+	if feeFactor > 0 {
+		opp.BreakEvenSell = RoundISK(totalCost / feeFactor)
+	}
 
 	opp.NetProfitUnit = netProfit
 	opp.NetMarginPct = RoundPercent((netProfit / destLowestSell) * 100.0)

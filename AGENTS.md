@@ -20,4 +20,5 @@
 
 ## 5. Architecture & Verification Standards
 - Maintain **Clean Architecture** (Dependency Inversion via interfaces in `internal/domain`), `NUMERIC(20,2)` precision for ISK values in PostgreSQL, and all SQL migration files in the root `migrations/` directory.
+- **Go Concurrency First (Safe Goroutines):** Proactively maximize goroutines (`sync.WaitGroup`, bounded worker pools, and supervised background workers) for independent I/O, multi-hub ESI fetches, parallel engine fan-outs, and batch evaluations whenever it meaningfully reduces latency. Always enforce bounded concurrency (semaphore caps for ESI/HTTP), `context.Context` cancellation/timeouts, race-free synchronization (`sync.Mutex`/`sync.RWMutex`), and Public ESI anti-blocking limits to prevent goroutine leaks or rate-limit bans.
 - **Mandatory Docker Compose Verification:** After code changes, always run `templ generate`, unit tests (`go test`), `go build ./...`, and rebuild & verify live containers via `docker compose up -d --build --force-recreate`.

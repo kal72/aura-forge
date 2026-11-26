@@ -25,10 +25,12 @@ type ModeInfo struct {
 	SSOConnected  bool            `json:"sso_connected"`
 	CharacterID   int64           `json:"character_id"`
 	CharacterName string          `json:"character_name"`
+	WalletBalance float64         `json:"wallet_balance"`
 	ModeLabel     string          `json:"mode_label"`
 	StatusHint    string          `json:"status_hint"`
 	CurrentUser   *domain.AppUser `json:"current_user,omitempty"`
 	PriceSync     PriceSyncStatus `json:"price_sync"`
+	AI            domain.AIStatus `json:"ai"`
 }
 
 // IsAdmin returns true for authenticated administrators (and in auth-less unit test routers where CurrentUser is nil).
@@ -126,13 +128,32 @@ type CopilotService struct {
 	wealth          domain.NetWorthRepository
 	pi              domain.PIRepository
 	globalSnapshots domain.GlobalPriceSnapshotRepository
+	aiProvider      domain.AIProvider
+	aiRepo          domain.AIRepository
+	ledger          domain.TradeLedgerRepository
 	priceSync       *priceSyncState
 	sdeImport       *sdeImportState
+	radar           *opportunityRadarState
 }
 
 // SetGlobalPriceSnapshotRepository attaches the optional PostgreSQL global price snapshot repository.
 func (s *CopilotService) SetGlobalPriceSnapshotRepository(repo domain.GlobalPriceSnapshotRepository) {
 	s.globalSnapshots = repo
+}
+
+// SetAIProvider attaches the optional OpenAI-compatible AI provider.
+func (s *CopilotService) SetAIProvider(p domain.AIProvider) {
+	s.aiProvider = p
+}
+
+// SetAIRepository attaches the PostgreSQL AI conversation & pilot memory repository.
+func (s *CopilotService) SetAIRepository(r domain.AIRepository) {
+	s.aiRepo = r
+}
+
+// SetTradeLedgerRepository attaches the PostgreSQL trade ledger & order history repository.
+func (s *CopilotService) SetTradeLedgerRepository(r domain.TradeLedgerRepository) {
+	s.ledger = r
 }
 
 // NewCopilotService constructs a CopilotService via Dependency Inversion interfaces.
@@ -164,6 +185,10 @@ func NewCopilotService(
 func (s *CopilotService) GetModeInfo(ctx context.Context) ModeInfo {
 	currentUser := domain.AppUserFromContext(ctx)
 	priceSync := s.GetPriceSyncStatus(ctx)
+	aiStatus := domain.AIStatus{}
+	if s.aiProvider != nil {
+		aiStatus = s.aiProvider.Status()
+	}
 	ssoEnabled := s.sso != nil && s.sso.IsEnabled()
 	if !ssoEnabled {
 		return ModeInfo{
@@ -172,20 +197,27 @@ func (s *CopilotService) GetModeInfo(ctx context.Context) ModeInfo {
 			StatusHint:  "Optional: Set ESI_CLIENT_ID & SECRET in .env for Character Auto-Sync",
 			CurrentUser: currentUser,
 			PriceSync:   priceSync,
+			AI:          aiStatus,
 		}
 	}
 
 	if s.chars != nil {
 		if tok, err := s.chars.GetPrimaryToken(ctx); err == nil && tok != nil {
+			var walletBal float64
+			if prof, pErr := s.chars.GetProfile(ctx, tok.CharacterID); pErr == nil && prof != nil {
+				walletBal = prof.WalletBalance
+			}
 			return ModeInfo{
 				SSOEnabled:    true,
 				SSOConnected:  true,
 				CharacterID:   tok.CharacterID,
 				CharacterName: tok.CharacterName,
+				WalletBalance: walletBal,
 				ModeLabel:     "EVE SSO Connected",
 				StatusHint:    fmt.Sprintf("Connected as %s", tok.CharacterName),
 				CurrentUser:   currentUser,
 				PriceSync:     priceSync,
+				AI:            aiStatus,
 			}
 		}
 	}
@@ -197,6 +229,7 @@ func (s *CopilotService) GetModeInfo(ctx context.Context) ModeInfo {
 		StatusHint:   "EVE SSO Ready: Click Connect EVE SSO to synchronize your character",
 		CurrentUser:  currentUser,
 		PriceSync:    priceSync,
+		AI:           aiStatus,
 	}
 }
 
@@ -276,8 +309,12 @@ func (s *CopilotService) resolveProfileAndCapital(ctx context.Context, settings 
 			profile = p
 		}
 	}
-	capISK, source := domain.ResolveAvailableCapital(settings, profile, mode.SSOConnected)
-	return profile, capISK, source
+	// Keep Business Working Capital (Settings) cleanly separated from personal EVE Character Wallet.
+	capISK := settings.StartingCapital
+	if capISK <= 0 {
+		capISK = 100_000_000.0
+	}
+	return profile, capISK, "Working Capital (Settings)"
 }
 
 // GetDashboard aggregates live KPIs for the main dashboard view.
@@ -1415,6 +1452,7 @@ func (s *CopilotService) SaveBatch(ctx context.Context, b *domain.BatchRecord) (
 	if b == nil || strings.TrimSpace(b.ItemName) == "" {
 		return nil, fmt.Errorf("batch item name is required")
 	}
+	b.EntryType = b.NormalizedEntryType()
 	if b.Runs <= 0 {
 		b.Runs = 1
 	}
@@ -1520,11 +1558,17 @@ func (s *CopilotService) SyncCharacterSSO(ctx context.Context) (*domain.Characte
 	}
 
 	orders, _ := s.charSync.SyncOrders(ctx, tok)
+	jobs, _ := s.charSync.SyncJobs(ctx, tok)
+	bps, _ := s.charSync.SyncBlueprints(ctx, tok)
+	assets, _ := s.charSync.SyncAssets(ctx, tok)
+
+	// Resolve human-readable EVE item names for synced orders, jobs, blueprints, and hangar assets
+	s.resolveCharacterTypeNames(ctx, orders, jobs, bps, assets)
+
 	if len(orders) > 0 {
 		_ = s.chars.UpsertOrders(ctx, tok.CharacterID, orders)
 	}
 
-	jobs, _ := s.charSync.SyncJobs(ctx, tok)
 	usedMfg := 0
 	usedSci := 0
 	for _, j := range jobs {
@@ -1539,12 +1583,10 @@ func (s *CopilotService) SyncCharacterSSO(ctx context.Context) (*domain.Characte
 	if len(jobs) > 0 {
 		_ = s.chars.UpsertJobs(ctx, tok.CharacterID, jobs)
 	}
-
-	if bps, err := s.charSync.SyncBlueprints(ctx, tok); err == nil && len(bps) > 0 {
+	if len(bps) > 0 {
 		_ = s.chars.UpsertBlueprints(ctx, tok.CharacterID, bps)
 	}
-
-	if assets, err := s.charSync.SyncAssets(ctx, tok); err == nil && len(assets) > 0 {
+	if len(assets) > 0 {
 		_ = s.chars.UpsertAssets(ctx, tok.CharacterID, assets)
 	}
 
@@ -1560,6 +1602,10 @@ func (s *CopilotService) SyncCharacterSSO(ctx context.Context) (*domain.Characte
 		UpdatedAt:               time.Now(),
 	}
 	_ = s.chars.UpsertProfile(ctx, profile)
+
+	// Best-effort sync of Private ESI wallet transactions, journal fees, and 90-day order history
+	_, _ = s.SyncPrivateESILedger(ctx)
+
 	return profile, nil
 }
 

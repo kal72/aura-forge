@@ -74,9 +74,9 @@ func (tr *TemplRenderer) RenderPlanner(w http.ResponseWriter, r *http.Request, m
 	return PlannerPage(mode, data).Render(r.Context(), w)
 }
 
-func (tr *TemplRenderer) RenderTracker(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, hub domain.TradeHub, summary service.TrackerSummary, batches []domain.BatchRecord, statusFilter string) error {
+func (tr *TemplRenderer) RenderTracker(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, hub domain.TradeHub, activeTab string, summary service.TrackerSummary, batches []domain.BatchRecord, statusFilter string, ledger *service.TradeLedgerViewData) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	return TrackerPage(mode, hub, summary, batches, statusFilter).Render(r.Context(), w)
+	return TrackerPage(mode, hub, activeTab, summary, batches, statusFilter, ledger).Render(r.Context(), w)
 }
 
 func (tr *TemplRenderer) RenderRelistResult(w http.ResponseWriter, r *http.Request, res *domain.RelistGuardResult, errMsg string) error {
@@ -84,14 +84,19 @@ func (tr *TemplRenderer) RenderRelistResult(w http.ResponseWriter, r *http.Reque
 	return RelistResultPartial(res, errMsg).Render(r.Context(), w)
 }
 
-func (tr *TemplRenderer) RenderSettings(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, sdeStatus service.SDEImportStatus, saved bool) error {
+func (tr *TemplRenderer) RenderSettings(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings, sdeStatus service.SDEImportStatus, pilotMem *domain.AIPilotMemory, saved bool) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	return SettingsPage(mode, settings, sdeStatus, saved).Render(r.Context(), w)
+	return SettingsPage(mode, settings, sdeStatus, pilotMem, saved).Render(r.Context(), w)
 }
 
 func (tr *TemplRenderer) RenderSDEStatusPartial(w http.ResponseWriter, r *http.Request, status service.SDEImportStatus) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	return SDEStatusPartial(status).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderAIDrawerThread(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, convs []domain.AIConversation, activeConvID int64, msgs []domain.AIMessage, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return AIDrawerThreadPartial(mode, convs, activeConvID, msgs, errMsg).Render(r.Context(), w)
 }
 
 func (tr *TemplRenderer) RenderMineralTicker(w http.ResponseWriter, r *http.Request, pulse service.MarketPulseResponse) error {
@@ -144,6 +149,21 @@ func (tr *TemplRenderer) RenderScannerArbitrage(w http.ResponseWriter, r *http.R
 	return ScannerArbitragePartial(results, errMsg).Render(r.Context(), w)
 }
 
+func (tr *TemplRenderer) RenderScannerStockouts(w http.ResponseWriter, r *http.Request, results []domain.StockoutOpportunity, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return ScannerStockoutsPartial(results, errMsg).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderScannerReactions(w http.ResponseWriter, r *http.Request, results []domain.ReactionOpportunity, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return ScannerReactionsPartial(results, errMsg).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderDashboardRadar(w http.ResponseWriter, r *http.Request, snap service.RadarSnapshot) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return DashboardRadarPartial(snap).Render(r.Context(), w)
+}
+
 func (tr *TemplRenderer) RenderWealth(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, summary *domain.WealthSummary) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	return WealthPage(mode, summary).Render(r.Context(), w)
@@ -167,6 +187,11 @@ func (tr *TemplRenderer) RenderMakeVsBuyResult(w http.ResponseWriter, r *http.Re
 func (tr *TemplRenderer) RenderWiki(w http.ResponseWriter, r *http.Request, mode service.ModeInfo) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	return WikiPage(mode).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderPilotHub(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, view *service.PilotHubViewData) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return PilotHubPage(mode, view).Render(r.Context(), w)
 }
 
 func (tr *TemplRenderer) RenderPI(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, items []domain.PICommodity, selectedTree *domain.PIRecipeAnalysis, colonies []domain.PIColony) error {

@@ -160,113 +160,22 @@ templ CalculatorPage(mode service.ModeInfo, settings domain.UserSettings, input 
 				return 1
 			}()) }
 		>
-			<!-- Header & Dual-Mode Switcher -->
+			<!-- Header -->
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-white">Net Profit, Tax &amp; Break-Even Calculator</h1>
-					<p class="text-xs text-slate-300/80 mt-0.5">Calculate true margins after Broker Fee, Sales Tax, Relist Fee, System Cost Index (SCI), and Freight — in Manual Mode or EVE SDE Blueprint Mode.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">Calculate true margins, break-even floor, recursive multi-level BOM, and optimal Make-vs-Buy in EVE SDE Blueprint Mode after Broker Fee, Sales Tax, Relist Fee, System Cost Index (SCI), and Freight.</p>
 				</div>
-
-				<!-- Dual-Mode Switcher: Manual Mode (Preserved) | Blueprint SDE Mode (NEW) -->
-				<div class="inline-flex rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur">
-					<button
-						type="button"
-						@click="calcMode = 'manual'"
-						:class="calcMode === 'manual' ? 'bg-violet-600 text-white shadow-sm' : 'text-slate-300 hover:text-white'"
-						class="rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
-					>
-						Manual Mode
-					</button>
-					<button
-						type="button"
-						@click="calcMode = 'blueprint'"
-						:class="calcMode === 'blueprint' ? 'bg-amber-400 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'"
-						class="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
-					>
-						<span>Blueprint SDE Mode</span>
-						<span class="rounded bg-slate-950/20 px-1.5 py-0.5 font-mono text-[9px] uppercase">Auto BOM</span>
-					</button>
-				</div>
+				<a
+					href="/manufacture"
+					class="rounded-lg border border-violet-400/35 bg-violet-500/15 px-3.5 py-1.5 text-xs font-semibold text-violet-100 hover:bg-violet-500/25 transition"
+				>
+					Open Blueprint Workbench →
+				</a>
 			</div>
 
-			<!-- MODE 1: MANUAL MODE (Preserved 100% Intact) -->
-			<div x-show="calcMode === 'manual'" class="grid grid-cols-1 gap-6 lg:grid-cols-12">
-				<!-- Input Form -->
-				<div class="tactical-panel rounded-xl p-5 lg:col-span-6">
-					<form
-						hx-post="/calculator/compute"
-						hx-target="#calc-result-panel"
-						hx-swap="innerHTML"
-						class="grid grid-cols-1 gap-3 sm:grid-cols-2"
-					>
-						<div class="sm:col-span-2">
-							<label class="block text-[11px] font-mono uppercase text-slate-300">Item Name (Auto-Fill Jita Price via Public ESI)</label>
-							<div class="mt-1 flex gap-2">
-								<input type="text" name="item_name" x-model="itemName" class="flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-sky-400 focus:outline-none"/>
-								<button type="button" @click="lookupESI()" class="rounded-md border border-sky-500/40 bg-sky-500/15 px-3 py-2 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 cursor-pointer">
-									Check Jita ESI
-								</button>
-							</div>
-							<div x-show="lookupStatus" x-text="lookupStatus" class="mt-1 text-[11px] font-mono text-sky-300"></div>
-						</div>
-
-						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-300">Output Qty / Batch</label>
-							<input type="number" name="output_qty" value={ fmt.Sprintf("%d", input.OutputQty) } min="1" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
-						</div>
-						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-300">Unit Sell Price (ISK)</label>
-							<input type="number" step="0.01" name="unit_sell_price" x-model="sellPrice" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
-						</div>
-						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-300">Material Cost / Batch (ISK)</label>
-							<input type="number" step="0.01" name="material_cost" value={ fmt.Sprintf("%.2f", input.MaterialCost) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
-						</div>
-						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-300">Extra BPC / Decryptor Cost</label>
-							<input type="number" step="0.01" name="extra_setup_cost" value={ fmt.Sprintf("%.2f", input.ExtraSetupCost) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
-						</div>
-						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-300">System Cost Index (e.g. 0.045)</label>
-							<input type="number" step="0.0001" name="system_cost_index" value={ fmt.Sprintf("%.4f", input.SystemCostIndex) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
-						</div>
-						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-300">Freight Cost (ISK)</label>
-							<input type="number" step="0.01" name="freight_cost" value={ fmt.Sprintf("%.2f", input.FreightCost) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
-						</div>
-						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-300">Broker Fee (%)</label>
-							<input type="number" step="0.01" name="broker_fee_percent" value={ fmt.Sprintf("%.2f", input.BrokerFeePercent) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
-						</div>
-						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-300">Sales Tax (%)</label>
-							<input type="number" step="0.01" name="sales_tax_percent" value={ fmt.Sprintf("%.2f", input.SalesTaxPercent) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
-						</div>
-						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-300">Estimated Relists</label>
-							<input type="number" name="estimated_relists" value={ fmt.Sprintf("%d", input.EstimatedRelists) } min="0" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
-						</div>
-						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-300">Target Batches / Week</label>
-							<input type="number" name="batches_per_week" value={ fmt.Sprintf("%d", input.BatchesPerWeek) } min="1" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
-						</div>
-
-						<div class="sm:col-span-2 pt-2">
-							<button type="submit" class="w-full rounded-md bg-sky-500 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer">
-								Calculate Manual Profit
-							</button>
-						</div>
-					</form>
-				</div>
-
-				<!-- Real-Time Manual Result Panel -->
-				<div id="calc-result-panel" class="tactical-panel rounded-xl p-5 lg:col-span-6">
-					@CalculatorResultPartial(input, result, calcErr)
-				</div>
-			</div>
-
-			<!-- MODE 2: BLUEPRINT SDE MODE (Recursive Industry Tree + Optimal Make-vs-Buy + 5 Trade Hubs) -->
-			<div x-cloak x-show="calcMode === 'blueprint'" class="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
+			<!-- BLUEPRINT SDE MODE (Recursive Industry Tree + Optimal Make-vs-Buy + 5 Trade Hubs) -->
+			<div class="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
 				<!-- Blueprint Input Form -->
 				<div class="tactical-panel rounded-xl p-5 lg:col-span-5 space-y-4">
 					<div class="flex items-center justify-between border-b border-violet-400/20 pb-3">

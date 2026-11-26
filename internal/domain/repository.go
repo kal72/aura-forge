@@ -120,10 +120,23 @@ type SDEExtendedRepository interface {
 	SaveSDEMetadata(ctx context.Context, meta *SDEMetadata) error
 }
 
+// SDEInventionRepository is an optional extension on SDERepository for T2 invention pathways and reaction formulas.
+type SDEInventionRepository interface {
+	UpsertInventionData(ctx context.Context, inventions []SDEInvention, materials map[int32][]SDEInventionMaterial) error
+	SearchInventions(ctx context.Context, query string, limit int) ([]SDEInvention, error)
+	GetInventionByT2BlueprintID(ctx context.Context, t2BlueprintTypeID int32) (*SDEInvention, []SDEInventionMaterial, error)
+	ListReactionBlueprints(ctx context.Context, query string, limit int) ([]SDEBlueprint, error)
+}
+
 // SDETypeSearchRepository is an optional extension on SDERepository for fast local Marketplace autocomplete & type browsing.
 type SDETypeSearchRepository interface {
 	SearchTypes(ctx context.Context, query string, limit int) ([]SDEType, error)
 	BrowseTypesPaged(ctx context.Context, query, category, groupName string, page, pageSize int) (*MarketTypePageResult, error)
+}
+
+// SDETypeNameResolver is an optional extension on SDERepository for instant local TypeID -> Name resolution.
+type SDETypeNameResolver interface {
+	GetTypeNamesByIDs(ctx context.Context, typeIDs []int32) (map[int32]string, error)
 }
 
 // NetWorthRepository specifies storage operations for daily Net Worth tracking snapshots.
@@ -148,6 +161,27 @@ type CharacterSyncProvider interface {
 	SyncJobs(ctx context.Context, token *EVEToken) ([]CharacterJob, error)
 	SyncBlueprints(ctx context.Context, token *EVEToken) ([]CharacterBlueprint, error)
 	SyncAssets(ctx context.Context, token *EVEToken) ([]HangarAsset, error)
+}
+
+// CharacterLedgerSyncProvider is an optional Private ESI extension for wallet transactions,
+// realized tax/fee journal entries, and 90-day order history (uses existing wallet & order scopes).
+type CharacterLedgerSyncProvider interface {
+	SyncWalletTransactions(ctx context.Context, token *EVEToken) ([]MarketTransaction, error)
+	SyncWalletJournalFees(ctx context.Context, token *EVEToken) ([]WalletFeeEntry, error)
+	SyncOrderHistory(ctx context.Context, token *EVEToken) ([]CharacterOrderHistory, error)
+}
+
+// TradeLedgerRepository persists realized market transactions, fee journal entries, and historical orders.
+type TradeLedgerRepository interface {
+	UpsertTransactions(ctx context.Context, txs []MarketTransaction) (inserted int, skipped int, err error)
+	ListTransactions(ctx context.Context, periodDays int, sideFilter string, query string, includeExcluded bool, limit int) ([]MarketTransaction, error)
+	SetTransactionsExcluded(ctx context.Context, ids []int64, excluded bool) (int, error)
+	CountExcludedTransactions(ctx context.Context, periodDays int) (int, error)
+	DeleteTransaction(ctx context.Context, id int64) error
+	UpsertFeeEntries(ctx context.Context, entries []WalletFeeEntry) (int, error)
+	ListFeeEntries(ctx context.Context, periodDays int) ([]WalletFeeEntry, error)
+	UpsertOrderHistory(ctx context.Context, orders []CharacterOrderHistory) (int, error)
+	ListOrderHistory(ctx context.Context, characterID int64, limit int) ([]CharacterOrderHistory, error)
 }
 
 // UserRepository specifies storage operations for application users and login sessions.

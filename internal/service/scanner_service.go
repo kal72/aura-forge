@@ -12,6 +12,7 @@ import (
 // ManufacturingScanRequest encapsulates all filters for Opportunity Scanner v2 Tab 1 (Manufacturing ISK/hr).
 type ManufacturingScanRequest struct {
 	HubKey              string
+	MaterialHubKey      string // Optional: separate hub to buy materials (blank = same as HubKey)
 	Category            string
 	TechLevel           int // 0 = All, 1 = T1, 2 = T2, 3 = T3
 	SearchQuery         string
@@ -273,9 +274,6 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 	if s.market == nil {
 		return nil, fmt.Errorf("Public ESI market provider is not available")
 	}
-	if req.Runs <= 0 {
-		req.Runs = 10
-	}
 
 	settings, _ := s.GetSettings(ctx)
 	_, availCap, _ := s.resolveProfileAndCapital(ctx, *settings)
@@ -286,6 +284,28 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 	hub := settings.ActiveTradeHub()
 	if strings.TrimSpace(req.HubKey) != "" {
 		hub = domain.LookupTradeHub(req.HubKey)
+	}
+	matHub := hub
+	if strings.TrimSpace(req.MaterialHubKey) != "" {
+		matHub = domain.LookupTradeHub(req.MaterialHubKey)
+	}
+	crossHub := matHub.Key != hub.Key
+
+	// Optional instant local PostgreSQL lookup of connected pilot's owned blueprints (0ms, zero ESI call)
+	ownedByTypeID := make(map[int32]domain.CharacterBlueprint)
+	if s.chars != nil {
+		mode := s.GetModeInfo(ctx)
+		if mode.CharacterID > 0 {
+			if pilotBPs, err := s.chars.ListBlueprints(ctx, mode.CharacterID); err == nil {
+				for _, pbp := range pilotBPs {
+					prev, exists := ownedByTypeID[pbp.TypeID]
+					if !exists || pbp.MaterialEfficiency > prev.MaterialEfficiency ||
+						(pbp.MaterialEfficiency == prev.MaterialEfficiency && pbp.TimeEfficiency > prev.TimeEfficiency) {
+						ownedByTypeID[pbp.TypeID] = pbp
+					}
+				}
+			}
+		}
 	}
 
 	const maxScanBlueprints = 40
@@ -298,48 +318,109 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 	}
 
 	matsByBP := make(map[int32][]domain.SDEMaterialRequirement, len(bps))
-	seen := make(map[int32]struct{})
-	typeIDs := make([]int32, 0, len(bps)+24)
-	addID := func(id int32) {
+	seenSell := make(map[int32]struct{})
+	seenMat := make(map[int32]struct{})
+	sellTypeIDs := make([]int32, 0, len(bps)+24)
+	matTypeIDs := make([]int32, 0, len(bps)+24)
+	productIDs := make([]int32, 0, len(bps))
+	addSellID := func(id int32) {
 		if id <= 0 {
 			return
 		}
-		if _, ok := seen[id]; !ok {
-			seen[id] = struct{}{}
-			typeIDs = append(typeIDs, id)
+		if _, ok := seenSell[id]; !ok {
+			seenSell[id] = struct{}{}
+			sellTypeIDs = append(sellTypeIDs, id)
+		}
+	}
+	addMatID := func(id int32) {
+		if id <= 0 {
+			return
+		}
+		if _, ok := seenMat[id]; !ok {
+			seenMat[id] = struct{}{}
+			matTypeIDs = append(matTypeIDs, id)
 		}
 	}
 
 	for _, bp := range bps {
-		addID(bp.ProductTypeID)
+		addSellID(bp.ProductTypeID)
+		productIDs = append(productIDs, bp.ProductTypeID)
 		reqs, mErr := s.sde.GetBlueprintMaterials(ctx, bp.BlueprintTypeID)
 		if mErr != nil || len(reqs) == 0 {
 			continue
 		}
 		matsByBP[bp.BlueprintTypeID] = reqs
 		for _, r := range reqs {
-			addID(r.MaterialTypeID)
+			if crossHub {
+				addMatID(r.MaterialTypeID)
+			} else {
+				addSellID(r.MaterialTypeID)
+			}
 		}
 	}
 
-	prices, err := s.fetchHubPrices(ctx, hub, typeIDs)
-	if err != nil {
-		return nil, fmt.Errorf("fetching live %s prices from Public ESI: %w", hub.Name, err)
+	var (
+		sellPrices map[int32]domain.JitaPrice
+		matPrices  map[int32]domain.JitaPrice
+		vols       map[int32]float64
+		sellErr    error
+		matErr     error
+		wg         sync.WaitGroup
+	)
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		sellPrices, sellErr = s.fetchHubPrices(ctx, hub, sellTypeIDs)
+	}()
+	go func() {
+		defer wg.Done()
+		vols = s.fetchHubDailyVolumesBatch(ctx, hub, productIDs)
+	}()
+	if crossHub {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			matPrices, matErr = s.fetchHubPrices(ctx, matHub, matTypeIDs)
+		}()
+	}
+	wg.Wait()
+
+	if sellErr != nil {
+		return nil, fmt.Errorf("fetching live %s prices from Public ESI: %w", hub.Name, sellErr)
+	}
+	if matErr != nil {
+		return nil, fmt.Errorf("fetching live %s material prices from Public ESI: %w", matHub.Name, matErr)
+	}
+	if !crossHub {
+		matPrices = sellPrices
 	}
 
 	results := make([]domain.ManufacturingOpportunity, 0, len(bps))
-	volProductIDs := make([]int32, 0, len(bps))
 
 	for _, bp := range bps {
 		reqs := matsByBP[bp.BlueprintTypeID]
 		if len(reqs) == 0 {
 			continue
 		}
-		calcRes, cErr := domain.CalculateBlueprintManufacturing(bp, reqs, domain.BlueprintCalcInput{
+
+		tech := bp.TechLevel
+		if tech <= 0 {
+			tech = 1
+		}
+
+		var ownedPtr *domain.CharacterBlueprint
+		if owned, ok := ownedByTypeID[bp.BlueprintTypeID]; ok {
+			ownedCopy := owned
+			ownedPtr = &ownedCopy
+		}
+
+		me, te, ownedMatched, _ := domain.RecommendManufacturingMETE(tech, ownedPtr, req.ME, req.TE)
+
+		baseInput := domain.BlueprintCalcInput{
 			BlueprintTypeID:     bp.BlueprintTypeID,
-			Runs:                req.Runs,
-			ME:                  req.ME,
-			TE:                  req.TE,
+			Runs:                1,
+			ME:                  me,
+			TE:                  te,
 			StructureKey:        req.StructureKey,
 			HubKey:              hub.Key,
 			MaterialPriceSource: req.MaterialPriceSource,
@@ -351,7 +432,62 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 			RelistFeePercent:    settings.RelistFeePercent,
 			EstimatedRelists:    1,
 			BatchesPerWeek:      4,
-		}, prices)
+		}
+
+		var (
+			calcRes   domain.BlueprintCalcResult
+			cErr      error
+			runs      int
+			runReason string
+			autoSized bool
+		)
+
+		dailyVol := vols[bp.ProductTypeID]
+
+		// Build per-blueprint price map so Cross-Hub Manufacturing buys materials at matHub and sells product at hub
+		bpPrices := sellPrices
+		if crossHub {
+			bpPrices = make(map[int32]domain.JitaPrice, len(reqs)+1)
+			for _, r := range reqs {
+				if mp, ok := matPrices[r.MaterialTypeID]; ok {
+					bpPrices[r.MaterialTypeID] = mp
+				}
+			}
+			if sp, ok := sellPrices[bp.ProductTypeID]; ok {
+				bpPrices[bp.ProductTypeID] = sp
+			}
+		}
+
+		if req.Runs > 0 {
+			runs, runReason, autoSized = domain.RecommendManufacturingRuns(0, 0, bp.ProductQtyPerRun, dailyVol, availCap, req.Runs)
+			baseInput.Runs = runs
+			calcRes, cErr = domain.CalculateBlueprintManufacturing(bp, reqs, baseInput, bpPrices)
+		} else {
+			// Evaluate 1-run baseline to measure exact duration & direct cost, then auto-size optimal runs
+			singleRes, sErr := domain.CalculateBlueprintManufacturing(bp, reqs, baseInput, bpPrices)
+			if sErr != nil || singleRes.ProductUnitSellPrice <= 0 {
+				continue
+			}
+			outPerRun := bp.ProductQtyPerRun
+			if outPerRun <= 0 {
+				outPerRun = 1
+			}
+			runs, runReason, autoSized = domain.RecommendManufacturingRuns(
+				float64(singleRes.EstimatedDurationSeconds),
+				singleRes.Profit.TotalDirectCost,
+				outPerRun,
+				dailyVol,
+				availCap,
+				0,
+			)
+			if runs == 1 {
+				calcRes, cErr = singleRes, nil
+			} else {
+				baseInput.Runs = runs
+				calcRes, cErr = domain.CalculateBlueprintManufacturing(bp, reqs, baseInput, bpPrices)
+			}
+		}
+
 		if cErr != nil || calcRes.ProductUnitSellPrice <= 0 {
 			continue
 		}
@@ -365,10 +501,6 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 			continue
 		}
 
-		tech := bp.TechLevel
-		if tech <= 0 {
-			tech = 1
-		}
 		recSell := domain.RoundEVETick(calcRes.ProductUnitSellPrice * 0.999)
 		if recSell <= 0 {
 			recSell = calcRes.ProductUnitSellPrice
@@ -382,11 +514,20 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 			TechLevel:         tech,
 			HubKey:            hub.Key,
 			HubName:           hub.Name,
-			Runs:              req.Runs,
+			MaterialHubKey:    matHub.Key,
+			MaterialHubName:   matHub.Name,
+			Runs:              runs,
+			ME:                me,
+			TE:                te,
+			OwnedBPO:          ownedMatched,
+			AutoSized:         autoSized,
+			RunSizingReason:   runReason,
 			OutputQty:         calcRes.TotalOutputQty,
 			MaterialCost:      calcRes.TotalMaterialCost,
 			ProductUnitSell:   calcRes.ProductUnitSellPrice,
 			RecommendedSell:   recSell,
+			BreakEvenSell:     calcRes.Profit.BreakEvenUnitPrice,
+			DailyVolume7d:     dailyVol,
 			FitsCapital:       fitsCap,
 			NetProfit:         calcRes.Profit.NetProfitPerBatch,
 			NetMarginPercent:  calcRes.Profit.NetMarginPercent,
@@ -395,13 +536,6 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 			DurationFormatted: calcRes.DurationFormatted,
 			Verdict:           verdict,
 		})
-		volProductIDs = append(volProductIDs, bp.ProductTypeID)
-	}
-
-	// Enrich with 7d daily volume at the selected hub (4 bounded workers, cached in esi_cache)
-	vols := s.fetchHubDailyVolumesBatch(ctx, hub, volProductIDs)
-	for i := range results {
-		results[i].DailyVolume7d = vols[results[i].ProductTypeID]
 	}
 
 	domain.SortManufacturingOpportunitiesBy(results, req.SortBy)
@@ -611,5 +745,275 @@ func (s *CopilotService) ScanInterHubArbitrageOpportunitiesV2(
 	}
 
 	domain.SortArbitrageOpportunities(results)
+	return results, nil
+}
+
+// ScanLocalStockoutOpportunities detects high-demand items that are stocked out (0 sell orders),
+// have thin seller competition (<=3 sellers), or trade at a >=15% local premium over Jita at the chosen Trade Hub.
+func (s *CopilotService) ScanLocalStockoutOpportunities(ctx context.Context, hubKey, category string) ([]domain.StockoutOpportunity, error) {
+	if s.market == nil {
+		return nil, fmt.Errorf("Public ESI market provider is not available")
+	}
+
+	settings, _ := s.GetSettings(ctx)
+	hub := settings.ActiveTradeHub()
+	if strings.TrimSpace(hubKey) != "" {
+		hub = domain.LookupTradeHub(hubKey)
+	}
+	jitaHub := domain.LookupTradeHub("jita")
+	catFilter := strings.TrimSpace(category)
+
+	basket := make([]scannerBasketItem, 0, len(defaultStationTradeBasket)+16)
+	seen := make(map[int32]struct{})
+	for _, b := range defaultStationTradeBasket {
+		if catFilter != "" && !strings.EqualFold(b.Category, catFilter) {
+			continue
+		}
+		basket = append(basket, b)
+		seen[b.TypeID] = struct{}{}
+	}
+	if s.items != nil {
+		if catalogItems, err := s.items.ListItems(ctx); err == nil {
+			for _, it := range catalogItems {
+				if it.TypeID <= 0 {
+					continue
+				}
+				if _, ok := seen[it.TypeID]; ok {
+					continue
+				}
+				if catFilter != "" && !strings.EqualFold(string(it.Category), catFilter) {
+					continue
+				}
+				basket = append(basket, scannerBasketItem{
+					TypeID:   it.TypeID,
+					Name:     it.Name,
+					Category: string(it.Category),
+				})
+				seen[it.TypeID] = struct{}{}
+			}
+		}
+	}
+
+	typeIDs := make([]int32, 0, len(basket))
+	for _, b := range basket {
+		typeIDs = append(typeIDs, b.TypeID)
+	}
+
+	var (
+		hubPrices  map[int32]domain.JitaPrice
+		jitaPrices map[int32]domain.JitaPrice
+		hubVols    map[int32]float64
+		hubErr     error
+		wg         sync.WaitGroup
+	)
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		hubPrices, hubErr = s.fetchHubPrices(ctx, hub, typeIDs)
+	}()
+	go func() {
+		defer wg.Done()
+		if hub.Key == "jita" {
+			return
+		}
+		jitaPrices, _ = s.fetchHubPrices(ctx, jitaHub, typeIDs)
+	}()
+	go func() {
+		defer wg.Done()
+		hubVols = s.fetchHubDailyVolumesBatch(ctx, hub, typeIDs)
+	}()
+	wg.Wait()
+
+	if hubErr != nil {
+		return nil, fmt.Errorf("fetching %s stockout prices: %w", hub.Name, hubErr)
+	}
+	if hub.Key == "jita" {
+		jitaPrices = hubPrices
+	}
+
+	results := make([]domain.StockoutOpportunity, 0, len(basket)/2+1)
+	for _, item := range basket {
+		hp := hubPrices[item.TypeID]
+		jp := jitaPrices[item.TypeID]
+		vol := hubVols[item.TypeID]
+		if opp, ok := domain.EvaluateStockoutOpportunity(item.TypeID, item.Name, item.Category, hub, hp, jp, vol); ok {
+			results = append(results, opp)
+		}
+	}
+
+	domain.SortStockoutOpportunities(results)
+	return results, nil
+}
+
+// GasReactionScanRequest configures a live Hybrid Polymer Gas Reaction profitability scan.
+type GasReactionScanRequest struct {
+	HubKey              string
+	MaterialHubKey      string
+	RefineryKey         string
+	Scope               string // "hybrid" (default 8 Fullerite polymers) | "all_sde" (all CCP SDE reactions: Hybrid + Moon + Biochemical)
+	SearchQuery         string
+	Runs                int // <= 0 = Auto ~24h cycle
+	MaterialPriceSource string
+	ProfitableOnly      bool
+}
+
+// ScanGasReactions evaluates either the 8 canonical Fullerite Hybrid Polymer formulas (default)
+// or up to 60 official CCP SDE Reaction Formulas (Hybrid + Moon Composite + Biochemical) when Scope == "all_sde".
+func (s *CopilotService) ScanGasReactions(ctx context.Context, req GasReactionScanRequest) ([]domain.ReactionOpportunity, error) {
+	if s.market == nil {
+		return nil, fmt.Errorf("Public ESI market provider is not available")
+	}
+
+	settings, _ := s.GetSettings(ctx)
+	sellHub := settings.ActiveTradeHub()
+	if strings.TrimSpace(req.HubKey) != "" {
+		sellHub = domain.LookupTradeHub(req.HubKey)
+	}
+	matHub := sellHub
+	if strings.TrimSpace(req.MaterialHubKey) != "" {
+		matHub = domain.LookupTradeHub(req.MaterialHubKey)
+	}
+	refinery := domain.LookupRefineryProfile(req.RefineryKey)
+	crossHub := matHub.Key != sellHub.Key
+
+	formulas := domain.HybridPolymerFormulas
+	if strings.EqualFold(strings.TrimSpace(req.Scope), "all_sde") {
+		if invRepo, ok := s.sde.(domain.SDEInventionRepository); ok && invRepo != nil {
+			if sdeReacts, err := invRepo.ListReactionBlueprints(ctx, req.SearchQuery, 60); err == nil && len(sdeReacts) > 0 {
+				dynamicFormulas := make([]domain.ReactionFormula, 0, len(sdeReacts))
+				for _, rbp := range sdeReacts {
+					reqs, mErr := s.sde.GetBlueprintMaterials(ctx, rbp.BlueprintTypeID)
+					if mErr != nil || len(reqs) == 0 {
+						continue
+					}
+					inputs := make([]domain.ReactionInputLine, 0, len(reqs))
+					for _, m := range reqs {
+						cat := "Material"
+						nameLower := strings.ToLower(m.MaterialName)
+						if strings.Contains(nameLower, "fuel block") {
+							cat = "Fuel"
+						} else if strings.Contains(nameLower, "fullerite") || strings.Contains(nameLower, "serocin") {
+							cat = "Gas"
+						}
+						inputs = append(inputs, domain.ReactionInputLine{
+							TypeID:   m.MaterialTypeID,
+							Name:     m.MaterialName,
+							BaseQty:  m.BaseQuantity,
+							Category: cat,
+						})
+					}
+					outQty := rbp.ProductQtyPerRun
+					if outQty <= 0 {
+						outQty = 1
+					}
+					baseSec := rbp.BaseTimeSeconds
+					if baseSec <= 0 {
+						baseSec = 10800
+					}
+					dynamicFormulas = append(dynamicFormulas, domain.ReactionFormula{
+						ProductTypeID:   rbp.ProductTypeID,
+						ProductName:     rbp.ProductName,
+						OutputQtyPerRun: outQty,
+						BaseTimeSeconds: baseSec,
+						Inputs:          inputs,
+					})
+				}
+				if len(dynamicFormulas) > 0 {
+					formulas = dynamicFormulas
+				}
+			}
+		}
+	}
+
+	seenMat := make(map[int32]struct{})
+	matIDs := make([]int32, 0, 20)
+	prodIDs := make([]int32, 0, len(formulas))
+	allIDs := make([]int32, 0, 28)
+	seenAll := make(map[int32]struct{})
+
+	for _, f := range formulas {
+		prodIDs = append(prodIDs, f.ProductTypeID)
+		if _, ok := seenAll[f.ProductTypeID]; !ok {
+			seenAll[f.ProductTypeID] = struct{}{}
+			allIDs = append(allIDs, f.ProductTypeID)
+		}
+		for _, inp := range f.Inputs {
+			if _, ok := seenMat[inp.TypeID]; !ok {
+				seenMat[inp.TypeID] = struct{}{}
+				matIDs = append(matIDs, inp.TypeID)
+			}
+			if _, ok := seenAll[inp.TypeID]; !ok {
+				seenAll[inp.TypeID] = struct{}{}
+				allIDs = append(allIDs, inp.TypeID)
+			}
+		}
+	}
+
+	var (
+		sellPrices map[int32]domain.JitaPrice
+		matPrices  map[int32]domain.JitaPrice
+		vols       map[int32]float64
+		sellErr    error
+		matErr     error
+		wg         sync.WaitGroup
+	)
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		if crossHub {
+			sellPrices, sellErr = s.fetchHubPrices(ctx, sellHub, prodIDs)
+		} else {
+			sellPrices, sellErr = s.fetchHubPrices(ctx, sellHub, allIDs)
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		vols = s.fetchHubDailyVolumesBatch(ctx, sellHub, prodIDs)
+	}()
+	if crossHub {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			matPrices, matErr = s.fetchHubPrices(ctx, matHub, matIDs)
+		}()
+	}
+	wg.Wait()
+
+	if sellErr != nil {
+		return nil, fmt.Errorf("fetching %s reaction product prices: %w", sellHub.Name, sellErr)
+	}
+	if matErr != nil {
+		return nil, fmt.Errorf("fetching %s reaction input prices: %w", matHub.Name, matErr)
+	}
+	if !crossHub {
+		matPrices = sellPrices
+	}
+
+	params := domain.ReactionCalcParams{
+		Runs:                req.Runs,
+		Refinery:            refinery,
+		SellHub:             sellHub,
+		MaterialHub:         matHub,
+		MaterialPriceSource: req.MaterialPriceSource,
+		SystemCostIndex:     settings.SystemCostIndex,
+		FacilityTaxPercent:  settings.FacilityTaxPercent,
+		BrokerFeePercent:    settings.BrokerFeePercent,
+		SalesTaxPercent:     settings.SalesTaxPercent,
+		RelistFeePercent:    settings.RelistFeePercent,
+	}
+
+	results := make([]domain.ReactionOpportunity, 0, len(formulas))
+	for _, f := range formulas {
+		opp, ok := domain.EvaluateGasReaction(f, params, matPrices, sellPrices, vols[f.ProductTypeID])
+		if !ok {
+			continue
+		}
+		if req.ProfitableOnly && opp.Verdict == domain.VerdictAvoid {
+			continue
+		}
+		results = append(results, opp)
+	}
+
+	domain.SortReactionOpportunities(results)
 	return results, nil
 }

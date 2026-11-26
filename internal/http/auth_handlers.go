@@ -89,11 +89,11 @@ func (h *AuthHandlers) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if _, err := h.svc.HandleSSOCallback(r.Context(), code); err != nil {
-		http.Error(w, "Gagal menyelesaikan login EVE SSO: "+err.Error(), http.StatusBadGateway)
+		http.Error(w, "Failed to complete EVE SSO login: "+err.Error(), http.StatusBadGateway)
 		return
 	}
 
-	http.Redirect(w, r, "/settings?sso=connected", http.StatusFound)
+	http.Redirect(w, r, "/pilot", http.StatusFound)
 }
 
 // HandleDisconnect removes the stored EVE SSO token and returns to Standard Mode.

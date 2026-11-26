@@ -36,6 +36,12 @@ services:
       ESI_CLIENT_ID: "${ESI_CLIENT_ID:-}"
       ESI_CLIENT_SECRET: "${ESI_CLIENT_SECRET:-}"
       ESI_CALLBACK_URL: "${ESI_CALLBACK_URL:-http://localhost:8080/auth/callback}"
+      AI_BASE_URL: "${AI_BASE_URL:-https://api.openai.com/v1}"
+      AI_API_KEY: "${AI_API_KEY:-}"
+      AI_MODEL: "${AI_MODEL:-gpt-4.1-mini}"
+      AI_TIMEOUT_SECONDS: "${AI_TIMEOUT_SECONDS:-60}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "${PORT:-8080}:8080"
 

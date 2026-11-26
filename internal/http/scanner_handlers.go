@@ -25,14 +25,29 @@ func (h *Handlers) HandleScanManufacturing(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// Blank inputs default to Auto mode: Runs=0 (auto-sized), ME=-1 / TE=-1 (auto by Tech Level / Owned BPO)
+	runs := 0
+	if rawRuns := strings.TrimSpace(r.FormValue("runs")); rawRuns != "" {
+		runs = parseIntDefault(rawRuns, 0)
+	}
+	me := -1
+	if rawME := strings.TrimSpace(r.FormValue("me")); rawME != "" {
+		me = parseIntDefault(rawME, -1)
+	}
+	te := -1
+	if rawTE := strings.TrimSpace(r.FormValue("te")); rawTE != "" {
+		te = parseIntDefault(rawTE, -1)
+	}
+
 	req := service.ManufacturingScanRequest{
 		HubKey:              strings.TrimSpace(r.FormValue("hub")),
+		MaterialHubKey:      strings.TrimSpace(r.FormValue("material_hub")),
 		Category:            strings.TrimSpace(r.FormValue("category")),
 		TechLevel:           parseIntDefault(r.FormValue("tech_level"), 0),
 		SearchQuery:         strings.TrimSpace(r.FormValue("q")),
-		Runs:                parseIntDefault(r.FormValue("runs"), 10),
-		ME:                  parseIntDefault(r.FormValue("me"), 10),
-		TE:                  parseIntDefault(r.FormValue("te"), 20),
+		Runs:                runs,
+		ME:                  me,
+		TE:                  te,
 		StructureKey:        strings.TrimSpace(r.FormValue("structure_key")),
 		MaterialPriceSource: strings.TrimSpace(r.FormValue("material_price_source")),
 		ProfitableOnly:      r.FormValue("profitable_only") == "on" || r.FormValue("profitable_only") == "true",
@@ -109,4 +124,84 @@ func (h *Handlers) HandleScanArbitrage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_ = h.renderer.RenderScannerArbitrage(w, r, results, errMsg)
+}
+
+// HandleScanStockouts runs a live Local Hub Stockout & Thin-Supply Detector scan via Public ESI.
+func (h *Handlers) HandleScanStockouts(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	hubKey := strings.TrimSpace(r.FormValue("hub"))
+	category := strings.TrimSpace(r.FormValue("category"))
+
+	results, err := h.svc.ScanLocalStockoutOpportunities(r.Context(), hubKey, category)
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
+
+	if h.renderer == nil {
+		h.writeJSON(w, http.StatusOK, map[string]any{"results": results, "error": errMsg})
+		return
+	}
+	_ = h.renderer.RenderScannerStockouts(w, r, results, errMsg)
+}
+
+// HandleScanReactions runs a live Hybrid Polymer Gas Reaction profitability scan via Public ESI.
+func (h *Handlers) HandleScanReactions(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	runs := 0
+	if rawRuns := strings.TrimSpace(r.FormValue("runs")); rawRuns != "" {
+		runs = parseIntDefault(rawRuns, 0)
+	}
+
+	req := service.GasReactionScanRequest{
+		HubKey:              strings.TrimSpace(r.FormValue("hub")),
+		MaterialHubKey:      strings.TrimSpace(r.FormValue("material_hub")),
+		RefineryKey:         strings.TrimSpace(r.FormValue("refinery_key")),
+		Scope:               strings.TrimSpace(r.FormValue("scope")),
+		SearchQuery:         strings.TrimSpace(r.FormValue("q")),
+		Runs:                runs,
+		MaterialPriceSource: strings.TrimSpace(r.FormValue("material_price_source")),
+		ProfitableOnly:      r.FormValue("profitable_only") == "on" || r.FormValue("profitable_only") == "true",
+	}
+
+	results, err := h.svc.ScanGasReactions(r.Context(), req)
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
+
+	if h.renderer == nil {
+		h.writeJSON(w, http.StatusOK, map[string]any{"results": results, "error": errMsg})
+		return
+	}
+	_ = h.renderer.RenderScannerReactions(w, r, results, errMsg)
+}
+
+// HandleDashboardRadar returns the cached Background Top-Opportunities Radar partial for the Dashboard (0ms read).
+func (h *Handlers) HandleDashboardRadar(w http.ResponseWriter, r *http.Request) {
+	snap := h.svc.GetRadarSnapshot(r.Context())
+	if h.renderer == nil {
+		h.writeJSON(w, http.StatusOK, snap)
+		return
+	}
+	_ = h.renderer.RenderDashboardRadar(w, r, snap)
+}
+
+// HandleTriggerRadarRefresh starts a non-blocking background 160-blueprint radar sweep and returns the live status partial.
+func (h *Handlers) HandleTriggerRadarRefresh(w http.ResponseWriter, r *http.Request) {
+	h.svc.TriggerRadarRefresh()
+	snap := h.svc.GetRadarSnapshot(r.Context())
+	if h.renderer == nil {
+		h.writeJSON(w, http.StatusOK, snap)
+		return
+	}
+	_ = h.renderer.RenderDashboardRadar(w, r, snap)
 }
