@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS sde_inventions (
     t2_blueprint_type_id INT NOT NULL,
     t2_product_type_id INT NOT NULL,
     t2_product_name VARCHAR(255) NOT NULL,
-    base_probability DOUBLE PRECISION NOT NULL DEFAULT 0.26,
+    base_probability NUMERIC(10,4) NOT NULL DEFAULT 0.26,
     base_runs INT NOT NULL DEFAULT 1,
     base_time_seconds INT NOT NULL DEFAULT 3600,
     category VARCHAR(80) NOT NULL DEFAULT 'Other',

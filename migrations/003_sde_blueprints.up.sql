@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS sde_types (
     name VARCHAR(255) NOT NULL,
     group_name VARCHAR(120) NOT NULL DEFAULT '',
     category VARCHAR(80) NOT NULL DEFAULT 'Other',
-    volume_m3 DOUBLE PRECISION NOT NULL DEFAULT 0.01,
+    volume_m3 NUMERIC(20,4) NOT NULL DEFAULT 0.01,
     portion_size INT NOT NULL DEFAULT 1
 );
 
