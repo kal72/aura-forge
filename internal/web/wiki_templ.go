@@ -695,10 +695,21 @@ var eveWikiEntries = []wikiEntry{
 		BadgeText:  "AURA AI",
 		BadgeClass: "border-amber-400/55 bg-violet-600/35 text-amber-100 font-bold",
 		WhereUsed:  "Topbar → Ask Aura, /marketplace, /manufacture, /wealth, /pilot, /tracker",
-		DescEN:     "Optional OpenAI-compatible AI copilot (configured via AI_BASE_URL, AI_API_KEY, AI_MODEL in .env). Unlike a generic chatbot, Aura executes 11 deterministic Go tools live — including Opportunity Radar (scanning your OWNED BPO/BPCs with real ME/TE, Manufacturing ISK/hr, Station Trading flips, Inter-Hub Arbitrage, and 24h Market Movers in parallel) — so all ISK math stays 100% accurate with zero hallucination.",
-		DescID:     "Kopilot AI opsional (kompatibel OpenAI SDK lewat AI_BASE_URL, AI_API_KEY, AI_MODEL di .env). Berbeda dari chatbot biasa, Aura menjalankan 11 tool Go deterministik secara live — termasuk Opportunity Radar (menyapu BPO/BPC MILIK Anda dengan ME/TE asli, Manufacturing ISK/jam, Station Trading, Arbitrage antar-hub, dan Market Movers 24 jam secara paralel) — sehingga seluruh angka ISK 100% presisi tanpa halusinasi.",
+		DescEN:     "Optional OpenAI-compatible AI copilot (configured via AI_BASE_URL, AI_API_KEY, AI_MODEL in .env, with live in-memory model override in /settings). Unlike a generic chatbot, Aura executes 14 deterministic Go tools live — including Opportunity Radar (scanning your OWNED BPO/BPCs with real ME/TE, Manufacturing ISK/hr, Station Trading flips, Inter-Hub Arbitrage, and 24h Market Movers in parallel), NPC BPO & LP Store lookup, Hauling Route/Gank checks, and 30-day Market Volatility audits — so all ISK math stays 100% accurate with zero hallucination.",
+		DescID:     "Kopilot AI opsional (kompatibel OpenAI SDK lewat AI_BASE_URL, AI_API_KEY, AI_MODEL di .env, plus override model langsung di memori lewat /settings). Berbeda dari chatbot biasa, Aura menjalankan 14 tool Go deterministik secara live — termasuk Opportunity Radar (menyapu BPO/BPC MILIK Anda dengan ME/TE asli, Manufacturing ISK/jam, Station Trading, Arbitrage antar-hub, dan Market Movers 24 jam secara paralel), pencarian NPC BPO & LP Store, cek Rute & Risiko Gank, serta audit Volatilitas Market 30 hari — sehingga seluruh angka ISK 100% presisi tanpa halusinasi.",
 		TipEN:      "Click 'Ask Aura' in the Topbar and choose '🎯 Hunt Best Opportunities Now' or '📋 Build My Weekly Framework (SOP)', or test your API key anytime in /settings → Test AI Connection.",
 		TipID:      "Klik 'Ask Aura' di Topbar lalu pilih '🎯 Hunt Best Opportunities Now' atau '📋 Build My Weekly Framework (SOP)', atau uji koneksi API Anda kapan saja di /settings → Test AI Connection.",
+	},
+	{
+		Category:   "workflow",
+		Term:       "Aura AI — Live NPC BPO/LP Store Finder, Hauling Risk & 30d Volatility Audit",
+		BadgeText:  "LIVE INTEL",
+		BadgeClass: "border-cyan-400/55 bg-cyan-500/20 text-cyan-100 font-bold",
+		WhereUsed:  "Topbar → Ask Aura (Automatic Live Public ESI Tools)",
+		DescEN:     "Aura AI includes three specialized live Public ESI intelligence tools: (1) Blueprint Sources (`find_blueprint_sources`) finds exact NPC stations selling T1 BPOs (365-day NPC seed orders) and scans major Empire/Faction LP Stores (Caldari Navy, Amarr Navy, Federation Navy, Republic Fleet, Sisters of EVE, etc.) for Faction BPCs with exact LP, ISK, and required items; (2) Hauling Route & Gank Risk (`check_route_and_hauling_risk`) checks High-Sec secure jump counts, Low-Sec exposure, known gank chokepoints (Uedama, Sivala, Ahbazon), live 1h ship kills, and safe ISK cargo caps by ship class; (3) Market History & Volatility (`check_market_history_and_volatility`) compares 7d vs 30d average price, daily volume consistency, and flags >25% temporary price spikes or manipulation traps.",
+		DescID:     "Aura AI dilengkapi 3 tool intelijen Public ESI live khusus: (1) Sumber Blueprint (`find_blueprint_sources`) mencari stasiun NPC resmi penjual T1 BPO (order seed 365 hari) sekaligus memindai LP Store Faction utama (Caldari Navy, Amarr Navy, Federation Navy, Republic Fleet, Sisters of EVE, dll.) untuk Faction BPC lengkap dengan syarat LP, ISK, dan item tukar; (2) Rute & Risiko Hauling (`check_route_and_hauling_risk`) mengecek jumlah jump rute High-Sec teraman, paparan Low-Sec, chokepoint rawan gank (Uedama, Sivala, Ahbazon), ship kills 1 jam terakhir, dan batas aman nilai kargo per kelas kapal; (3) Riwayat & Volatilitas Market (`check_market_history_and_volatility`) membandingkan harga rata-rata 7 hari vs 30 hari, konsistensi volume harian, serta mendeteksi jebakan price spike/manipulasi >25%.",
+		TipEN:      "Try asking Aura: 'Where can I get Caldari Navy Ballistic Control System blueprint?', 'Is Jita to Amarr safe for 250M ISK in a T1 hauler?', or 'Check 30-day price stability for Hobgoblin I in Amarr'.",
+		TipID:      "Coba tanya ke Aura: 'Di mana cari blueprint Caldari Navy Ballistic Control System?', 'Aman tidak angkut 250M ISK dari Jita ke Amarr pakai T1 hauler?', atau 'Cek tren harga 30 hari Hobgoblin I di Amarr'.",
 	},
 	{
 		Category:   "workflow",
@@ -837,7 +848,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(searchBlob)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1174, Col: 30}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1185, Col: 30}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -850,7 +861,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs("matches('" + item.Category + "', $el.dataset.search)")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1175, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1186, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -863,7 +874,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(item.Term)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1180, Col: 73}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1191, Col: 73}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -898,7 +909,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(item.BadgeText)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1182, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1193, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
@@ -911,7 +922,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(item.WhereUsed)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1186, Col: 24}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1197, Col: 24}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
@@ -924,7 +935,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1189, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1200, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -937,7 +948,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1192, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1203, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -950,7 +961,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1198, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1209, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
@@ -963,7 +974,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1199, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1210, Col: 56}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {

@@ -96,6 +96,17 @@ type GlobalMarketPriceProvider interface {
 	ResolveTypeNames(ctx context.Context, typeIDs []int32) (map[int32]string, error)
 }
 
+// UniverseIntelProvider is an optional Public ESI extension for NPC BPO seed orders,
+// NPC Corporation LP Store offers, safe hauling routes, solar system info, and 1-hour kill stats.
+type UniverseIntelProvider interface {
+	FindNPCBPOSeedOrders(ctx context.Context, regionID int32, regionName string, blueprintTypeID int32) ([]NPCBPOSeedOrder, error)
+	GetLoyaltyStoreOffers(ctx context.Context, corpID int32, corpName string) ([]LoyaltyStoreOffer, error)
+	GetRoute(ctx context.Context, originSystemID, destSystemID int32, flag string) ([]int32, error)
+	GetSystemInfo(ctx context.Context, systemID int32) (*SolarSystemInfo, error)
+	GetSystemKills(ctx context.Context) (map[int32]SystemKillStat, error)
+	ResolveSolarSystemID(ctx context.Context, name string) (int32, string, error)
+}
+
 // GlobalPriceSnapshotRepository persists daily global EVE market price snapshots for day-over-day mover detection.
 type GlobalPriceSnapshotRepository interface {
 	UpsertDailySnapshot(ctx context.Context, snapshotDate time.Time, prices []GlobalMarketPrice) (int, error)

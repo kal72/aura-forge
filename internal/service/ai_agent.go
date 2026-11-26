@@ -293,7 +293,8 @@ func buildAuraSystemPrompt(
 	b.WriteString("4. OPPORTUNITY HUNTING: When the user asks for opportunities, what to build/trade, or how to grow ISK, ALWAYS call `find_best_opportunities` (and `get_pilot_blueprints_and_hangar` for Admins) to cross-check their OWN BPO/BPCs, Manufacturing ISK/hr, Station Trading flips, Inter-Hub Arbitrage, and 24h Market Movers before recommending.\n")
 	b.WriteString("5. WORKFLOW & FRAMEWORK DESIGN: When asked to design a daily/weekly business framework or SOP, combine their real capital, owned BPOs, hangar stock, and Realized P&L (`get_trade_ledger`) into a concrete phased routine, AND attach a `save_playbook` Action Card so they can save the framework in 1 click.\n")
 	b.WriteString("6. HUMAN-IN-THE-LOOP ACTIONS: When you recommend a concrete next step (adding a viable item to Catalog, recording a Draft Batch/Trade Flip, saving a Playbook framework, or opening Manufacture/Marketplace), call `propose_action_card` so the user gets a 1-click button.\n")
-	b.WriteString("7. CONCISE & STRUCTURED: Use crisp Markdown bullets/bold numbers, clear verdicts (SAFE / CAUTION / AVOID), and concrete next actions.\n\n")
+	b.WriteString("7. SPECIALIZED LIVE INTEL: Always call `find_blueprint_sources` when asked where to buy an NPC BPO or Faction LP Store BPC; call `check_route_and_hauling_risk` when asked about hauling routes, jump counts, or gank danger; call `check_market_history_and_volatility` when evaluating price spikes, manipulation risk, or 7d/30d trends.\n")
+	b.WriteString("8. CONCISE & STRUCTURED: Use crisp Markdown bullets/bold numbers, clear verdicts (SAFE / CAUTION / AVOID), and concrete next actions.\n\n")
 
 	b.WriteString(fmt.Sprintf("CURRENT CONTEXT:\n- Active Trade Hub: %s (%s, key=%s)\n- Active Page: %s\n- User Role: %s\n",
 		hub.Name, hub.RegionName, hub.Key,
@@ -376,6 +377,15 @@ func buildAuraToolDefinitions(isAdmin bool) []domain.AIToolDefinition {
 		def("appraise_clipboard_items",
 			"Appraise pasted EVE Online inventory/cargo/loot/fit text at a Trade Hub for Total Sell, Total Buy, post-tax net ISK, Buyback value, volume m3, and High-Sec Gank Risk.",
 			`{"type":"object","properties":{"paste_text":{"type":"string","description":"Raw EVE item lines with quantities"},"hub":{"type":"string","description":"Trade hub key"},"buyback_pct":{"type":"number","description":"Buyback percentage (default 90)"}},"required":["paste_text"]}`),
+		def("find_blueprint_sources",
+			"Find official NPC stations selling a T1 BPO (365-day NPC seed orders) and/or NPC Corporation LP Stores offering a Faction BPC or Faction item (e.g. Caldari Navy Ballistic Control System) with exact LP cost, ISK cost, and required items via live Public ESI.",
+			`{"type":"object","properties":{"item":{"type":"string","description":"Product or blueprint name (e.g. 'Caldari Navy Ballistic Control System', 'Caracal', 'Hobgoblin I Blueprint')"},"region_hub":{"type":"string","description":"Optional hub key to check NPC BPO stations in: jita, amarr, dodixie, rens, hek"}},"required":["item"]}`),
+		def("check_route_and_hauling_risk",
+			"Check the safest High-Sec route, jump count, Low-Sec/Null-Sec exposure, known gank chokepoints (Uedama, Ahbazon, Sivala, etc.), live 1-hour ship kills, and safe cargo ISK limit for hauling between two EVE hubs or solar systems.",
+			`{"type":"object","properties":{"origin":{"type":"string","description":"Origin hub key or solar system name (e.g. jita, amarr, Perimeter)"},"destination":{"type":"string","description":"Destination hub key or solar system name (e.g. amarr, jita, Dodixie)"},"cargo_value_isk":{"type":"number","description":"Optional cargo value in ISK to evaluate gank risk"},"ship_class":{"type":"string","enum":["t1_hauler","dst","blockade_runner","freighter"],"description":"Hauler class (default t1_hauler)"}},"required":["origin","destination"]}`),
+		def("check_market_history_and_volatility",
+			"Analyze 7-day vs 30-day regional market history, daily volume consistency, price volatility %, and detect temporary price spikes / market manipulation traps for an EVE item.",
+			`{"type":"object","properties":{"item":{"type":"string","description":"Exact EVE item name (e.g. Hobgoblin I, Caracal, Pyerite)"},"hub":{"type":"string","description":"Trade hub key: jita, amarr, dodixie, rens, hek"},"days":{"type":"integer","description":"History window in days (default 30, max 60)"}},"required":["item"]}`),
 		def("propose_action_card",
 			"Attach a Human-in-the-Loop 1-click Action Card under your reply so the user can approve and execute a concrete action (open a page, save a Pilot Playbook framework, or for Admins: add an item to Catalog or create a Draft Batch/Trade Flip).",
 			`{"type":"object","properties":{"kind":{"type":"string","enum":["open_link","add_catalog","create_batch","save_playbook"]},"entry_type":{"type":"string","enum":["MANUFACTURING","TRADE"],"description":"For create_batch: MANUFACTURING for production runs or TRADE for station trading / arbitrage flips"},"title":{"type":"string"},"description":{"type":"string"},"button_label":{"type":"string"},"item_name":{"type":"string"},"type_id":{"type":"integer"},"category":{"type":"string"},"runs":{"type":"integer"},"output_qty":{"type":"integer"},"unit_sell_price":{"type":"number"},"material_cost":{"type":"number","description":"Total build cost (MFG) or total buy cost (TRADE)"},"daily_volume":{"type":"number"},"playstyle_notes":{"type":"string","description":"For save_playbook: concise operational framework/SOP text to save into Pilot Playbook Memory"},"risk_tolerance":{"type":"string","enum":["CONSERVATIVE","BALANCED","AGGRESSIVE"]},"daily_playtime":{"type":"string","description":"e.g. 30-60 mins/day"},"url":{"type":"string","description":"For open_link kind, relative app path like /manufacture, /marketplace?q=Caracal&hub=amarr, /scanner, /tracker, /pilot, /pi"}},"required":["kind","title","button_label"]}`),
@@ -1194,6 +1204,33 @@ func (s *CopilotService) executeAuraTool(
 
 		trace.Summary = "Proposed 1-click action: " + card.Title
 		return `{"status":"action_card_attached"}`, trace, card
+
+	case "find_blueprint_sources":
+		res, summary, err := s.runFindBlueprintSources(ctx, defaultHub, argsRaw)
+		if err != nil {
+			trace.Error = err.Error()
+			return toJSON(map[string]string{"error": err.Error()}), trace, nil
+		}
+		trace.Summary = summary
+		return toJSON(res), trace, nil
+
+	case "check_route_and_hauling_risk":
+		res, summary, err := s.runCheckRouteAndHaulingRisk(ctx, defaultHub, argsRaw)
+		if err != nil {
+			trace.Error = err.Error()
+			return toJSON(map[string]string{"error": err.Error()}), trace, nil
+		}
+		trace.Summary = summary
+		return toJSON(res), trace, nil
+
+	case "check_market_history_and_volatility":
+		res, summary, err := s.runCheckMarketHistoryAndVolatility(ctx, defaultHub, argsRaw)
+		if err != nil {
+			trace.Error = err.Error()
+			return toJSON(map[string]string{"error": err.Error()}), trace, nil
+		}
+		trace.Summary = summary
+		return toJSON(res), trace, nil
 
 	default:
 		trace.Error = "unknown tool"
