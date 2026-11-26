@@ -154,3 +154,14 @@ go test -v ./...
 # Build binary produksi
 go build ./...
 ```
+
+
+## License
+
+Copyright (c) 2026 aura-forge contributors.
+
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** — see the [LICENSE](./LICENSE) file for details.
+
+### EVE Online Third-Party Notice
+
+`aura-forge` is an independent third-party tool and is not affiliated with, endorsed by, or sponsored by CCP hf. EVE Online, the EVE logo, and all associated logos, designs, and data (SDE/ESI) are the intellectual property of CCP hf.
