@@ -30,11 +30,27 @@ func NewPoolOnly(ctx context.Context, databaseURL string) (*DB, error) {
 		return nil, fmt.Errorf("failed to create connection pool: %w", err)
 	}
 
-	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
-	if err := pool.Ping(pingCtx); err != nil {
+	const maxPingAttempts = 3
+	var lastPingErr error
+	for attempt := 1; attempt <= maxPingAttempts; attempt++ {
+		pingCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
+		lastPingErr = pool.Ping(pingCtx)
+		cancel()
+		if lastPingErr == nil {
+			break
+		}
+		if attempt < maxPingAttempts {
+			select {
+			case <-ctx.Done():
+				pool.Close()
+				return nil, fmt.Errorf("database ping cancelled: %w", ctx.Err())
+			case <-time.After(time.Duration(attempt*2) * time.Second):
+			}
+		}
+	}
+	if lastPingErr != nil {
 		pool.Close()
-		return nil, fmt.Errorf("failed to ping database: %w", err)
+		return nil, fmt.Errorf("failed to ping database after %d attempts: %w", maxPingAttempts, lastPingErr)
 	}
 
 	return &DB{Pool: pool}, nil
