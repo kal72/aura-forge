@@ -34,13 +34,40 @@ jobs:
         run: templ generate
 
       - name: Run Go unit and race tests
-        run: go test -race -count=1 ./...
+        run: |
+          set -o pipefail
+          if ! go test -race -count=1 ./... 2>&1 | tee /tmp/go-test.log; then
+            echo "## ❌ Go Unit & Race Tests Failed" >> "$GITHUB_STEP_SUMMARY"
+            echo '```text' >> "$GITHUB_STEP_SUMMARY"
+            grep -E "(FAIL|--- FAIL|Error|panic|violates|\.go:[0-9]+:)" /tmp/go-test.log | tail -n 60 >> "$GITHUB_STEP_SUMMARY" || tail -n 60 /tmp/go-test.log >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "::error title=Go Unit & Race Tests Failed::Check the Job Summary below for failing test details."
+            exit 1
+          fi
 
       - name: Run Go vet
-        run: go vet ./...
+        run: |
+          set -o pipefail
+          if ! go vet ./... 2>&1 | tee /tmp/go-vet.log; then
+            echo "## ❌ Go Vet Failed" >> "$GITHUB_STEP_SUMMARY"
+            echo '```text' >> "$GITHUB_STEP_SUMMARY"
+            tail -n 60 /tmp/go-vet.log >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "::error title=Go Vet Failed::go vet reported issues. See Job Summary."
+            exit 1
+          fi
 
       - name: Verify standalone binary build
-        run: CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o bin/aura-forge ./cmd/server
+        run: |
+          set -o pipefail
+          if ! CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o bin/aura-forge ./cmd/server 2>&1 | tee /tmp/go-build.log; then
+            echo "## ❌ Go Build Failed" >> "$GITHUB_STEP_SUMMARY"
+            echo '```text' >> "$GITHUB_STEP_SUMMARY"
+            tail -n 60 /tmp/go-build.log >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "::error title=Go Build Failed::Binary compilation failed. See Job Summary."
+            exit 1
+          fi
 
   container-check:
     name: Podman Container Build
@@ -50,7 +77,16 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build container image with Podman
-        run: podman build -t aura-forge:ci -f Dockerfile .
+        run: |
+          set -o pipefail
+          if ! podman build -t aura-forge:ci -f Dockerfile . 2>&1 | tee /tmp/podman-build.log; then
+            echo "## ❌ Podman Container Build Failed" >> "$GITHUB_STEP_SUMMARY"
+            echo '```text' >> "$GITHUB_STEP_SUMMARY"
+            tail -n 60 /tmp/podman-build.log >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "::error title=Podman Build Failed::Container build failed. See Job Summary."
+            exit 1
+          fi
 
       - name: Inspect container image
         run: |

@@ -59,8 +59,23 @@ jobs:
 
       - name: Run Go tests and vet
         run: |
-          go test -race -count=1 ./...
-          go vet ./...
+          set -o pipefail
+          if ! go test -race -count=1 ./... 2>&1 | tee /tmp/cd-test.log; then
+            echo "## ❌ CD Pre-Deploy Tests Failed" >> "$GITHUB_STEP_SUMMARY"
+            echo '```text' >> "$GITHUB_STEP_SUMMARY"
+            grep -E "(FAIL|--- FAIL|Error|panic|violates|\.go:[0-9]+:)" /tmp/cd-test.log | tail -n 60 >> "$GITHUB_STEP_SUMMARY" || tail -n 60 /tmp/cd-test.log >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "::error title=CD Tests Failed::Unit tests failed before deployment. See Job Summary."
+            exit 1
+          fi
+          if ! go vet ./... 2>&1 | tee /tmp/cd-vet.log; then
+            echo "## ❌ CD Go Vet Failed" >> "$GITHUB_STEP_SUMMARY"
+            echo '```text' >> "$GITHUB_STEP_SUMMARY"
+            tail -n 60 /tmp/cd-vet.log >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "::error title=CD Go Vet Failed::go vet failed before deployment. See Job Summary."
+            exit 1
+          fi
 
   build-and-push:
     name: Build & Push Image to GitHub (GHCR)
@@ -252,4 +267,12 @@ jobs:
             "${PODMAN_EXTRA_ARGS}" \
             "${TARGET_ENV}" "${IMAGE_NAME}" "${APP_PORT}" "${APP_BIND}")
 
-          "${SSH_CMD[@]}" "${SSH_USER}@${SSH_HOST}" "${REMOTE_ENV}" < deploy/podman-deploy.sh
+          set -o pipefail
+          if ! "${SSH_CMD[@]}" "${SSH_USER}@${SSH_HOST}" "${REMOTE_ENV}" < deploy/podman-deploy.sh 2>&1 | tee /tmp/cd-deploy.log; then
+            echo "## ❌ VPS Podman Deployment Failed (${TARGET_ENV})" >> "$GITHUB_STEP_SUMMARY"
+            echo '```text' >> "$GITHUB_STEP_SUMMARY"
+            tail -n 80 /tmp/cd-deploy.log >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "::error title=VPS Deploy Failed (${TARGET_ENV})::Remote Podman deployment failed. See Job Summary."
+            exit 1
+          fi
