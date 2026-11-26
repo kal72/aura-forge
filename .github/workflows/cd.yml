@@ -161,9 +161,7 @@ jobs:
     needs: [build-and-push]
     if: always() && (needs.build-and-push.result == 'success') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ needs.build-and-push.outputs.target_env }}
-      url: ${{ vars.PUBLIC_BASE_URL }}
+    environment: ${{ needs.build-and-push.outputs.target_env }}
 
     steps:
       - name: Checkout repository
@@ -223,7 +221,7 @@ jobs:
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD || vars.ADMIN_PASSWORD || '' }}
 
           # EVE Online ESI & Optional SSO
-          ESI_USER_AGENT: ${{ vars.ESI_USER_AGENT || 'aura-forge/1.0 (EVE Market & Industry Copilot; contact: pilot@new-eden.org)' }}
+          ESI_USER_AGENT: "${{ vars.ESI_USER_AGENT || 'aura-forge/1.0 (EVE Market & Industry Copilot; contact: pilot@new-eden.org)' }}"
           ESI_CLIENT_ID: ${{ secrets.ESI_CLIENT_ID || vars.ESI_CLIENT_ID || '' }}
           ESI_CLIENT_SECRET: ${{ secrets.ESI_CLIENT_SECRET || vars.ESI_CLIENT_SECRET || '' }}
           ESI_CALLBACK_URL: ${{ secrets.ESI_CALLBACK_URL || vars.ESI_CALLBACK_URL || '' }}
