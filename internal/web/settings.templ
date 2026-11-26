@@ -10,9 +10,17 @@ import (
 templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatus service.SDEImportStatus, pilotMem *domain.AIPilotMemory, saved bool) {
 	@Layout("Settings", "settings", mode) {
 		<div class="space-y-6">
-			<div>
-				<h1 class="text-2xl font-bold tracking-tight text-white">Settings &amp; EVE Online ESI Mode</h1>
-				<p class="text-xs text-slate-300/80 mt-0.5">Configure starting capital, Primary Trade Hub, market taxes, character slot capacity, and optional EVE SSO OAuth2 integration.</p>
+			<div class="flex flex-wrap items-center justify-between gap-3">
+				<div>
+					<h1 class="text-2xl font-bold tracking-tight text-white">Settings &amp; EVE Online ESI Mode</h1>
+					<p class="text-xs text-slate-300/80 mt-0.5">Configure starting capital, Primary Trade Hub, market taxes, character slot capacity, and optional EVE SSO OAuth2 integration.</p>
+				</div>
+				<a
+					href="/wiki#settings-guide"
+					class="inline-flex items-center gap-1.5 rounded-lg border border-sky-400/40 bg-sky-500/15 px-3 py-1.5 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition"
+				>
+					<span>Settings Field Guide (Wiki) →</span>
+				</a>
 			</div>
 
 			if saved {
@@ -46,6 +54,7 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 						<div>
 							<label class="block text-[11px] font-mono uppercase text-slate-300">Manual Starting Capital (ISK)</label>
 							<input type="number" step="0.01" name="starting_capital" value={ fmt.Sprintf("%.2f", settings.StartingCapital) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+							<p class="mt-1 text-[10px] text-slate-400">Dedicated working capital for industry &amp; trading (separate from personal wallet).</p>
 						</div>
 						<div>
 							<label class="block text-[11px] font-mono uppercase text-slate-300">Primary Trade Hub (Catalog &amp; Trap Guard)</label>
@@ -54,38 +63,47 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 									<option value={ th.Key } selected?={ settings.ActiveTradeHub().Key == th.Key }>{ th.Name } ({ th.RegionName })</option>
 								}
 							</select>
+							<p class="mt-1 text-[10px] text-slate-400">Default sell hub for Catalog, Radar, Scanner, and Background Price Updater.</p>
 						</div>
 						<div>
 							<label class="block text-[11px] font-mono uppercase text-slate-300">Manufacturing Slots</label>
 							<input type="number" name="manufacturing_slots" value={ fmt.Sprintf("%d", settings.ManufacturingSlots) } min="1" max="50" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+							<p class="mt-1 text-[10px] text-slate-400">In-game: Industry (Alt+S) → Jobs → max Manufacturing slots.</p>
 						</div>
 						<div>
 							<label class="block text-[11px] font-mono uppercase text-slate-300">Science / Invention Slots</label>
 							<input type="number" name="science_slots" value={ fmt.Sprintf("%d", settings.ScienceSlots) } min="0" max="50" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+							<p class="mt-1 text-[10px] text-slate-400">In-game: Industry (Alt+S) → Jobs → max Science / Research slots.</p>
 						</div>
 						<div>
 							<label class="block text-[11px] font-mono uppercase text-slate-300">Broker Fee (%)</label>
 							<input type="number" step="0.01" name="broker_fee_percent" value={ fmt.Sprintf("%.2f", settings.BrokerFeePercent) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+							<p class="mt-1 text-[10px] text-slate-400">In-game: Right-click item → Sell (3 Months) → Broker's Fee (3.00% base; ~1.50% Lv V).</p>
 						</div>
 						<div>
 							<label class="block text-[11px] font-mono uppercase text-slate-300">Sales Tax (%)</label>
 							<input type="number" step="0.01" name="sales_tax_percent" value={ fmt.Sprintf("%.2f", settings.SalesTaxPercent) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+							<p class="mt-1 text-[10px] text-slate-400">In-game: Sell window → Sales Tax (7.50% Lv 0; 4.20% Lv 4; 3.38% Accounting V).</p>
 						</div>
 						<div>
 							<label class="block text-[11px] font-mono uppercase text-slate-300">Relist Fee (%)</label>
 							<input type="number" step="0.01" name="relist_fee_percent" value={ fmt.Sprintf("%.2f", settings.RelistFeePercent) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+							<p class="mt-1 text-[10px] text-slate-400">Order modify fee: Broker Fee × 50% (Lv 0) down to × 20% (Adv. Broker V).</p>
 						</div>
 						<div>
 							<label class="block text-[11px] font-mono uppercase text-slate-300">System Cost Index (Decimal)</label>
 							<input type="number" step="0.0001" name="system_cost_index" value={ fmt.Sprintf("%.4f", settings.SystemCostIndex) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+							<p class="mt-1 text-[10px] text-slate-400">Factory congestion tax in decimal (4.50% = 0.0450). Use Sync Live SCI above.</p>
 						</div>
 						<div>
 							<label class="block text-[11px] font-mono uppercase text-slate-300">Facility Tax (%)</label>
 							<input type="number" step="0.01" name="facility_tax_percent" value={ fmt.Sprintf("%.2f", settings.FacilityTaxPercent) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+							<p class="mt-1 text-[10px] text-slate-400">NPC station: 0.25%. Player Raitaru/Azbel: check Industry → Facilities.</p>
 						</div>
 						<div>
 							<label class="block text-[11px] font-mono uppercase text-slate-300">Freight Cost (ISK / m³)</label>
 							<input type="number" step="0.01" name="freight_cost_per_m3" value={ fmt.Sprintf("%.2f", settings.FreightCostPerM3) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
+							<p class="mt-1 text-[10px] text-slate-400">Set 0 if building &amp; selling locally; 300–800 for High-Sec courier contracts.</p>
 						</div>
 
 						<div class="sm:col-span-2 pt-2">
@@ -162,6 +180,7 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 									<option value="30" selected?={ settings.AutoPriceSyncIntervalMinutes == 30 }>Every 30 minutes (Light ESI)</option>
 									<option value="60" selected?={ settings.AutoPriceSyncIntervalMinutes == 60 }>Every 60 minutes (Minimal ESI)</option>
 								</select>
+								<p class="mt-1 text-[10px] text-slate-400">15 min is balanced for active trading; use 30–60 min for minimal background ESI traffic.</p>
 							</div>
 
 							<div class="flex flex-wrap gap-2 pt-1">
@@ -321,6 +340,7 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 						<!-- Pilot Playbook Memory (Used by Aura AI across every session) -->
 						<form hx-post="/ai/memory" hx-swap="none" class="space-y-3 border-t border-slate-800 pt-3.5">
 							<div class="text-[11px] font-mono uppercase tracking-wider text-amber-300">Pilot Playbook Memory</div>
+							<p class="text-[10px] text-slate-400 -mt-1.5">Saved in PostgreSQL and automatically injected into every Aura AI chat session.</p>
 							<div class="grid grid-cols-2 gap-2.5">
 								<div>
 									<label class="block text-[10px] font-mono uppercase text-slate-400 mb-1">Risk Tolerance</label>
