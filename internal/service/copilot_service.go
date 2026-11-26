@@ -297,6 +297,7 @@ func (s *CopilotService) UpdateSettings(ctx context.Context, cfg *domain.UserSet
 			return err
 		}
 	}
+	s.priceSync.updateSchedulePreview(cfg.AutoPriceSyncEnabled, cfg.AutoPriceSyncIntervalMinutes)
 	s.priceSync.notifyConfigChanged()
 	return nil
 }
