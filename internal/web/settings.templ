@@ -42,7 +42,7 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 						</form>
 					</div>
 
-					<form hx-post="/settings" hx-swap="none" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+					<form hx-post="/settings" hx-swap="none" autocomplete="off" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<div>
 							<label class="block text-[11px] font-mono uppercase text-slate-300">Manual Starting Capital (ISK)</label>
 							<input type="number" step="0.01" name="starting_capital" value={ fmt.Sprintf("%.2f", settings.StartingCapital) } class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
@@ -109,9 +109,9 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 							if mode.PriceSync.IsRunning {
 								<span class="rounded-full border border-amber-400/45 bg-amber-500/20 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-200 animate-pulse">SYNCING</span>
 							} else if settings.AutoPriceSyncEnabled {
-								<span class="rounded-full border border-emerald-400/45 bg-emerald-500/20 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-200">AUTO ON</span>
+								<span class="rounded-full border border-emerald-400/45 bg-emerald-500/20 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-200">AUTO • { fmt.Sprintf("%dm", settings.AutoPriceSyncIntervalMinutes) }</span>
 							} else {
-								<span class="rounded-full border border-slate-500/45 bg-slate-700/40 px-2 py-0.5 font-mono text-[10px] font-bold text-slate-300">MANUAL</span>
+								<span class="rounded-full border border-slate-500/45 bg-slate-700/40 px-2 py-0.5 font-mono text-[10px] font-bold text-slate-300">MANUAL • { fmt.Sprintf("%dm", settings.AutoPriceSyncIntervalMinutes) }</span>
 							}
 						</div>
 
@@ -140,12 +140,13 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 							}
 						</div>
 
-						<form hx-post="/settings" hx-swap="none" class="space-y-3">
+						<form hx-post="/settings" hx-swap="none" autocomplete="off" class="space-y-3">
 							<input type="hidden" name="form_section" value="price_updater"/>
 							<label class="flex items-center gap-2.5 cursor-pointer select-none rounded-lg border border-slate-700/80 bg-slate-900/50 px-3 py-2.5">
 								<input
 									type="checkbox"
 									name="auto_price_sync_enabled"
+									autocomplete="off"
 									checked?={ settings.AutoPriceSyncEnabled }
 									class="h-4 w-4 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-400"
 								/>
@@ -154,7 +155,7 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 
 							<div>
 								<label class="block text-[11px] font-mono uppercase text-slate-300">Sync Interval</label>
-								<select name="auto_price_sync_interval_minutes" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white">
+								<select name="auto_price_sync_interval_minutes" autocomplete="off" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white">
 									<option value="5" selected?={ settings.AutoPriceSyncIntervalMinutes == 5 }>Every 5 minutes (High Frequency)</option>
 									<option value="10" selected?={ settings.AutoPriceSyncIntervalMinutes == 10 }>Every 10 minutes</option>
 									<option value="15" selected?={ settings.AutoPriceSyncIntervalMinutes == 15 }>Every 15 minutes (Recommended)</option>
@@ -243,7 +244,7 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 						if mode.AI.Enabled {
 							<div class="rounded-lg border border-violet-400/30 bg-slate-900/65 p-3 font-mono text-[11px] space-y-1">
 								<div class="flex justify-between gap-2">
-									<span class="text-slate-400">Model</span>
+									<span class="text-slate-400">Active Model</span>
 									<span class="text-amber-200 font-bold truncate">{ mode.AI.Model }</span>
 								</div>
 								<div class="flex justify-between gap-2">
@@ -251,14 +252,49 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 									<span class="text-sky-300 truncate">{ mode.AI.BaseURL }</span>
 								</div>
 							</div>
-							<div class="flex flex-wrap gap-2">
+							<form hx-post="/ai/model" hx-swap="none" autocomplete="off" class="space-y-1.5">
+								<label class="block text-[10px] font-mono uppercase text-slate-400">Runtime Model Override (In-Memory)</label>
+								<div class="flex gap-2">
+									<input
+										type="text"
+										name="ai_model"
+										list="ai-model-presets"
+										value={ mode.AI.Model }
+										required
+										autocomplete="off"
+										placeholder="e.g. gemini-3.5-flash-lite, gpt-4.1-mini"
+										class="min-w-0 flex-1 rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1.5 font-mono text-xs text-white focus:border-amber-400 focus:outline-none"
+									/>
+									<datalist id="ai-model-presets">
+										<option value="gemini-3.5-flash-lite"></option>
+										<option value="gemini-3.1-flash-lite"></option>
+										<option value="gemini-3.5-flash"></option>
+										<option value="gemini-2.5-flash-lite"></option>
+										<option value="gemini-2.5-pro"></option>
+										<option value="gpt-4.1-mini"></option>
+										<option value="gpt-4.1"></option>
+										<option value="deepseek-chat"></option>
+									</datalist>
+									<button
+										type="submit"
+										class="shrink-0 rounded-md bg-amber-400 px-3 py-1.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer"
+									>
+										Apply
+									</button>
+								</div>
+								<p class="text-[10px] text-slate-400">Overrides <code class="text-slate-300">AI_MODEL</code> in memory immediately (not saved to DB; resets on restart).</p>
+							</form>
+							<div class="flex flex-wrap items-center gap-2">
 								<button
 									type="button"
 									hx-post="/ai/test"
-									hx-swap="none"
-									class="rounded-md border border-emerald-400/45 bg-emerald-500/15 px-3 py-1.5 text-xs font-bold text-emerald-200 hover:bg-emerald-500/25 transition cursor-pointer"
+									hx-target="#ai-test-result"
+									hx-swap="innerHTML"
+									hx-indicator="#ai-test-spinner"
+									class="inline-flex items-center gap-2 rounded-md border border-emerald-400/45 bg-emerald-500/15 px-3 py-1.5 text-xs font-bold text-emerald-200 hover:bg-emerald-500/25 transition cursor-pointer"
 								>
-									Test AI Connection
+									<span id="ai-test-spinner" class="htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-emerald-200 border-t-transparent"></span>
+									<span>Test AI Connection</span>
 								</button>
 								<button
 									type="button"
@@ -268,6 +304,7 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 									Open Ask Aura Drawer
 								</button>
 							</div>
+							<div id="ai-test-result"></div>
 						} else {
 							<div class="rounded-lg border border-slate-700 bg-slate-900/70 p-3.5 space-y-2.5">
 								<p class="text-xs text-slate-300 leading-relaxed">

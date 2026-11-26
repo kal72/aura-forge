@@ -46,6 +46,17 @@ func (s *CopilotService) TestAIConnection(ctx context.Context) (string, error) {
 	return s.aiProvider.Ping(ctx)
 }
 
+// SetAIModel overrides the active AI model in memory without persisting to PostgreSQL.
+func (s *CopilotService) SetAIModel(model string) (string, error) {
+	if s.aiProvider == nil || !s.aiProvider.IsEnabled() {
+		return "", fmt.Errorf("Aura AI is disabled — configure AI_API_KEY, AI_BASE_URL, and AI_MODEL in .env")
+	}
+	if err := s.aiProvider.SetModel(model); err != nil {
+		return "", err
+	}
+	return s.aiProvider.Status().Model, nil
+}
+
 // GetPilotMemory retrieves the current user's persistent AI playstyle & risk preferences.
 func (s *CopilotService) GetPilotMemory(ctx context.Context) *domain.AIPilotMemory {
 	uid, _ := currentActorIDAndAdmin(ctx)

@@ -1,6 +1,7 @@
 package http
 
 import (
+	"html"
 	"net/http"
 	"strconv"
 	"strings"
@@ -19,7 +20,18 @@ func (h *Handlers) HandleAIDrawer(w http.ResponseWriter, r *http.Request) {
 
 	var msgs []domain.AIMessage
 	if convID > 0 {
-		msgs, _ = h.svc.GetAIConversationMessages(r.Context(), convID)
+		exists := false
+		for _, c := range convs {
+			if c.ID == convID {
+				exists = true
+				break
+			}
+		}
+		if exists {
+			msgs, _ = h.svc.GetAIConversationMessages(r.Context(), convID)
+		} else {
+			convID = 0
+		}
 	}
 
 	if h.renderer == nil {
@@ -92,20 +104,52 @@ func (h *Handlers) HandleAIDeleteConversation(w http.ResponseWriter, r *http.Req
 func (h *Handlers) HandleAITestConnection(w http.ResponseWriter, r *http.Request) {
 	msg, err := h.svc.TestAIConnection(r.Context())
 	if err != nil {
+		cleanErr := strings.Join(strings.Fields(err.Error()), " ")
 		if IsHTMX(r) {
-			TriggerToast(w, "error", "AI connection failed: "+err.Error())
+			TriggerToast(w, "error", "AI connection failed: "+cleanErr)
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`<div class="rounded-lg border border-rose-400/45 bg-rose-950/40 px-3 py-2 text-xs font-mono text-rose-200 break-words"><strong>✕ Connection Failed:</strong> ` + html.EscapeString(cleanErr) + `</div>`))
 			return
 		}
-		h.writeJSON(w, http.StatusBadGateway, map[string]string{"error": err.Error()})
+		h.writeJSON(w, http.StatusBadGateway, map[string]string{"error": cleanErr})
 		return
 	}
 	if IsHTMX(r) {
 		TriggerToast(w, "success", msg)
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`<div class="rounded-lg border border-emerald-400/45 bg-emerald-950/40 px-3 py-2 text-xs font-mono text-emerald-200 break-words"><strong>✓ Connected:</strong> ` + html.EscapeString(msg) + `</div>`))
 		return
 	}
 	h.writeJSON(w, http.StatusOK, map[string]string{"status": msg})
+}
+
+// HandleAISetModel overrides the active AI model in memory (not persisted to PostgreSQL).
+func (h *Handlers) HandleAISetModel(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+	model := strings.TrimSpace(r.FormValue("ai_model"))
+	updated, err := h.svc.SetAIModel(model)
+	if err != nil {
+		cleanErr := strings.Join(strings.Fields(err.Error()), " ")
+		if IsHTMX(r) {
+			TriggerToast(w, "error", "Failed to update AI model: "+cleanErr)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		h.writeJSON(w, http.StatusBadRequest, map[string]string{"error": cleanErr})
+		return
+	}
+	if IsHTMX(r) {
+		TriggerToast(w, "success", "Active AI model updated in memory: "+updated)
+		w.Header().Set("HX-Redirect", "/settings?saved=1")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	h.writeJSON(w, http.StatusOK, map[string]string{"model": updated})
 }
 
 // HandleAISaveMemory persists the user's Pilot Playbook Memory (playstyle, risk tolerance, daily playtime).

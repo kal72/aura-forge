@@ -44,7 +44,7 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 				isDark: document.documentElement.classList.contains('dark'),
 				auraOpen: false,
 				auraLoaded: false,
-				auraConvID: 0,
+				auraConvID: Number(localStorage.getItem('af-aura-conv-id') || 0),
 				auraPrompt: '',
 				auraContextPage: %q,
 				auraContextSummary: '',
@@ -56,13 +56,17 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 				openAura(promptText, ctxSummary) {
 					this.auraOpen = true;
 					if (ctxSummary) this.auraContextSummary = ctxSummary;
-					if (!this.auraLoaded) {
-						this.auraLoaded = true;
-						htmx.ajax('GET', '/ai/drawer?conv_id=' + this.auraConvID, { target: '#aura-drawer-thread', swap: 'innerHTML' });
-					}
-					if (promptText) {
-						this.sendAuraPrompt(promptText);
-					}
+					this.$nextTick(() => {
+						const thread = document.getElementById('aura-drawer-thread');
+						const needsLoad = !this.auraLoaded || !thread || thread.dataset.loaded !== '1';
+						if (needsLoad && window.htmx) {
+							this.auraLoaded = true;
+							window.htmx.ajax('GET', '/ai/drawer?conv_id=' + this.auraConvID, { target: '#aura-drawer-thread', swap: 'innerHTML' });
+						}
+						if (promptText) {
+							this.sendAuraPrompt(promptText);
+						}
+					});
 				},
 				sendAuraPrompt(text) {
 					this.auraPrompt = text;
@@ -536,13 +540,12 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 
 			<!-- Optional Aura AI Copilot Slide-Over Drawer (Level 4 Agentic Assistant) -->
 			if mode.AI.Enabled {
-				<template x-teleport="body">
-					<div
-						x-cloak
-						x-show="auraOpen"
-						style="margin-top: 0;"
-						class="fixed inset-0 z-[110] flex justify-end"
-					>
+				<div
+					x-cloak
+					x-show="auraOpen"
+					style="margin-top: 0;"
+					class="fixed inset-0 z-[110] flex justify-end"
+				>
 						<div
 							x-show="auraOpen"
 							x-transition.opacity.duration.150ms
@@ -628,7 +631,6 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 							</div>
 						</div>
 					</div>
-				</template>
 			}
 
 			<!-- Alpine.js Toast Notification Stack -->

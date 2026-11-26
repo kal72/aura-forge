@@ -1,17 +1,33 @@
 package http_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
 
+	"aura-forge/internal/domain"
 	"aura-forge/internal/esi"
 	apphttp "aura-forge/internal/http"
 	"aura-forge/internal/service"
 	"aura-forge/internal/web"
 )
+
+type memSettingsRepo struct {
+	cfg domain.UserSettings
+}
+
+func (m *memSettingsRepo) GetSettings(_ context.Context) (*domain.UserSettings, error) {
+	cp := m.cfg
+	return &cp, nil
+}
+
+func (m *memSettingsRepo) SaveSettings(_ context.Context, s *domain.UserSettings) error {
+	m.cfg = *s
+	return nil
+}
 
 func TestRouter_StandardPublicESIModeEndpoints(t *testing.T) {
 	sso := esi.NewSSOClient("", "", "http://localhost:8080/auth/callback", nil)
@@ -104,5 +120,63 @@ func TestRouter_TemplUIRendering(t *testing.T) {
 		if !strings.Contains(body, "Public ESI Active") {
 			t.Errorf("GET %s missing Public ESI Active mode indicator", path)
 		}
+	}
+}
+
+func TestHandleSaveSettings_PriceUpdaterIntervalPersistsAndRendersSelected(t *testing.T) {
+	def := domain.DefaultUserSettings()
+	def.AutoPriceSyncEnabled = false
+	def.AutoPriceSyncIntervalMinutes = 15
+	repo := &memSettingsRepo{cfg: def}
+
+	sso := esi.NewSSOClient("", "", "http://localhost:8080/auth/callback", nil)
+	svc := service.NewCopilotService(
+		nil, nil, nil, nil, repo,
+		esi.NewPublicMarketClient(esi.NewClient("", "test", nil, nil)),
+		esi.NewNoOpCharacterSyncProvider(),
+		sso,
+	)
+	router := apphttp.NewRouter(svc, web.NewRenderer())
+
+	form := url.Values{}
+	form.Set("form_section", "price_updater")
+	form.Set("auto_price_sync_enabled", "on")
+	form.Set("auto_price_sync_interval_minutes", "30")
+
+	postReq := httptest.NewRequest(http.MethodPost, "/settings", strings.NewReader(form.Encode()))
+	postReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	postReq.Header.Set("HX-Request", "true")
+	postRec := httptest.NewRecorder()
+	router.ServeHTTP(postRec, postReq)
+
+	if postRec.Code != http.StatusOK {
+		t.Fatalf("POST /settings expected 200, got %d: %s", postRec.Code, postRec.Body.String())
+	}
+	if got := postRec.Header().Get("HX-Redirect"); got != "/settings?saved=1" {
+		t.Errorf("expected HX-Redirect /settings?saved=1, got %q", got)
+	}
+	if !repo.cfg.AutoPriceSyncEnabled || repo.cfg.AutoPriceSyncIntervalMinutes != 30 {
+		t.Fatalf("expected persisted enabled=true interval=30, got enabled=%v interval=%d",
+			repo.cfg.AutoPriceSyncEnabled, repo.cfg.AutoPriceSyncIntervalMinutes)
+	}
+
+	getReq := httptest.NewRequest(http.MethodGet, "/settings?saved=1", nil)
+	getRec := httptest.NewRecorder()
+	router.ServeHTTP(getRec, getReq)
+	if getRec.Code != http.StatusOK {
+		t.Fatalf("GET /settings?saved=1 expected 200, got %d", getRec.Code)
+	}
+	if cc := getRec.Header().Get("Cache-Control"); !strings.Contains(cc, "no-store") {
+		t.Errorf("expected Cache-Control to include no-store, got %q", cc)
+	}
+	body := getRec.Body.String()
+	if !strings.Contains(body, `<option value="30" selected>`) {
+		t.Errorf("expected option 30 to be selected in rendered HTML")
+	}
+	if strings.Contains(body, `<option value="15" selected>`) {
+		t.Errorf("did not expect option 15 to remain selected in rendered HTML")
+	}
+	if !strings.Contains(body, "Settings saved successfully to PostgreSQL.") {
+		t.Errorf("expected saved confirmation banner on /settings?saved=1")
 	}
 }

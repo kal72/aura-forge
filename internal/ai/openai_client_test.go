@@ -113,3 +113,71 @@ func TestOpenAIClient_ChatCompletionAndToolCalls(t *testing.T) {
 		t.Fatalf("expected 1 tool call for search_marketplace, got %+v", resp.ToolCalls)
 	}
 }
+
+func TestOpenAIClient_RetryOnTransient503(t *testing.T) {
+	attempts := 0
+	mockTransport := roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		attempts++
+		if attempts == 1 {
+			return &http.Response{
+				StatusCode: http.StatusServiceUnavailable,
+				Header:     http.Header{"Content-Type": []string{"application/json"}},
+				Body:       io.NopCloser(strings.NewReader(`{"error":{"message":"model overloaded"}}`)),
+			}, nil
+		}
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(`{"model":"mock-gemini","choices":[{"message":{"role":"assistant","content":"OK"},"finish_reason":"stop"}]}`)),
+		}, nil
+	})
+
+	client := ai.NewOpenAIClient("https://mock.local/v1", "test-secret", "mock-gemini", 30*time.Second)
+	client.SetHTTPClient(&http.Client{Transport: mockTransport, Timeout: 30 * time.Second})
+
+	msg, err := client.Ping(context.Background())
+	if err != nil {
+		t.Fatalf("expected Ping to recover after transient 503, got error: %v", err)
+	}
+	if attempts != 2 {
+		t.Fatalf("expected 2 attempts (1 retry), got %d", attempts)
+	}
+	if !strings.Contains(msg, "mock-gemini") {
+		t.Fatalf("expected model name in ping message, got %q", msg)
+	}
+}
+
+func TestOpenAIClient_SetModelOverridesInMemory(t *testing.T) {
+	var seenModel string
+	mockTransport := roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		var req map[string]any
+		_ = json.NewDecoder(r.Body).Decode(&req)
+		if m, ok := req["model"].(string); ok {
+			seenModel = m
+		}
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(`{"choices":[{"message":{"role":"assistant","content":"OK"},"finish_reason":"stop"}]}`)),
+		}, nil
+	})
+
+	client := ai.NewOpenAIClient("https://mock.local/v1", "test-secret", "initial-model", 10*time.Second)
+	client.SetHTTPClient(&http.Client{Transport: mockTransport, Timeout: 10 * time.Second})
+
+	if err := client.SetModel("   "); err == nil {
+		t.Fatalf("expected error for empty model name")
+	}
+	if err := client.SetModel("gemini-3.5-flash-lite"); err != nil {
+		t.Fatalf("SetModel failed: %v", err)
+	}
+	if got := client.Status().Model; got != "gemini-3.5-flash-lite" {
+		t.Fatalf("expected Status().Model=gemini-3.5-flash-lite, got %q", got)
+	}
+	if _, err := client.Ping(context.Background()); err != nil {
+		t.Fatalf("Ping after SetModel failed: %v", err)
+	}
+	if seenModel != "gemini-3.5-flash-lite" {
+		t.Fatalf("expected request body model=gemini-3.5-flash-lite, got %q", seenModel)
+	}
+}

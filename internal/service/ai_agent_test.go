@@ -12,12 +12,21 @@ import (
 
 type mockAIProvider struct {
 	enabled bool
+	model   string
 	calls   int
 }
 
 func (m *mockAIProvider) IsEnabled() bool { return m.enabled }
 func (m *mockAIProvider) Status() domain.AIStatus {
-	return domain.AIStatus{Enabled: m.enabled, BaseURL: "http://mock-llm/v1", Model: "mock-model"}
+	mdl := m.model
+	if mdl == "" {
+		mdl = "mock-model"
+	}
+	return domain.AIStatus{Enabled: m.enabled, BaseURL: "http://mock-llm/v1", Model: mdl}
+}
+func (m *mockAIProvider) SetModel(model string) error {
+	m.model = model
+	return nil
 }
 func (m *mockAIProvider) Ping(ctx context.Context) (string, error) { return "Connected to mock-model", nil }
 

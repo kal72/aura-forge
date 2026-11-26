@@ -77,13 +77,14 @@ func aiActionButtonClass(kind string) string {
 templ AIDrawerThreadPartial(mode service.ModeInfo, convs []domain.AIConversation, activeConvID int64, msgs []domain.AIMessage, errMsg string) {
 	<div
 		class="flex h-full flex-col"
-		x-init={ fmt.Sprintf("auraConvID = %d; $nextTick(() => { const el = $el.querySelector('[data-aura-scroll]'); if (el) el.scrollTop = el.scrollHeight; })", activeConvID) }
+		x-init={ fmt.Sprintf("auraConvID = %d; localStorage.setItem('af-aura-conv-id', String(%d)); const host = document.getElementById('aura-drawer-thread'); if (host) host.dataset.loaded = '1'; $nextTick(() => { const el = $el.querySelector('[data-aura-scroll]'); if (el) el.scrollTop = el.scrollHeight; })", activeConvID, activeConvID) }
 	>
 		<!-- Conversation Switcher Bar -->
 		<div class="flex items-center justify-between gap-2 border-b border-violet-400/20 bg-slate-950/75 px-4 py-2">
 			<div class="flex items-center gap-1.5 min-w-0 flex-1">
 				<select
-					onchange="htmx.ajax('GET', '/ai/drawer?conv_id=' + this.value, { target: '#aura-drawer-thread', swap: 'innerHTML' })"
+					autocomplete="off"
+					onchange="localStorage.setItem('af-aura-conv-id', this.value); htmx.ajax('GET', '/ai/drawer?conv_id=' + this.value, { target: '#aura-drawer-thread', swap: 'innerHTML' })"
 					class="min-w-0 flex-1 rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] text-slate-200 focus:border-amber-400 focus:outline-none"
 				>
 					<option value="0" selected?={ activeConvID == 0 }>+ New Conversation</option>
@@ -109,7 +110,7 @@ templ AIDrawerThreadPartial(mode service.ModeInfo, convs []domain.AIConversation
 			</div>
 			<button
 				type="button"
-				@click="auraConvID = 0; htmx.ajax('GET', '/ai/drawer?conv_id=0', { target: '#aura-drawer-thread', swap: 'innerHTML' })"
+				@click="auraConvID = 0; localStorage.setItem('af-aura-conv-id', '0'); htmx.ajax('GET', '/ai/drawer?conv_id=0', { target: '#aura-drawer-thread', swap: 'innerHTML' })"
 				class="shrink-0 rounded border border-violet-400/40 bg-violet-500/20 px-2.5 py-1 text-[10.5px] font-bold text-violet-100 hover:bg-violet-500/35 cursor-pointer"
 			>
 				+ New
