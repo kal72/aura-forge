@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"aura-forge/internal/domain"
@@ -16,6 +18,7 @@ import (
 // OpenAIClient implements domain.AIProvider against any OpenAI-compatible /chat/completions endpoint
 // (OpenAI, Gemini OpenAI-compat, DeepSeek, Groq, OpenRouter, LiteLLM, vLLM, or local Ollama).
 type OpenAIClient struct {
+	mu         sync.RWMutex
 	baseURL    string
 	apiKey     string
 	model      string
@@ -48,7 +51,31 @@ func NewOpenAIClient(baseURL, apiKey, model string, timeout time.Duration) *Open
 }
 
 func (c *OpenAIClient) IsEnabled() bool {
-	return c != nil && c.apiKey != "" && c.baseURL != "" && c.model != ""
+	if c == nil {
+		return false
+	}
+	c.mu.RLock()
+	model := c.model
+	c.mu.RUnlock()
+	return c.apiKey != "" && c.baseURL != "" && model != ""
+}
+
+// SetModel overrides the active model name in memory (not persisted to DB; resets on server restart).
+func (c *OpenAIClient) SetModel(model string) error {
+	if c == nil {
+		return fmt.Errorf("AI client is not initialized")
+	}
+	trimmed := strings.TrimSpace(model)
+	if trimmed == "" {
+		return fmt.Errorf("AI model name cannot be empty")
+	}
+	if len(trimmed) > 128 {
+		return fmt.Errorf("AI model name is too long (max 128 characters)")
+	}
+	c.mu.Lock()
+	c.model = trimmed
+	c.mu.Unlock()
+	return nil
 }
 
 // SetHTTPClient overrides the underlying HTTP client (primarily for hermetic unit tests).
@@ -62,10 +89,13 @@ func (c *OpenAIClient) Status() domain.AIStatus {
 	if !c.IsEnabled() {
 		return domain.AIStatus{Enabled: false}
 	}
+	c.mu.RLock()
+	model := c.model
+	c.mu.RUnlock()
 	return domain.AIStatus{
 		Enabled: true,
 		BaseURL: c.baseURL,
-		Model:   c.model,
+		Model:   model,
 	}
 }
 
@@ -104,12 +134,16 @@ func (c *OpenAIClient) ChatCompletion(ctx context.Context, req domain.AIChatRequ
 		return nil, fmt.Errorf("AI provider is not configured (set AI_API_KEY, AI_BASE_URL, and AI_MODEL in .env)")
 	}
 
+	c.mu.RLock()
+	activeModel := c.model
+	c.mu.RUnlock()
+
 	temp := req.Temperature
 	if temp <= 0 {
 		temp = 0.25
 	}
 	body := openAIRequestBody{
-		Model:       c.model,
+		Model:       activeModel,
 		Messages:    req.Messages,
 		Tools:       req.Tools,
 		Temperature: &temp,
@@ -125,22 +159,45 @@ func (c *OpenAIClient) ChatCompletion(ctx context.Context, req domain.AIChatRequ
 	}
 
 	endpoint := c.baseURL + "/chat/completions"
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(payload))
-	if err != nil {
-		return nil, fmt.Errorf("build AI HTTP request: %w", err)
-	}
-	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.Header.Set("Authorization", "Bearer "+c.apiKey)
 
-	resp, err := c.httpClient.Do(httpReq)
-	if err != nil {
-		return nil, fmt.Errorf("AI endpoint unreachable (%s): %w", c.baseURL, err)
-	}
-	defer resp.Body.Close()
+	const maxAttempts = 3
+	var (
+		resp    *http.Response
+		rawBody []byte
+	)
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(payload))
+		if err != nil {
+			return nil, fmt.Errorf("build AI HTTP request: %w", err)
+		}
+		httpReq.Header.Set("Content-Type", "application/json")
+		httpReq.Header.Set("Authorization", "Bearer "+c.apiKey)
 
-	rawBody, err := io.ReadAll(io.LimitReader(resp.Body, 4<<20))
-	if err != nil {
-		return nil, fmt.Errorf("read AI response: %w", err)
+		resp, err = c.httpClient.Do(httpReq)
+		if err != nil {
+			if errors.Is(err, context.DeadlineExceeded) || errors.Is(ctx.Err(), context.DeadlineExceeded) {
+				return nil, fmt.Errorf("AI provider timed out (%s): upstream model may be overloaded or slow; try again or increase AI_TIMEOUT_SECONDS (%w)", c.baseURL, err)
+			}
+			return nil, fmt.Errorf("AI endpoint unreachable (%s): %w", c.baseURL, err)
+		}
+
+		rawBody, err = io.ReadAll(io.LimitReader(resp.Body, 4<<20))
+		resp.Body.Close()
+		if err != nil {
+			return nil, fmt.Errorf("read AI response: %w", err)
+		}
+
+		// Retry transient upstream overload errors (502/503/504) with short context-aware backoff.
+		if (resp.StatusCode == http.StatusBadGateway || resp.StatusCode == http.StatusServiceUnavailable || resp.StatusCode == http.StatusGatewayTimeout) && attempt < maxAttempts {
+			backoff := time.Duration(attempt) * time.Second
+			select {
+			case <-ctx.Done():
+				return nil, fmt.Errorf("AI provider timed out during retry (%s): %w", c.baseURL, ctx.Err())
+			case <-time.After(backoff):
+				continue
+			}
+		}
+		break
 	}
 
 	var parsed openAIResponseBody
@@ -164,7 +221,7 @@ func (c *OpenAIClient) ChatCompletion(ctx context.Context, req domain.AIChatRequ
 	choice := parsed.Choices[0]
 	modelUsed := parsed.Model
 	if modelUsed == "" {
-		modelUsed = c.model
+		modelUsed = activeModel
 	}
 
 	return &domain.AIChatResponse{
@@ -182,7 +239,17 @@ func (c *OpenAIClient) Ping(ctx context.Context) (string, error) {
 	if !c.IsEnabled() {
 		return "", fmt.Errorf("AI is disabled (AI_API_KEY not set)")
 	}
-	pingCtx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	pingTimeout := 60 * time.Second
+	if c.httpClient != nil && c.httpClient.Timeout > 0 {
+		pingTimeout = c.httpClient.Timeout
+	}
+	if pingTimeout < 15*time.Second {
+		pingTimeout = 15 * time.Second
+	}
+	if pingTimeout > 120*time.Second {
+		pingTimeout = 120 * time.Second
+	}
+	pingCtx, cancel := context.WithTimeout(ctx, pingTimeout)
 	defer cancel()
 
 	res, err := c.ChatCompletion(pingCtx, domain.AIChatRequest{
@@ -190,7 +257,7 @@ func (c *OpenAIClient) Ping(ctx context.Context) (string, error) {
 			{Role: "system", Content: "Reply with exactly: OK"},
 			{Role: "user", Content: "Ping"},
 		},
-		MaxTokens:   16,
+		MaxTokens:   128,
 		Temperature: 0.1,
 	})
 	if err != nil {

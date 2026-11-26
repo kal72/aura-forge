@@ -132,6 +132,7 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.Delete("/conversations/{id}", h.HandleAIDeleteConversation)
 			r.Post("/memory", h.HandleAISaveMemory)
 			r.With(adminOnly).Post("/test", h.HandleAITestConnection)
+			r.With(adminOnly).Post("/model", h.HandleAISetModel)
 		})
 
 		// Planetary Industry (PI) Hub (Research tabs for all; My Colonies mutations for admin only)

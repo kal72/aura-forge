@@ -84,7 +84,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 				isDark: document.documentElement.classList.contains('dark'),
 				auraOpen: false,
 				auraLoaded: false,
-				auraConvID: 0,
+				auraConvID: Number(localStorage.getItem('af-aura-conv-id') || 0),
 				auraPrompt: '',
 				auraContextPage: %q,
 				auraContextSummary: '',
@@ -96,13 +96,17 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 				openAura(promptText, ctxSummary) {
 					this.auraOpen = true;
 					if (ctxSummary) this.auraContextSummary = ctxSummary;
-					if (!this.auraLoaded) {
-						this.auraLoaded = true;
-						htmx.ajax('GET', '/ai/drawer?conv_id=' + this.auraConvID, { target: '#aura-drawer-thread', swap: 'innerHTML' });
-					}
-					if (promptText) {
-						this.sendAuraPrompt(promptText);
-					}
+					this.$nextTick(() => {
+						const thread = document.getElementById('aura-drawer-thread');
+						const needsLoad = !this.auraLoaded || !thread || thread.dataset.loaded !== '1';
+						if (needsLoad && window.htmx) {
+							this.auraLoaded = true;
+							window.htmx.ajax('GET', '/ai/drawer?conv_id=' + this.auraConvID, { target: '#aura-drawer-thread', swap: 'innerHTML' });
+						}
+						if (promptText) {
+							this.sendAuraPrompt(promptText);
+						}
+					});
 				},
 				sendAuraPrompt(text) {
 					this.auraPrompt = text;
@@ -113,7 +117,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 				}
 			}`, activeNav))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 74, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 78, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -454,7 +458,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			var templ_7745c5c3_Var32 string
 			templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(mode.StatusHint)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 332, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 336, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 			if templ_7745c5c3_Err != nil {
@@ -467,7 +471,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			var templ_7745c5c3_Var33 string
 			templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(mode.CharacterName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 334, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 338, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 			if templ_7745c5c3_Err != nil {
@@ -485,7 +489,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			var templ_7745c5c3_Var34 string
 			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(mode.StatusHint)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 337, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 341, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 			if templ_7745c5c3_Err != nil {
@@ -539,7 +543,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			var templ_7745c5c3_Var35 string
 			templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(mode.PriceSync.FreshnessLabel())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 368, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 372, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 			if templ_7745c5c3_Err != nil {
@@ -552,7 +556,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			var templ_7745c5c3_Var36 string
 			templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(mode.PriceSync.HubLabel())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 380, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 384, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 			if templ_7745c5c3_Err != nil {
@@ -590,7 +594,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			var templ_7745c5c3_Var37 string
 			templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(mode.PriceSync.FreshnessLabel())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 394, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 398, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 			if templ_7745c5c3_Err != nil {
@@ -608,7 +612,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		var templ_7745c5c3_Var38 string
 		templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 418, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 422, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 		if templ_7745c5c3_Err != nil {
@@ -626,7 +630,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			var templ_7745c5c3_Var39 string
 			templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Ask Aura AI Copilot (%s)", mode.AI.Model))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 428, Col: 71}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 432, Col: 71}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 			if templ_7745c5c3_Err != nil {
@@ -687,7 +691,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 				var templ_7745c5c3_Var43 string
 				templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("EVE Pilot Hub (%s — Live Wallet %s) • Account: %s", mode.CharacterName, FormatISK(mode.WalletBalance), mode.CurrentUser.DisplayName))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 473, Col: 167}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 477, Col: 167}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 				if templ_7745c5c3_Err != nil {
@@ -713,7 +717,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 				var templ_7745c5c3_Var45 string
 				templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("https://images.evetech.net/characters/%d/portrait?size=64", mode.CharacterID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 483, Col: 108}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 487, Col: 108}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 				if templ_7745c5c3_Err != nil {
@@ -726,7 +730,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 				var templ_7745c5c3_Var46 string
 				templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(mode.CharacterName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 484, Col: 36}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 488, Col: 36}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
 				if templ_7745c5c3_Err != nil {
@@ -739,7 +743,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 				var templ_7745c5c3_Var47 string
 				templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.JoinStringErrs(mode.CharacterName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 489, Col: 92}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 493, Col: 92}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var47))
 				if templ_7745c5c3_Err != nil {
@@ -757,7 +761,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 					var templ_7745c5c3_Var48 string
 					templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(mode.WalletBalance))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 491, Col: 122}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 495, Col: 122}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 					if templ_7745c5c3_Err != nil {
@@ -791,7 +795,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 				var templ_7745c5c3_Var49 string
 				templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.JoinStringErrs(mode.CurrentUser.DisplayName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 501, Col: 100}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 505, Col: 100}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var49))
 				if templ_7745c5c3_Err != nil {
@@ -835,20 +839,20 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			return templ_7745c5c3_Err
 		}
 		if mode.AI.Enabled {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "<template x-teleport=\"body\"><div x-cloak x-show=\"auraOpen\" style=\"margin-top: 0;\" class=\"fixed inset-0 z-[110] flex justify-end\"><div x-show=\"auraOpen\" x-transition.opacity.duration.150ms @click=\"auraOpen = false\" class=\"fixed inset-0 bg-slate-950/70 backdrop-blur-xs\"></div><div x-show=\"auraOpen\" x-transition:enter=\"transition ease-out duration-200\" x-transition:enter-start=\"translate-x-full\" x-transition:enter-end=\"translate-x-0\" x-transition:leave=\"transition ease-in duration-150\" x-transition:leave-start=\"translate-x-0\" x-transition:leave-end=\"translate-x-full\" class=\"relative z-10 flex h-full w-full max-w-lg flex-col border-l border-violet-400/40 bg-[#0d1024]/98 shadow-2xl backdrop-blur-xl\"><!-- Drawer Header --><div class=\"flex items-center justify-between gap-3 border-b border-violet-400/25 bg-slate-950/90 px-4 py-3\"><div class=\"flex items-center gap-2.5 min-w-0\"><div class=\"flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-amber-300/50 bg-gradient-to-br from-violet-600/45 to-amber-500/30 text-amber-200\"><svg class=\"h-4 w-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M13 10V3L4 14h7v7l9-11h-7z\"></path></svg></div><div class=\"min-w-0\"><div class=\"text-xs font-bold uppercase tracking-wider text-amber-200\">Aura AI Copilot</div><div class=\"font-mono text-[10px] text-slate-400 truncate\">Level-4 Agent • ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "<div x-cloak x-show=\"auraOpen\" style=\"margin-top: 0;\" class=\"fixed inset-0 z-[110] flex justify-end\"><div x-show=\"auraOpen\" x-transition.opacity.duration.150ms @click=\"auraOpen = false\" class=\"fixed inset-0 bg-slate-950/70 backdrop-blur-xs\"></div><div x-show=\"auraOpen\" x-transition:enter=\"transition ease-out duration-200\" x-transition:enter-start=\"translate-x-full\" x-transition:enter-end=\"translate-x-0\" x-transition:leave=\"transition ease-in duration-150\" x-transition:leave-start=\"translate-x-0\" x-transition:leave-end=\"translate-x-full\" class=\"relative z-10 flex h-full w-full max-w-lg flex-col border-l border-violet-400/40 bg-[#0d1024]/98 shadow-2xl backdrop-blur-xl\"><!-- Drawer Header --><div class=\"flex items-center justify-between gap-3 border-b border-violet-400/25 bg-slate-950/90 px-4 py-3\"><div class=\"flex items-center gap-2.5 min-w-0\"><div class=\"flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-amber-300/50 bg-gradient-to-br from-violet-600/45 to-amber-500/30 text-amber-200\"><svg class=\"h-4 w-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M13 10V3L4 14h7v7l9-11h-7z\"></path></svg></div><div class=\"min-w-0\"><div class=\"text-xs font-bold uppercase tracking-wider text-amber-200\">Aura AI Copilot</div><div class=\"font-mono text-[10px] text-slate-400 truncate\">Level-4 Agent • ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var50 string
 			templ_7745c5c3_Var50, templ_7745c5c3_Err = templ.JoinStringErrs(mode.AI.Model)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 574, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 577, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var50))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 87, "</div></div></div><button type=\"button\" @click=\"auraOpen = false\" class=\"rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs text-slate-300 hover:text-white cursor-pointer\">✕ Close</button></div><!-- Conversation Body (Swapped by HTMX) --><div id=\"aura-drawer-thread\" class=\"flex-1 min-h-0 overflow-hidden\"><div class=\"flex h-full items-center justify-center text-xs font-mono text-slate-400\">Loading Aura Copilot session...</div></div><!-- Chat Composer --><div class=\"border-t border-violet-400/25 bg-slate-950/95 p-3 space-y-2\"><div id=\"aura-thinking-indicator\" class=\"htmx-indicator items-center gap-2 rounded-lg border border-amber-400/35 bg-amber-500/10 px-3 py-1.5 font-mono text-[11px] text-amber-200\"><span class=\"inline-block h-3 w-3 animate-spin rounded-full border-2 border-amber-300 border-t-transparent\"></span> <span>Aura is running live EVE tools &amp; analyzing...</span></div><form id=\"aura-chat-form\" hx-post=\"/ai/chat\" hx-target=\"#aura-drawer-thread\" hx-swap=\"innerHTML\" hx-indicator=\"#aura-thinking-indicator\" @htmx:after-request=\"if ($event.detail.successful) { auraPrompt = &#39;&#39;; auraContextSummary = &#39;&#39;; }\" class=\"flex items-end gap-2\"><input type=\"hidden\" name=\"conversation_id\" :value=\"auraConvID\"> <input type=\"hidden\" name=\"context_page\" :value=\"auraContextPage\"> <input type=\"hidden\" name=\"context_summary\" :value=\"auraContextSummary\"> <textarea name=\"prompt\" x-model=\"auraPrompt\" rows=\"2\" required @keydown.enter=\"if (!$event.shiftKey) { $event.preventDefault(); $el.form.requestSubmit(); }\" placeholder=\"Ask Aura anything (ID/EN) — e.g. &#39;Item paling aman di Amarr modal 100M?&#39; (Enter to send)\" class=\"flex-1 resize-none rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-400 focus:outline-none\"></textarea> <button type=\"submit\" class=\"shrink-0 rounded-lg bg-amber-400 px-4 py-2.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer\">Send</button></form></div></div></div></template>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 87, "</div></div></div><button type=\"button\" @click=\"auraOpen = false\" class=\"rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs text-slate-300 hover:text-white cursor-pointer\">✕ Close</button></div><!-- Conversation Body (Swapped by HTMX) --><div id=\"aura-drawer-thread\" class=\"flex-1 min-h-0 overflow-hidden\"><div class=\"flex h-full items-center justify-center text-xs font-mono text-slate-400\">Loading Aura Copilot session...</div></div><!-- Chat Composer --><div class=\"border-t border-violet-400/25 bg-slate-950/95 p-3 space-y-2\"><div id=\"aura-thinking-indicator\" class=\"htmx-indicator items-center gap-2 rounded-lg border border-amber-400/35 bg-amber-500/10 px-3 py-1.5 font-mono text-[11px] text-amber-200\"><span class=\"inline-block h-3 w-3 animate-spin rounded-full border-2 border-amber-300 border-t-transparent\"></span> <span>Aura is running live EVE tools &amp; analyzing...</span></div><form id=\"aura-chat-form\" hx-post=\"/ai/chat\" hx-target=\"#aura-drawer-thread\" hx-swap=\"innerHTML\" hx-indicator=\"#aura-thinking-indicator\" @htmx:after-request=\"if ($event.detail.successful) { auraPrompt = &#39;&#39;; auraContextSummary = &#39;&#39;; }\" class=\"flex items-end gap-2\"><input type=\"hidden\" name=\"conversation_id\" :value=\"auraConvID\"> <input type=\"hidden\" name=\"context_page\" :value=\"auraContextPage\"> <input type=\"hidden\" name=\"context_summary\" :value=\"auraContextSummary\"> <textarea name=\"prompt\" x-model=\"auraPrompt\" rows=\"2\" required @keydown.enter=\"if (!$event.shiftKey) { $event.preventDefault(); $el.form.requestSubmit(); }\" placeholder=\"Ask Aura anything (ID/EN) — e.g. &#39;Item paling aman di Amarr modal 100M?&#39; (Enter to send)\" class=\"flex-1 resize-none rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-400 focus:outline-none\"></textarea> <button type=\"submit\" class=\"shrink-0 rounded-lg bg-amber-400 px-4 py-2.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer\">Send</button></form></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

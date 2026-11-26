@@ -929,6 +929,7 @@ func (h *Handlers) HandleRelistCheck(w http.ResponseWriter, r *http.Request) {
 
 // HandleSettings renders the Settings & EVE SSO status page.
 func (h *Handlers) HandleSettings(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate")
 	settings, err := h.svc.GetSettings(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -997,7 +998,7 @@ func (h *Handlers) HandleSaveSettings(w http.ResponseWriter, r *http.Request) {
 
 	if IsHTMX(r) {
 		TriggerToast(w, "success", "Settings saved to PostgreSQL.")
-		w.Header().Set("HX-Refresh", "true")
+		w.Header().Set("HX-Redirect", "/settings?saved=1")
 		w.WriteHeader(http.StatusOK)
 		return
 	}

@@ -122,6 +122,7 @@ type AIChatResponse struct {
 type AIProvider interface {
 	IsEnabled() bool
 	Status() AIStatus
+	SetModel(model string) error
 	ChatCompletion(ctx context.Context, req AIChatRequest) (*AIChatResponse, error)
 	Ping(ctx context.Context) (string, error)
 }
