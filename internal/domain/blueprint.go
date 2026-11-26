@@ -15,6 +15,7 @@ type SDEMetadata struct {
 	TypesCount      int       `json:"types_count"`
 	BlueprintsCount int       `json:"blueprints_count"`
 	MaterialsCount  int       `json:"materials_count"`
+	InventionsCount int       `json:"inventions_count"`
 	UpdatedAt       time.Time `json:"updated_at"`
 }
 
@@ -65,6 +66,27 @@ type SDEBlueprint struct {
 	BaseTimeSeconds int    `json:"base_time_seconds"`
 	TechLevel       int    `json:"tech_level"`
 	Category        string `json:"category"`
+	ActivityType    string `json:"activity_type,omitempty"` // "manufacturing" or "reaction"
+}
+
+// SDEInvention represents one official CCP SDE T1 -> T2 invention pathway from blueprints.jsonl.
+type SDEInvention struct {
+	T1BlueprintTypeID int32   `json:"t1_blueprint_type_id"`
+	T2BlueprintTypeID int32   `json:"t2_blueprint_type_id"`
+	T2ProductTypeID   int32   `json:"t2_product_type_id"`
+	T2ProductName     string  `json:"t2_product_name"`
+	BaseProbability   float64 `json:"base_probability"`
+	BaseRuns          int     `json:"base_runs"`
+	BaseTimeSeconds   int     `json:"base_time_seconds"`
+	Category          string  `json:"category"`
+}
+
+// SDEInventionMaterial represents one datacore/material required per T2 invention attempt.
+type SDEInventionMaterial struct {
+	T1BlueprintTypeID int32  `json:"t1_blueprint_type_id"`
+	MaterialTypeID    int32  `json:"material_type_id"`
+	MaterialName      string `json:"material_name,omitempty"`
+	Quantity          int    `json:"quantity"`
 }
 
 // SDEMaterialRequirement represents one raw material line required by a blueprint at ME 0.

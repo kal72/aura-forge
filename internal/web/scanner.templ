@@ -291,10 +291,17 @@ templ ScannerPage(mode service.ModeInfo, settings domain.UserSettings) {
 						</div>
 
 						<div class="col-span-2 sm:col-span-6 flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-violet-400/15">
-							<label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
-								<input type="checkbox" name="profitable_only" class="rounded bg-slate-800 border-slate-600"/>
-								<span>Profitable Only (Hide AVOID)</span>
-							</label>
+							<div class="flex flex-wrap items-center gap-3 text-xs text-slate-300">
+								<select name="scope" class="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-cyan-200">
+									<option value="hybrid">8 Hybrid Polymers (Fullerite Gas)</option>
+									<option value="all_sde">All SDE Reactions (Hybrid + Moon + Biochemical)</option>
+								</select>
+								<input type="text" name="q" placeholder="Filter reaction name (optional)..." class="w-48 rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-white placeholder-slate-500"/>
+								<label class="inline-flex items-center gap-2 cursor-pointer">
+									<input type="checkbox" name="profitable_only" class="rounded bg-slate-800 border-slate-600"/>
+									<span>Profitable Only</span>
+								</label>
+							</div>
 							<button
 								type="submit"
 								class="inline-flex items-center gap-2 rounded-lg bg-cyan-400 px-5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-cyan-300 transition cursor-pointer"

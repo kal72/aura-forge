@@ -850,13 +850,15 @@ type GasReactionScanRequest struct {
 	HubKey              string
 	MaterialHubKey      string
 	RefineryKey         string
+	Scope               string // "hybrid" (default 8 Fullerite polymers) | "all_sde" (all CCP SDE reactions: Hybrid + Moon + Biochemical)
+	SearchQuery         string
 	Runs                int // <= 0 = Auto ~24h cycle
 	MaterialPriceSource string
 	ProfitableOnly      bool
 }
 
-// ScanGasReactions evaluates all 8 EVE Online Fullerite Hybrid Polymer reaction formulas
-// with cross-hub material sourcing, refinery rig ME/TE bonuses, fees, break-even floor, and 7d volume.
+// ScanGasReactions evaluates either the 8 canonical Fullerite Hybrid Polymer formulas (default)
+// or up to 60 official CCP SDE Reaction Formulas (Hybrid + Moon Composite + Biochemical) when Scope == "all_sde".
 func (s *CopilotService) ScanGasReactions(ctx context.Context, req GasReactionScanRequest) ([]domain.ReactionOpportunity, error) {
 	if s.market == nil {
 		return nil, fmt.Errorf("Public ESI market provider is not available")
@@ -874,13 +876,62 @@ func (s *CopilotService) ScanGasReactions(ctx context.Context, req GasReactionSc
 	refinery := domain.LookupRefineryProfile(req.RefineryKey)
 	crossHub := matHub.Key != sellHub.Key
 
+	formulas := domain.HybridPolymerFormulas
+	if strings.EqualFold(strings.TrimSpace(req.Scope), "all_sde") {
+		if invRepo, ok := s.sde.(domain.SDEInventionRepository); ok && invRepo != nil {
+			if sdeReacts, err := invRepo.ListReactionBlueprints(ctx, req.SearchQuery, 60); err == nil && len(sdeReacts) > 0 {
+				dynamicFormulas := make([]domain.ReactionFormula, 0, len(sdeReacts))
+				for _, rbp := range sdeReacts {
+					reqs, mErr := s.sde.GetBlueprintMaterials(ctx, rbp.BlueprintTypeID)
+					if mErr != nil || len(reqs) == 0 {
+						continue
+					}
+					inputs := make([]domain.ReactionInputLine, 0, len(reqs))
+					for _, m := range reqs {
+						cat := "Material"
+						nameLower := strings.ToLower(m.MaterialName)
+						if strings.Contains(nameLower, "fuel block") {
+							cat = "Fuel"
+						} else if strings.Contains(nameLower, "fullerite") || strings.Contains(nameLower, "serocin") {
+							cat = "Gas"
+						}
+						inputs = append(inputs, domain.ReactionInputLine{
+							TypeID:   m.MaterialTypeID,
+							Name:     m.MaterialName,
+							BaseQty:  m.BaseQuantity,
+							Category: cat,
+						})
+					}
+					outQty := rbp.ProductQtyPerRun
+					if outQty <= 0 {
+						outQty = 1
+					}
+					baseSec := rbp.BaseTimeSeconds
+					if baseSec <= 0 {
+						baseSec = 10800
+					}
+					dynamicFormulas = append(dynamicFormulas, domain.ReactionFormula{
+						ProductTypeID:   rbp.ProductTypeID,
+						ProductName:     rbp.ProductName,
+						OutputQtyPerRun: outQty,
+						BaseTimeSeconds: baseSec,
+						Inputs:          inputs,
+					})
+				}
+				if len(dynamicFormulas) > 0 {
+					formulas = dynamicFormulas
+				}
+			}
+		}
+	}
+
 	seenMat := make(map[int32]struct{})
 	matIDs := make([]int32, 0, 20)
-	prodIDs := make([]int32, 0, len(domain.HybridPolymerFormulas))
+	prodIDs := make([]int32, 0, len(formulas))
 	allIDs := make([]int32, 0, 28)
 	seenAll := make(map[int32]struct{})
 
-	for _, f := range domain.HybridPolymerFormulas {
+	for _, f := range formulas {
 		prodIDs = append(prodIDs, f.ProductTypeID)
 		if _, ok := seenAll[f.ProductTypeID]; !ok {
 			seenAll[f.ProductTypeID] = struct{}{}
@@ -929,7 +980,7 @@ func (s *CopilotService) ScanGasReactions(ctx context.Context, req GasReactionSc
 	wg.Wait()
 
 	if sellErr != nil {
-		return nil, fmt.Errorf("fetching %s polymer prices: %w", sellHub.Name, sellErr)
+		return nil, fmt.Errorf("fetching %s reaction product prices: %w", sellHub.Name, sellErr)
 	}
 	if matErr != nil {
 		return nil, fmt.Errorf("fetching %s reaction input prices: %w", matHub.Name, matErr)
@@ -951,8 +1002,8 @@ func (s *CopilotService) ScanGasReactions(ctx context.Context, req GasReactionSc
 		RelistFeePercent:    settings.RelistFeePercent,
 	}
 
-	results := make([]domain.ReactionOpportunity, 0, len(domain.HybridPolymerFormulas))
-	for _, f := range domain.HybridPolymerFormulas {
+	results := make([]domain.ReactionOpportunity, 0, len(formulas))
+	for _, f := range formulas {
 		opp, ok := domain.EvaluateGasReaction(f, params, matPrices, sellPrices, vols[f.ProductTypeID])
 		if !ok {
 			continue

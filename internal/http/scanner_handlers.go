@@ -165,6 +165,8 @@ func (h *Handlers) HandleScanReactions(w http.ResponseWriter, r *http.Request) {
 		HubKey:              strings.TrimSpace(r.FormValue("hub")),
 		MaterialHubKey:      strings.TrimSpace(r.FormValue("material_hub")),
 		RefineryKey:         strings.TrimSpace(r.FormValue("refinery_key")),
+		Scope:               strings.TrimSpace(r.FormValue("scope")),
+		SearchQuery:         strings.TrimSpace(r.FormValue("q")),
 		Runs:                runs,
 		MaterialPriceSource: strings.TrimSpace(r.FormValue("material_price_source")),
 		ProfitableOnly:      r.FormValue("profitable_only") == "on" || r.FormValue("profitable_only") == "true",

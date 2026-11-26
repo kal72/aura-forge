@@ -120,6 +120,14 @@ type SDEExtendedRepository interface {
 	SaveSDEMetadata(ctx context.Context, meta *SDEMetadata) error
 }
 
+// SDEInventionRepository is an optional extension on SDERepository for T2 invention pathways and reaction formulas.
+type SDEInventionRepository interface {
+	UpsertInventionData(ctx context.Context, inventions []SDEInvention, materials map[int32][]SDEInventionMaterial) error
+	SearchInventions(ctx context.Context, query string, limit int) ([]SDEInvention, error)
+	GetInventionByT2BlueprintID(ctx context.Context, t2BlueprintTypeID int32) (*SDEInvention, []SDEInventionMaterial, error)
+	ListReactionBlueprints(ctx context.Context, query string, limit int) ([]SDEBlueprint, error)
+}
+
 // SDETypeSearchRepository is an optional extension on SDERepository for fast local Marketplace autocomplete & type browsing.
 type SDETypeSearchRepository interface {
 	SearchTypes(ctx context.Context, query string, limit int) ([]SDEType, error)
