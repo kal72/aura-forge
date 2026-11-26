@@ -23,8 +23,14 @@ if [ -n "${GHCR_TOKEN:-}" ] && [ -n "${GHCR_USER:-}" ]; then
   echo "${GHCR_TOKEN}" | podman login ghcr.io -u "${GHCR_USER}" --password-stdin >/dev/null
 fi
 
-echo "--> Pulling latest image ${IMAGE_NAME}..."
+OLD_IMAGE_ID=$(podman images -q "${IMAGE_NAME}" 2>/dev/null | head -n 1 || true)
+
+echo "--> Pulling latest image ${IMAGE_NAME} (always replaces local tag if version matches)..."
 podman pull "${IMAGE_NAME}"
+NEW_IMAGE_ID=$(podman images -q "${IMAGE_NAME}" 2>/dev/null | head -n 1 || true)
+if [ -n "${OLD_IMAGE_ID}" ] && [ "${OLD_IMAGE_ID}" != "${NEW_IMAGE_ID}" ]; then
+  echo "--> Replaced existing tag ${IMAGE_NAME}: ${OLD_IMAGE_ID} -> ${NEW_IMAGE_ID}"
+fi
 
 if podman ps -a --format '{{.Names}}' | grep -qx "${CONTAINER_NAME}"; then
   echo "--> Stopping and removing existing container ${CONTAINER_NAME}..."
@@ -60,6 +66,7 @@ fi
 
 echo "--> Starting container ${CONTAINER_NAME}..."
 podman run -d \
+  --replace \
   --name "${CONTAINER_NAME}" \
   --restart unless-stopped \
   --add-host=host.docker.internal:host-gateway \
@@ -86,7 +93,7 @@ else
   exit 1
 fi
 
-echo "--> Pruning unused dangling images..."
-podman image prune -f >/dev/null 2>&1 || true
+echo "--> Pruning all unused & dangling images (keeping active container images)..."
+podman image prune -af || true
 
 echo "--> Deployment complete."
