@@ -197,12 +197,17 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 								<button
 									type="button"
 									hx-post="/esi/sync-prices"
-									hx-swap="none"
-									class="rounded-md border border-amber-400/45 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer"
+									hx-target="#price-sync-result"
+									hx-swap="innerHTML"
+									hx-indicator="#price-sync-spinner"
+									hx-disabled-elt="this"
+									class="inline-flex items-center gap-2 rounded-md border border-amber-400/45 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 disabled:opacity-50 transition cursor-pointer"
 								>
-									Run Sync Now
+									<span id="price-sync-spinner" class="htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-amber-200 border-t-transparent"></span>
+									<span>Run Sync Now</span>
 								</button>
 							</div>
+							<div id="price-sync-result"></div>
 						</form>
 					</div>
 
