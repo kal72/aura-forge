@@ -655,7 +655,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "\"><div class=\"flex items-center justify-between\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">Quick Profit Calculator (HTMX + Public ESI)</h2><a href=\"/calculator\" class=\"text-xs text-sky-300 hover:underline\">Full Dual-Mode →</a></div><form hx-post=\"/calculator/compute\" hx-target=\"#quick-calc-result\" hx-swap=\"innerHTML\" class=\"grid grid-cols-1 gap-3 sm:grid-cols-2\"><div class=\"sm:col-span-2\"><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Item Name (Auto-Fill ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "\"><div class=\"flex items-center justify-between\"><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">Quick Profit Calculator</h2><a href=\"/calculator\" class=\"text-xs text-sky-300 hover:underline\">Full Dual-Mode →</a></div><form hx-post=\"/calculator/compute\" hx-target=\"#quick-calc-result\" hx-swap=\"innerHTML\" class=\"grid grid-cols-1 gap-3 sm:grid-cols-2\"><div class=\"sm:col-span-2\"><label class=\"block text-[11px] font-mono uppercase text-slate-300\">Item Name (Auto-Fill ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

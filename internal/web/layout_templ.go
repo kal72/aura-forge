@@ -119,7 +119,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" @open-aura-ai.window=\"openAura($event.detail?.prompt || &#39;&#39;, $event.detail?.context || &#39;&#39;)\" @keydown.escape.window=\"auraOpen = false\"><!-- Unified Full-Viewport Orbital Shipyard + Planet Horizon Backdrop (Flows seamlessly from Sidebar into Main) --><svg class=\"pointer-events-none fixed inset-0 z-0 h-full w-full select-none\" viewBox=\"0 0 1440 900\" preserveAspectRatio=\"xMinYMax slice\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><!-- Ambient Starfield --><circle cx=\"48\" cy=\"590\" r=\"1.4\" fill=\"#fde68a\" opacity=\"0.75\"></circle> <circle cx=\"215\" cy=\"545\" r=\"1.5\" fill=\"#e9d5ff\" opacity=\"0.80\"></circle> <circle cx=\"92\" cy=\"645\" r=\"1.0\" fill=\"#ffffff\" opacity=\"0.60\"></circle> <circle cx=\"380\" cy=\"145\" r=\"1.3\" fill=\"#fde68a\" opacity=\"0.65\"></circle> <circle cx=\"620\" cy=\"88\" r=\"1.1\" fill=\"#e9d5ff\" opacity=\"0.55\"></circle> <circle cx=\"890\" cy=\"192\" r=\"1.5\" fill=\"#fde68a\" opacity=\"0.60\"></circle> <circle cx=\"1120\" cy=\"115\" r=\"1.2\" fill=\"#ffffff\" opacity=\"0.55\"></circle> <circle cx=\"1310\" cy=\"260\" r=\"1.6\" fill=\"#fde68a\" opacity=\"0.65\"></circle> <circle cx=\"1220\" cy=\"540\" r=\"1.2\" fill=\"#c4b5fd\" opacity=\"0.55\"></circle> <circle cx=\"760\" cy=\"740\" r=\"1.3\" fill=\"#fde68a\" opacity=\"0.50\"></circle> <circle cx=\"520\" cy=\"680\" r=\"1.1\" fill=\"#e9d5ff\" opacity=\"0.55\"></circle><!-- Top-Right Distant Orbital Arcs --><circle cx=\"1410\" cy=\"30\" r=\"240\" stroke=\"rgba(167,139,250,0.13)\" stroke-width=\"1.2\"></circle> <circle cx=\"1410\" cy=\"30\" r=\"340\" stroke=\"rgba(253,230,138,0.10)\" stroke-width=\"1.1\" stroke-dasharray=\"7 7\"></circle><!-- Giant Luminous Planet Straddling Sidebar (x=0..256) into Main (x=256+) --><circle cx=\"275\" cy=\"905\" r=\"245\" fill=\"url(#afSeamlessPlanetGrad)\" opacity=\"0.46\"></circle><!-- Subtle Atmospheric Rim Glow --><circle cx=\"275\" cy=\"905\" r=\"246\" stroke=\"rgba(196,181,253,0.28)\" stroke-width=\"2\"></circle><!-- Sweeping Gold & Violet Orbital Rings flowing continuously into Main --><ellipse cx=\"275\" cy=\"905\" rx=\"520\" ry=\"86\" transform=\"rotate(-14 275 905)\" stroke=\"#fde68a\" stroke-opacity=\"0.28\" stroke-width=\"1.6\"></ellipse> <ellipse cx=\"275\" cy=\"905\" rx=\"450\" ry=\"68\" transform=\"rotate(-14 275 905)\" stroke=\"#a78bfa\" stroke-opacity=\"0.28\" stroke-width=\"1.1\"></ellipse> <ellipse cx=\"275\" cy=\"905\" rx=\"590\" ry=\"102\" transform=\"rotate(-14 275 905)\" stroke=\"#fde68a\" stroke-opacity=\"0.14\" stroke-width=\"1\" stroke-dasharray=\"6 8\"></ellipse><!-- Upwell-Style Orbital Shipyard Silhouette Beneath the Sidebar Banner --><g opacity=\"0.55\" stroke=\"#fde68a\" stroke-width=\"1.2\" fill=\"rgba(139,92,246,0.22)\"><path d=\"M88 730 L128 678 L168 730 L148 730 L128 705 L108 730 Z\"></path> <rect x=\"123\" y=\"650\" width=\"10\" height=\"90\" rx=\"1.5\"></rect> <path d=\"M54 712 L202 712 M72 721 L184 721\" stroke-opacity=\"0.72\"></path> <path d=\"M128 634 L128 650\" stroke-opacity=\"0.85\"></path> <circle cx=\"128\" cy=\"690\" r=\"4.5\" fill=\"#fde68a\"></circle> <circle cx=\"66\" cy=\"712\" r=\"2\" fill=\"#fde68a\"></circle> <circle cx=\"190\" cy=\"712\" r=\"2\" fill=\"#fde68a\"></circle></g> <defs><radialGradient id=\"afSeamlessPlanetGrad\" cx=\"0\" cy=\"0\" r=\"1\" gradientUnits=\"userSpaceOnUse\" gradientTransform=\"translate(210 735) rotate(48) scale(340)\"><stop stop-color=\"#c4b5fd\"></stop> <stop offset=\"0.45\" stop-color=\"#5b21b6\"></stop> <stop offset=\"1\" stop-color=\"#13112b\"></stop></radialGradient></defs></svg><!-- Mobile Sidebar Backdrop --><div x-cloak x-show=\"sidebarOpen\" x-transition.opacity @click=\"sidebarOpen = false\" class=\"fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-xs lg:hidden\"></div><!-- Left Navigation Sidebar (Borderless & Transparent on Desktop) --><aside class=\"af-sidebar fixed inset-y-0 left-0 z-50 flex w-64 flex-col overflow-y-auto overflow-x-hidden transition-transform duration-200 ease-in-out lg:translate-x-0\" :class=\"sidebarOpen ? &#39;translate-x-0&#39; : &#39;-translate-x-full&#39;\"><!-- Royal Industrial Faction Banner (Brand + All Menus Unified) --><div class=\"af-banner-wrap relative z-10 px-2 pt-0\"><div class=\"af-banner-hazard rounded-t-xs\"></div><div class=\"af-sidebar-upper flex flex-col px-2.5 pt-2.5\"><div class=\"af-banner-frame px-2 pb-2\"><!-- Brand Crest Header --><div class=\"flex items-center justify-between border-b border-amber-300/25 pb-3 pt-1\"><a href=\"/\" class=\"flex items-center gap-2.5 group\"><div class=\"relative flex h-9 w-9 items-center justify-center rounded-lg border border-amber-300/50 bg-white/12 text-amber-200 shadow-[0_0_14px_rgba(251,191,36,0.22)]\"><!-- Industrial Hex-Gear Emblem --><svg class=\"h-5 w-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"1.8\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 2.5l7.5 4.33v8.66L12 19.82l-7.5-4.33V6.83L12 2.5z\"></path> <circle cx=\"12\" cy=\"11.16\" r=\"2.6\"></circle> <path stroke-linecap=\"round\" d=\"M12 6.5v2M12 13.8v2M7.8 8.8l1.7 1M14.5 12.6l1.7 1M16.2 8.8l-1.7 1M9.5 12.6l-1.7 1\"></path></svg></div><div><div class=\"text-sm font-bold tracking-wider text-white uppercase leading-tight\">aura-forge</div><div class=\"text-[9.5px] font-mono tracking-widest text-amber-200/90 uppercase\">Industrial Corps</div></div></a> <button type=\"button\" @click=\"sidebarOpen = false\" class=\"rounded-md p-1 text-violet-100 hover:bg-white/15 lg:hidden cursor-pointer\" aria-label=\"Tutup Menu\"><svg class=\"h-5 w-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div><!-- Unified Sidebar Menu (All Groups at Top) --><nav hx-boost=\"true\" class=\"py-3.5 space-y-4\"><div><div class=\"px-2.5 mb-1.5 flex items-center justify-between text-[10px] font-mono font-semibold uppercase tracking-widest text-amber-200/75\"><span>Operations</span> <span class=\"text-[8px] opacity-60\">01</span></div><div class=\"space-y-0.5\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" @open-aura-ai.window=\"openAura($event.detail?.prompt || &#39;&#39;, $event.detail?.context || &#39;&#39;)\" @keydown.escape.window=\"auraOpen = false\"><!-- Unified Full-Viewport Orbital Shipyard + Planet Horizon Backdrop (Flows seamlessly from Sidebar into Main) --><svg class=\"pointer-events-none fixed inset-0 z-0 h-full w-full select-none\" viewBox=\"0 0 1440 900\" preserveAspectRatio=\"xMinYMax slice\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><!-- Ambient Starfield --><circle cx=\"48\" cy=\"590\" r=\"1.4\" fill=\"#fde68a\" opacity=\"0.75\"></circle> <circle cx=\"215\" cy=\"545\" r=\"1.5\" fill=\"#e9d5ff\" opacity=\"0.80\"></circle> <circle cx=\"92\" cy=\"645\" r=\"1.0\" fill=\"#ffffff\" opacity=\"0.60\"></circle> <circle cx=\"380\" cy=\"145\" r=\"1.3\" fill=\"#fde68a\" opacity=\"0.65\"></circle> <circle cx=\"620\" cy=\"88\" r=\"1.1\" fill=\"#e9d5ff\" opacity=\"0.55\"></circle> <circle cx=\"890\" cy=\"192\" r=\"1.5\" fill=\"#fde68a\" opacity=\"0.60\"></circle> <circle cx=\"1120\" cy=\"115\" r=\"1.2\" fill=\"#ffffff\" opacity=\"0.55\"></circle> <circle cx=\"1310\" cy=\"260\" r=\"1.6\" fill=\"#fde68a\" opacity=\"0.65\"></circle> <circle cx=\"1220\" cy=\"540\" r=\"1.2\" fill=\"#c4b5fd\" opacity=\"0.55\"></circle> <circle cx=\"760\" cy=\"740\" r=\"1.3\" fill=\"#fde68a\" opacity=\"0.50\"></circle> <circle cx=\"520\" cy=\"680\" r=\"1.1\" fill=\"#e9d5ff\" opacity=\"0.55\"></circle><!-- Top-Right Distant Orbital Arcs --><circle cx=\"1410\" cy=\"30\" r=\"240\" stroke=\"rgba(167,139,250,0.13)\" stroke-width=\"1.2\"></circle> <circle cx=\"1410\" cy=\"30\" r=\"340\" stroke=\"rgba(253,230,138,0.10)\" stroke-width=\"1.1\" stroke-dasharray=\"7 7\"></circle><!-- Giant Luminous Planet Straddling Sidebar (x=0..256) into Main (x=256+) --><circle cx=\"275\" cy=\"905\" r=\"245\" fill=\"url(#afSeamlessPlanetGrad)\" opacity=\"0.46\"></circle><!-- Subtle Atmospheric Rim Glow --><circle cx=\"275\" cy=\"905\" r=\"246\" stroke=\"rgba(196,181,253,0.28)\" stroke-width=\"2\"></circle><!-- Sweeping Gold & Violet Orbital Rings flowing continuously into Main --><ellipse cx=\"275\" cy=\"905\" rx=\"520\" ry=\"86\" transform=\"rotate(-14 275 905)\" stroke=\"#fde68a\" stroke-opacity=\"0.28\" stroke-width=\"1.6\"></ellipse> <ellipse cx=\"275\" cy=\"905\" rx=\"450\" ry=\"68\" transform=\"rotate(-14 275 905)\" stroke=\"#a78bfa\" stroke-opacity=\"0.28\" stroke-width=\"1.1\"></ellipse> <ellipse cx=\"275\" cy=\"905\" rx=\"590\" ry=\"102\" transform=\"rotate(-14 275 905)\" stroke=\"#fde68a\" stroke-opacity=\"0.14\" stroke-width=\"1\" stroke-dasharray=\"6 8\"></ellipse><!-- Upwell-Style Orbital Shipyard Silhouette Beneath the Sidebar Banner --><g opacity=\"0.55\" stroke=\"#fde68a\" stroke-width=\"1.2\" fill=\"rgba(139,92,246,0.22)\"><path d=\"M88 730 L128 678 L168 730 L148 730 L128 705 L108 730 Z\"></path> <rect x=\"123\" y=\"650\" width=\"10\" height=\"90\" rx=\"1.5\"></rect> <path d=\"M54 712 L202 712 M72 721 L184 721\" stroke-opacity=\"0.72\"></path> <path d=\"M128 634 L128 650\" stroke-opacity=\"0.85\"></path> <circle cx=\"128\" cy=\"690\" r=\"4.5\" fill=\"#fde68a\"></circle> <circle cx=\"66\" cy=\"712\" r=\"2\" fill=\"#fde68a\"></circle> <circle cx=\"190\" cy=\"712\" r=\"2\" fill=\"#fde68a\"></circle></g> <defs><radialGradient id=\"afSeamlessPlanetGrad\" cx=\"0\" cy=\"0\" r=\"1\" gradientUnits=\"userSpaceOnUse\" gradientTransform=\"translate(210 735) rotate(48) scale(340)\"><stop stop-color=\"#c4b5fd\"></stop> <stop offset=\"0.45\" stop-color=\"#5b21b6\"></stop> <stop offset=\"1\" stop-color=\"#13112b\"></stop></radialGradient></defs></svg><!-- Mobile Sidebar Backdrop --><div x-cloak x-show=\"sidebarOpen\" x-transition.opacity @click=\"sidebarOpen = false\" class=\"fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-xs lg:hidden\"></div><!-- Left Navigation Sidebar (Borderless & Transparent on Desktop) --><aside class=\"af-sidebar fixed inset-y-0 left-0 z-50 flex w-64 flex-col overflow-y-auto overflow-x-hidden transition-transform duration-200 ease-in-out lg:translate-x-0\" :class=\"sidebarOpen ? &#39;translate-x-0&#39; : &#39;-translate-x-full&#39;\"><!-- Royal Industrial Faction Banner (Brand + All Menus Unified) --><div class=\"af-banner-wrap relative z-10 px-2 pt-0\"><div class=\"af-banner-hazard rounded-t-xs\"></div><div class=\"af-sidebar-upper flex flex-col px-2.5 pt-2.5\"><div class=\"af-banner-frame px-2 pb-2\"><!-- Brand Crest Header --><div class=\"flex items-center justify-between border-b border-amber-300/25 pb-3 pt-1\"><a href=\"/\" class=\"flex items-center gap-2.5 group\"><div class=\"relative flex h-9 w-9 items-center justify-center rounded-lg border border-amber-300/50 bg-white/12 text-amber-200 shadow-[0_0_14px_rgba(251,191,36,0.22)]\"><!-- Industrial Hex-Gear Emblem --><svg class=\"h-5 w-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"1.8\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 2.5l7.5 4.33v8.66L12 19.82l-7.5-4.33V6.83L12 2.5z\"></path> <circle cx=\"12\" cy=\"11.16\" r=\"2.6\"></circle> <path stroke-linecap=\"round\" d=\"M12 6.5v2M12 13.8v2M7.8 8.8l1.7 1M14.5 12.6l1.7 1M16.2 8.8l-1.7 1M9.5 12.6l-1.7 1\"></path></svg></div><div><div class=\"text-sm font-bold tracking-wider text-white uppercase leading-tight\">aura-forge</div><div class=\"text-[9.5px] font-mono tracking-widest text-amber-200/90 uppercase\">Industrial Corps</div></div></a> <button type=\"button\" @click=\"sidebarOpen = false\" class=\"rounded-md p-1 text-violet-100 hover:bg-white/15 lg:hidden cursor-pointer\" aria-label=\"Tutup Menu\"><svg class=\"h-5 w-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div><!-- Unified Sidebar Menu (13 Flat Items across 4 Logical Workflow Groups) --><nav hx-boost=\"true\" class=\"py-3.5 space-y-4\"><!-- 01 DAILY OPERATIONS --><div><div class=\"px-2.5 mb-1.5 flex items-center justify-between text-[10px] font-mono font-semibold uppercase tracking-widest text-amber-200/75\"><span>Daily Operations</span> <span class=\"text-[8px] opacity-60\">01</span></div><div class=\"space-y-0.5\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -145,12 +145,12 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var8 = []any{NavLinkUpperClass(activeNav, "marketplace")}
+		var templ_7745c5c3_Var8 = []any{NavLinkUpperClass(activeNav, "scanner")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var8...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<a href=\"/marketplace\" class=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<a href=\"/scanner\" class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -163,16 +163,16 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z\"></path></svg> <span>Marketplace</span></a> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z\"></path></svg> <span>Opportunity Scanner</span></a> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var10 = []any{NavLinkUpperClass(activeNav, "scanner")}
+		var templ_7745c5c3_Var10 = []any{NavLinkUpperClass(activeNav, "marketplace")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var10...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<a href=\"/scanner\" class=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<a href=\"/marketplace\" class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -185,17 +185,17 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z\"></path></svg> <span>Opportunity Scanner</span></a> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z\"></path></svg> <span>Marketplace</span></a> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if mode.IsAdmin() {
-			var templ_7745c5c3_Var12 = []any{NavLinkUpperClass(activeNav, "catalog")}
+			var templ_7745c5c3_Var12 = []any{NavLinkUpperClass(activeNav, "tracker")}
 			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var12...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<a href=\"/catalog\" class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<a href=\"/tracker\" class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -208,17 +208,21 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M4 6h16M4 10h16M4 14h16M4 18h16\"></path></svg> <span>Catalog &amp; Trap Guard</span></a> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4\"></path></svg> <span>Trade &amp; Batch Tracker</span></a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		var templ_7745c5c3_Var14 = []any{NavLinkUpperClass(activeNav, "calculator")}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div></div><!-- 02 INDUSTRY & FOUNDRY --><div><div class=\"px-2.5 mb-1.5 flex items-center justify-between text-[10px] font-mono font-semibold uppercase tracking-widest text-amber-200/75\"><span>Industry &amp; Foundry</span> <span class=\"text-[8px] opacity-60\">02</span></div><div class=\"space-y-0.5\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var14 = []any{NavLinkUpperClass(activeNav, "manufacture")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var14...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<a href=\"/calculator\" class=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<a href=\"/manufacture\" class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -231,61 +235,61 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z\"></path></svg> <span>Profit Calculator</span></a></div></div><div><div class=\"px-2.5 mb-1.5 flex items-center justify-between text-[10px] font-mono font-semibold uppercase tracking-widest text-amber-200/75\"><span>Foundry &amp; Strategy</span> <span class=\"text-[8px] opacity-60\">02</span></div><div class=\"space-y-0.5\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M4 6h4v4H4V6zm12-2h4v4h-4V4zm0 12h4v4h-4v-4zM8 8h4m0 0V6h4m-4 2v10h4\"></path></svg> <span>Manufacture &amp; Profit</span></a> ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var16 = []any{NavLinkUpperClass(activeNav, "invention")}
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var16...)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<a href=\"/invention\" class=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var17 string
+		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var16).String())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 1, Col: 0}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z\"></path></svg> <span>T2 Invention Lab</span></a> ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var18 = []any{NavLinkUpperClass(activeNav, "pi")}
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var18...)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<a href=\"/pi\" class=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var19 string
+		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var18).String())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 1, Col: 0}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z\"></path></svg> <span>Planetary Industry (PI)</span></a> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if mode.IsAdmin() {
-			var templ_7745c5c3_Var16 = []any{NavLinkUpperClass(activeNav, "allocator")}
-			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var16...)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<a href=\"/allocator\" class=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var17 string
-			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var16).String())
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 1, Col: 0}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z\"></path></svg> <span>Capital Allocator</span></a> ")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var18 = []any{NavLinkUpperClass(activeNav, "planner")}
-			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var18...)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<a href=\"/planner\" class=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var19 string
-			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var18).String())
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 1, Col: 0}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z\"></path></svg> <span>Weekly Planner</span></a> ")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var20 = []any{NavLinkUpperClass(activeNav, "tracker")}
+			var templ_7745c5c3_Var20 = []any{NavLinkUpperClass(activeNav, "catalog")}
 			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var20...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<a href=\"/tracker\" class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<a href=\"/catalog\" class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -298,7 +302,17 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4\"></path></svg> <span>Order &amp; Batch Tracker</span></a> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M4 6h16M4 10h16M4 14h16M4 18h16\"></path></svg> <span>Catalog &amp; Trap Guard</span></a>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</div></div><!-- 03 WEALTH & STRATEGY -->")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if mode.IsAdmin() {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<div><div class=\"px-2.5 mb-1.5 flex items-center justify-between text-[10px] font-mono font-semibold uppercase tracking-widest text-amber-200/75\"><span>Wealth &amp; Strategy</span> <span class=\"text-[8px] opacity-60\">03</span></div><div class=\"space-y-0.5\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -307,7 +321,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<a href=\"/wealth\" class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<a href=\"/wealth\" class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -320,84 +334,56 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M13 7h8m0 0v8m0-8l-8 8-4-4-6 6\"></path></svg> <span>Net Worth &amp; 100B+</span></a> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M13 7h8m0 0v8m0-8l-8 8-4-4-6 6\"></path></svg> <span>Net Worth &amp; 100B+</span></a> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-		}
-		var templ_7745c5c3_Var24 = []any{NavLinkUpperClass(activeNav, "manufacture")}
-		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var24...)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<a href=\"/manufacture\" class=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var25 string
-		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var24).String())
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 1, Col: 0}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M4 6h4v4H4V6zm12-2h4v4h-4V4zm0 12h4v4h-4v-4zM8 8h4m0 0V6h4m-4 2v10h4\"></path></svg> <span>Manufacture</span></a> ")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var26 = []any{NavLinkUpperClass(activeNav, "invention")}
-		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var26...)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<a href=\"/invention\" class=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var27 string
-		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var26).String())
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 1, Col: 0}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z\"></path></svg> <span>T2 Invention &amp; Make/Buy</span></a> ")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var28 = []any{NavLinkUpperClass(activeNav, "pi")}
-		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var28...)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<a href=\"/pi\" class=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var29 string
-		templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var28).String())
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 1, Col: 0}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z\"></path></svg> <span>Planetary Industry (PI)</span></a></div></div>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		if mode.IsAdmin() {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<div><div class=\"px-2.5 mb-1.5 flex items-center justify-between text-[10px] font-mono font-semibold uppercase tracking-widest text-amber-200/75\"><span>System</span> <span class=\"text-[8px] opacity-60\">03</span></div><div class=\"space-y-0.5\">")
+			var templ_7745c5c3_Var24 = []any{NavLinkUpperClass(activeNav, "allocator")}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var24...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var30 = []any{NavLinkUpperClass(activeNav, "settings")}
-			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var30...)
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<a href=\"/allocator\" class=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var25 string
+			templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var24).String())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 1, Col: 0}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z\"></path></svg> <span>Capital Allocator</span></a> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var26 = []any{NavLinkUpperClass(activeNav, "planner")}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var26...)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<a href=\"/planner\" class=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var27 string
+			templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var26).String())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 1, Col: 0}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\"><svg class=\"h-4 w-4 shrink-0\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z\"></path></svg> <span>Weekly Planner</span></a></div></div><!-- 04 SYSTEM --> <div><div class=\"px-2.5 mb-1.5 flex items-center justify-between text-[10px] font-mono font-semibold uppercase tracking-widest text-amber-200/75\"><span>System</span> <span class=\"text-[8px] opacity-60\">04</span></div><div class=\"space-y-0.5\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var28 = []any{NavLinkUpperClass(activeNav, "settings")}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var28...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -405,12 +391,12 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var31 string
-			templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var30).String())
+			var templ_7745c5c3_Var29 string
+			templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var28).String())
 			if templ_7745c5c3_Err != nil {
 				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 1, Col: 0}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -433,8 +419,8 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var32 = []any{NavLinkUpperClass(activeNav, "users")}
-			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var32...)
+			var templ_7745c5c3_Var30 = []any{NavLinkUpperClass(activeNav, "users")}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var30...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -442,12 +428,12 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var33 string
-			templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var32).String())
+			var templ_7745c5c3_Var31 string
+			templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var30).String())
 			if templ_7745c5c3_Err != nil {
 				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 1, Col: 0}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -465,12 +451,12 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var34 string
-			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(mode.StatusHint)
+			var templ_7745c5c3_Var32 string
+			templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(mode.StatusHint)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 325, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 332, Col: 34}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -478,12 +464,12 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var35 string
-			templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(mode.CharacterName)
+			var templ_7745c5c3_Var33 string
+			templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(mode.CharacterName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 327, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 334, Col: 59}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -496,12 +482,12 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var36 string
-			templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(mode.StatusHint)
+			var templ_7745c5c3_Var34 string
+			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(mode.StatusHint)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 330, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 337, Col: 34}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -550,12 +536,12 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var37 string
-			templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(mode.PriceSync.FreshnessLabel())
+			var templ_7745c5c3_Var35 string
+			templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(mode.PriceSync.FreshnessLabel())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 361, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 368, Col: 63}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -563,12 +549,12 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var38 string
-			templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(mode.PriceSync.HubLabel())
+			var templ_7745c5c3_Var36 string
+			templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(mode.PriceSync.HubLabel())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 373, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 380, Col: 45}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -601,12 +587,12 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var39 string
-			templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(mode.PriceSync.FreshnessLabel())
+			var templ_7745c5c3_Var37 string
+			templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(mode.PriceSync.FreshnessLabel())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 387, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 394, Col: 63}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -619,12 +605,12 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var40 string
-		templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(title)
+		var templ_7745c5c3_Var38 string
+		templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 411, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 418, Col: 54}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -637,12 +623,12 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var41 string
-			templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Ask Aura AI Copilot (%s)", mode.AI.Model))
+			var templ_7745c5c3_Var39 string
+			templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Ask Aura AI Copilot (%s)", mode.AI.Model))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 421, Col: 71}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 428, Col: 71}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -655,13 +641,13 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var42 = []any{"inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition " + func() string {
+		var templ_7745c5c3_Var40 = []any{"inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition " + func() string {
 			if activeNav == "wiki" {
 				return "border-amber-300/60 bg-amber-400/20 text-amber-200"
 			}
 			return "border-violet-400/35 bg-violet-950/50 text-violet-100 hover:bg-violet-900/60"
 		}()}
-		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var42...)
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var40...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -669,12 +655,12 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var43 string
-		templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var42).String())
+		var templ_7745c5c3_Var41 string
+		templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var40).String())
 		if templ_7745c5c3_Err != nil {
 			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 1, Col: 0}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -684,13 +670,13 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		}
 		if mode.CurrentUser != nil {
 			if mode.SSOConnected {
-				var templ_7745c5c3_Var44 = []any{"hidden sm:inline-flex items-center gap-2 rounded-lg border px-2.5 py-1 text-xs transition " + func() string {
+				var templ_7745c5c3_Var42 = []any{"hidden sm:inline-flex items-center gap-2 rounded-lg border px-2.5 py-1 text-xs transition " + func() string {
 					if activeNav == "pilot" {
 						return "border-emerald-400/70 bg-emerald-500/20 text-white shadow-[0_0_12px_rgba(16,185,129,0.25)]"
 					}
 					return "border-emerald-400/45 bg-violet-950/55 text-white hover:border-emerald-300/75 hover:bg-emerald-500/15"
 				}()}
-				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var44...)
+				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var42...)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -698,12 +684,12 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var45 string
-				templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("EVE Pilot Hub (%s — Live Wallet %s) • Account: %s", mode.CharacterName, FormatISK(mode.WalletBalance), mode.CurrentUser.DisplayName))
+				var templ_7745c5c3_Var43 string
+				templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("EVE Pilot Hub (%s — Live Wallet %s) • Account: %s", mode.CharacterName, FormatISK(mode.WalletBalance), mode.CurrentUser.DisplayName))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 466, Col: 167}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 473, Col: 167}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -711,12 +697,12 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var46 string
-				templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var44).String())
+				var templ_7745c5c3_Var44 string
+				templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var42).String())
 				if templ_7745c5c3_Err != nil {
 					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 1, Col: 0}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -724,12 +710,12 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var47 string
-				templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("https://images.evetech.net/characters/%d/portrait?size=64", mode.CharacterID))
+				var templ_7745c5c3_Var45 string
+				templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("https://images.evetech.net/characters/%d/portrait?size=64", mode.CharacterID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 476, Col: 108}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 483, Col: 108}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var47))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -737,12 +723,12 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var48 string
-				templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(mode.CharacterName)
+				var templ_7745c5c3_Var46 string
+				templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(mode.CharacterName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 477, Col: 36}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 484, Col: 36}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -750,12 +736,12 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var49 string
-				templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.JoinStringErrs(mode.CharacterName)
+				var templ_7745c5c3_Var47 string
+				templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.JoinStringErrs(mode.CharacterName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 482, Col: 92}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 489, Col: 92}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var49))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var47))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -768,12 +754,12 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var50 string
-					templ_7745c5c3_Var50, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(mode.WalletBalance))
+					var templ_7745c5c3_Var48 string
+					templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(mode.WalletBalance))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 484, Col: 122}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 491, Col: 122}
 					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var50))
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -802,12 +788,12 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var51 string
-				templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.JoinStringErrs(mode.CurrentUser.DisplayName)
+				var templ_7745c5c3_Var49 string
+				templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.JoinStringErrs(mode.CurrentUser.DisplayName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 494, Col: 100}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 501, Col: 100}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var51))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var49))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -853,12 +839,12 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var52 string
-			templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.JoinStringErrs(mode.AI.Model)
+			var templ_7745c5c3_Var50 string
+			templ_7745c5c3_Var50, templ_7745c5c3_Err = templ.JoinStringErrs(mode.AI.Model)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 567, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 574, Col: 44}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var52))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var50))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
