@@ -249,3 +249,48 @@ html.dark .tactical-panel .border-slate-700 {
 ::-webkit-scrollbar-thumb:hover {
   background: #4b4382;
 }
+
+/* ================================================================
+   Global HTMX Loading Feedback (Top Progress Bar + Auto Button Spinner)
+   ================================================================ */
+.af-htmx-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(90deg, rgba(139, 92, 246, 0.2) 0%, #f59e0b 45%, #fde68a 55%, rgba(139, 92, 246, 0.2) 100%);
+  background-size: 200% 100%;
+  transition: opacity 160ms ease;
+}
+.af-htmx-bar.active {
+  opacity: 1;
+  animation: af-bar-slide 1.1s linear infinite;
+}
+@keyframes af-bar-slide {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.af-btn-loading {
+  opacity: 0.72 !important;
+  cursor: wait !important;
+  pointer-events: none !important;
+}
+.af-btn-spinner {
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  margin-right: 0.4em;
+  vertical-align: -0.12em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 9999px;
+  animation: af-spin 0.65s linear infinite;
+}
+@keyframes af-spin {
+  to { transform: rotate(360deg); }
+}

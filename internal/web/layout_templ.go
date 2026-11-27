@@ -123,7 +123,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" @open-aura-ai.window=\"openAura($event.detail?.prompt || &#39;&#39;, $event.detail?.context || &#39;&#39;)\" @keydown.escape.window=\"auraOpen = false\"><!-- Unified Full-Viewport Orbital Shipyard + Planet Horizon Backdrop (Flows seamlessly from Sidebar into Main) --><svg class=\"pointer-events-none fixed inset-0 z-0 h-full w-full select-none\" viewBox=\"0 0 1440 900\" preserveAspectRatio=\"xMinYMax slice\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><!-- Ambient Starfield --><circle cx=\"48\" cy=\"590\" r=\"1.4\" fill=\"#fde68a\" opacity=\"0.75\"></circle> <circle cx=\"215\" cy=\"545\" r=\"1.5\" fill=\"#e9d5ff\" opacity=\"0.80\"></circle> <circle cx=\"92\" cy=\"645\" r=\"1.0\" fill=\"#ffffff\" opacity=\"0.60\"></circle> <circle cx=\"380\" cy=\"145\" r=\"1.3\" fill=\"#fde68a\" opacity=\"0.65\"></circle> <circle cx=\"620\" cy=\"88\" r=\"1.1\" fill=\"#e9d5ff\" opacity=\"0.55\"></circle> <circle cx=\"890\" cy=\"192\" r=\"1.5\" fill=\"#fde68a\" opacity=\"0.60\"></circle> <circle cx=\"1120\" cy=\"115\" r=\"1.2\" fill=\"#ffffff\" opacity=\"0.55\"></circle> <circle cx=\"1310\" cy=\"260\" r=\"1.6\" fill=\"#fde68a\" opacity=\"0.65\"></circle> <circle cx=\"1220\" cy=\"540\" r=\"1.2\" fill=\"#c4b5fd\" opacity=\"0.55\"></circle> <circle cx=\"760\" cy=\"740\" r=\"1.3\" fill=\"#fde68a\" opacity=\"0.50\"></circle> <circle cx=\"520\" cy=\"680\" r=\"1.1\" fill=\"#e9d5ff\" opacity=\"0.55\"></circle><!-- Top-Right Distant Orbital Arcs --><circle cx=\"1410\" cy=\"30\" r=\"240\" stroke=\"rgba(167,139,250,0.13)\" stroke-width=\"1.2\"></circle> <circle cx=\"1410\" cy=\"30\" r=\"340\" stroke=\"rgba(253,230,138,0.10)\" stroke-width=\"1.1\" stroke-dasharray=\"7 7\"></circle><!-- Giant Luminous Planet Straddling Sidebar (x=0..256) into Main (x=256+) --><circle cx=\"275\" cy=\"905\" r=\"245\" fill=\"url(#afSeamlessPlanetGrad)\" opacity=\"0.46\"></circle><!-- Subtle Atmospheric Rim Glow --><circle cx=\"275\" cy=\"905\" r=\"246\" stroke=\"rgba(196,181,253,0.28)\" stroke-width=\"2\"></circle><!-- Sweeping Gold & Violet Orbital Rings flowing continuously into Main --><ellipse cx=\"275\" cy=\"905\" rx=\"520\" ry=\"86\" transform=\"rotate(-14 275 905)\" stroke=\"#fde68a\" stroke-opacity=\"0.28\" stroke-width=\"1.6\"></ellipse> <ellipse cx=\"275\" cy=\"905\" rx=\"450\" ry=\"68\" transform=\"rotate(-14 275 905)\" stroke=\"#a78bfa\" stroke-opacity=\"0.28\" stroke-width=\"1.1\"></ellipse> <ellipse cx=\"275\" cy=\"905\" rx=\"590\" ry=\"102\" transform=\"rotate(-14 275 905)\" stroke=\"#fde68a\" stroke-opacity=\"0.14\" stroke-width=\"1\" stroke-dasharray=\"6 8\"></ellipse><!-- Upwell-Style Orbital Shipyard Silhouette Beneath the Sidebar Banner --><g opacity=\"0.55\" stroke=\"#fde68a\" stroke-width=\"1.2\" fill=\"rgba(139,92,246,0.22)\"><path d=\"M88 730 L128 678 L168 730 L148 730 L128 705 L108 730 Z\"></path> <rect x=\"123\" y=\"650\" width=\"10\" height=\"90\" rx=\"1.5\"></rect> <path d=\"M54 712 L202 712 M72 721 L184 721\" stroke-opacity=\"0.72\"></path> <path d=\"M128 634 L128 650\" stroke-opacity=\"0.85\"></path> <circle cx=\"128\" cy=\"690\" r=\"4.5\" fill=\"#fde68a\"></circle> <circle cx=\"66\" cy=\"712\" r=\"2\" fill=\"#fde68a\"></circle> <circle cx=\"190\" cy=\"712\" r=\"2\" fill=\"#fde68a\"></circle></g> <defs><radialGradient id=\"afSeamlessPlanetGrad\" cx=\"0\" cy=\"0\" r=\"1\" gradientUnits=\"userSpaceOnUse\" gradientTransform=\"translate(210 735) rotate(48) scale(340)\"><stop stop-color=\"#c4b5fd\"></stop> <stop offset=\"0.45\" stop-color=\"#5b21b6\"></stop> <stop offset=\"1\" stop-color=\"#13112b\"></stop></radialGradient></defs></svg><!-- Mobile Sidebar Backdrop --><div x-cloak x-show=\"sidebarOpen\" x-transition.opacity @click=\"sidebarOpen = false\" class=\"fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-xs lg:hidden\"></div><!-- Left Navigation Sidebar (Borderless & Transparent on Desktop) --><aside class=\"af-sidebar fixed inset-y-0 left-0 z-50 flex w-64 flex-col overflow-y-auto overflow-x-hidden transition-transform duration-200 ease-in-out lg:translate-x-0\" :class=\"sidebarOpen ? &#39;translate-x-0&#39; : &#39;-translate-x-full&#39;\"><!-- Royal Industrial Faction Banner (Brand + All Menus Unified) --><div class=\"af-banner-wrap relative z-10 px-2 pt-0\"><div class=\"af-banner-hazard rounded-t-xs\"></div><div class=\"af-sidebar-upper flex flex-col px-2.5 pt-2.5\"><div class=\"af-banner-frame px-2 pb-2\"><!-- Brand Crest Header --><div class=\"flex items-center justify-between border-b border-amber-300/25 pb-3 pt-1\"><a href=\"/\" class=\"flex items-center gap-2.5 group\"><div class=\"relative flex h-9 w-9 items-center justify-center rounded-lg border border-amber-300/50 bg-white/12 text-amber-200 shadow-[0_0_14px_rgba(251,191,36,0.22)]\"><!-- Industrial Hex-Gear Emblem --><svg class=\"h-5 w-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"1.8\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 2.5l7.5 4.33v8.66L12 19.82l-7.5-4.33V6.83L12 2.5z\"></path> <circle cx=\"12\" cy=\"11.16\" r=\"2.6\"></circle> <path stroke-linecap=\"round\" d=\"M12 6.5v2M12 13.8v2M7.8 8.8l1.7 1M14.5 12.6l1.7 1M16.2 8.8l-1.7 1M9.5 12.6l-1.7 1\"></path></svg></div><div><div class=\"text-sm font-bold tracking-wider text-white uppercase leading-tight\">aura-forge</div><div class=\"text-[9.5px] font-mono tracking-widest text-amber-200/90 uppercase\">Industrial Corps</div></div></a> <button type=\"button\" @click=\"sidebarOpen = false\" class=\"rounded-md p-1 text-violet-100 hover:bg-white/15 lg:hidden cursor-pointer\" aria-label=\"Tutup Menu\"><svg class=\"h-5 w-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div><!-- Unified Sidebar Menu (13 Flat Items across 4 Logical Workflow Groups) --><nav hx-boost=\"true\" class=\"py-3.5 space-y-4\"><!-- 01 DAILY OPERATIONS --><div><div class=\"px-2.5 mb-1.5 flex items-center justify-between text-[10px] font-mono font-semibold uppercase tracking-widest text-amber-200/75\"><span>Daily Operations</span> <span class=\"text-[8px] opacity-60\">01</span></div><div class=\"space-y-0.5\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" @open-aura-ai.window=\"openAura($event.detail?.prompt || &#39;&#39;, $event.detail?.context || &#39;&#39;)\" @keydown.escape.window=\"auraOpen = false\"><!-- Global Top Progress Bar for all user-initiated HTMX requests --><div id=\"af-global-progress\" class=\"af-htmx-bar\" aria-hidden=\"true\"></div><!-- Unified Full-Viewport Orbital Shipyard + Planet Horizon Backdrop (Flows seamlessly from Sidebar into Main) --><svg class=\"pointer-events-none fixed inset-0 z-0 h-full w-full select-none\" viewBox=\"0 0 1440 900\" preserveAspectRatio=\"xMinYMax slice\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><!-- Ambient Starfield --><circle cx=\"48\" cy=\"590\" r=\"1.4\" fill=\"#fde68a\" opacity=\"0.75\"></circle> <circle cx=\"215\" cy=\"545\" r=\"1.5\" fill=\"#e9d5ff\" opacity=\"0.80\"></circle> <circle cx=\"92\" cy=\"645\" r=\"1.0\" fill=\"#ffffff\" opacity=\"0.60\"></circle> <circle cx=\"380\" cy=\"145\" r=\"1.3\" fill=\"#fde68a\" opacity=\"0.65\"></circle> <circle cx=\"620\" cy=\"88\" r=\"1.1\" fill=\"#e9d5ff\" opacity=\"0.55\"></circle> <circle cx=\"890\" cy=\"192\" r=\"1.5\" fill=\"#fde68a\" opacity=\"0.60\"></circle> <circle cx=\"1120\" cy=\"115\" r=\"1.2\" fill=\"#ffffff\" opacity=\"0.55\"></circle> <circle cx=\"1310\" cy=\"260\" r=\"1.6\" fill=\"#fde68a\" opacity=\"0.65\"></circle> <circle cx=\"1220\" cy=\"540\" r=\"1.2\" fill=\"#c4b5fd\" opacity=\"0.55\"></circle> <circle cx=\"760\" cy=\"740\" r=\"1.3\" fill=\"#fde68a\" opacity=\"0.50\"></circle> <circle cx=\"520\" cy=\"680\" r=\"1.1\" fill=\"#e9d5ff\" opacity=\"0.55\"></circle><!-- Top-Right Distant Orbital Arcs --><circle cx=\"1410\" cy=\"30\" r=\"240\" stroke=\"rgba(167,139,250,0.13)\" stroke-width=\"1.2\"></circle> <circle cx=\"1410\" cy=\"30\" r=\"340\" stroke=\"rgba(253,230,138,0.10)\" stroke-width=\"1.1\" stroke-dasharray=\"7 7\"></circle><!-- Giant Luminous Planet Straddling Sidebar (x=0..256) into Main (x=256+) --><circle cx=\"275\" cy=\"905\" r=\"245\" fill=\"url(#afSeamlessPlanetGrad)\" opacity=\"0.46\"></circle><!-- Subtle Atmospheric Rim Glow --><circle cx=\"275\" cy=\"905\" r=\"246\" stroke=\"rgba(196,181,253,0.28)\" stroke-width=\"2\"></circle><!-- Sweeping Gold & Violet Orbital Rings flowing continuously into Main --><ellipse cx=\"275\" cy=\"905\" rx=\"520\" ry=\"86\" transform=\"rotate(-14 275 905)\" stroke=\"#fde68a\" stroke-opacity=\"0.28\" stroke-width=\"1.6\"></ellipse> <ellipse cx=\"275\" cy=\"905\" rx=\"450\" ry=\"68\" transform=\"rotate(-14 275 905)\" stroke=\"#a78bfa\" stroke-opacity=\"0.28\" stroke-width=\"1.1\"></ellipse> <ellipse cx=\"275\" cy=\"905\" rx=\"590\" ry=\"102\" transform=\"rotate(-14 275 905)\" stroke=\"#fde68a\" stroke-opacity=\"0.14\" stroke-width=\"1\" stroke-dasharray=\"6 8\"></ellipse><!-- Upwell-Style Orbital Shipyard Silhouette Beneath the Sidebar Banner --><g opacity=\"0.55\" stroke=\"#fde68a\" stroke-width=\"1.2\" fill=\"rgba(139,92,246,0.22)\"><path d=\"M88 730 L128 678 L168 730 L148 730 L128 705 L108 730 Z\"></path> <rect x=\"123\" y=\"650\" width=\"10\" height=\"90\" rx=\"1.5\"></rect> <path d=\"M54 712 L202 712 M72 721 L184 721\" stroke-opacity=\"0.72\"></path> <path d=\"M128 634 L128 650\" stroke-opacity=\"0.85\"></path> <circle cx=\"128\" cy=\"690\" r=\"4.5\" fill=\"#fde68a\"></circle> <circle cx=\"66\" cy=\"712\" r=\"2\" fill=\"#fde68a\"></circle> <circle cx=\"190\" cy=\"712\" r=\"2\" fill=\"#fde68a\"></circle></g> <defs><radialGradient id=\"afSeamlessPlanetGrad\" cx=\"0\" cy=\"0\" r=\"1\" gradientUnits=\"userSpaceOnUse\" gradientTransform=\"translate(210 735) rotate(48) scale(340)\"><stop stop-color=\"#c4b5fd\"></stop> <stop offset=\"0.45\" stop-color=\"#5b21b6\"></stop> <stop offset=\"1\" stop-color=\"#13112b\"></stop></radialGradient></defs></svg><!-- Mobile Sidebar Backdrop --><div x-cloak x-show=\"sidebarOpen\" x-transition.opacity @click=\"sidebarOpen = false\" class=\"fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-xs lg:hidden\"></div><!-- Left Navigation Sidebar (Borderless & Transparent on Desktop) --><aside class=\"af-sidebar fixed inset-y-0 left-0 z-50 flex w-64 flex-col overflow-y-auto overflow-x-hidden transition-transform duration-200 ease-in-out lg:translate-x-0\" :class=\"sidebarOpen ? &#39;translate-x-0&#39; : &#39;-translate-x-full&#39;\"><!-- Royal Industrial Faction Banner (Brand + All Menus Unified) --><div class=\"af-banner-wrap relative z-10 px-2 pt-0\"><div class=\"af-banner-hazard rounded-t-xs\"></div><div class=\"af-sidebar-upper flex flex-col px-2.5 pt-2.5\"><div class=\"af-banner-frame px-2 pb-2\"><!-- Brand Crest Header --><div class=\"flex items-center justify-between border-b border-amber-300/25 pb-3 pt-1\"><a href=\"/\" class=\"flex items-center gap-2.5 group\"><div class=\"relative flex h-9 w-9 items-center justify-center rounded-lg border border-amber-300/50 bg-white/12 text-amber-200 shadow-[0_0_14px_rgba(251,191,36,0.22)]\"><!-- Industrial Hex-Gear Emblem --><svg class=\"h-5 w-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"1.8\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 2.5l7.5 4.33v8.66L12 19.82l-7.5-4.33V6.83L12 2.5z\"></path> <circle cx=\"12\" cy=\"11.16\" r=\"2.6\"></circle> <path stroke-linecap=\"round\" d=\"M12 6.5v2M12 13.8v2M7.8 8.8l1.7 1M14.5 12.6l1.7 1M16.2 8.8l-1.7 1M9.5 12.6l-1.7 1\"></path></svg></div><div><div class=\"text-sm font-bold tracking-wider text-white uppercase leading-tight\">aura-forge</div><div class=\"text-[9.5px] font-mono tracking-widest text-amber-200/90 uppercase\">Industrial Corps</div></div></a> <button type=\"button\" @click=\"sidebarOpen = false\" class=\"rounded-md p-1 text-violet-100 hover:bg-white/15 lg:hidden cursor-pointer\" aria-label=\"Tutup Menu\"><svg class=\"h-5 w-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div><!-- Unified Sidebar Menu (13 Flat Items across 4 Logical Workflow Groups) --><nav hx-boost=\"true\" class=\"py-3.5 space-y-4\"><!-- 01 DAILY OPERATIONS --><div><div class=\"px-2.5 mb-1.5 flex items-center justify-between text-[10px] font-mono font-semibold uppercase tracking-widest text-amber-200/75\"><span>Daily Operations</span> <span class=\"text-[8px] opacity-60\">01</span></div><div class=\"space-y-0.5\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -458,7 +458,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			var templ_7745c5c3_Var32 string
 			templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(mode.StatusHint)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 336, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 339, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 			if templ_7745c5c3_Err != nil {
@@ -471,7 +471,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			var templ_7745c5c3_Var33 string
 			templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(mode.CharacterName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 338, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 341, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 			if templ_7745c5c3_Err != nil {
@@ -489,7 +489,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			var templ_7745c5c3_Var34 string
 			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(mode.StatusHint)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 341, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 344, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 			if templ_7745c5c3_Err != nil {
@@ -543,7 +543,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			var templ_7745c5c3_Var35 string
 			templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(mode.PriceSync.FreshnessLabel())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 372, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 375, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 			if templ_7745c5c3_Err != nil {
@@ -556,7 +556,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			var templ_7745c5c3_Var36 string
 			templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(mode.PriceSync.HubLabel())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 384, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 387, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 			if templ_7745c5c3_Err != nil {
@@ -594,7 +594,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			var templ_7745c5c3_Var37 string
 			templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(mode.PriceSync.FreshnessLabel())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 398, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 401, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 			if templ_7745c5c3_Err != nil {
@@ -612,7 +612,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 		var templ_7745c5c3_Var38 string
 		templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 422, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 425, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 		if templ_7745c5c3_Err != nil {
@@ -630,7 +630,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			var templ_7745c5c3_Var39 string
 			templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Ask Aura AI Copilot (%s)", mode.AI.Model))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 432, Col: 71}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 435, Col: 71}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 			if templ_7745c5c3_Err != nil {
@@ -691,7 +691,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 				var templ_7745c5c3_Var43 string
 				templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("EVE Pilot Hub (%s — Live Wallet %s) • Account: %s", mode.CharacterName, FormatISK(mode.WalletBalance), mode.CurrentUser.DisplayName))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 477, Col: 167}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 480, Col: 167}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 				if templ_7745c5c3_Err != nil {
@@ -717,7 +717,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 				var templ_7745c5c3_Var45 string
 				templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("https://images.evetech.net/characters/%d/portrait?size=64", mode.CharacterID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 487, Col: 108}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 490, Col: 108}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 				if templ_7745c5c3_Err != nil {
@@ -730,7 +730,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 				var templ_7745c5c3_Var46 string
 				templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(mode.CharacterName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 488, Col: 36}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 491, Col: 36}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
 				if templ_7745c5c3_Err != nil {
@@ -743,7 +743,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 				var templ_7745c5c3_Var47 string
 				templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.JoinStringErrs(mode.CharacterName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 493, Col: 92}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 496, Col: 92}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var47))
 				if templ_7745c5c3_Err != nil {
@@ -761,7 +761,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 					var templ_7745c5c3_Var48 string
 					templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(mode.WalletBalance))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 495, Col: 122}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 498, Col: 122}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 					if templ_7745c5c3_Err != nil {
@@ -795,7 +795,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 				var templ_7745c5c3_Var49 string
 				templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.JoinStringErrs(mode.CurrentUser.DisplayName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 505, Col: 100}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 508, Col: 100}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var49))
 				if templ_7745c5c3_Err != nil {
@@ -846,7 +846,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 			var templ_7745c5c3_Var50 string
 			templ_7745c5c3_Var50, templ_7745c5c3_Err = templ.JoinStringErrs(mode.AI.Model)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 577, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/layout.templ`, Line: 580, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var50))
 			if templ_7745c5c3_Err != nil {
@@ -857,7 +857,7 @@ func Layout(title string, activeNav string, mode service.ModeInfo) templ.Compone
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 88, "<!-- Alpine.js Toast Notification Stack --><div x-data=\"{\n\t\t\t\t\ttoasts: [],\n\t\t\t\t\tadd(detail) {\n\t\t\t\t\t\tconst id = Date.now() + Math.random();\n\t\t\t\t\t\tthis.toasts.push({ id, level: detail.level || &#39;info&#39;, message: detail.message || &#39;&#39; });\n\t\t\t\t\t\tsetTimeout(() =&gt; { this.toasts = this.toasts.filter(t =&gt; t.id !== id); }, 5000);\n\t\t\t\t\t}\n\t\t\t\t}\" @showToast.window=\"add($event.detail)\" class=\"fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-md\"><template x-for=\"t in toasts\" :key=\"t.id\"><div x-transition class=\"rounded-lg border px-4 py-3 text-xs font-medium shadow-xl backdrop-blur\" :class=\"{\n\t\t\t\t\t\t\t&#39;border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/90 text-emerald-800 dark:text-emerald-200&#39;: t.level === &#39;success&#39;,\n\t\t\t\t\t\t\t&#39;border-rose-500/50 bg-rose-50 dark:bg-rose-950/90 text-rose-800 dark:text-rose-200&#39;: t.level === &#39;error&#39;,\n\t\t\t\t\t\t\t&#39;border-violet-500/45 bg-white dark:bg-slate-900/95 text-violet-900 dark:text-violet-200&#39;: t.level !== &#39;success&#39; &amp;&amp; t.level !== &#39;error&#39;\n\t\t\t\t\t\t}\"><span x-text=\"t.message\"></span></div></template></div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 88, "<!-- Alpine.js Toast Notification Stack --><div x-data=\"{\n\t\t\t\t\ttoasts: [],\n\t\t\t\t\tadd(detail) {\n\t\t\t\t\t\tconst id = Date.now() + Math.random();\n\t\t\t\t\t\tthis.toasts.push({ id, level: detail.level || &#39;info&#39;, message: detail.message || &#39;&#39; });\n\t\t\t\t\t\tsetTimeout(() =&gt; { this.toasts = this.toasts.filter(t =&gt; t.id !== id); }, 5000);\n\t\t\t\t\t}\n\t\t\t\t}\" @showToast.window=\"add($event.detail)\" class=\"fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-md\"><template x-for=\"t in toasts\" :key=\"t.id\"><div x-transition class=\"rounded-lg border px-4 py-3 text-xs font-medium shadow-xl backdrop-blur\" :class=\"{\n\t\t\t\t\t\t\t&#39;border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/90 text-emerald-800 dark:text-emerald-200&#39;: t.level === &#39;success&#39;,\n\t\t\t\t\t\t\t&#39;border-rose-500/50 bg-rose-50 dark:bg-rose-950/90 text-rose-800 dark:text-rose-200&#39;: t.level === &#39;error&#39;,\n\t\t\t\t\t\t\t&#39;border-violet-500/45 bg-white dark:bg-slate-900/95 text-violet-900 dark:text-violet-200&#39;: t.level !== &#39;success&#39; &amp;&amp; t.level !== &#39;error&#39;\n\t\t\t\t\t\t}\"><span x-text=\"t.message\"></span></div></template></div><!-- Global HTMX Button Loading & Error Notification Guard --><script>\n\t\t\t\t(function () {\n\t\t\t\t\tif (window.__afHTMXUXBound) return;\n\t\t\t\t\twindow.__afHTMXUXBound = true;\n\t\t\t\t\tlet activeRequests = 0;\n\n\t\t\t\t\tfunction isBackgroundPoll(elt) {\n\t\t\t\t\t\tif (!elt || !elt.getAttribute) return false;\n\t\t\t\t\t\tconst trig = elt.getAttribute('hx-trigger') || '';\n\t\t\t\t\t\treturn trig.indexOf('every ') !== -1;\n\t\t\t\t\t}\n\n\t\t\t\t\tfunction resolveActionButton(elt, detail) {\n\t\t\t\t\t\tif (!elt) return null;\n\t\t\t\t\t\tif (elt.tagName === 'BUTTON') return elt;\n\t\t\t\t\t\tif (detail && detail.requestConfig && detail.requestConfig.triggeringEvent) {\n\t\t\t\t\t\t\tconst submitter = detail.requestConfig.triggeringEvent.submitter;\n\t\t\t\t\t\t\tif (submitter && submitter.tagName === 'BUTTON') return submitter;\n\t\t\t\t\t\t}\n\t\t\t\t\t\tif (elt.tagName === 'FORM') {\n\t\t\t\t\t\t\treturn elt.querySelector('button[type=\"submit\"], button:not([type])');\n\t\t\t\t\t\t}\n\t\t\t\t\t\treturn null;\n\t\t\t\t\t}\n\n\t\t\t\t\tfunction setBarActive(on) {\n\t\t\t\t\t\tconst bar = document.getElementById('af-global-progress');\n\t\t\t\t\t\tif (bar) bar.classList.toggle('active', on);\n\t\t\t\t\t}\n\n\t\t\t\t\tfunction clearButtonState(btn) {\n\t\t\t\t\t\tif (!btn || !btn.dataset.afLoading) return;\n\t\t\t\t\t\tdelete btn.dataset.afLoading;\n\t\t\t\t\t\tbtn.classList.remove('af-btn-loading');\n\t\t\t\t\t\tif (btn.dataset.afWasDisabled !== '1') btn.disabled = false;\n\t\t\t\t\t\tdelete btn.dataset.afWasDisabled;\n\t\t\t\t\t\tconst sp = btn.querySelector(':scope > .af-btn-spinner');\n\t\t\t\t\t\tif (sp) sp.remove();\n\t\t\t\t\t}\n\n\t\t\t\t\tdocument.body.addEventListener('htmx:beforeRequest', function (evt) {\n\t\t\t\t\t\tconst elt = evt.detail && evt.detail.elt;\n\t\t\t\t\t\tif (isBackgroundPoll(elt)) return;\n\t\t\t\t\t\tactiveRequests++;\n\t\t\t\t\t\tsetBarActive(true);\n\n\t\t\t\t\t\tconst btn = resolveActionButton(elt, evt.detail);\n\t\t\t\t\t\tif (btn && !btn.dataset.afLoading) {\n\t\t\t\t\t\t\tbtn.dataset.afLoading = '1';\n\t\t\t\t\t\t\tbtn.dataset.afWasDisabled = btn.disabled ? '1' : '0';\n\t\t\t\t\t\t\tbtn.disabled = true;\n\t\t\t\t\t\t\tbtn.classList.add('af-btn-loading');\n\t\t\t\t\t\t\tif (!btn.querySelector('.htmx-indicator, .af-btn-spinner')) {\n\t\t\t\t\t\t\t\tconst sp = document.createElement('span');\n\t\t\t\t\t\t\t\tsp.className = 'af-btn-spinner';\n\t\t\t\t\t\t\t\tsp.setAttribute('aria-hidden', 'true');\n\t\t\t\t\t\t\t\tbtn.insertBefore(sp, btn.firstChild);\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\tif (elt) elt._afLoadingBtn = btn;\n\t\t\t\t\t\t}\n\t\t\t\t\t});\n\n\t\t\t\t\tdocument.body.addEventListener('htmx:afterRequest', function (evt) {\n\t\t\t\t\t\tconst elt = evt.detail && evt.detail.elt;\n\t\t\t\t\t\tif (!isBackgroundPoll(elt)) {\n\t\t\t\t\t\t\tactiveRequests = Math.max(0, activeRequests - 1);\n\t\t\t\t\t\t\tif (activeRequests === 0) setBarActive(false);\n\t\t\t\t\t\t}\n\t\t\t\t\t\tif (elt && elt._afLoadingBtn) {\n\t\t\t\t\t\t\tclearButtonState(elt._afLoadingBtn);\n\t\t\t\t\t\t\tdelete elt._afLoadingBtn;\n\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\tclearButtonState(resolveActionButton(elt, evt.detail));\n\t\t\t\t\t\t}\n\t\t\t\t\t});\n\n\t\t\t\t\tdocument.body.addEventListener('htmx:responseError', function (evt) {\n\t\t\t\t\t\tconst xhr = evt.detail && evt.detail.xhr;\n\t\t\t\t\t\tconst hasToast = xhr && xhr.getResponseHeader && xhr.getResponseHeader('HX-Trigger');\n\t\t\t\t\t\tif (!hasToast) {\n\t\t\t\t\t\t\tconst status = xhr ? xhr.status : 0;\n\t\t\t\t\t\t\twindow.dispatchEvent(new CustomEvent('showToast', {\n\t\t\t\t\t\t\t\tdetail: { level: 'error', message: 'Request failed (HTTP ' + status + '). Please try again.' }\n\t\t\t\t\t\t\t}));\n\t\t\t\t\t\t}\n\t\t\t\t\t});\n\n\t\t\t\t\tdocument.body.addEventListener('htmx:sendError', function () {\n\t\t\t\t\t\twindow.dispatchEvent(new CustomEvent('showToast', {\n\t\t\t\t\t\t\tdetail: { level: 'error', message: 'Network error — unable to reach server.' }\n\t\t\t\t\t\t}));\n\t\t\t\t\t});\n\t\t\t\t})();\n\t\t\t</script></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

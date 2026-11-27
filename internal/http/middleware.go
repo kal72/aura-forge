@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"aura-forge/internal/domain"
 	"aura-forge/internal/service"
@@ -106,10 +107,11 @@ func SecurityHeadersMiddleware(next http.Handler) http.Handler {
 
 // TriggerToast sets an HX-Trigger header so Alpine.js displays a toast notification on HTMX responses.
 func TriggerToast(w http.ResponseWriter, level, message string) {
+	cleanMsg := strings.Join(strings.Fields(message), " ")
 	payload := map[string]any{
 		"showToast": map[string]string{
 			"level":   level,
-			"message": message,
+			"message": cleanMsg,
 		},
 	}
 	if b, err := json.Marshal(payload); err == nil {
