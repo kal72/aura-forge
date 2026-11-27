@@ -8,6 +8,8 @@ package web
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import "aura-forge/internal/i18n"
+
 func LoginPage(errMsg string, username string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -29,69 +31,240 @@ func LoginPage(errMsg string, username string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta name=\"theme-color\" content=\"#0d1021\"><link rel=\"icon\" type=\"image/svg+xml\" href=\"/static/favicon.svg\"><title>Login — aura-forge // EVE Market &amp; Industry Copilot</title><style>\n\t\t\t\thtml, body {\n\t\t\t\t\tbackground-color: #0d1021;\n\t\t\t\t\tbackground-image: linear-gradient(180deg, #0d1021 0%, #171530 62%, #0b0d1a 100%);\n\t\t\t\t\tbackground-attachment: fixed;\n\t\t\t\t\tcolor: #f1f5f9;\n\t\t\t\t\tmargin: 0;\n\t\t\t\t}\n\t\t\t\t[x-cloak] { display: none !important; }\n\t\t\t</style><link rel=\"stylesheet\" href=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(StaticAssetURL("/static/tailwind.css"))
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.FromContext(ctx))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/login.templ`, Line: 22, Col: 71}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/login.templ`, Line: 7, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"><link rel=\"stylesheet\" href=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" data-af-tz=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(StaticAssetURL("/static/app.css"))
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.TZFromContext(ctx))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/login.templ`, Line: 23, Col: 66}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/login.templ`, Line: 7, Col: 74}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"><script defer src=\"https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js\"></script></head><body class=\"min-h-screen af-orbital-bg antialiased flex items-center justify-center p-4 sm:p-6 relative overflow-hidden\"><!-- Unified Full-Viewport Orbital Shipyard + Planet Horizon Backdrop --><svg class=\"pointer-events-none fixed inset-0 z-0 h-full w-full select-none\" viewBox=\"0 0 1440 900\" preserveAspectRatio=\"xMidYMax slice\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><!-- Ambient Starfield --><circle cx=\"95\" cy=\"140\" r=\"1.4\" fill=\"#fde68a\" opacity=\"0.75\"></circle> <circle cx=\"240\" cy=\"285\" r=\"1.3\" fill=\"#e9d5ff\" opacity=\"0.75\"></circle> <circle cx=\"380\" cy=\"120\" r=\"1.2\" fill=\"#fde68a\" opacity=\"0.60\"></circle> <circle cx=\"620\" cy=\"78\" r=\"1.1\" fill=\"#e9d5ff\" opacity=\"0.55\"></circle> <circle cx=\"890\" cy=\"162\" r=\"1.5\" fill=\"#fde68a\" opacity=\"0.65\"></circle> <circle cx=\"1120\" cy=\"115\" r=\"1.2\" fill=\"#ffffff\" opacity=\"0.60\"></circle> <circle cx=\"1310\" cy=\"240\" r=\"1.6\" fill=\"#fde68a\" opacity=\"0.70\"></circle> <circle cx=\"1220\" cy=\"540\" r=\"1.3\" fill=\"#c4b5fd\" opacity=\"0.55\"></circle> <circle cx=\"180\" cy=\"610\" r=\"1.2\" fill=\"#ffffff\" opacity=\"0.55\"></circle><!-- Top-Right & Top-Left Distant Orbital Telemetry Arcs --><circle cx=\"1410\" cy=\"30\" r=\"260\" stroke=\"rgba(167,139,250,0.14)\" stroke-width=\"1.2\"></circle> <circle cx=\"1410\" cy=\"30\" r=\"360\" stroke=\"rgba(253,230,138,0.10)\" stroke-width=\"1.1\" stroke-dasharray=\"7 7\"></circle> <circle cx=\"40\" cy=\"60\" r=\"210\" stroke=\"rgba(167,139,250,0.10)\" stroke-width=\"1\" stroke-dasharray=\"5 9\"></circle><!-- Giant Luminous Planet Horizon --><circle cx=\"720\" cy=\"985\" r=\"350\" fill=\"url(#afLoginPlanetGrad)\" opacity=\"0.52\"></circle> <circle cx=\"720\" cy=\"985\" r=\"351\" stroke=\"rgba(196,181,253,0.32)\" stroke-width=\"2\"></circle><!-- Sweeping Gold & Violet Orbital Rings --><ellipse cx=\"720\" cy=\"985\" rx=\"760\" ry=\"120\" transform=\"rotate(-8 720 985)\" stroke=\"#fde68a\" stroke-opacity=\"0.30\" stroke-width=\"1.6\"></ellipse> <ellipse cx=\"720\" cy=\"985\" rx=\"640\" ry=\"92\" transform=\"rotate(-8 720 985)\" stroke=\"#a78bfa\" stroke-opacity=\"0.30\" stroke-width=\"1.1\"></ellipse> <ellipse cx=\"720\" cy=\"985\" rx=\"850\" ry=\"140\" transform=\"rotate(-8 720 985)\" stroke=\"#fde68a\" stroke-opacity=\"0.14\" stroke-width=\"1\" stroke-dasharray=\"6 8\"></ellipse><!-- Upwell-Style Orbital Shipyard Silhouette (Bottom Left) --><g opacity=\"0.52\" stroke=\"#fde68a\" stroke-width=\"1.2\" fill=\"rgba(139,92,246,0.22)\"><path d=\"M128 740 L168 688 L208 740 L188 740 L168 715 L148 740 Z\"></path> <rect x=\"163\" y=\"660\" width=\"10\" height=\"90\" rx=\"1.5\"></rect> <path d=\"M94 722 L242 722 M112 731 L224 731\" stroke-opacity=\"0.72\"></path> <path d=\"M168 644 L168 660\" stroke-opacity=\"0.85\"></path> <circle cx=\"168\" cy=\"700\" r=\"4.5\" fill=\"#fde68a\"></circle></g> <defs><radialGradient id=\"afLoginPlanetGrad\" cx=\"0\" cy=\"0\" r=\"1\" gradientUnits=\"userSpaceOnUse\" gradientTransform=\"translate(650 740) rotate(52) scale(460)\"><stop stop-color=\"#c4b5fd\"></stop> <stop offset=\"0.45\" stop-color=\"#5b21b6\"></stop> <stop offset=\"1\" stop-color=\"#13112b\"></stop></radialGradient></defs></svg><!-- Luxury Industrial Command Access Card --><div class=\"relative z-10 w-full max-w-md\"><!-- Outer Metallic Halo --><div class=\"rounded-2xl p-[1px] bg-gradient-to-b from-amber-300/45 via-violet-400/35 to-violet-900/40 shadow-[0_28px_80px_rgba(4,5,18,0.82)]\"><div class=\"rounded-2xl overflow-hidden bg-[#171631]/90 backdrop-blur-xl\"><!-- Hazard Gold Industrial Top Bar --><div class=\"af-banner-hazard\"></div><!-- Royal Industrial Crest Header --><div class=\"relative px-7 pt-7 pb-6 bg-gradient-to-br from-[#6d28d9]/85 via-[#4c1d95]/85 to-[#22114a]/95 border-b border-amber-300/25\"><div class=\"flex items-center justify-between gap-3\"><div class=\"flex items-center gap-3.5\"><div class=\"flex h-12 w-12 items-center justify-center rounded-xl border border-amber-300/55 bg-white/10 text-amber-200 shadow-[0_0_20px_rgba(251,191,36,0.28)]\"><svg class=\"h-6 w-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"1.8\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 2.5l7.5 4.33v8.66L12 19.82l-7.5-4.33V6.83L12 2.5z\"></path> <circle cx=\"12\" cy=\"11.16\" r=\"2.6\"></circle> <path stroke-linecap=\"round\" d=\"M12 6.5v2M12 13.8v2M7.8 8.8l1.7 1M14.5 12.6l1.7 1M16.2 8.8l-1.7 1M9.5 12.6l-1.7 1\"></path></svg></div><div><div class=\"text-lg font-bold tracking-[0.14em] text-white uppercase leading-tight\">aura-forge</div><div class=\"text-[10px] font-mono tracking-[0.22em] text-amber-200/90 uppercase mt-0.5\">Industrial Corps // Jita-4</div></div></div><span class=\"rounded-md border border-amber-300/40 bg-amber-400/15 px-2.5 py-1 font-mono text-[10px] font-semibold tracking-widest text-amber-200 uppercase\">v2026</span></div><div class=\"mt-4 flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-violet-200/80\"><span class=\"h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse\"></span> <span>Account Sign In</span> <span class=\"text-amber-300/60\">•</span> <span>Internal Access</span></div></div><!-- Login Form Body --><div class=\"px-7 py-6 space-y-5\" x-data=\"{ showPass: false }\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta name=\"theme-color\" content=\"#0d1021\"><link rel=\"icon\" type=\"image/svg+xml\" href=\"/static/favicon.svg\"><title>Login — aura-forge // EVE Market &amp; Industry Copilot</title><style>\n\t\t\t\thtml, body {\n\t\t\t\t\tbackground-color: #0d1021;\n\t\t\t\t\tbackground-image: linear-gradient(180deg, #0d1021 0%, #171530 62%, #0b0d1a 100%);\n\t\t\t\t\tbackground-attachment: fixed;\n\t\t\t\t\tcolor: #f1f5f9;\n\t\t\t\t\tmargin: 0;\n\t\t\t\t}\n\t\t\t\t[x-cloak] { display: none !important; }\n\t\t\t</style><link rel=\"stylesheet\" href=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if errMsg != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"flex items-start gap-2.5 rounded-xl border border-rose-400/45 bg-rose-950/55 px-3.5 py-3 text-xs text-rose-200\"><svg class=\"h-4 w-4 shrink-0 text-rose-400 mt-0.5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z\"></path></svg> <span>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var4 string
-			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/login.templ`, Line: 122, Col: 23}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</span></div>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(StaticAssetURL("/static/tailwind.css"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/login.templ`, Line: 24, Col: 71}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<form method=\"POST\" action=\"/login\" class=\"space-y-4\"><div><label for=\"username\" class=\"block text-[11px] font-mono font-semibold uppercase tracking-widest text-violet-200/85 mb-1.5\">Username</label><div class=\"relative\"><input id=\"username\" name=\"username\" type=\"text\" value=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\"><link rel=\"stylesheet\" href=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(username)
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(StaticAssetURL("/static/app.css"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/login.templ`, Line: 136, Col: 27}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/login.templ`, Line: 25, Col: 66}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" required autofocus autocomplete=\"username\" placeholder=\"Enter username...\" class=\"w-full rounded-xl border border-violet-400/30 bg-[#0d0f22]/85 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none focus:ring-2 focus:ring-amber-300/20 transition\"></div></div><div><label for=\"password\" class=\"block text-[11px] font-mono font-semibold uppercase tracking-widest text-violet-200/85 mb-1.5\">Password</label><div class=\"relative\"><input id=\"password\" name=\"password\" :type=\"showPass ? &#39;text&#39; : &#39;password&#39;\" required autocomplete=\"current-password\" placeholder=\"Enter password...\" class=\"w-full rounded-xl border border-violet-400/30 bg-[#0d0f22]/85 px-4 py-2.5 pr-11 text-sm text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none focus:ring-2 focus:ring-amber-300/20 transition\"> <button type=\"button\" @click=\"showPass = !showPass\" class=\"absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400 hover:text-amber-200 transition cursor-pointer\" aria-label=\"Toggle Password Visibility\"><svg x-cloak x-show=\"!showPass\" class=\"h-4 w-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M15 12a3 3 0 11-6 0 3 3 0 016 0z\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z\"></path></svg> <svg x-cloak x-show=\"showPass\" class=\"h-4 w-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21\"></path></svg></button></div></div><button type=\"submit\" class=\"mt-2 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 px-4 py-3 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-950 shadow-[0_8px_28px_rgba(251,191,36,0.28)] hover:brightness-105 active:scale-[0.99] transition cursor-pointer\"><span>Sign In</span> <svg class=\"h-4 w-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2.2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M13 7l5 5m0 0l-5 5m5-5H6\"></path></svg></button></form><!-- Restricted Access & Post-Login EVE SSO Notice --><div class=\"pt-4 border-t border-violet-400/20 space-y-2 text-[11px] text-slate-300/80\"><div class=\"flex items-start gap-2\"><svg class=\"h-4 w-4 shrink-0 text-amber-300/80 mt-0.5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z\"></path></svg> <span>Closed access — no public registration. Contact an <strong>Administrator</strong> to create an account.</span></div><div class=\"flex items-start gap-2 text-violet-200/70\"><svg class=\"h-4 w-4 shrink-0 text-violet-300 mt-0.5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M13 10V3L4 14h7v7l9-11h-7z\"></path></svg> <span>Optional <strong>EVE Online SSO</strong> integration is available inside the dashboard after sign in.</span></div></div></div></div></div><div class=\"mt-4 text-center font-mono text-[10px] tracking-[0.22em] text-violet-300/55 uppercase\">IND-FORGE // NEW EDEN MARKET &amp; INDUSTRY COPILOT</div></div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"><script defer src=\"https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js\"></script></head><body class=\"min-h-screen af-orbital-bg antialiased flex items-center justify-center p-4 sm:p-6 relative overflow-hidden\"><!-- Unified Full-Viewport Orbital Shipyard + Planet Horizon Backdrop --><svg class=\"pointer-events-none fixed inset-0 z-0 h-full w-full select-none\" viewBox=\"0 0 1440 900\" preserveAspectRatio=\"xMidYMax slice\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><!-- Ambient Starfield --><circle cx=\"95\" cy=\"140\" r=\"1.4\" fill=\"#fde68a\" opacity=\"0.75\"></circle> <circle cx=\"240\" cy=\"285\" r=\"1.3\" fill=\"#e9d5ff\" opacity=\"0.75\"></circle> <circle cx=\"380\" cy=\"120\" r=\"1.2\" fill=\"#fde68a\" opacity=\"0.60\"></circle> <circle cx=\"620\" cy=\"78\" r=\"1.1\" fill=\"#e9d5ff\" opacity=\"0.55\"></circle> <circle cx=\"890\" cy=\"162\" r=\"1.5\" fill=\"#fde68a\" opacity=\"0.65\"></circle> <circle cx=\"1120\" cy=\"115\" r=\"1.2\" fill=\"#ffffff\" opacity=\"0.60\"></circle> <circle cx=\"1310\" cy=\"240\" r=\"1.6\" fill=\"#fde68a\" opacity=\"0.70\"></circle> <circle cx=\"1220\" cy=\"540\" r=\"1.3\" fill=\"#c4b5fd\" opacity=\"0.55\"></circle> <circle cx=\"180\" cy=\"610\" r=\"1.2\" fill=\"#ffffff\" opacity=\"0.55\"></circle><!-- Top-Right & Top-Left Distant Orbital Telemetry Arcs --><circle cx=\"1410\" cy=\"30\" r=\"260\" stroke=\"rgba(167,139,250,0.14)\" stroke-width=\"1.2\"></circle> <circle cx=\"1410\" cy=\"30\" r=\"360\" stroke=\"rgba(253,230,138,0.10)\" stroke-width=\"1.1\" stroke-dasharray=\"7 7\"></circle> <circle cx=\"40\" cy=\"60\" r=\"210\" stroke=\"rgba(167,139,250,0.10)\" stroke-width=\"1\" stroke-dasharray=\"5 9\"></circle><!-- Giant Luminous Planet Horizon --><circle cx=\"720\" cy=\"985\" r=\"350\" fill=\"url(#afLoginPlanetGrad)\" opacity=\"0.52\"></circle> <circle cx=\"720\" cy=\"985\" r=\"351\" stroke=\"rgba(196,181,253,0.32)\" stroke-width=\"2\"></circle><!-- Sweeping Gold & Violet Orbital Rings --><ellipse cx=\"720\" cy=\"985\" rx=\"760\" ry=\"120\" transform=\"rotate(-8 720 985)\" stroke=\"#fde68a\" stroke-opacity=\"0.30\" stroke-width=\"1.6\"></ellipse> <ellipse cx=\"720\" cy=\"985\" rx=\"640\" ry=\"92\" transform=\"rotate(-8 720 985)\" stroke=\"#a78bfa\" stroke-opacity=\"0.30\" stroke-width=\"1.1\"></ellipse> <ellipse cx=\"720\" cy=\"985\" rx=\"850\" ry=\"140\" transform=\"rotate(-8 720 985)\" stroke=\"#fde68a\" stroke-opacity=\"0.14\" stroke-width=\"1\" stroke-dasharray=\"6 8\"></ellipse><!-- Upwell-Style Orbital Shipyard Silhouette (Bottom Left) --><g opacity=\"0.52\" stroke=\"#fde68a\" stroke-width=\"1.2\" fill=\"rgba(139,92,246,0.22)\"><path d=\"M128 740 L168 688 L208 740 L188 740 L168 715 L148 740 Z\"></path> <rect x=\"163\" y=\"660\" width=\"10\" height=\"90\" rx=\"1.5\"></rect> <path d=\"M94 722 L242 722 M112 731 L224 731\" stroke-opacity=\"0.72\"></path> <path d=\"M168 644 L168 660\" stroke-opacity=\"0.85\"></path> <circle cx=\"168\" cy=\"700\" r=\"4.5\" fill=\"#fde68a\"></circle></g> <defs><radialGradient id=\"afLoginPlanetGrad\" cx=\"0\" cy=\"0\" r=\"1\" gradientUnits=\"userSpaceOnUse\" gradientTransform=\"translate(650 740) rotate(52) scale(460)\"><stop stop-color=\"#c4b5fd\"></stop> <stop offset=\"0.45\" stop-color=\"#5b21b6\"></stop> <stop offset=\"1\" stop-color=\"#13112b\"></stop></radialGradient></defs></svg><!-- Luxury Industrial Command Access Card --><div class=\"relative z-10 w-full max-w-md\"><!-- Outer Metallic Halo --><div class=\"rounded-2xl p-[1px] bg-gradient-to-b from-amber-300/45 via-violet-400/35 to-violet-900/40 shadow-[0_28px_80px_rgba(4,5,18,0.82)]\"><div class=\"rounded-2xl overflow-hidden bg-[#171631]/90 backdrop-blur-xl\"><!-- Hazard Gold Industrial Top Bar --><div class=\"af-banner-hazard\"></div><!-- Royal Industrial Crest Header --><div class=\"relative px-7 pt-7 pb-6 bg-gradient-to-br from-[#6d28d9]/85 via-[#4c1d95]/85 to-[#22114a]/95 border-b border-amber-300/25\"><div class=\"flex items-center justify-between gap-3\"><div class=\"flex items-center gap-3.5\"><div class=\"flex h-12 w-12 items-center justify-center rounded-xl border border-amber-300/55 bg-white/10 text-amber-200 shadow-[0_0_20px_rgba(251,191,36,0.28)]\"><svg class=\"h-6 w-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"1.8\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 2.5l7.5 4.33v8.66L12 19.82l-7.5-4.33V6.83L12 2.5z\"></path> <circle cx=\"12\" cy=\"11.16\" r=\"2.6\"></circle> <path stroke-linecap=\"round\" d=\"M12 6.5v2M12 13.8v2M7.8 8.8l1.7 1M14.5 12.6l1.7 1M16.2 8.8l-1.7 1M9.5 12.6l-1.7 1\"></path></svg></div><div><div class=\"text-lg font-bold tracking-[0.14em] text-white uppercase leading-tight\">aura-forge</div><div class=\"text-[10px] font-mono tracking-[0.22em] text-amber-200/90 uppercase mt-0.5\">Industrial Corps // Jita-4</div></div></div><div class=\"flex items-center gap-1.5\"><div class=\"inline-flex items-center rounded-md border border-amber-300/35 bg-slate-950/45 p-0.5 font-mono text-[10px] font-bold\"><form method=\"POST\" action=\"/lang\" class=\"inline\"><input type=\"hidden\" name=\"lang\" value=\"en\"> <input type=\"hidden\" name=\"next\" value=\"/login\"> ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var6 = []any{"rounded px-1.5 py-0.5 cursor-pointer " + func() string {
+			if !i18n.IsID(ctx) {
+				return "bg-amber-400/25 text-amber-200"
+			}
+			return "text-slate-300 hover:text-white"
+		}()}
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var6...)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<button type=\"submit\" class=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var7 string
+		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var6).String())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/login.templ`, Line: 1, Col: 0}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\">EN</button></form><form method=\"POST\" action=\"/lang\" class=\"inline\"><input type=\"hidden\" name=\"lang\" value=\"id\"> <input type=\"hidden\" name=\"next\" value=\"/login\"> ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var8 = []any{"rounded px-1.5 py-0.5 cursor-pointer " + func() string {
+			if i18n.IsID(ctx) {
+				return "bg-amber-400/25 text-amber-200"
+			}
+			return "text-slate-300 hover:text-white"
+		}()}
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var8...)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<button type=\"submit\" class=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var9 string
+		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var8).String())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/login.templ`, Line: 1, Col: 0}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\">ID</button></form></div></div></div><div class=\"mt-4 flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-violet-200/80\"><span class=\"h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse\"></span> <span>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var10 string
+		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Account Sign In", "Masuk Akun"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/login.templ`, Line: 122, Col: 60}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</span> <span class=\"text-amber-300/60\">•</span> <span>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var11 string
+		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Internal Access", "Akses Internal"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/login.templ`, Line: 124, Col: 64}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</span></div></div><!-- Login Form Body --><div class=\"px-7 py-6 space-y-5\" x-data=\"{ showPass: false }\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if errMsg != "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"flex items-start gap-2.5 rounded-xl border border-rose-400/45 bg-rose-950/55 px-3.5 py-3 text-xs text-rose-200\"><svg class=\"h-4 w-4 shrink-0 text-rose-400 mt-0.5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z\"></path></svg> <span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var12 string
+			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/login.templ`, Line: 135, Col: 23}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<form method=\"POST\" action=\"/login\" class=\"space-y-4\"><div><label for=\"username\" class=\"block text-[11px] font-mono font-semibold uppercase tracking-widest text-violet-200/85 mb-1.5\">Username</label><div class=\"relative\"><input id=\"username\" name=\"username\" type=\"text\" value=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var13 string
+		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(username)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/login.templ`, Line: 149, Col: 27}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" required autofocus autocomplete=\"username\" placeholder=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var14 string
+		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Enter username...", "Masukkan username..."))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/login.templ`, Line: 153, Col: 81}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" class=\"w-full rounded-xl border border-violet-400/30 bg-[#0d0f22]/85 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none focus:ring-2 focus:ring-amber-300/20 transition\"></div></div><div><label for=\"password\" class=\"block text-[11px] font-mono font-semibold uppercase tracking-widest text-violet-200/85 mb-1.5\">Password</label><div class=\"relative\"><input id=\"password\" name=\"password\" :type=\"showPass ? &#39;text&#39; : &#39;password&#39;\" required autocomplete=\"current-password\" placeholder=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var15 string
+		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Enter password...", "Masukkan password..."))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/login.templ`, Line: 170, Col: 81}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" class=\"w-full rounded-xl border border-violet-400/30 bg-[#0d0f22]/85 px-4 py-2.5 pr-11 text-sm text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none focus:ring-2 focus:ring-amber-300/20 transition\"> <button type=\"button\" @click=\"showPass = !showPass\" class=\"absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400 hover:text-amber-200 transition cursor-pointer\" aria-label=\"Toggle Password Visibility\"><svg x-cloak x-show=\"!showPass\" class=\"h-4 w-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M15 12a3 3 0 11-6 0 3 3 0 016 0z\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z\"></path></svg> <svg x-cloak x-show=\"showPass\" class=\"h-4 w-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21\"></path></svg></button></div></div><button type=\"submit\" class=\"mt-2 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 px-4 py-3 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-950 shadow-[0_8px_28px_rgba(251,191,36,0.28)] hover:brightness-105 active:scale-[0.99] transition cursor-pointer\"><span>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var16 string
+		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Sign In", "Masuk"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/login.templ`, Line: 194, Col: 48}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</span> <svg class=\"h-4 w-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2.2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M13 7l5 5m0 0l-5 5m5-5H6\"></path></svg></button></form><!-- Restricted Access & Post-Login EVE SSO Notice --><div class=\"pt-4 border-t border-violet-400/20 space-y-2 text-[11px] text-slate-300/80\"><div class=\"flex items-start gap-2\"><svg class=\"h-4 w-4 shrink-0 text-amber-300/80 mt-0.5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z\"></path></svg> <span>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var17 string
+		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Closed access — no public registration. Contact an Administrator to create an account.", "Akses tertutup — tidak ada pendaftaran publik. Hubungi Administrator untuk membuat akun."))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/login.templ`, Line: 207, Col: 214}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</span></div><div class=\"flex items-start gap-2 text-violet-200/70\"><svg class=\"h-4 w-4 shrink-0 text-violet-300 mt-0.5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M13 10V3L4 14h7v7l9-11h-7z\"></path></svg> <span>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var18 string
+		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Optional EVE Online SSO integration is available inside the dashboard after sign in.", "Integrasi EVE Online SSO bersifat opsional dan tersedia di dalam dashboard setelah masuk."))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/login.templ`, Line: 213, Col: 209}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</span></div></div></div></div></div><div class=\"mt-4 text-center font-mono text-[10px] tracking-[0.22em] text-violet-300/55 uppercase\">IND-FORGE // NEW EDEN MARKET &amp; INDUSTRY COPILOT</div></div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

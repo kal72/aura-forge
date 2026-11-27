@@ -667,9 +667,9 @@ func TrackerPage(mode service.ModeInfo, hub domain.TradeHub, activeTab string, s
 								return templ_7745c5c3_Err
 							}
 							var templ_7745c5c3_Var35 string
-							templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d u flip", b.UnitsOutput))
+							templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d units flip", b.UnitsOutput))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 335, Col: 107}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 335, Col: 111}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 							if templ_7745c5c3_Err != nil {
@@ -685,9 +685,9 @@ func TrackerPage(mode service.ModeInfo, hub domain.TradeHub, activeTab string, s
 								return templ_7745c5c3_Err
 							}
 							var templ_7745c5c3_Var36 string
-							templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%dx run • %d u", b.Runs, b.UnitsOutput))
+							templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%dx run • %d units", b.Runs, b.UnitsOutput))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 337, Col: 122}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker.templ`, Line: 337, Col: 126}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 							if templ_7745c5c3_Err != nil {

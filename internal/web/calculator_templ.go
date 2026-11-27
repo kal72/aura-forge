@@ -1569,7 +1569,7 @@ func BlueprintResultPartial(res *domain.BlueprintCalcResult, errMsg string) temp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 117, "</textarea><div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs font-mono\"><thead class=\"text-[10px] uppercase text-slate-400 border-b border-violet-400/15\"><tr><th class=\"px-3.5 py-2\">Material / Sub-Component</th><th class=\"px-2 py-2 text-right\">Qty</th><th class=\"px-2 py-2 text-right\">BUY Cost</th><th class=\"px-2 py-2 text-right\">MAKE Cost</th><th class=\"px-3.5 py-2 text-right\">Decision</th></tr></thead> <tbody class=\"divide-y divide-violet-400/10\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 117, "</textarea><div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs font-mono\"><thead class=\"text-[10px] uppercase text-slate-400 border-b border-violet-400/15\"><tr><th class=\"px-3.5 py-2\">Material / Sub-Component</th><th class=\"px-2 py-2 text-right\">Quantity</th><th class=\"px-2 py-2 text-right\">BUY Cost</th><th class=\"px-2 py-2 text-right\">MAKE Cost</th><th class=\"px-3.5 py-2 text-right\">Decision</th></tr></thead> <tbody class=\"divide-y divide-violet-400/10\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

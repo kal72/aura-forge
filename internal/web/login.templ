@@ -1,8 +1,10 @@
 package web
 
+import "aura-forge/internal/i18n"
+
 templ LoginPage(errMsg string, username string) {
 	<!DOCTYPE html>
-	<html lang="en">
+	<html lang={ i18n.FromContext(ctx) } data-af-tz={ i18n.TZFromContext(ctx) }>
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -99,16 +101,27 @@ templ LoginPage(errMsg string, username string) {
 										<div class="text-[10px] font-mono tracking-[0.22em] text-amber-200/90 uppercase mt-0.5">Industrial Corps // Jita-4</div>
 									</div>
 								</div>
-								<span class="rounded-md border border-amber-300/40 bg-amber-400/15 px-2.5 py-1 font-mono text-[10px] font-semibold tracking-widest text-amber-200 uppercase">
-									v2026
-								</span>
+								<div class="flex items-center gap-1.5">
+									<div class="inline-flex items-center rounded-md border border-amber-300/35 bg-slate-950/45 p-0.5 font-mono text-[10px] font-bold">
+										<form method="POST" action="/lang" class="inline">
+											<input type="hidden" name="lang" value="en"/>
+											<input type="hidden" name="next" value="/login"/>
+											<button type="submit" class={ "rounded px-1.5 py-0.5 cursor-pointer " + func() string { if !i18n.IsID(ctx) { return "bg-amber-400/25 text-amber-200" }; return "text-slate-300 hover:text-white" }() }>EN</button>
+										</form>
+										<form method="POST" action="/lang" class="inline">
+											<input type="hidden" name="lang" value="id"/>
+											<input type="hidden" name="next" value="/login"/>
+											<button type="submit" class={ "rounded px-1.5 py-0.5 cursor-pointer " + func() string { if i18n.IsID(ctx) { return "bg-amber-400/25 text-amber-200" }; return "text-slate-300 hover:text-white" }() }>ID</button>
+										</form>
+									</div>
+								</div>
 							</div>
 
 							<div class="mt-4 flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-violet-200/80">
 								<span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-								<span>Account Sign In</span>
+								<span>{ i18n.L(ctx, "Account Sign In", "Masuk Akun") }</span>
 								<span class="text-amber-300/60">•</span>
-								<span>Internal Access</span>
+								<span>{ i18n.L(ctx, "Internal Access", "Akses Internal") }</span>
 							</div>
 						</div>
 
@@ -137,7 +150,7 @@ templ LoginPage(errMsg string, username string) {
 											required
 											autofocus
 											autocomplete="username"
-											placeholder="Enter username..."
+											placeholder={ i18n.L(ctx, "Enter username...", "Masukkan username...") }
 											class="w-full rounded-xl border border-violet-400/30 bg-[#0d0f22]/85 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none focus:ring-2 focus:ring-amber-300/20 transition"
 										/>
 									</div>
@@ -154,7 +167,7 @@ templ LoginPage(errMsg string, username string) {
 											:type="showPass ? 'text' : 'password'"
 											required
 											autocomplete="current-password"
-											placeholder="Enter password..."
+											placeholder={ i18n.L(ctx, "Enter password...", "Masukkan password...") }
 											class="w-full rounded-xl border border-violet-400/30 bg-[#0d0f22]/85 px-4 py-2.5 pr-11 text-sm text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none focus:ring-2 focus:ring-amber-300/20 transition"
 										/>
 										<button
@@ -178,7 +191,7 @@ templ LoginPage(errMsg string, username string) {
 									type="submit"
 									class="mt-2 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 px-4 py-3 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-950 shadow-[0_8px_28px_rgba(251,191,36,0.28)] hover:brightness-105 active:scale-[0.99] transition cursor-pointer"
 								>
-									<span>Sign In</span>
+									<span>{ i18n.L(ctx, "Sign In", "Masuk") }</span>
 									<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
 										<path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
 									</svg>
@@ -191,13 +204,13 @@ templ LoginPage(errMsg string, username string) {
 									<svg class="h-4 w-4 shrink-0 text-amber-300/80 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 										<path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
 									</svg>
-									<span>Closed access — no public registration. Contact an <strong>Administrator</strong> to create an account.</span>
+									<span>{ i18n.L(ctx, "Closed access — no public registration. Contact an Administrator to create an account.", "Akses tertutup — tidak ada pendaftaran publik. Hubungi Administrator untuk membuat akun.") }</span>
 								</div>
 								<div class="flex items-start gap-2 text-violet-200/70">
 									<svg class="h-4 w-4 shrink-0 text-violet-300 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 										<path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
 									</svg>
-									<span>Optional <strong>EVE Online SSO</strong> integration is available inside the dashboard after sign in.</span>
+									<span>{ i18n.L(ctx, "Optional EVE Online SSO integration is available inside the dashboard after sign in.", "Integrasi EVE Online SSO bersifat opsional dan tersedia di dalam dashboard setelah masuk.") }</span>
 								</div>
 							</div>
 						</div>

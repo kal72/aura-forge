@@ -616,7 +616,7 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 											x-model.number="row.qty"
 											min="1"
 											step="1"
-											placeholder="Qty"
+											placeholder="Quantity"
 											class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white"
 										/>
 									</div>
@@ -703,7 +703,7 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 							<input type="number" name="cycle_hours" value="48" min="1" max="336" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white"/>
 						</div>
 						<div>
-							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Est. Daily ISK</label>
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Estimated Daily ISK</label>
 							<input type="number" step="10000" name="est_daily_isk" value="1500000" min="0" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white"/>
 						</div>
 						<div class="sm:col-span-3 flex justify-end gap-2">
@@ -728,7 +728,7 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 										<th class="px-4 py-3">Type</th>
 										<th class="px-4 py-3">Product</th>
 										<th class="px-4 py-3">Extractor Status</th>
-										<th class="px-4 py-3 text-right">Est. Daily ISK</th>
+										<th class="px-4 py-3 text-right">Estimated Daily ISK</th>
 										<th class="px-4 py-3 text-right">Actions</th>
 									</tr>
 								</thead>
@@ -1171,7 +1171,7 @@ templ PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) {
 						<div class="text-[10px] font-mono text-slate-400">Margin: { FormatPercent(tree.NetMarginPercent) }</div>
 					</div>
 					<div class="tactical-panel rounded-xl p-3.5">
-						<div class="text-[10px] font-mono uppercase text-sky-300/80">Est. Monthly (1 Factory)</div>
+						<div class="text-[10px] font-mono uppercase text-sky-300/80">Estimated Monthly (1 Factory)</div>
 						<div class={ "mt-1 text-base font-mono font-bold " + profitColor(tree.EstMonthlyISK) }>{ FormatISK(tree.EstMonthlyISK) }</div>
 						<div class="text-[10px] font-mono text-slate-400">Daily: { FormatISK(tree.EstDailyISK) }</div>
 					</div>
@@ -1228,7 +1228,7 @@ templ PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) {
 								<thead class="bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15">
 									<tr>
 										<th class="px-4 py-2">Raw P0 Resource</th>
-										<th class="px-4 py-2 text-right">Total Qty / Cycle</th>
+										<th class="px-4 py-2 text-right">Total Quantity / Cycle</th>
 										<th class="px-4 py-2">Found On Planet Types</th>
 									</tr>
 								</thead>
@@ -1281,7 +1281,7 @@ templ PIScanPartial(rows []domain.PIProfitRow, tier string, hub domain.TradeHub,
 							<th class="px-4 py-3 text-right">Input + POCO</th>
 							<th class="px-4 py-3 text-right">Net Profit / Cycle</th>
 							<th class="px-4 py-3 text-right">Margin</th>
-							<th class="px-4 py-3 text-right">Est. Monthly (1 Factory)</th>
+							<th class="px-4 py-3 text-right">Estimated Monthly (1 Factory)</th>
 							<th class="px-4 py-3">Verdict</th>
 							<th class="px-4 py-3 text-right">Tree</th>
 						</tr>
@@ -1391,7 +1391,7 @@ templ PISalesCalcPartial(res *domain.PISalesCalcResult, unmatched []string, errM
 						<thead class="bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15">
 							<tr>
 								<th class="px-4 py-3">PI Item</th>
-								<th class="px-3 py-3 text-right">Qty</th>
+								<th class="px-3 py-3 text-right">Quantity</th>
 								<th class="px-3 py-3 text-right">Unit Price</th>
 								<th class="px-3 py-3 text-right">Gross Revenue</th>
 								if res.Options.CostMode == "buy_inputs" {

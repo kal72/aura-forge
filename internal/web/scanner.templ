@@ -386,7 +386,7 @@ templ ScannerPage(mode service.ModeInfo, settings domain.UserSettings) {
 					<div class="flex flex-wrap items-center justify-between gap-2">
 						<div>
 							<h2 class="text-sm font-bold uppercase tracking-wider text-emerald-300">Inter-Hub Hauling &amp; Arbitrage Scanner</h2>
-							<p class="text-xs text-slate-300/80 mt-0.5">Compares ~30 compact high-demand items in parallel across hubs, calculating <strong>Max Trip Units</strong>, <strong>Est. Profit / Trip</strong>, freight ({ FormatISK(settings.FreightCostPerM3) }/m³), and <strong>High-Sec Gank-Safe (&le;200M ISK)</strong> warnings.</p>
+							<p class="text-xs text-slate-300/80 mt-0.5">Compares ~30 compact high-demand items in parallel across hubs, calculating <strong>Max Trip Units</strong>, <strong>Estimated Profit / Trip</strong>, freight ({ FormatISK(settings.FreightCostPerM3) }/m³), and <strong>High-Sec Gank-Safe (&le;200M ISK)</strong> warnings.</p>
 						</div>
 					</div>
 
@@ -654,7 +654,7 @@ templ ScannerStationTradingPartial(results []domain.StationTradeOpportunity, err
 							<th class="px-3 py-3 text-right">Rec. Sell Order</th>
 							<th class="px-3 py-3 text-right">Net Profit / Unit</th>
 							<th class="px-3 py-3 text-right">Net Margin</th>
-							<th class="px-3 py-3 text-right">Est. Daily Flip</th>
+							<th class="px-3 py-3 text-right">Estimated Daily Flip</th>
 							<th class="px-3 py-3">Verdict</th>
 							<th class="px-4 py-3 text-right">Action</th>
 						</tr>
@@ -727,7 +727,7 @@ templ ScannerArbitragePartial(results []domain.ArbitrageOpportunity, errMsg stri
 							<th class="px-3 py-3 text-right">Origin → Dest Sell</th>
 							<th class="px-3 py-3 text-right">Net / Unit &amp; Margin</th>
 							<th class="px-3 py-3 text-right">Trip Size (Units / m³)</th>
-							<th class="px-3 py-3 text-right">Est. Profit / Trip</th>
+							<th class="px-3 py-3 text-right">Estimated Profit / Trip</th>
 							<th class="px-3 py-3">Verdict &amp; Safety</th>
 							<th class="px-4 py-3 text-right">Action</th>
 						</tr>
@@ -761,7 +761,7 @@ templ ScannerArbitragePartial(results []domain.ArbitrageOpportunity, errMsg stri
 									<div class={ "text-[10px] " + profitColor(r.NetMarginPct) }>{ FormatPercent(r.NetMarginPct) } (Haul { FormatISK(r.HaulCostPerUnit) })</div>
 								</td>
 								<td class="px-3 py-3 text-right whitespace-nowrap">
-									<div class="text-white font-semibold">{ fmt.Sprintf("%d u", r.MaxTripUnits) }</div>
+									<div class="text-white font-semibold">{ fmt.Sprintf("%d units", r.MaxTripUnits) }</div>
 									<div class="text-[10px] text-slate-400">{ fmt.Sprintf("%.1f m³ • %s", r.TripCargoM3, FormatISK(r.TripCapitalRequired)) }</div>
 								</td>
 								<td class={ "px-3 py-3 text-right font-bold whitespace-nowrap " + profitColor(r.EstProfitPerTrip) }>
@@ -819,7 +819,7 @@ templ ScannerStockoutsPartial(results []domain.StockoutOpportunity, errMsg strin
 							<th class="px-3 py-3 text-right">Competitors</th>
 							<th class="px-3 py-3 text-right">7d Regional Vol</th>
 							<th class="px-3 py-3 text-right">Hub Sell vs Jita</th>
-							<th class="px-3 py-3 text-right">Est. Daily Market</th>
+							<th class="px-3 py-3 text-right">Estimated Daily Market</th>
 							<th class="px-4 py-3 text-right">Action</th>
 						</tr>
 					</thead>

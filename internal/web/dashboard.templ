@@ -395,7 +395,7 @@ templ DashboardPage(data *service.DashboardSummary) {
 								<div class="text-[11px] font-mono uppercase text-emerald-400">Active Weekly Plan</div>
 								<div class="mt-1 font-semibold text-white">{ data.ActivePlan.Title }</div>
 								<div class="mt-1 text-xs text-slate-300">
-									Est. Profit: <span class="font-mono text-emerald-300">{ FormatISK(data.ActivePlan.TotalEstimatedProfit) }</span>
+									Estimated Profit: <span class="font-mono text-emerald-300">{ FormatISK(data.ActivePlan.TotalEstimatedProfit) }</span>
 									({ FormatPercent(data.ActivePlan.ProjectedROI) } ROI)
 								</div>
 								<a href="/planner" class="mt-2 inline-block text-xs font-semibold text-sky-300 hover:underline">Open Day 1–7 Schedule &amp; Shopping List →</a>
@@ -451,7 +451,7 @@ templ DashboardPage(data *service.DashboardSummary) {
 							<div x-show="esiHint" x-text="esiHint" class="mt-1 text-[11px] font-mono text-emerald-300"></div>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Output Qty / Batch</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">Output Quantity / Batch</label>
 							<input type="number" name="output_qty" value="500" min="1" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none"/>
 						</div>
 						<div>
@@ -571,7 +571,7 @@ templ MineralTickerPartial(pulse service.MarketPulseResponse) {
 						<div>
 							<div class="text-[9.5px] font-mono uppercase text-slate-400">
 								if m.IsGlobalMover && !m.IsLive {
-									Global Avg
+									Global Average
 								} else {
 									Lowest Sell
 								}
@@ -740,7 +740,7 @@ templ DashboardRadarPartial(snap service.RadarSnapshot) {
 												}
 											</div>
 											<div class="font-mono text-[9.5px] text-slate-400">
-												{ fmt.Sprintf("%s • %dx runs (%d u) • %s", r.Category, r.Runs, r.OutputQty, r.DurationFormatted) }
+												{ fmt.Sprintf("%s • %dx runs (%d units) • %s", r.Category, r.Runs, r.OutputQty, r.DurationFormatted) }
 												if r.RunSizingReason != "" {
 													<span class="text-amber-300/85"> • { r.RunSizingReason }</span>
 												}

@@ -166,9 +166,9 @@ func TrackerLedgerTab(mode service.ModeInfo, hub domain.TradeHub, ledger *servic
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var8 string
-			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d BUY tx • %s", ledger.Report.TotalBuyCount, periodLabel(ledger.PeriodDays)))
+			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d BUY orders • %s", ledger.Report.TotalBuyCount, periodLabel(ledger.PeriodDays)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker_ledger.templ`, Line: 67, Col: 146}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker_ledger.templ`, Line: 67, Col: 150}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -192,9 +192,9 @@ func TrackerLedgerTab(mode service.ModeInfo, hub domain.TradeHub, ledger *servic
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var10 string
-			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d SELL tx • %s", ledger.Report.TotalSellCount, periodLabel(ledger.PeriodDays)))
+			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d SELL orders • %s", ledger.Report.TotalSellCount, periodLabel(ledger.PeriodDays)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker_ledger.templ`, Line: 72, Col: 148}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker_ledger.templ`, Line: 72, Col: 152}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -271,14 +271,14 @@ func TrackerLedgerTab(mode service.ModeInfo, hub domain.TradeHub, ledger *servic
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<span>Est. Fees (")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<span>Estimated Fees (")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var16 string
 				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(ledger.Report.FeeLeak.FeeToSalesPct))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker_ledger.templ`, Line: 86, Col: 76}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/tracker_ledger.templ`, Line: 86, Col: 81}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 				if templ_7745c5c3_Err != nil {
@@ -508,7 +508,7 @@ func TrackerLedgerTab(mode service.ModeInfo, hub domain.TradeHub, ledger *servic
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs\"><thead class=\"border-b border-violet-400/20 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400\"><tr><th class=\"px-3 py-3 w-8\"><input type=\"checkbox\" title=\"Select all visible transactions\" @change=\"toggleAll($event.target.checked)\" class=\"rounded border-slate-600 bg-slate-950 text-amber-400 cursor-pointer\"></th><th class=\"px-3 py-3\">Date (UTC)</th><th class=\"px-3 py-3\">Side</th><th class=\"px-3 py-3\">Item</th><th class=\"px-3 py-3 text-right\">Qty</th><th class=\"px-3 py-3 text-right\">Unit Price</th><th class=\"px-3 py-3 text-right\">Total ISK</th><th class=\"px-3 py-3\">Hub / Source</th><th class=\"px-4 py-3 text-right\">Action</th></tr></thead> <tbody class=\"divide-y divide-slate-800/80\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs\"><thead class=\"border-b border-violet-400/20 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400\"><tr><th class=\"px-3 py-3 w-8\"><input type=\"checkbox\" title=\"Select all visible transactions\" @change=\"toggleAll($event.target.checked)\" class=\"rounded border-slate-600 bg-slate-950 text-amber-400 cursor-pointer\"></th><th class=\"px-3 py-3\">Date (UTC)</th><th class=\"px-3 py-3\">Side</th><th class=\"px-3 py-3\">Item</th><th class=\"px-3 py-3 text-right\">Quantity</th><th class=\"px-3 py-3 text-right\">Unit Price</th><th class=\"px-3 py-3 text-right\">Total ISK</th><th class=\"px-3 py-3\">Hub / Source</th><th class=\"px-4 py-3 text-right\">Action</th></tr></thead> <tbody class=\"divide-y divide-slate-800/80\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

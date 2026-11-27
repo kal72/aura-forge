@@ -6,7 +6,7 @@
 - **Beginner-First Decision Support:** Every new feature must guide concrete decisions (protecting against capital lock-up, slow movers, unprofitable undercuts, and hidden tax/relist fees) with clear, beginner-friendly guidance.
 
 ## 2. Language Convention
-- **English for All Project Writing:** All written project artifacts — including code, comments, UI copy/labels, validation/error/toast messages, documentation (`README.md`, `docs/`, `AGENTS.md`), SQL migrations, and commit messages — MUST be written in **English**.
+- **English for Code & Docs; Bilingual EN/ID for UI:** All code, comments, documentation (`README.md`, `docs/`, `AGENTS.md`), SQL migrations, and commit messages MUST be written in **English**. User-facing UI copy supports **bilingual EN (default) & ID** via `internal/i18n` (`af_lang` cookie), while keeping **sidebar navigation menus** and **EVE Online in-game terms** (`Sell Order`, `Buy Order`, `Blueprint`, `Runs`, `Broker Fee`, `Sales Tax`, `Margin`, `ISK`, `ME`, `TE`, `BPO`, `BPC`, `SCI`, `ROI`, `PI`, `LP`, `ESI`, `SDE`, `T1/T2/T3`, `m³`) untranslated in English. Avoid short cryptic abbreviations (`u`, `tx`, `Qty`, `Est.`, `Avg`, `Calc`) — spell out full words (`units`, `orders`, `Quantity`, `Estimated`, `Average`, `Calculate`) whenever they are concise.
 - **Indonesian for AI-to-User Communication & Plans:** Direct AI-to-user conversation in chat AND all AI-generated review artifacts presented to the user (including implementation plans, learning proposals, and walkthroughs) MUST be written in **Indonesian**.
 
 ## 3. Product, Auth & ESI Guardrails

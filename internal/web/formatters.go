@@ -1,11 +1,14 @@
 package web
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"strings"
+	"time"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 )
 
 // FormatISK formats an ISK value into compact human-readable form (e.g. 125.50M ISK, 450.0K ISK, 1.25B ISK).
@@ -50,16 +53,34 @@ func FormatISKExact(val float64) string {
 	return fmt.Sprintf("%s%s.%02d ISK", sign, strings.Join(parts, ","), frac)
 }
 
-// FormatVolume formats daily sales volume concisely.
+// FormatVolume formats daily sales volume clearly without cryptic abbreviations.
 func FormatVolume(val float64) string {
 	switch {
 	case val >= 1_000_000:
-		return fmt.Sprintf("%.2fM/day", val/1_000_000)
+		return fmt.Sprintf("%.2fM units/day", val/1_000_000)
 	case val >= 1_000:
-		return fmt.Sprintf("%.1fK/day", val/1_000)
+		return fmt.Sprintf("%.1fK units/day", val/1_000)
 	default:
-		return fmt.Sprintf("%.0f/day", val)
+		return fmt.Sprintf("%.0f units/day", val)
 	}
+}
+
+// FormatVolumeCtx formats daily sales volume according to the active UI language (units/day or unit/hari).
+func FormatVolumeCtx(ctx context.Context, val float64) string {
+	unitSuffix := i18n.L(ctx, "units/day", "unit/hari")
+	switch {
+	case val >= 1_000_000:
+		return fmt.Sprintf("%.2fM %s", val/1_000_000, unitSuffix)
+	case val >= 1_000:
+		return fmt.Sprintf("%.1fK %s", val/1_000, unitSuffix)
+	default:
+		return fmt.Sprintf("%.0f %s", val, unitSuffix)
+	}
+}
+
+// FormatTimeCtx formats a timestamp in the user's selected timezone (UTC+7 or EVE UTC).
+func FormatTimeCtx(ctx context.Context, t time.Time, layout string) string {
+	return i18n.FormatTime(ctx, t, layout)
 }
 
 // FormatPercent formats percentage with 2 decimal places.

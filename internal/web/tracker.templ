@@ -332,9 +332,9 @@ templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, activeTab string, 
 															{ string(b.Status) }
 														</span>
 														if entryType == domain.BatchEntryTrade {
-															<span class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%d u flip", b.UnitsOutput) }</span>
+															<span class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%d units flip", b.UnitsOutput) }</span>
 														} else {
-															<span class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%dx run • %d u", b.Runs, b.UnitsOutput) }</span>
+															<span class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%dx run • %d units", b.Runs, b.UnitsOutput) }</span>
 														}
 													</div>
 												</div>

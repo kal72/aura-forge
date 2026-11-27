@@ -26,6 +26,7 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 	r.Use(middleware.Recoverer)
 	r.Use(SecurityHeadersMiddleware)
 	r.Use(HTMXMiddleware)
+	r.Use(PreferencesMiddleware)
 
 	h := NewHandlers(svc, renderer)
 	ssoAuth := NewAuthHandlers(svc)
@@ -45,6 +46,10 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 
 	// Health check (public)
 	r.Get("/health", h.HandleHealth)
+
+	// UI Language & Timezone Preferences (public so login page can toggle too)
+	r.Post("/lang", h.HandleSetLanguage)
+	r.Post("/timezone", h.HandleSetTimezone)
 
 	// Application Login (public — no self-registration)
 	r.Get("/login", userAuth.HandleLoginPage)

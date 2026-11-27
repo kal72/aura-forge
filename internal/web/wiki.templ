@@ -21,6 +21,17 @@ type wikiEntry struct {
 var eveWikiEntries = []wikiEntry{
 	// 1. UI COLORS & BADGES
 	{
+		Category:   "workflow",
+		Term:       "UI Language (EN | ID) & Timezone (UTC+7 | EVE)",
+		BadgeText:  "EN | ID • UTC+7 | EVE",
+		BadgeClass: "border-amber-300/50 bg-amber-400/15 text-amber-200 font-bold",
+		WhereUsed:  "Topbar (every page) & Login",
+		DescEN:     "Switch the interface language between English (EN, default) and Indonesian (ID), and toggle displayed timestamps between UTC+7 (WIB) and EVE Online Server Time (EVE UTC). Sidebar menus and official EVE Online in-game terms stay in English for consistency.",
+		DescID:     "Ganti bahasa antarmuka antara Inggris (EN, default) dan Indonesia (ID), serta pilih tampilan waktu antara UTC+7 (WIB) dan waktu server EVE Online (EVE UTC). Menu sidebar dan istilah resmi in-game EVE Online tetap berbahasa Inggris agar konsisten.",
+		TipEN:      "Your preferences are saved in browser cookies (af_lang and af_tz) and apply automatically across full pages and live HTMX updates.",
+		TipID:      "Preferensi Anda disimpan di cookie browser (af_lang dan af_tz) dan langsung berlaku di seluruh halaman maupun pembaruan HTMX.",
+	},
+	{
 		Category:   "colors",
 		Term:       "Green Price in Lowest Sell (Multi-Hub Table)",
 		BadgeText:  "12,500 ISK",

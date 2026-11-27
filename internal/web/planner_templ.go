@@ -213,27 +213,27 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</h2><div class=\"text-xs text-slate-400 mt-0.5\">Est. Cost: <span class=\"font-mono text-white\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</h2><div class=\"text-xs text-slate-400 mt-0.5\">Estimated Cost: <span class=\"font-mono text-white\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(data.ActivePlan.TotalEstimatedCost))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 89, Col: 100}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 89, Col: 105}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</span> • Est. Profit: <span class=\"font-mono text-emerald-300\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</span> • Estimated Profit: <span class=\"font-mono text-emerald-300\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(data.ActivePlan.TotalEstimatedProfit))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 90, Col: 110}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 90, Col: 115}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -373,7 +373,7 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, ")</h2><p class=\"text-xs text-slate-400 mt-0.5\">Target items included in this weekly campaign and used to compute the consolidated BOM below.</p></div><a href=\"/allocator\" class=\"text-[11px] font-mono text-sky-300 hover:text-sky-200 transition\">Edit Allocation →</a></div><div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs\"><thead class=\"border-b border-slate-800 font-mono uppercase text-[10px] text-slate-400\"><tr><th class=\"py-2 pr-3\">Item</th><th class=\"py-2 px-3 text-right\">Runs</th><th class=\"py-2 px-3 text-right\">Total Units</th><th class=\"py-2 px-3 text-right\">Est. Cost</th><th class=\"py-2 px-3 text-right\">Est. Net Profit</th><th class=\"py-2 pl-3 text-right\">Build Time</th></tr></thead> <tbody class=\"divide-y divide-slate-800/70 font-mono\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, ")</h2><p class=\"text-xs text-slate-400 mt-0.5\">Target items included in this weekly campaign and used to compute the consolidated BOM below.</p></div><a href=\"/allocator\" class=\"text-[11px] font-mono text-sky-300 hover:text-sky-200 transition\">Edit Allocation →</a></div><div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs\"><thead class=\"border-b border-slate-800 font-mono uppercase text-[10px] text-slate-400\"><tr><th class=\"py-2 pr-3\">Item</th><th class=\"py-2 px-3 text-right\">Runs</th><th class=\"py-2 px-3 text-right\">Total Units</th><th class=\"py-2 px-3 text-right\">Estimated Cost</th><th class=\"py-2 px-3 text-right\">Estimated Net Profit</th><th class=\"py-2 pl-3 text-right\">Build Time</th></tr></thead> <tbody class=\"divide-y divide-slate-800/70 font-mono\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -580,14 +580,14 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</div><p class=\"text-xs text-slate-400 mt-0.5\">Est. Shopping Cost (")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</div><p class=\"text-xs text-slate-400 mt-0.5\">Estimated Shopping Cost (")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var33 string
 			templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(data.Hub.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 216, Col: 42}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 216, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 			if templ_7745c5c3_Err != nil {
@@ -600,7 +600,7 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 			var templ_7745c5c3_Var34 string
 			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(data.ShoppingList.TotalEstimatedCost))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 216, Col: 131}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 216, Col: 136}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 			if templ_7745c5c3_Err != nil {
@@ -655,7 +655,7 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, ")</th><th class=\"py-2 px-3 text-right\">Est. Cost</th><th class=\"py-2 pl-3 text-right\">Volume</th></tr></thead> <tbody class=\"divide-y divide-slate-800/70 font-mono\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, ")</th><th class=\"py-2 px-3 text-right\">Estimated Cost</th><th class=\"py-2 pl-3 text-right\">Volume</th></tr></thead> <tbody class=\"divide-y divide-slate-800/70 font-mono\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

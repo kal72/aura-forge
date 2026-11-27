@@ -574,14 +574,14 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</div><div class=\"mt-1 text-xs text-slate-300\">Est. Profit: <span class=\"font-mono text-emerald-300\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</div><div class=\"mt-1 text-xs text-slate-300\">Estimated Profit: <span class=\"font-mono text-emerald-300\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var30 string
 					templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(data.ActivePlan.TotalEstimatedProfit))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 398, Col: 112}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 398, Col: 117}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 					if templ_7745c5c3_Err != nil {
@@ -691,7 +691,7 @@ func DashboardPage(data *service.DashboardSummary) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, " ESI</button></div><div x-show=\"esiHint\" x-text=\"esiHint\" class=\"mt-1 text-[11px] font-mono text-emerald-300\"></div></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Output Qty / Batch</label> <input type=\"number\" name=\"output_qty\" value=\"500\" min=\"1\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Jita Sell Price / Unit (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"unit_sell_price\" x-model=\"sellPrice\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Material Cost / Batch (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"material_cost\" value=\"4900000\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Extra BPC / Decryptor Cost</label> <input type=\"number\" step=\"0.01\" name=\"extra_setup_cost\" value=\"0\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Target Batches / Week</label> <input type=\"number\" name=\"batches_per_week\" value=\"4\" min=\"1\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div class=\"flex items-end justify-end\"><button type=\"submit\" class=\"w-full rounded-md bg-sky-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer\">Calculate Net Profit &amp; Break-Even</button></div></form><div id=\"quick-calc-result\" class=\"rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-xs text-slate-400\">Click above to compute Net Profit, Jita Taxes, Break-Even Unit Price, and Weekly Projection in real time.</div></div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, " ESI</button></div><div x-show=\"esiHint\" x-text=\"esiHint\" class=\"mt-1 text-[11px] font-mono text-emerald-300\"></div></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Output Quantity / Batch</label> <input type=\"number\" name=\"output_qty\" value=\"500\" min=\"1\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Jita Sell Price / Unit (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"unit_sell_price\" x-model=\"sellPrice\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Material Cost / Batch (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"material_cost\" value=\"4900000\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Extra BPC / Decryptor Cost</label> <input type=\"number\" step=\"0.01\" name=\"extra_setup_cost\" value=\"0\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div><label class=\"block text-[11px] font-mono uppercase text-slate-400\">Target Batches / Week</label> <input type=\"number\" name=\"batches_per_week\" value=\"4\" min=\"1\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none\"></div><div class=\"flex items-end justify-end\"><button type=\"submit\" class=\"w-full rounded-md bg-sky-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer\">Calculate Net Profit &amp; Break-Even</button></div></form><div id=\"quick-calc-result\" class=\"rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-xs text-slate-400\">Click above to compute Net Profit, Jita Taxes, Break-Even Unit Price, and Weekly Projection in real time.</div></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -954,7 +954,7 @@ func MineralTickerPartial(pulse service.MarketPulseResponse) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if m.IsGlobalMover && !m.IsLive {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, "Global Avg")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, "Global Average")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1456,9 +1456,9 @@ func DashboardRadarPartial(snap service.RadarSnapshot) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var74 string
-				templ_7745c5c3_Var74, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%s • %dx runs (%d u) • %s", r.Category, r.Runs, r.OutputQty, r.DurationFormatted))
+				templ_7745c5c3_Var74, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%s • %dx runs (%d units) • %s", r.Category, r.Runs, r.OutputQty, r.DurationFormatted))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 743, Col: 112}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/dashboard.templ`, Line: 743, Col: 116}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var74))
 				if templ_7745c5c3_Err != nil {

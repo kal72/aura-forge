@@ -347,7 +347,7 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 						</select>
 					</div>
 					<div>
-						<label class="block text-[11px] font-mono uppercase text-slate-300">Output Qty / Batch</label>
+						<label class="block text-[11px] font-mono uppercase text-slate-300">Output Quantity / Batch</label>
 						<input type="number" name="batch_output_qty" x-model="batchQty" min="1" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 					</div>
 					<div>
@@ -419,7 +419,7 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 									Use Recommended
 								</button>
 								<button type="button" @click="if (priceIntel && priceIntel.avg_7d > 0) jitaSell = priceIntel.avg_7d" class="rounded-md border border-slate-600 bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-slate-200 hover:border-amber-300/60 cursor-pointer">
-									Use 7d Avg
+									Use 7-Day Average
 								</button>
 								<button type="button" @click="if (priceIntel && priceIntel.lowest_sell > 0) jitaSell = priceIntel.lowest_sell" class="rounded-md border border-slate-600 bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-slate-200 hover:border-amber-300/60 cursor-pointer">
 									Use Lowest Sell
@@ -432,7 +432,7 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 						<input type="number" step="0.01" name="extra_setup_cost" value="0" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 					</div>
 					<div>
-						<label class="block text-[11px] font-mono uppercase text-slate-300">Avg Daily Volume (Units/Day)</label>
+						<label class="block text-[11px] font-mono uppercase text-slate-300">Average Daily Volume (Units/Day)</label>
 						<input type="number" step="1" name="daily_volume" x-model="dailyVol" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 					</div>
 					<div class="flex flex-wrap items-center gap-4 pt-5 text-xs text-slate-300">
@@ -638,7 +638,7 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 							</select>
 						</div>
 						<div>
-							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Batch Output Qty</label>
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Batch Output Quantity</label>
 							<input type="number" name="batch_output_qty" x-model="editItem.batch_output_qty" min="1" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
 						<div>
@@ -655,7 +655,7 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 							<input type="number" step="0.01" name="extra_setup_cost" x-model="editItem.extra_setup_cost" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
 						<div>
-							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Avg Daily Volume</label>
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Average Daily Volume</label>
 							<input type="number" step="0.1" name="daily_volume" x-model="editItem.daily_volume" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
 						<div class="flex flex-col justify-center gap-1.5 pt-2 text-xs text-slate-300">
@@ -695,7 +695,7 @@ templ CatalogTable(hub domain.TradeHub, items []domain.MarketItem) {
 							<th class="px-3 py-3 text-right">{ hub.Name } Sell / Buy</th>
 							<th class="px-3 py-3 text-right">Daily Vol / Batch</th>
 							<th class="px-3 py-3 text-right">Material Cost</th>
-							<th class="px-3 py-3 text-right">Est. Profit / ROI</th>
+							<th class="px-3 py-3 text-right">Estimated Profit / ROI</th>
 							<th class="px-4 py-3">Trap Guard &amp; Copilot Advice</th>
 							<th class="px-4 py-3 text-right">Actions</th>
 						</tr>
@@ -746,7 +746,7 @@ templ CatalogTable(hub domain.TradeHub, items []domain.MarketItem) {
 								<!-- Volume & Batch Qty -->
 								<td class="px-3 py-3 text-right font-mono text-slate-200 whitespace-nowrap">
 									<div>{ FormatVolume(it.DailyVolume) }</div>
-									<div class="text-[10px] text-slate-500">Batch: { fmt.Sprintf("%d u", it.BatchOutputQty) }</div>
+									<div class="text-[10px] text-slate-500">Batch: { fmt.Sprintf("%d units", it.BatchOutputQty) }</div>
 								</td>
 
 								<!-- Material Cost + SDE BOM badge -->
@@ -822,7 +822,7 @@ templ CatalogTable(hub domain.TradeHub, items []domain.MarketItem) {
 											title={ "Open " + it.Name + " in Manufacture & Profit" }
 											class="rounded border border-emerald-400/35 bg-emerald-500/15 px-2 py-1 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-500/30 transition"
 										>
-											Calc
+											Calculate
 										</a>
 										<a
 											href={ templ.SafeURL("/marketplace?hub=" + hub.Key + "&q=" + url.QueryEscape(it.Name)) }
@@ -908,7 +908,7 @@ templ CatalogRecommendationsPartial(res *service.CatalogRecommendResult) {
 										<div class="min-w-0">
 											<div class="truncate text-xs font-bold text-white">{ rec.Name }</div>
 											<div class="text-[10px] font-mono text-slate-400">
-												{ fmt.Sprintf("T%d • %s • %d u/batch", rec.TechLevel, rec.Category, rec.BatchOutputQty) }
+												{ fmt.Sprintf("T%d • %s • %d units/batch", rec.TechLevel, rec.Category, rec.BatchOutputQty) }
 											</div>
 										</div>
 									</div>
@@ -925,7 +925,7 @@ templ CatalogRecommendationsPartial(res *service.CatalogRecommendResult) {
 										<div class="text-slate-200 font-semibold">{ FormatISK(rec.MaterialCost) }</div>
 									</div>
 									<div class="text-right">
-										<div class="text-slate-500">Est. Profit / ROI</div>
+										<div class="text-slate-500">Estimated Profit / ROI</div>
 										<div class={ "font-bold " + catalogProfitClass(rec.NetProfit) }>
 											{ FormatISK(rec.NetProfit) } ({ FormatPercent(rec.ROIPercent) })
 										</div>
@@ -941,7 +941,7 @@ templ CatalogRecommendationsPartial(res *service.CatalogRecommendResult) {
 								</div>
 								if rec.Avg7d > 0 {
 									<div class="text-[9.5px] font-mono text-slate-400">
-										{ fmt.Sprintf("7d: Low %s • Avg %s • High %s", FormatISK(rec.Low7d), FormatISK(rec.Avg7d), FormatISK(rec.High7d)) }
+										{ fmt.Sprintf("7-Day: Low %s • Average %s • High %s", FormatISK(rec.Low7d), FormatISK(rec.Avg7d), FormatISK(rec.High7d)) }
 									</div>
 								}
 							</div>

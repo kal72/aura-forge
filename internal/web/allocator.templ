@@ -191,7 +191,7 @@ templ AllocatorResultPartial(res *domain.AllocationResult, errMsg string) {
 					<div class="mt-1 text-xl font-bold font-mono text-amber-300">{ FormatISK(res.CashBufferISK) }</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase text-slate-400">Est. Cycle Profit</div>
+					<div class="text-[10px] font-mono uppercase text-slate-400">Estimated Cycle Profit</div>
 					<div class="mt-1 text-xl font-bold font-mono text-emerald-300">+{ FormatISK(res.TotalEstimatedProfit) }</div>
 				</div>
 			</div>
@@ -243,7 +243,7 @@ templ AllocatorResultPartial(res *domain.AllocationResult, errMsg string) {
 								<span>Budget: <strong class="text-white">{ FormatISK(b.BudgetISK) }</strong></span>
 								if b.Type != domain.BucketCashBuffer {
 									<span>Used: <strong class="text-sky-300">{ FormatISK(b.UsedISK) }</strong></span>
-									<span>Est. Profit: <strong class="text-emerald-300">+{ FormatISK(b.EstimatedProfit) }</strong></span>
+									<span>Estimated Profit: <strong class="text-emerald-300">+{ FormatISK(b.EstimatedProfit) }</strong></span>
 								}
 							</div>
 							if b.Type != domain.BucketCashBuffer {

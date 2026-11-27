@@ -2,7 +2,6 @@ package web
 
 import (
 	"fmt"
-	"time"
 
 	"aura-forge/internal/domain"
 	"aura-forge/internal/service"
@@ -147,12 +146,8 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 							<div>
 								<div class="text-slate-400 text-[10px] uppercase">Next Scheduled Sync</div>
 								if mode.PriceSync.NextSyncAt != nil {
-									<div
-										class="text-sky-300 font-semibold mt-0.5"
-										data-iso={ mode.PriceSync.NextSyncAt.UTC().Format(time.RFC3339) }
-										x-init="if ($el.dataset.iso) { const d = new Date($el.dataset.iso); if (!isNaN(d)) $el.textContent = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }); }"
-									>
-										{ mode.PriceSync.NextSyncAt.UTC().Format("15:04:05 UTC") }
+									<div class="text-sky-300 font-semibold mt-0.5">
+										{ FormatTimeCtx(ctx, *mode.PriceSync.NextSyncAt, "15:04:05") }
 									</div>
 								} else {
 									<div class="text-slate-400 mt-0.5">—</div>

@@ -64,12 +64,12 @@ templ TrackerLedgerTab(mode service.ModeInfo, hub domain.TradeHub, ledger *servi
 				<div class="tactical-panel rounded-xl p-4">
 					<div class="text-[10px] font-mono uppercase tracking-wider text-rose-300/90">Total Purchases (Cash Out)</div>
 					<div class="mt-1 text-2xl font-bold font-mono text-rose-200">{ FormatISK(ledger.Report.TotalCashOutISK) }</div>
-					<div class="mt-0.5 text-[11px] text-slate-400">{ fmt.Sprintf("%d BUY tx • %s", ledger.Report.TotalBuyCount, periodLabel(ledger.PeriodDays)) }</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">{ fmt.Sprintf("%d BUY orders • %s", ledger.Report.TotalBuyCount, periodLabel(ledger.PeriodDays)) }</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
 					<div class="text-[10px] font-mono uppercase tracking-wider text-emerald-300/90">Total Sales (Cash In)</div>
 					<div class="mt-1 text-2xl font-bold font-mono text-emerald-300">{ FormatISK(ledger.Report.TotalCashInISK) }</div>
-					<div class="mt-0.5 text-[11px] text-slate-400">{ fmt.Sprintf("%d SELL tx • %s", ledger.Report.TotalSellCount, periodLabel(ledger.PeriodDays)) }</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">{ fmt.Sprintf("%d SELL orders • %s", ledger.Report.TotalSellCount, periodLabel(ledger.PeriodDays)) }</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
 					<div class="text-[10px] font-mono uppercase tracking-wider text-sky-300/90">Net Cash Flow</div>
@@ -83,7 +83,7 @@ templ TrackerLedgerTab(mode service.ModeInfo, hub domain.TradeHub, ledger *servi
 						if ledger.Report.FeeLeak.UsingJournalData {
 							<span class="text-emerald-300">Exact ESI Journal ({ FormatPercent(ledger.Report.FeeLeak.FeeToSalesPct) } of sales)</span>
 						} else {
-							<span>Est. Fees ({ FormatPercent(ledger.Report.FeeLeak.FeeToSalesPct) } of sales)</span>
+							<span>Estimated Fees ({ FormatPercent(ledger.Report.FeeLeak.FeeToSalesPct) } of sales)</span>
 						}
 					</div>
 				</div>
@@ -321,7 +321,7 @@ templ TrackerLedgerTab(mode service.ModeInfo, hub domain.TradeHub, ledger *servi
 									<th class="px-3 py-3">Date (UTC)</th>
 									<th class="px-3 py-3">Side</th>
 									<th class="px-3 py-3">Item</th>
-									<th class="px-3 py-3 text-right">Qty</th>
+									<th class="px-3 py-3 text-right">Quantity</th>
 									<th class="px-3 py-3 text-right">Unit Price</th>
 									<th class="px-3 py-3 text-right">Total ISK</th>
 									<th class="px-3 py-3">Hub / Source</th>

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -91,6 +92,24 @@ func HTMXMiddleware(next http.Handler) http.Handler {
 		isHX := r.Header.Get("HX-Request") == "true"
 		w.Header().Add("Vary", "HX-Request")
 		ctx := context.WithValue(r.Context(), htmxContextKey, isHX)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// PreferencesMiddleware reads UI language (af_lang) and timezone (af_tz) cookies and injects them into the request context.
+func PreferencesMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		lang := i18n.LangEN
+		if c, err := r.Cookie(i18n.CookieName); err == nil && c.Value != "" {
+			lang = i18n.Normalize(c.Value)
+		}
+		tz := i18n.TZWIB
+		if c, err := r.Cookie(i18n.TZCookieName); err == nil && c.Value != "" {
+			tz = i18n.NormalizeTZ(c.Value)
+		}
+		w.Header().Add("Vary", "Cookie")
+		ctx := i18n.WithLang(r.Context(), lang)
+		ctx = i18n.WithTZ(ctx, tz)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

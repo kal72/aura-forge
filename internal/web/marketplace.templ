@@ -730,9 +730,9 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 					</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-violet-300/85">Daily Volume (7d Avg)</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-violet-300/85">Daily Volume (7-Day Average)</div>
 					<div class="mt-1 text-xl font-mono font-bold text-white">{ formatInt64(int64(snap.AvgDailyVolume7d)) } u/day</div>
-					<div class="mt-0.5 text-[11px] font-mono text-slate-400">Est. Turnover: { FormatISK(snap.EstimatedDailyISK) }/day</div>
+					<div class="mt-0.5 text-[11px] font-mono text-slate-400">Estimated Turnover: { FormatISK(snap.EstimatedDailyISK) }/day</div>
 				</div>
 			</div>
 
@@ -744,28 +744,28 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 							Buyer Activity &amp; Regional Demand ({ snap.SelectedHub.RegionName })
 						</div>
 						<div class="text-[10px] text-slate-400">
-							CCP ESI daily history (<code class="text-slate-300">tx</code> = completed market orders; latest UTC day: <span class="font-mono text-sky-200">{ snap.LatestDayDate }</span>)
+							CCP ESI daily history (completed market orders; latest UTC day: <span class="font-mono text-sky-200">{ snap.LatestDayDate }</span>)
 						</div>
 					</div>
 					<div class="grid grid-cols-2 gap-2.5 lg:grid-cols-4 font-mono text-xs">
 						<div class="rounded-lg border border-slate-700/70 bg-slate-950/60 px-3 py-2">
 							<div class="text-[9.5px] uppercase text-slate-400">Latest Day ({ snap.LatestDayDate })</div>
-							<div class="mt-0.5 text-sm font-bold text-white">{ formatInt64(snap.LatestDayOrders) } tx</div>
+							<div class="mt-0.5 text-sm font-bold text-white">{ formatInt64(snap.LatestDayOrders) } orders</div>
 							<div class="text-[10.5px] text-sky-300">{ formatInt64(snap.LatestDayVolume) } units</div>
 						</div>
 						<div class="rounded-lg border border-slate-700/70 bg-slate-950/60 px-3 py-2">
-							<div class="text-[9.5px] uppercase text-slate-400">Daily Avg (7d)</div>
+							<div class="text-[9.5px] uppercase text-slate-400">Daily Average (7-Day)</div>
 							<div class="mt-0.5 text-sm font-bold text-emerald-300">{ fmt.Sprintf("%.1f", snap.AvgDailyOrders7d) } tx/day</div>
 							<div class="text-[10.5px] text-sky-300">{ formatInt64(int64(snap.AvgDailyVolume7d)) } u/day</div>
 						</div>
 						<div class="rounded-lg border border-slate-700/70 bg-slate-950/60 px-3 py-2">
 							<div class="text-[9.5px] uppercase text-slate-400">7-Day Total (1 Week)</div>
-							<div class="mt-0.5 text-sm font-bold text-amber-200">{ formatInt64(snap.Total7dOrders) } tx</div>
+							<div class="mt-0.5 text-sm font-bold text-amber-200">{ formatInt64(snap.Total7dOrders) } orders</div>
 							<div class="text-[10.5px] text-sky-300">{ formatInt64(snap.Total7dVolume) } units</div>
 						</div>
 						<div class="rounded-lg border border-slate-700/70 bg-slate-950/60 px-3 py-2">
 							<div class="text-[9.5px] uppercase text-slate-400">7-Week Total (49 Days)</div>
-							<div class="mt-0.5 text-sm font-bold text-violet-200">{ formatInt64(snap.Total49dOrders) } tx</div>
+							<div class="mt-0.5 text-sm font-bold text-violet-200">{ formatInt64(snap.Total49dOrders) } orders</div>
 							<div class="text-[10.5px] text-sky-300">{ formatInt64(snap.Total49dVolume) } units</div>
 						</div>
 					</div>
@@ -837,7 +837,7 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 					if snap.HasBlueprint && snap.EstCraftUnitCost > 0 {
 						<div class="space-y-1">
 							<div class="flex items-baseline justify-between font-mono text-xs">
-								<span class="text-slate-400">Est. BOM Craft / u:</span>
+								<span class="text-slate-400">Estimated BOM Craft / unit:</span>
 								<strong class="text-white">{ FormatISK(snap.EstCraftUnitCost) }</strong>
 							</div>
 							<div class="flex items-baseline justify-between font-mono text-xs">
@@ -944,7 +944,7 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 						<h3 class="text-xs font-bold uppercase tracking-wider text-violet-200">30-Day Average Price Trend ({ snap.SelectedHub.RegionName })</h3>
 						<div class="flex flex-wrap items-center gap-3 text-[11px] font-mono text-slate-300">
 							<span>30d Low: <strong class="text-emerald-300">{ FormatISK(min30) }</strong></span>
-							<span>30d Avg: <strong class="text-amber-200">{ FormatISK(avg30) }</strong></span>
+							<span>30-Day Average: <strong class="text-amber-200">{ FormatISK(avg30) }</strong></span>
 							<span>30d High: <strong class="text-rose-300">{ FormatISK(max30) }</strong></span>
 							<span class="text-slate-400">Avg Vol: { formatInt64(int64(snap.AvgDailyVolume30d)) }/d</span>
 						</div>
@@ -1016,8 +1016,8 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 								<thead class="bg-slate-950/50 text-[10px] uppercase text-slate-400 border-b border-violet-400/15">
 									<tr>
 										<th class="px-4 py-2">Price (ISK)</th>
-										<th class="px-3 py-2 text-right">Qty</th>
-										<th class="px-3 py-2 text-right">Cum. Qty</th>
+										<th class="px-3 py-2 text-right">Quantity</th>
+										<th class="px-3 py-2 text-right">Cumulative</th>
 										<th class="px-4 py-2 text-right">Order Value</th>
 									</tr>
 								</thead>
@@ -1053,8 +1053,8 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 								<thead class="bg-slate-950/50 text-[10px] uppercase text-slate-400 border-b border-violet-400/15">
 									<tr>
 										<th class="px-4 py-2">Price (ISK)</th>
-										<th class="px-3 py-2 text-right">Qty</th>
-										<th class="px-3 py-2 text-right">Cum. Qty</th>
+										<th class="px-3 py-2 text-right">Quantity</th>
+										<th class="px-3 py-2 text-right">Cumulative</th>
 										<th class="px-4 py-2 text-right">Order Value</th>
 									</tr>
 								</thead>
@@ -1180,7 +1180,7 @@ templ MarketplaceAppraisalPartial(res *domain.AppraisalResult, errMsg string) {
 						<thead class="bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15">
 							<tr>
 								<th class="px-4 py-3">Item (Click to Open Order Book)</th>
-								<th class="px-3 py-3 text-right">Qty</th>
+								<th class="px-3 py-3 text-right">Quantity</th>
 								<th class="px-3 py-3 text-right">Volume</th>
 								<th class="px-3 py-3 text-right">Unit Buy</th>
 								<th class="px-3 py-3 text-right">Unit Sell</th>

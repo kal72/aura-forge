@@ -1,5 +1,7 @@
 package web
 
+import "aura-forge/internal/i18n"
+
 func stepperCardClass(step, activeStep int) string {
 	switch {
 	case step == activeStep:
@@ -28,10 +30,10 @@ templ ProductionWorkflowStepper(activeStep int) {
 	<div class="tactical-panel rounded-xl px-3.5 py-2.5">
 		<div class="flex flex-wrap items-center justify-between gap-2 mb-2">
 			<span class="font-mono text-[10px] font-bold uppercase tracking-widest text-amber-300/90">
-				Production Planning Workflow (Step 1 → Step 4)
+				{ i18n.L(ctx, "Production Planning Workflow (Step 1 → Step 4)", "Alur Perencanaan Produksi (Langkah 1 → Langkah 4)") }
 			</span>
 			<span class="text-[10px] text-slate-400">
-				Follow left-to-right: pick items → split capital → schedule slots → track batches
+				{ i18n.L(ctx, "Follow left-to-right: pick items → split capital → schedule slots → track batches", "Ikuti kiri-ke-kanan: pilih item → bagi modal → jadwalkan slot → pantau batch") }
 			</span>
 		</div>
 		<div class="grid grid-cols-2 gap-2 lg:grid-cols-4">
@@ -45,7 +47,7 @@ templ ProductionWorkflowStepper(activeStep int) {
 				</span>
 				<div class="min-w-0">
 					<div class="text-xs font-bold truncate">Product Catalog</div>
-					<div class="text-[10px] text-slate-400 truncate">Pick viable T1/T2 items</div>
+					<div class="text-[10px] text-slate-400 truncate">{ i18n.L(ctx, "Pick viable T1/T2 items", "Pilih item T1/T2 yang layak") }</div>
 				</div>
 			</a>
 			<a href="/allocator" class={ "flex items-center gap-2.5 rounded-lg border px-3 py-2 transition " + stepperCardClass(2, activeStep) }>
@@ -58,7 +60,7 @@ templ ProductionWorkflowStepper(activeStep int) {
 				</span>
 				<div class="min-w-0">
 					<div class="text-xs font-bold truncate">Smart Allocator</div>
-					<div class="text-[10px] text-slate-400 truncate">Split capital into 4 buckets</div>
+					<div class="text-[10px] text-slate-400 truncate">{ i18n.L(ctx, "Split capital into 4 buckets", "Bagi modal ke 4 keranjang") }</div>
 				</div>
 			</a>
 			<a href="/planner" class={ "flex items-center gap-2.5 rounded-lg border px-3 py-2 transition " + stepperCardClass(3, activeStep) }>
@@ -71,7 +73,7 @@ templ ProductionWorkflowStepper(activeStep int) {
 				</span>
 				<div class="min-w-0">
 					<div class="text-xs font-bold truncate">Weekly Planner</div>
-					<div class="text-[10px] text-slate-400 truncate">Slots, Day 1–7 &amp; Multibuy</div>
+					<div class="text-[10px] text-slate-400 truncate">{ i18n.L(ctx, "Slots, Day 1–7 & Multibuy", "Slot, Hari 1–7 & Multibuy") }</div>
 				</div>
 			</a>
 			<a href="/tracker" class={ "flex items-center gap-2.5 rounded-lg border px-3 py-2 transition " + stepperCardClass(4, activeStep) }>
@@ -80,7 +82,7 @@ templ ProductionWorkflowStepper(activeStep int) {
 				</span>
 				<div class="min-w-0">
 					<div class="text-xs font-bold truncate">Order Tracker</div>
-					<div class="text-[10px] text-slate-400 truncate">Execute batches &amp; P&amp;L</div>
+					<div class="text-[10px] text-slate-400 truncate">{ i18n.L(ctx, "Execute batches & Profit/Loss", "Eksekusi batch & Laba/Rugi") }</div>
 				</div>
 			</a>
 		</div>
