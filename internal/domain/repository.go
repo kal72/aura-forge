@@ -107,6 +107,11 @@ type UniverseIntelProvider interface {
 	ResolveSolarSystemID(ctx context.Context, name string) (int32, string, error)
 }
 
+// PublicContractProvider is an optional Public ESI extension for scanning live Public Item Exchange BPC/BPO contracts.
+type PublicContractProvider interface {
+	FindPublicBlueprintContracts(ctx context.Context, regionID int32, regionName string, blueprintTypeID int32, blueprintName string, productName string) (contracts []PublicBPCContract, scannedContracts int, scannedPages int, totalPages int, err error)
+}
+
 // GlobalPriceSnapshotRepository persists daily global EVE market price snapshots for day-over-day mover detection.
 type GlobalPriceSnapshotRepository interface {
 	UpsertDailySnapshot(ctx context.Context, snapshotDate time.Time, prices []GlobalMarketPrice) (int, error)

@@ -156,7 +156,9 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 			x-data={ fmt.Sprintf(`{
 				isAdmin: %t,
 				aiEnabled: %t,
-				mpTab: 'orderbook',
+				mpTab: new URLSearchParams(window.location.search).get('tab') || 'orderbook',
+				bpcQuery: %q,
+				bpcHub: %q,
 				appraisalText: '',
 				queryText: %q,
 				selectedHub: %q,
@@ -283,7 +285,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 						window.dispatchEvent(new CustomEvent('showToast', { detail: { level: 'success', message: label + ' copied (' + Number(val).toLocaleString() + ' ISK)' } }));
 					});
 				}
-			}`, mode.IsAdmin(), mode.AI.Enabled, query, hubKey) }
+			}`, mode.IsAdmin(), mode.AI.Enabled, query, hubKey, query, hubKey) }
 			@keydown.escape.window="showBrowse = false"
 			@mp-switch-hub.window="runSearch($event.detail.name, $event.detail.hub)"
 			@mp-copy-price.window="copyPrice($event.detail.val, $event.detail.label)"
@@ -294,7 +296,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 					<h1 class="text-2xl font-bold tracking-tight text-white">New Eden Marketplace Browser</h1>
 					<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Live SDE autocomplete, parallel 5-hub comparisons (Jita, Amarr, Dodixie, Rens, Hek), bulk clipboard Appraisal, and Order Book depth.", "Pencarian otomatis SDE live, perbandingan 5 Trade Hub paralel (Jita, Amarr, Dodixie, Rens, Hek), Appraisal clipboard massal, dan kedalaman Order Book.") }</p>
 				</div>
-				<div class="inline-flex rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur">
+				<div class="inline-flex flex-wrap rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur">
 					<button
 						type="button"
 						@click="mpTab = 'orderbook'"
@@ -305,12 +307,83 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 					</button>
 					<button
 						type="button"
+						@click="mpTab = 'bpc'"
+						:class="mpTab === 'bpc' ? 'bg-sky-400 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'"
+						class="rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
+					>
+						BPC &amp; BPO Contracts
+					</button>
+					<button
+						type="button"
 						@click="mpTab = 'appraisal'"
 						:class="mpTab === 'appraisal' ? 'bg-emerald-400 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'"
 						class="rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
 					>
 						Appraisal
 					</button>
+				</div>
+			</div>
+
+			<!-- TAB 2: BPC & BPO CONTRACTS FINDER -->
+			<div x-cloak x-show="mpTab === 'bpc'" class="space-y-6">
+				<div class="tactical-panel rounded-xl p-5 space-y-4">
+					<div>
+						<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">
+							{ i18n.L(ctx, "BPC & BPO Contract Finder (Public ESI + NPC BPO + LP Store)", "Pencari Kontrak BPC & BPO (Public ESI + NPC BPO + LP Store)") }
+						</h2>
+						<p class="text-xs text-slate-300/80 mt-0.5">
+							{ i18n.L(ctx, "Find where to buy BPCs on live Public Item Exchange Contracts, compare ISK per run & ME/TE, and check if an official NPC BPO or LP Store offer is cheaper.", "Cari lokasi dan harga beli BPC di kontrak publik EVE Online, bandingkan ISK per run & ME/TE, serta cek apakah BPO NPC atau LP Store lebih murah.") }
+						</p>
+					</div>
+					<form
+						hx-get="/marketplace/bpc"
+						hx-target="#marketplace-bpc-results"
+						hx-swap="innerHTML"
+						hx-indicator="#mp-bpc-spinner"
+						class="grid grid-cols-1 gap-3 sm:grid-cols-12 items-end"
+					>
+						<div class="sm:col-span-6">
+							<label class="block text-[10px] font-mono uppercase tracking-wider text-slate-300 mb-1">
+								{ i18n.L(ctx, "Item or Blueprint Name", "Nama Item atau Blueprint") }
+							</label>
+							<input
+								type="text"
+								name="q"
+								x-model="bpcQuery"
+								required
+								placeholder={ i18n.L(ctx, "e.g. Hobgoblin II, Caracal, Venture, Caldari Navy Hookbill...", "mis. Hobgoblin II, Caracal, Venture, Caldari Navy Hookbill...") }
+								class="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:border-sky-400/70 focus:outline-none"
+							/>
+						</div>
+						<div class="sm:col-span-3">
+							<label class="block text-[10px] font-mono uppercase tracking-wider text-slate-300 mb-1">
+								{ i18n.L(ctx, "Contract Region / Hub", "Region / Trade Hub Kontrak") }
+							</label>
+							<select name="hub" x-model="bpcHub" class="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2.5 text-sm text-white">
+								for _, h := range domain.MajorTradeHubs {
+									<option value={ h.Key } selected?={ hubKey == h.Key }>{ h.Name } ({ h.RegionName })</option>
+								}
+							</select>
+						</div>
+						<div class="sm:col-span-3">
+							<button
+								type="submit"
+								class="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-sky-400 px-4 py-2.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-sky-300 transition cursor-pointer"
+							>
+								<span id="mp-bpc-spinner" class="htmx-indicator h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent"></span>
+								<span>{ i18n.L(ctx, "Find BPC & BPO", "Cari BPC & BPO") }</span>
+							</button>
+						</div>
+					</form>
+				</div>
+
+				<div id="marketplace-bpc-results">
+					<div class="tactical-panel rounded-xl p-10 text-center space-y-2">
+						<div class="text-sm font-bold text-white">{ i18n.L(ctx, "Search Live BPC Contracts, NPC BPOs & LP Stores", "Cari Kontrak BPC Live, BPO NPC & LP Store") }</div>
+						<p class="text-xs text-slate-400 max-w-lg mx-auto">
+							{ i18n.L(ctx, "Enter any ship, module, drone, or ammo name above and choose a region (Jita / The Forge has the largest BPC selection; Amarr / Domain scans fastest).", "Masukkan nama kapal, modul, drone, atau amunisi di atas lalu pilih region (Jita / The Forge punya pilihan BPC terbanyak; Amarr / Domain paling cepat dipindai).") }
+						</p>
+					</div>
 				</div>
 			</div>
 

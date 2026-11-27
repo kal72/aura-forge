@@ -82,6 +82,27 @@ func (h *Handlers) HandleMarketplaceBrowse(w http.ResponseWriter, r *http.Reques
 	h.writeJSON(w, http.StatusOK, res)
 }
 
+// HandleMarketplaceBPC searches live Public ESI BPC/BPO contracts, NPC BPO seed orders, and LP Store offers for a blueprint.
+func (h *Handlers) HandleMarketplaceBPC(w http.ResponseWriter, r *http.Request) {
+	query := strings.TrimSpace(r.URL.Query().Get("q"))
+	hubKey := strings.TrimSpace(r.URL.Query().Get("hub"))
+	if hubKey == "" {
+		hubKey = h.svc.ActiveCatalogHub(r.Context()).Key
+	}
+
+	res, err := h.svc.FindBPCAndBPOSources(r.Context(), query, hubKey)
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
+
+	if h.renderer == nil {
+		h.writeJSON(w, http.StatusOK, map[string]any{"result": res, "error": errMsg})
+		return
+	}
+	_ = h.renderer.RenderMarketplaceBPC(w, r, res, errMsg)
+}
+
 // HandleMarketplaceAppraise evaluates pasted EVE Online clipboard items (Inventory, Cargo, Multibuy, Fit)
 // against live prices at the chosen Trade Hub.
 func (h *Handlers) HandleMarketplaceAppraise(w http.ResponseWriter, r *http.Request) {

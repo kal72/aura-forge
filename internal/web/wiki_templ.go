@@ -29,6 +29,17 @@ type wikiEntry struct {
 var eveWikiEntries = []wikiEntry{
 	// 1. UI COLORS & BADGES
 	{
+		Category:   "market",
+		Term:       "BPC & BPO Contracts Finder",
+		BadgeText:  "BPC • BPO • LP Store",
+		BadgeClass: "border-sky-400/50 bg-sky-500/20 text-sky-200 font-bold",
+		WhereUsed:  "Marketplace → BPC & BPO Contracts tab",
+		DescEN:     "In EVE Online, Blueprint Copies (BPCs) cannot be bought on the regular Regional Market — they are sold via Public Item Exchange Contracts or LP Stores. This tab scans live Public Contracts in your chosen region (sorted by cheapest ISK per run, showing ME/TE, runs, and station) alongside official NPC BPO seed orders and LP Store offers.",
+		DescID:     "Di EVE Online, Blueprint Copy (BPC) tidak dijual di Regional Market biasa — BPC hanya dijual lewat Public Item Exchange Contracts atau LP Store. Tab ini memindai kontrak publik live di region pilihan Anda (diurutkan dari ISK per run termurah, lengkap dengan ME/TE, runs, dan lokasi stasiun) bersama BPO NPC resmi dan penawaran LP Store.",
+		TipEN:      "Always check NPC BPO Seed Orders first: for T1 items, buying an official NPC BPO is often cheaper long-term than repeatedly buying BPC contracts.",
+		TipID:      "Selalu cek BPO Resmi NPC terlebih dahulu: untuk item T1, membeli BPO resmi NPC sering jauh lebih hemat jangka panjang dibanding terus membeli kontrak BPC.",
+	},
+	{
 		Category:   "workflow",
 		Term:       "UI Language (EN | ID) & Timezone (UTC+7 | EVE)",
 		BadgeText:  "EN | ID • UTC+7 | EVE",
@@ -870,7 +881,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(searchBlob)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1525, Col: 30}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1536, Col: 30}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -883,7 +894,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs("matches('" + item.Category + "', $el.dataset.search)")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1526, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1537, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -896,7 +907,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(item.Term)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1531, Col: 73}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1542, Col: 73}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -931,7 +942,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(item.BadgeText)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1533, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1544, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
@@ -944,7 +955,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(item.WhereUsed)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1537, Col: 24}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1548, Col: 24}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
@@ -957,7 +968,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1540, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1551, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -970,7 +981,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1543, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1554, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -983,7 +994,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1549, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1560, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
@@ -996,7 +1007,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1550, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1561, Col: 56}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {

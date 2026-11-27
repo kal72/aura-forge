@@ -81,6 +81,7 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.Get("/search", h.HandleMarketplaceSearch)
 			r.Get("/autocomplete", h.HandleMarketplaceAutocomplete)
 			r.Get("/browse", h.HandleMarketplaceBrowse)
+			r.Get("/bpc", h.HandleMarketplaceBPC)
 			r.Post("/appraise", h.HandleMarketplaceAppraise)
 			r.With(adminOnly).Post("/add-catalog", h.HandleMarketplaceAddCatalog)
 		})
