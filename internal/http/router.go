@@ -69,6 +69,18 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 		// Built-in EVE Online Wiki & UI Color Guide (accessible via Topbar)
 		r.Get("/wiki", h.HandleWikiPage)
 
+		// Aura Tactical — Fullscreen Ship Fitting & Combat Studio (decoupled from Aura Forge sidebar)
+		r.Route("/tactical", func(r chi.Router) {
+			r.Get("/", h.HandleTacticalPage)
+			r.Get("/api/ships", h.HandleTacticalShips)
+			r.Get("/api/modules", h.HandleTacticalModules)
+			r.Post("/api/simulate", h.HandleTacticalSimulate)
+			r.Post("/api/import-eft", h.HandleTacticalImportEFT)
+			r.Get("/api/fittings", h.HandleTacticalListFittings)
+			r.Post("/api/fittings", h.HandleTacticalSaveFitting)
+			r.Delete("/api/fittings/{id}", h.HandleTacticalDeleteFitting)
+		})
+
 		// Dedicated EVE Online Pilot Hub (accessible via Topbar Account Chip when EVE SSO is connected)
 		r.Route("/pilot", func(r chi.Router) {
 			r.Get("/", h.HandlePilotHub)

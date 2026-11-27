@@ -58,6 +58,7 @@ func main() {
 		globalSnapshotRepo domain.GlobalPriceSnapshotRepository
 		aiRepo             domain.AIRepository
 		ledgerRepo         domain.TradeLedgerRepository
+		tacticalRepo       domain.TacticalRepository
 	)
 
 	db, err := postgres.NewDB(ctx, cfg.DatabaseURL)
@@ -79,6 +80,7 @@ func main() {
 	globalSnapshotRepo = postgres.NewMarketSnapshotRepo(db.Pool)
 	aiRepo = postgres.NewAIRepo(db.Pool)
 	ledgerRepo = postgres.NewLedgerRepo(db.Pool)
+	tacticalRepo = postgres.NewTacticalRepo(db.Pool)
 
 	// Initialize Application Auth & seed initial Admin account if database has no users yet
 	authSvc := service.NewAuthService(userRepo)
@@ -117,6 +119,7 @@ func main() {
 	copilotSvc.SetGlobalPriceSnapshotRepository(globalSnapshotRepo)
 	copilotSvc.SetAIRepository(aiRepo)
 	copilotSvc.SetTradeLedgerRepository(ledgerRepo)
+	copilotSvc.SetTacticalRepository(tacticalRepo)
 	aiClient := ai.NewOpenAIClient(cfg.AIBaseURL, cfg.AIAPIKey, cfg.AIModel, time.Duration(cfg.AITimeoutSeconds)*time.Second)
 	copilotSvc.SetAIProvider(aiClient)
 

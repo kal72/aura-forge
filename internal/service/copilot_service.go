@@ -134,6 +134,7 @@ type CopilotService struct {
 	aiProvider      domain.AIProvider
 	aiRepo          domain.AIRepository
 	ledger          domain.TradeLedgerRepository
+	tacticalRepo    domain.TacticalRepository
 	priceSync       *priceSyncState
 	sdeImport       *sdeImportState
 	radar           *opportunityRadarState
@@ -157,6 +158,11 @@ func (s *CopilotService) SetAIRepository(r domain.AIRepository) {
 // SetTradeLedgerRepository attaches the PostgreSQL trade ledger & order history repository.
 func (s *CopilotService) SetTradeLedgerRepository(r domain.TradeLedgerRepository) {
 	s.ledger = r
+}
+
+// SetTacticalRepository attaches the PostgreSQL Aura Tactical fittings & AI cache repository.
+func (s *CopilotService) SetTacticalRepository(r domain.TacticalRepository) {
+	s.tacticalRepo = r
 }
 
 // NewCopilotService constructs a CopilotService via Dependency Inversion interfaces.
