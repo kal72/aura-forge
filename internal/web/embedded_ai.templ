@@ -134,3 +134,79 @@ templ CompareBeginnerPickBanner(res *domain.ItemCompareResult) {
 		</div>
 	}
 }
+
+// AIWeeklyPlanDraftPartial renders the Embedded AI Auto-Built Weekly Manufacturing Plan inside /allocator.
+templ AIWeeklyPlanDraftPartial(draft *domain.AIWeeklyPlanDraft, errMsg string) {
+	if errMsg != "" {
+		<div class="rounded-xl border border-rose-500/45 bg-rose-950/40 px-4 py-3 text-xs text-rose-200">
+			{ errMsg }
+		</div>
+	} else if draft != nil {
+		<div class="rounded-2xl border border-violet-400/40 bg-slate-950/75 p-4 space-y-3.5">
+			<div class="flex flex-wrap items-center justify-between gap-2">
+				<div>
+					<div class="flex items-center gap-2">
+						<span class="rounded border border-amber-400/50 bg-amber-500/20 px-2 py-0.5 font-mono text-[10px] font-extrabold uppercase text-amber-200">
+							{ draft.RiskProfile }
+						</span>
+						<h3 class="text-sm font-bold text-white">{ draft.Title }</h3>
+						<span class="rounded bg-violet-500/20 px-1.5 py-0.5 font-mono text-[9.5px] uppercase text-violet-200">
+							{ draft.Source }
+						</span>
+					</div>
+					<p class="mt-1 text-xs text-slate-300">{ draft.StrategySummary }</p>
+				</div>
+				<form hx-post="/allocator/to-plan" hx-swap="none">
+					<input type="hidden" name="title" value={ draft.Title }/>
+					<input type="hidden" name="week_number" value="1"/>
+					<input type="hidden" name="fast_cashflow_pct" value={ fmt.Sprintf("%.0f", draft.FastCashflowPct) }/>
+					<input type="hidden" name="mid_tier_pct" value={ fmt.Sprintf("%.0f", draft.MidTierPct) }/>
+					<input type="hidden" name="high_roi_pct" value={ fmt.Sprintf("%.0f", draft.HighROIPct) }/>
+					<input type="hidden" name="cash_buffer_pct" value={ fmt.Sprintf("%.0f", draft.CashBufferPct) }/>
+					<button
+						type="submit"
+						class="rounded-xl border border-emerald-400/60 bg-emerald-500/25 px-3.5 py-2 text-xs font-bold text-emerald-100 hover:bg-emerald-500/35 shadow-[0_0_14px_rgba(16,185,129,0.22)] transition cursor-pointer"
+					>
+						Save to Weekly Planner →
+					</button>
+				</form>
+			</div>
+
+			<!-- 4-Bucket Visual Split Bar -->
+			<div class="space-y-1">
+				<div class="flex h-2.5 w-full overflow-hidden rounded-full bg-slate-900">
+					<div class="bg-emerald-400" style={ fmt.Sprintf("width:%.0f%%", draft.FastCashflowPct) } title="Fast Cashflow"></div>
+					<div class="bg-sky-400" style={ fmt.Sprintf("width:%.0f%%", draft.MidTierPct) } title="Mid-Tier"></div>
+					<div class="bg-violet-400" style={ fmt.Sprintf("width:%.0f%%", draft.HighROIPct) } title="High ROI"></div>
+					<div class="bg-amber-400" style={ fmt.Sprintf("width:%.0f%%", draft.CashBufferPct) } title="Cash Buffer"></div>
+				</div>
+				<div class="flex flex-wrap justify-between gap-2 font-mono text-[10px] text-slate-300">
+					<span>Allocated: <strong class="text-white">{ FormatISK(draft.TotalAllocatedISK) }</strong></span>
+					<span>Cash Buffer: <strong class="text-amber-300">{ FormatISK(draft.CashBufferISK) }</strong></span>
+					<span>Est. Weekly Net Profit: <strong class="text-emerald-300">+{ FormatISK(draft.EstimatedNetProfit) }</strong></span>
+				</div>
+			</div>
+
+			<!-- Diversified Production Lines -->
+			<div class="grid grid-cols-1 gap-2 md:grid-cols-2">
+				for _, it := range draft.Items {
+					<div class="flex items-center justify-between gap-2 rounded-xl border border-slate-700/70 bg-slate-900/75 px-3 py-2">
+						<div class="min-w-0">
+							<div class="flex items-center gap-1.5">
+								<span class="truncate text-xs font-bold text-white">{ it.Name }</span>
+								<span class="shrink-0 rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[9.5px] text-sky-300">
+									{ fmt.Sprintf("%d runs", it.Runs) }
+								</span>
+							</div>
+							<div class="truncate text-[10.5px] text-slate-400">{ it.Rationale }</div>
+						</div>
+						<div class="text-right font-mono shrink-0">
+							<div class="text-xs font-bold text-emerald-300">+{ FormatISK(it.EstimatedProfit) }</div>
+							<div class="text-[10px] text-slate-400">{ fmt.Sprintf("%.1f%% margin", it.MarginPercent) }</div>
+						</div>
+					</div>
+				}
+			</div>
+		</div>
+	}
+}

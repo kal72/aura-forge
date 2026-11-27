@@ -60,6 +60,7 @@ type Renderer interface {
 	RenderPISalesCalcPartial(w http.ResponseWriter, r *http.Request, res *domain.PISalesCalcResult, unmatched []string, errMsg string) error
 	RenderTactical(w http.ResponseWriter, r *http.Request, data *service.TacticalViewData) error
 	RenderDashboardDailyStrip(w http.ResponseWriter, r *http.Request, strip *domain.DashboardDailyStrip) error
+	RenderAIWeeklyPlanDraft(w http.ResponseWriter, r *http.Request, draft *domain.AIWeeklyPlanDraft, errMsg string) error
 }
 
 // Handlers exposes all HTTP and HTMX endpoints for aura-forge.

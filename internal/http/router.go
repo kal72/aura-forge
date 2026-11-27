@@ -199,6 +199,7 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.Route("/allocator", func(r chi.Router) {
 				r.Get("/", h.HandleAllocator)
 				r.Post("/run", h.HandleAllocatorRun)
+				r.Post("/ai-plan", h.HandleAllocatorAIPlan)
 				r.Post("/to-plan", h.HandleAllocatorToPlan)
 				r.Post("/to-batches", h.HandleAllocatorToBatches)
 			})

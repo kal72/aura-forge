@@ -189,3 +189,32 @@ func EvaluateCompareBeginnerPick(res *ItemCompareResult) *CompareBeginnerPick {
 		Rationale:    bestReasons,
 	}
 }
+
+// AIWeeklyPlanItem represents one diversified production line inside an Embedded AI Weekly Plan.
+type AIWeeklyPlanItem struct {
+	TypeID          int32   `json:"type_id"`
+	Name            string  `json:"name"`
+	Bucket          string  `json:"bucket"` // FAST_CASHFLOW | MID_TIER | HIGH_ROI
+	Runs            int     `json:"runs"`
+	EstimatedCost   float64 `json:"estimated_cost"`
+	EstimatedProfit float64 `json:"estimated_profit"`
+	MarginPercent   float64 `json:"margin_percent"`
+	Rationale       string  `json:"rationale"`
+}
+
+// AIWeeklyPlanDraft is a ready-to-save Weekly Manufacturing Plan produced by Embedded Background AI.
+type AIWeeklyPlanDraft struct {
+	Title              string             `json:"title"`
+	BudgetISK          float64            `json:"budget_isk"`
+	RiskProfile        string             `json:"risk_profile"` // conservative | balanced | aggressive
+	Source             string             `json:"source"`       // ai_live | ai_cached | deterministic
+	StrategySummary    string             `json:"strategy_summary"`
+	FastCashflowPct    float64            `json:"fast_cashflow_pct"`
+	MidTierPct         float64            `json:"mid_tier_pct"`
+	HighROIPct         float64            `json:"high_roi_pct"`
+	CashBufferPct      float64            `json:"cash_buffer_pct"`
+	TotalAllocatedISK  float64            `json:"total_allocated_isk"`
+	CashBufferISK      float64            `json:"cash_buffer_isk"`
+	EstimatedNetProfit float64            `json:"estimated_net_profit"`
+	Items              []AIWeeklyPlanItem `json:"items"`
+}

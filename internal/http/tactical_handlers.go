@@ -220,3 +220,22 @@ func (h *Handlers) HandleTacticalCompareFits(w http.ResponseWriter, r *http.Requ
 	}
 	h.writeJSON(w, http.StatusOK, res)
 }
+
+// HandleAllocatorAIPlan generates a diversified Embedded AI Weekly Manufacturing Plan draft via HTMX.
+func (h *Handlers) HandleAllocatorAIPlan(w http.ResponseWriter, r *http.Request) {
+	_ = r.ParseForm()
+	budget := parseFloatForm(r, "budget_isk", 150_000_000)
+	risk := strings.TrimSpace(r.FormValue("risk_profile"))
+	draft, err := h.svc.BuildAIWeeklyPlan(r.Context(), budget, risk)
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
+	if h.renderer != nil {
+		if rErr := h.renderer.RenderAIWeeklyPlanDraft(w, r, draft, errMsg); rErr != nil {
+			http.Error(w, rErr.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+	h.writeJSON(w, http.StatusOK, draft)
+}

@@ -183,3 +183,198 @@ func buildDeterministicDailyStrip(dash *DashboardSummary, radar RadarSnapshot) *
 		Cards:    cards,
 	}
 }
+
+// BuildAIWeeklyPlan generates a diversified, risk-adjusted Weekly Manufacturing Plan for a given ISK budget
+// and risk profile (conservative | balanced | aggressive), cached in PostgreSQL ai_tactical_cache.
+func (s *CopilotService) BuildAIWeeklyPlan(ctx context.Context, budgetISK float64, riskProfile string) (*domain.AIWeeklyPlanDraft, error) {
+	if budgetISK <= 0 {
+		if dash, err := s.GetDashboard(ctx); err == nil && dash != nil && dash.AvailableCapital > 0 {
+			budgetISK = dash.AvailableCapital
+		} else {
+			budgetISK = 150_000_000
+		}
+	}
+	risk := strings.ToLower(strings.TrimSpace(riskProfile))
+	var fastPct, midPct, highPct, bufPct float64
+	switch risk {
+	case "conservative":
+		fastPct, midPct, highPct, bufPct = 50, 25, 10, 15
+	case "aggressive":
+		fastPct, midPct, highPct, bufPct = 25, 30, 35, 10
+	default:
+		risk = "balanced"
+		fastPct, midPct, highPct, bufPct = 35, 30, 20, 15
+	}
+
+	radar := s.GetRadarSnapshot(ctx)
+	deployable := budgetISK * (1.0 - bufPct/100.0)
+	bufISK := domain.RoundISK(budgetISK - deployable)
+
+	// Build deterministic candidate items from live Opportunity Radar (or curated beginner staples if radar empty)
+	items := make([]domain.AIWeeklyPlanItem, 0, 5)
+	var totalAlloc, totalProfit float64
+
+	if len(radar.TopOpportunities) > 0 {
+		limit := len(radar.TopOpportunities)
+		if limit > 5 {
+			limit = 5
+		}
+		perItemCap := deployable / float64(limit)
+		buckets := []string{"FAST_CASHFLOW", "FAST_CASHFLOW", "MID_TIER", "MID_TIER", "HIGH_ROI"}
+		for i := 0; i < limit; i++ {
+			op := radar.TopOpportunities[i]
+			unitCost := op.MaterialCost
+			if unitCost <= 0 {
+				unitCost = 2_500_000
+			}
+			runs := int(perItemCap / unitCost)
+			if runs < 1 {
+				runs = 1
+			}
+			if runs > 40 {
+				runs = 40
+			}
+			cost := domain.RoundISK(float64(runs) * unitCost)
+			if totalAlloc+cost > deployable && len(items) > 0 {
+				continue
+			}
+			profitPerRun := op.NetProfit
+			if op.Runs > 1 {
+				profitPerRun = op.NetProfit / float64(op.Runs)
+			}
+			estProf := domain.RoundISK(profitPerRun * float64(runs))
+			totalAlloc += cost
+			totalProfit += estProf
+			items = append(items, domain.AIWeeklyPlanItem{
+				TypeID:          op.ProductTypeID,
+				Name:            op.ProductName,
+				Bucket:          buckets[i],
+				Runs:            runs,
+				EstimatedCost:   cost,
+				EstimatedProfit: estProf,
+				MarginPercent:   op.NetMarginPercent,
+				Rationale:       fmt.Sprintf("%.0f units/day regional turnover with %.1f%% net margin.", op.DailyVolume7d, op.NetMarginPercent),
+			})
+		}
+	}
+
+	if len(items) == 0 {
+		// Curated beginner-safe fallback portfolio when radar hasn't swept yet
+		fallbacks := []struct {
+			id     int32
+			name   string
+			bucket string
+			share  float64
+			margin float64
+			why    string
+		}{
+			{2454, "Hobgoblin I", "FAST_CASHFLOW", 0.35, 16.5, "High-velocity combat drone used by every Gallente/cruiser pilot."},
+			{2486, "Warrior I", "FAST_CASHFLOW", 0.25, 15.2, "Fast-selling Minmatar light drone with reliable daily volume."},
+			{31718, "Medium Core Defense Field Extender I", "MID_TIER", 0.25, 19.0, "Core PvE shield rig with steady cruiser demand."},
+			{2048, "Damage Control I", "HIGH_ROI", 0.15, 21.5, "Universal hull tank module with healthy crafting spread."},
+		}
+		for _, fb := range fallbacks {
+			cost := domain.RoundISK(deployable * fb.share)
+			prof := domain.RoundISK(cost * (fb.margin / 100.0))
+			totalAlloc += cost
+			totalProfit += prof
+			items = append(items, domain.AIWeeklyPlanItem{
+				TypeID:          fb.id,
+				Name:            fb.name,
+				Bucket:          fb.bucket,
+				Runs:            10,
+				EstimatedCost:   cost,
+				EstimatedProfit: prof,
+				MarginPercent:   fb.margin,
+				Rationale:       fb.why,
+			})
+		}
+	}
+
+	draft := &domain.AIWeeklyPlanDraft{
+		Title:              fmt.Sprintf("AI %s Plan (%.0fM ISK)", strings.Title(risk), budgetISK/1_000_000),
+		BudgetISK:          domain.RoundISK(budgetISK),
+		RiskProfile:        risk,
+		Source:             "deterministic",
+		StrategySummary:    fmt.Sprintf("Diversified %d-item %s portfolio keeping %.0f%% Cash Buffer (%s) protected for broker fees & relists.", len(items), risk, bufPct, formatCompactISK(bufISK)),
+		FastCashflowPct:    fastPct,
+		MidTierPct:         midPct,
+		HighROIPct:         highPct,
+		CashBufferPct:      bufPct,
+		TotalAllocatedISK:  domain.RoundISK(totalAlloc),
+		CashBufferISK:      bufISK,
+		EstimatedNetProfit: domain.RoundISK(totalProfit),
+		Items:              items,
+	}
+
+	if s.aiProvider == nil || !s.aiProvider.IsEnabled() {
+		return draft, nil
+	}
+
+	// Enhance strategy summary via cached Embedded Background AI
+	sig := fmt.Sprintf("plan:%.0f|%s|%d", budgetISK, risk, len(items))
+	sum := sha256.Sum256([]byte(sig))
+	ctxHash := hex.EncodeToString(sum[:])
+	const featureKey = "allocator_weekly_plan"
+
+	if s.tacticalRepo != nil {
+		if raw, hit, cErr := s.tacticalRepo.GetAICache(ctx, featureKey, ctxHash); cErr == nil && hit && len(raw) > 0 {
+			var cached domain.AIWeeklyPlanDraft
+			if json.Unmarshal(raw, &cached) == nil && cached.StrategySummary != "" {
+				draft.StrategySummary = cached.StrategySummary
+				draft.Source = "ai_cached"
+				return draft, nil
+			}
+		}
+	}
+
+	val, _, _ := embeddedAISingleflight.Do(ctxHash, func() (any, error) {
+		aiCtx, cancel := context.WithTimeout(ctx, 18*time.Second)
+		defer cancel()
+		names := make([]string, 0, len(items))
+		for _, it := range items {
+			names = append(names, fmt.Sprintf("%s (%s, %.1f%% margin)", it.Name, it.Bucket, it.MarginPercent))
+		}
+		resp, err := s.aiProvider.ChatCompletion(aiCtx, domain.AIChatRequest{
+			Temperature: 0.2,
+			MaxTokens:   180,
+			Messages: []domain.AIChatMessage{
+				{Role: "system", Content: `Respond ONLY with raw JSON: {"strategy_summary":"2 concise beginner-friendly sentences explaining why this split grows ISK safely without capital lock-up."}`},
+				{Role: "user", Content: fmt.Sprintf("Budget: %.0f ISK | Risk: %s | Split: %.0f/%.0f/%.0f/%.0f | Items: %s | Est Profit: %.0f ISK", budgetISK, risk, fastPct, midPct, highPct, bufPct, strings.Join(names, ", "), totalProfit)},
+			},
+		})
+		if err != nil || resp == nil {
+			return draft, nil
+		}
+		cleaned := strings.TrimSpace(resp.Content)
+		if sIdx, eIdx := strings.Index(cleaned, "{"), strings.LastIndex(cleaned, "}"); sIdx >= 0 && eIdx > sIdx {
+			var parsed struct {
+				StrategySummary string `json:"strategy_summary"`
+			}
+			if json.Unmarshal([]byte(cleaned[sIdx:eIdx+1]), &parsed) == nil && parsed.StrategySummary != "" {
+				draft.StrategySummary = parsed.StrategySummary
+				draft.Source = "ai_live"
+				if s.tacticalRepo != nil {
+					if payload, mErr := json.Marshal(draft); mErr == nil {
+						_ = s.tacticalRepo.SaveAICache(aiCtx, featureKey, ctxHash, resp.ModelUsed, payload, 30*time.Minute)
+					}
+				}
+			}
+		}
+		return draft, nil
+	})
+	if res, ok := val.(*domain.AIWeeklyPlanDraft); ok && res != nil {
+		return res, nil
+	}
+	return draft, nil
+}
+
+func formatCompactISK(val float64) string {
+	if val >= 1e9 {
+		return fmt.Sprintf("%.2fB ISK", val/1e9)
+	}
+	if val >= 1e6 {
+		return fmt.Sprintf("%.1fM ISK", val/1e6)
+	}
+	return fmt.Sprintf("%.0f ISK", val)
+}
