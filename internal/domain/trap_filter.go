@@ -170,7 +170,7 @@ func EvaluateTrapGuardWithHistory(item MarketItem, settings UserSettings, availa
 		} else if report.Status != TrapStatusJebakan {
 			report.RiskLevel = maxRisk(report.RiskLevel, RiskHigh)
 		}
-		report.Reasons = append(report.Reasons, fmt.Sprintf("SLOW MOVER: Daily Jita volume (%.1f u/day) is lower than 1 batch output (%d u).", item.DailyVolume, outputQty))
+		report.Reasons = append(report.Reasons, fmt.Sprintf("SLOW MOVER: Daily market volume (%.1f units/day) is lower than 1 batch output (%d units).", item.DailyVolume, outputQty))
 	}
 
 	// 6. Check Fake Price Spike Trap (Live Lowest Sell >= +25% above 7d average)

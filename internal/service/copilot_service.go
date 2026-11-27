@@ -9,6 +9,7 @@ import (
 
 	"aura-forge/internal/domain"
 	"aura-forge/internal/esi"
+	"aura-forge/internal/i18n"
 )
 
 // SSOAuthenticator abstracts optional OAuth2 login/callback operations.
@@ -434,12 +435,12 @@ func (s *CopilotService) GetDashboard(ctx context.Context) (*DashboardSummary, e
 	summary.NextMilestoneLabel = nextMs.Label
 	summary.NextMilestonePct = nextMs.ProgressPct
 
-	summary.CopilotActions = buildCopilotActions(summary)
+	summary.CopilotActions = buildCopilotActions(ctx, summary)
 	summary.DailyChecklist = buildDailyChecklist(summary)
 	return summary, nil
 }
 
-func buildCopilotActions(d *DashboardSummary) []CopilotAction {
+func buildCopilotActions(ctx context.Context, d *DashboardSummary) []CopilotAction {
 	hubName := d.ActiveHub.Name
 	if hubName == "" {
 		hubName = "Primary Hub"
@@ -450,9 +451,9 @@ func buildCopilotActions(d *DashboardSummary) []CopilotAction {
 	if d.UndercutBatchesCount > 0 {
 		actions = append(actions, CopilotAction{
 			Priority:    "URGENT",
-			Title:       fmt.Sprintf("%d Listed Order(s) Undercut in %s", d.UndercutBatchesCount, hubName),
-			Detail:      "Competitors beat your sell price. Check Safe Relist Floor before modifying orders so broker fees don't erase your margin.",
-			ActionLabel: "Fix Undercuts →",
+			Title:       fmt.Sprintf(i18n.L(ctx, "%d Listed Order(s) Undercut in %s", "%d Sell Order Terkena Undercut di %s"), d.UndercutBatchesCount, hubName),
+			Detail:      i18n.L(ctx, "Competitors beat your sell price. Check Safe Relist Floor before modifying orders so broker fees don't erase your margin.", "Kompetitor memotong harga jual Anda. Cek batas aman Safe Relist Floor sebelum ubah harga agar Broker Fee tidak menggerus Margin."),
+			ActionLabel: i18n.L(ctx, "Fix Undercuts →", "Perbaiki Undercut →"),
 			ActionURL:   "/tracker?status=LISTED",
 		})
 	}
@@ -461,9 +462,9 @@ func buildCopilotActions(d *DashboardSummary) []CopilotAction {
 	if d.SlowMoverBatchesCount > 0 {
 		actions = append(actions, CopilotAction{
 			Priority:    "URGENT",
-			Title:       fmt.Sprintf("%d Slow-Mover Batch(es) Locking Capital", d.SlowMoverBatchesCount),
-			Detail:      "Stale listings tie up working capital. Review Safe Break-Even Floor and re-price or liquidate to free ISK.",
-			ActionLabel: "Inspect Slow Movers →",
+			Title:       fmt.Sprintf(i18n.L(ctx, "%d Slow-Mover Batch(es) Locking Capital", "%d Batch Lambat Mengunci Modal"), d.SlowMoverBatchesCount),
+			Detail:      i18n.L(ctx, "Stale listings tie up working capital. Review Safe Break-Even Floor and re-price or liquidate to free ISK.", "Stok yang macet mengunci modal kerja. Cek batas Break-Even dan sesuaikan harga agar ISK kembali cair."),
+			ActionLabel: i18n.L(ctx, "Inspect Slow Movers →", "Cek Batch Lambat →"),
 			ActionURL:   "/tracker?status=SLOW_MOVER",
 		})
 	}
@@ -472,9 +473,9 @@ func buildCopilotActions(d *DashboardSummary) []CopilotAction {
 	if d.ExpiredColoniesCount > 0 || d.ExpiringColoniesCount > 0 {
 		actions = append(actions, CopilotAction{
 			Priority:    "URGENT",
-			Title:       fmt.Sprintf("PI Extractors Need Attention (%d expired, %d expiring)", d.ExpiredColoniesCount, d.ExpiringColoniesCount),
-			Detail:      "Idle extractors stop passive daily ISK generation. Reset your planet timers in 1 click.",
-			ActionLabel: "Open PI Colonies →",
+			Title:       fmt.Sprintf(i18n.L(ctx, "PI Extractors Need Attention (%d expired, %d expiring)", "Extractor PI Perlu Dicek (%d habis, %d segera habis)"), d.ExpiredColoniesCount, d.ExpiringColoniesCount),
+			Detail:      i18n.L(ctx, "Idle extractors stop passive daily ISK generation. Reset your planet timers in 1 click.", "Extractor yang berhenti membuat pasif ISK harian terhenti. Reset timer planet Anda dengan 1 klik."),
+			ActionLabel: i18n.L(ctx, "Open PI Colonies →", "Buka Koloni PI →"),
 			ActionURL:   "/pi",
 		})
 	}
@@ -483,9 +484,9 @@ func buildCopilotActions(d *DashboardSummary) []CopilotAction {
 	if d.DraftBatchesCount > 0 {
 		actions = append(actions, CopilotAction{
 			Priority:    "ACTION",
-			Title:       fmt.Sprintf("%d Draft Batch(es) Ready to Start in Tracker", d.DraftBatchesCount),
-			Detail:      "You have queued draft batches waiting to begin production or market listing.",
-			ActionLabel: "Start Drafts (Step 4) →",
+			Title:       fmt.Sprintf(i18n.L(ctx, "%d Draft Batch(es) Ready to Start in Tracker", "%d Draft Batch Siap Dijalankan di Tracker"), d.DraftBatchesCount),
+			Detail:      i18n.L(ctx, "You have queued draft batches waiting to begin production or market listing.", "Anda punya antrean draft batch yang menunggu untuk mulai produksi atau dipasang di market."),
+			ActionLabel: i18n.L(ctx, "Start Drafts (Step 4) →", "Mulai Draft (Langkah 4) →"),
 			ActionURL:   "/tracker?status=DRAFT",
 		})
 	}
@@ -497,20 +498,20 @@ func buildCopilotActions(d *DashboardSummary) []CopilotAction {
 		switch {
 		case d.TotalCatalogItems == 0:
 			targetURL = "/catalog"
-			btnLabel = "Step 1: Fill Catalog →"
-			detail = fmt.Sprintf("Add viable items to your %s Catalog first (or use Scanner), then split capital in Allocator.", hubName)
+			btnLabel = i18n.L(ctx, "Step 1: Fill Catalog →", "Langkah 1: Isi Catalog →")
+			detail = fmt.Sprintf(i18n.L(ctx, "Add viable items to your %s Catalog first (or use Scanner), then split capital in Allocator.", "Tambahkan item yang layak ke Catalog %s dulu (atau gunakan Scanner), lalu bagi modal di Allocator."), hubName)
 		case d.ActivePlan == nil:
 			targetURL = "/allocator"
-			btnLabel = "Step 2: Split Capital →"
-			detail = "Use Smart Capital Allocator to size safe batches from your Catalog and generate your Weekly Plan."
+			btnLabel = i18n.L(ctx, "Step 2: Split Capital →", "Langkah 2: Bagi Modal →")
+			detail = i18n.L(ctx, "Use Smart Capital Allocator to size safe batches from your Catalog and generate your Weekly Plan.", "Gunakan Smart Capital Allocator untuk membagi modal aman dari Catalog dan membuat Weekly Plan.")
 		default:
 			targetURL = "/planner"
-			btnLabel = "Step 3: Fill Slots (Planner) →"
-			detail = "Empty industry slots slow down compounding toward 100B+ Total Wealth. Queue your next profitable wave."
+			btnLabel = i18n.L(ctx, "Step 3: Fill Slots (Planner) →", "Langkah 3: Isi Slot (Planner) →")
+			detail = i18n.L(ctx, "Empty industry slots slow down compounding toward 100B+ Total Wealth. Queue your next profitable wave.", "Slot produksi yang kosong memperlambat pertumbuhan menuju 100B+ Total Wealth. Jadwalkan batch berikutnya.")
 		}
 		actions = append(actions, CopilotAction{
 			Priority:    "ACTION",
-			Title:       fmt.Sprintf("%d of %d Manufacturing Slot(s) Sitting Idle", idle, d.MfgSlotsTotal),
+			Title:       fmt.Sprintf(i18n.L(ctx, "%d of %d Manufacturing Slot(s) Sitting Idle", "%d dari %d Slot Produksi Sedang Kosong"), idle, d.MfgSlotsTotal),
 			Detail:      detail,
 			ActionLabel: btnLabel,
 			ActionURL:   targetURL,
@@ -523,9 +524,9 @@ func buildCopilotActions(d *DashboardSummary) []CopilotAction {
 		if isStale && !d.Mode.PriceSync.IsRunning {
 			actions = append(actions, CopilotAction{
 				Priority:    "TIP",
-				Title:       fmt.Sprintf("Refresh Live %s Prices & Volumes", hubName),
-				Detail:      fmt.Sprintf("Cached prices for your %d catalog item(s) are older than 30 minutes. Sync now for fresh spreads.", d.TotalCatalogItems),
-				ActionLabel: "Sync " + hubName + " Prices",
+				Title:       fmt.Sprintf(i18n.L(ctx, "Refresh Live %s Prices & Volumes", "Segarkan Harga & Volume Live %s"), hubName),
+				Detail:      fmt.Sprintf(i18n.L(ctx, "Cached prices for your %d catalog item(s) are older than 30 minutes. Sync now for fresh spreads.", "Cache harga untuk %d item katalog sudah lebih dari 30 menit. Sinkron sekarang agar harga terbaru."), d.TotalCatalogItems),
+				ActionLabel: i18n.L(ctx, "Sync ", "Sinkron Harga ") + hubName,
 				ActionPost:  "/esi/sync-prices",
 			})
 		}
@@ -535,9 +536,9 @@ func buildCopilotActions(d *DashboardSummary) []CopilotAction {
 	if !d.CapturedWealthToday {
 		actions = append(actions, CopilotAction{
 			Priority:    "ACTION",
-			Title:       fmt.Sprintf("Log Today's Total Wealth (Next: %s — %.1f%%)", d.NextMilestoneLabel, d.NextMilestonePct),
-			Detail:      "Capture a daily snapshot to plot your equity curve and verify real compounding velocity.",
-			ActionLabel: "Auto-Capture Today",
+			Title:       fmt.Sprintf(i18n.L(ctx, "Log Today's Total Wealth (Next: %s — %.1f%%)", "Catat Total Wealth Hari Ini (Target: %s — %.1f%%)"), d.NextMilestoneLabel, d.NextMilestonePct),
+			Detail:      i18n.L(ctx, "Capture a daily snapshot to plot your equity curve and verify real compounding velocity.", "Ambil snapshot harian untuk memantau grafik pertumbuhan aset dan kecepatan compounding Anda."),
+			ActionLabel: i18n.L(ctx, "Auto-Capture Today", "Catat Otomatis Hari Ini"),
 			ActionPost:  "/wealth/auto-snapshot",
 		})
 	}
@@ -545,9 +546,9 @@ func buildCopilotActions(d *DashboardSummary) []CopilotAction {
 	if len(actions) == 0 {
 		actions = append(actions, CopilotAction{
 			Priority:    "OK",
-			Title:       "All Systems Optimal — Keep Compounding!",
-			Detail:      "All manufacturing slots are busy, no active undercuts detected, and today's Net Worth snapshot is logged.",
-			ActionLabel: "Open Manufacture →",
+			Title:       i18n.L(ctx, "All Systems Optimal — Keep Compounding!", "Semua Sistem Optimal — Teruskan Compounding!"),
+			Detail:      i18n.L(ctx, "All manufacturing slots are busy, no active undercuts detected, and today's Net Worth snapshot is logged.", "Semua slot produksi aktif, tidak ada undercut terdeteksi, dan snapshot Net Worth hari ini sudah tercatat."),
+			ActionLabel: i18n.L(ctx, "Open Manufacture →", "Buka Manufacture →"),
 			ActionURL:   "/manufacture",
 		})
 	}

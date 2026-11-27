@@ -684,21 +684,21 @@ templ CatalogTable(hub domain.TradeHub, items []domain.MarketItem) {
 	<div id="catalog-table" class="tactical-panel rounded-xl overflow-hidden">
 		if len(items) == 0 {
 			<div class="p-10 text-center space-y-2">
-				<div class="text-sm font-semibold text-slate-200">No items match the current catalog filter.</div>
-				<div class="text-xs text-slate-400">Click <strong>Recommend for My Capital</strong> or <strong>+ Add Item</strong> (with <strong>Browse SDE Blueprints</strong>) to populate your { hub.Name } catalog.</div>
+				<div class="text-sm font-semibold text-slate-200">{ i18n.L(ctx, "No items match the current catalog filter.", "Tidak ada item yang cocok dengan filter katalog saat ini.") }</div>
+				<div class="text-xs text-slate-400">{ i18n.L(ctx, "Click Recommend for My Capital or + Add Item (with Browse SDE Blueprints) to populate your catalog.", "Klik Rekomendasi untuk Modal Saya atau + Tambah Item (dengan Browse SDE Blueprints) untuk mengisi katalog Anda.") }</div>
 			</div>
 		} else {
 			<div class="overflow-x-auto">
 				<table class="w-full text-left text-xs">
 					<thead class="border-b border-violet-400/20 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400">
 						<tr>
-							<th class="px-4 py-3">Item &amp; Badges</th>
+							<th class="px-4 py-3">{ i18n.L(ctx, "Item & Badges", "Item & Label") }</th>
 							<th class="px-3 py-3 text-right">{ hub.Name } Sell / Buy</th>
-							<th class="px-3 py-3 text-right">Daily Vol / Batch</th>
-							<th class="px-3 py-3 text-right">Material Cost</th>
-							<th class="px-3 py-3 text-right">Estimated Profit / ROI</th>
-							<th class="px-4 py-3">Trap Guard &amp; Copilot Advice</th>
-							<th class="px-4 py-3 text-right">Actions</th>
+							<th class="px-3 py-3 text-right">{ i18n.L(ctx, "Daily Volume / Batch", "Volume Harian / Batch") }</th>
+							<th class="px-3 py-3 text-right">{ i18n.L(ctx, "Material Cost", "Biaya Material") }</th>
+							<th class="px-3 py-3 text-right">{ i18n.L(ctx, "Estimated Profit / ROI", "Estimasi Profit / ROI") }</th>
+							<th class="px-4 py-3">{ i18n.L(ctx, "Trap Guard & Copilot Advice", "Trap Guard & Saran Copilot") }</th>
+							<th class="px-4 py-3 text-right">{ i18n.L(ctx, "Actions", "Aksi") }</th>
 						</tr>
 					</thead>
 					<tbody class="divide-y divide-slate-800/80">
@@ -746,8 +746,8 @@ templ CatalogTable(hub domain.TradeHub, items []domain.MarketItem) {
 
 								<!-- Volume & Batch Qty -->
 								<td class="px-3 py-3 text-right font-mono text-slate-200 whitespace-nowrap">
-									<div>{ FormatVolume(it.DailyVolume) }</div>
-									<div class="text-[10px] text-slate-500">Batch: { fmt.Sprintf("%d units", it.BatchOutputQty) }</div>
+									<div>{ FormatVolumeCtx(ctx, it.DailyVolume) }</div>
+									<div class="text-[10px] text-slate-500">Batch: { fmt.Sprintf("%d %s", it.BatchOutputQty, i18n.L(ctx, "units", "unit")) }</div>
 								</td>
 
 								<!-- Material Cost + SDE BOM badge -->
@@ -786,28 +786,28 @@ templ CatalogTable(hub domain.TradeHub, items []domain.MarketItem) {
 								<td class="px-4 py-3 max-w-sm">
 									<div class="flex flex-wrap items-center gap-1.5">
 										<span class={ "inline-block rounded px-2 py-0.5 font-mono text-[10px] font-bold " + TrapBadgeClass(it.TrapAnalysis.Status) }>
-											{ TrapStatusLabel(it.TrapAnalysis.Status) }
+											{ TrapStatusLabelCtx(ctx, it.TrapAnalysis.Status) }
 										</span>
 										if it.TrapAnalysis.IsPriceSpike {
 											<span class="inline-block rounded border border-amber-400/50 bg-amber-500/20 px-1.5 py-0.5 font-mono text-[9px] font-bold text-amber-200">
-												{ fmt.Sprintf("PRICE SPIKE +%.0f%%", it.TrapAnalysis.PriceSpikePct) }
+												{ fmt.Sprintf("%s +%.0f%%", i18n.L(ctx, "PRICE SPIKE", "LONJAKAN HARGA"), it.TrapAnalysis.PriceSpikePct) }
 											</span>
 										}
-										<span class="font-mono text-[10px] text-slate-400">Risk: { string(it.TrapAnalysis.RiskLevel) }</span>
+										<span class="font-mono text-[10px] text-slate-400">{ i18n.L(ctx, "Risk", "Risiko") }: { string(it.TrapAnalysis.RiskLevel) }</span>
 									</div>
 									if len(it.TrapAnalysis.Reasons) > 0 {
 										<ul class="mt-1.5 space-y-0.5 text-[11px] text-rose-200/90 leading-snug">
 											for _, reason := range it.TrapAnalysis.Reasons {
-												<li>• { reason }</li>
+												<li>• { TrapReasonCtx(ctx, reason) }</li>
 											}
 										</ul>
 									}
 									if it.TrapAnalysis.Recommendation != "" {
-										<div class="mt-1 text-[11px] text-slate-300/90 italic">{ it.TrapAnalysis.Recommendation }</div>
+										<div class="mt-1 text-[11px] text-slate-300/90 italic">{ TrapRecommendationCtx(ctx, it.TrapAnalysis) }</div>
 									}
 								</td>
 
-								<!-- Quick Actions: Edit, Calc, Market, Delete -->
+								<!-- Quick Actions: Edit, Manufacture, Market, Delete -->
 								<td class="px-4 py-3 text-right whitespace-nowrap">
 									<div class="inline-flex flex-wrap justify-end gap-1">
 										<button
@@ -816,18 +816,18 @@ templ CatalogTable(hub domain.TradeHub, items []domain.MarketItem) {
 											@click="$dispatch('open-catalog-edit', JSON.parse($el.dataset.item))"
 											class="rounded border border-amber-400/35 bg-amber-500/15 px-2 py-1 text-[11px] font-semibold text-amber-200 hover:bg-amber-500/30 transition cursor-pointer"
 										>
-											Edit
+											{ i18n.L(ctx, "Edit", "Ubah") }
 										</button>
 										<a
 											href={ templ.SafeURL(fmt.Sprintf("/manufacture?product_id=%d&q=%s&hub=%s", it.TypeID, url.QueryEscape(it.Name), hub.Key)) }
-											title={ "Open " + it.Name + " in Manufacture & Profit" }
+											title={ i18n.L(ctx, "Open ", "Buka ") + it.Name + i18n.L(ctx, " in Manufacture & Profit", " di Manufacture & Profit") }
 											class="rounded border border-emerald-400/35 bg-emerald-500/15 px-2 py-1 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-500/30 transition"
 										>
-											Calculate
+											Manufacture
 										</a>
 										<a
 											href={ templ.SafeURL("/marketplace?hub=" + hub.Key + "&q=" + url.QueryEscape(it.Name)) }
-											title={ "Inspect Live Order Book in " + hub.Name + " Marketplace" }
+											title={ i18n.L(ctx, "Inspect Live Order Book in ", "Lihat Order Book Live di ") + hub.Name }
 											class="rounded border border-sky-400/35 bg-sky-500/15 px-2 py-1 text-[11px] font-semibold text-sky-200 hover:bg-sky-500/30 transition"
 										>
 											Market
@@ -837,10 +837,10 @@ templ CatalogTable(hub domain.TradeHub, items []domain.MarketItem) {
 											hx-delete={ fmt.Sprintf("/catalog/items/%d", it.ID) }
 											hx-target="#catalog-table"
 											hx-swap="outerHTML"
-											hx-confirm={ fmt.Sprintf("Delete %s from catalog?", it.Name) }
+											hx-confirm={ fmt.Sprintf(i18n.L(ctx, "Delete %s from catalog?", "Hapus %s dari katalog?"), it.Name) }
 											class="rounded border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-[11px] text-rose-300 hover:bg-rose-500/25 transition cursor-pointer"
 										>
-											Delete
+											{ i18n.L(ctx, "Delete", "Hapus") }
 										</button>
 									</div>
 								</td>

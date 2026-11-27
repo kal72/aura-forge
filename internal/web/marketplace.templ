@@ -1006,20 +1006,20 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 				<!-- Top Sell Orders -->
 				<div class="tactical-panel rounded-xl overflow-hidden">
 					<div class="px-5 py-3 border-b border-amber-400/20 flex items-center justify-between">
-						<h3 class="text-xs font-bold uppercase tracking-wider text-amber-300">Top Sell Orders (Lowest — Watch for Sell Walls)</h3>
+						<h3 class="text-xs font-bold uppercase tracking-wider text-amber-300">{ i18n.L(ctx, "Top Sell Orders (Lowest — Watch for Sell Walls)", "Top Sell Orders (Termurah — Waspadai Sell Wall)") }</h3>
 						<span class="text-[10px] font-mono text-slate-400">{ fmt.Sprintf("Top %d", len(sellDepth)) }</span>
 					</div>
 					if len(sellDepth) == 0 {
-						<div class="p-6 text-center text-xs text-slate-400">No active sell orders at { snap.SelectedHub.Name }.</div>
+						<div class="p-6 text-center text-xs text-slate-400">{ i18n.L(ctx, "No active Sell Orders at", "Tidak ada Sell Order aktif di") } { snap.SelectedHub.Name }.</div>
 					} else {
 						<div class="overflow-x-auto">
 							<table class="w-full text-left text-xs font-mono">
 								<thead class="bg-slate-950/50 text-[10px] uppercase text-slate-400 border-b border-violet-400/15">
 									<tr>
-										<th class="px-4 py-2">Price (ISK)</th>
-										<th class="px-3 py-2 text-right">Quantity</th>
-										<th class="px-3 py-2 text-right">Cumulative</th>
-										<th class="px-4 py-2 text-right">Order Value</th>
+										<th class="px-4 py-2">{ i18n.L(ctx, "Price (ISK)", "Harga (ISK)") }</th>
+										<th class="px-3 py-2 text-right">{ i18n.L(ctx, "Quantity", "Jumlah") }</th>
+										<th class="px-3 py-2 text-right">{ i18n.L(ctx, "Cumulative", "Kumulatif") }</th>
+										<th class="px-4 py-2 text-right">{ i18n.L(ctx, "Order Value", "Nilai Order") }</th>
 									</tr>
 								</thead>
 								<tbody class="divide-y divide-violet-400/10">
@@ -1043,20 +1043,20 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 				<!-- Top Buy Orders -->
 				<div class="tactical-panel rounded-xl overflow-hidden">
 					<div class="px-5 py-3 border-b border-sky-400/20 flex items-center justify-between">
-						<h3 class="text-xs font-bold uppercase tracking-wider text-sky-300">Top Buy Orders (Highest — Instant Demand)</h3>
+						<h3 class="text-xs font-bold uppercase tracking-wider text-sky-300">{ i18n.L(ctx, "Top Buy Orders (Highest — Instant Demand)", "Top Buy Orders (Tertinggi — Permintaan Instan)") }</h3>
 						<span class="text-[10px] font-mono text-slate-400">{ fmt.Sprintf("Top %d", len(buyDepth)) }</span>
 					</div>
 					if len(buyDepth) == 0 {
-						<div class="p-6 text-center text-xs text-slate-400">No active buy orders at { snap.SelectedHub.Name }.</div>
+						<div class="p-6 text-center text-xs text-slate-400">{ i18n.L(ctx, "No active Buy Orders at", "Tidak ada Buy Order aktif di") } { snap.SelectedHub.Name }.</div>
 					} else {
 						<div class="overflow-x-auto">
 							<table class="w-full text-left text-xs font-mono">
 								<thead class="bg-slate-950/50 text-[10px] uppercase text-slate-400 border-b border-violet-400/15">
 									<tr>
-										<th class="px-4 py-2">Price (ISK)</th>
-										<th class="px-3 py-2 text-right">Quantity</th>
-										<th class="px-3 py-2 text-right">Cumulative</th>
-										<th class="px-4 py-2 text-right">Order Value</th>
+										<th class="px-4 py-2">{ i18n.L(ctx, "Price (ISK)", "Harga (ISK)") }</th>
+										<th class="px-3 py-2 text-right">{ i18n.L(ctx, "Quantity", "Jumlah") }</th>
+										<th class="px-3 py-2 text-right">{ i18n.L(ctx, "Cumulative", "Kumulatif") }</th>
+										<th class="px-4 py-2 text-right">{ i18n.L(ctx, "Order Value", "Nilai Order") }</th>
 									</tr>
 								</thead>
 								<tbody class="divide-y divide-violet-400/10">

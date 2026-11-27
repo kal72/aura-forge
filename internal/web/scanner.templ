@@ -525,15 +525,15 @@ templ ScannerManufacturingPartial(isAdmin bool, results []domain.ManufacturingOp
 				<table class="w-full text-left text-xs">
 					<thead class="bg-slate-950/50 font-mono uppercase text-[10px] tracking-wider text-slate-400 border-b border-violet-400/15">
 						<tr>
-							<th class="px-4 py-3">Product / Tech / Hub</th>
-							<th class="px-3 py-3 text-right">Daily Vol (7d)</th>
-							<th class="px-3 py-3 text-right">Material Cost</th>
-							<th class="px-3 py-3 text-right">Rec. Sell / Floor</th>
+							<th class="px-4 py-3">{ i18n.L(ctx, "Product / Tech / Hub", "Produk / Tech / Hub") }</th>
+							<th class="px-3 py-3 text-right">{ i18n.L(ctx, "Daily Volume (7-Day)", "Volume Harian (7 Hari)") }</th>
+							<th class="px-3 py-3 text-right">{ i18n.L(ctx, "Material Cost", "Biaya Material") }</th>
+							<th class="px-3 py-3 text-right">{ i18n.L(ctx, "Recommended Sell / Floor", "Saran Sell / Batas Aman") }</th>
 							<th class="px-3 py-3 text-right">Net Profit</th>
 							<th class="px-3 py-3 text-right">Margin / ROI</th>
-							<th class="px-3 py-3 text-right">ISK / Hour</th>
-							<th class="px-3 py-3">Verdict</th>
-							<th class="px-4 py-3 text-right">Action</th>
+							<th class="px-3 py-3 text-right">{ i18n.L(ctx, "ISK / Hour", "ISK / Jam") }</th>
+							<th class="px-3 py-3">{ i18n.L(ctx, "Verdict", "Status") }</th>
+							<th class="px-4 py-3 text-right">{ i18n.L(ctx, "Action", "Aksi") }</th>
 						</tr>
 					</thead>
 					<tbody class="divide-y divide-violet-400/15">
@@ -559,7 +559,7 @@ templ ScannerManufacturingPartial(isAdmin bool, results []domain.ManufacturingOp
 												} else {
 													<span>{ r.HubName }</span>
 												}
-												<span>{ fmt.Sprintf(" • %s • %dx runs (%d u) • %s", r.Category, r.Runs, r.OutputQty, r.DurationFormatted) }</span>
+												<span>{ fmt.Sprintf(" • %s • %dx runs (%d %s) • %s", r.Category, r.Runs, r.OutputQty, i18n.L(ctx, "units", "unit"), r.DurationFormatted) }</span>
 												if r.RunSizingReason != "" {
 													<span class="text-amber-300/90"> • { r.RunSizingReason }</span>
 												}
@@ -568,9 +568,9 @@ templ ScannerManufacturingPartial(isAdmin bool, results []domain.ManufacturingOp
 									</div>
 								</td>
 								<td class="px-3 py-3 text-right font-mono whitespace-nowrap">
-									<div class="text-sky-200 font-semibold">{ FormatVolume(r.DailyVolume7d) }</div>
+									<div class="text-sky-200 font-semibold">{ FormatVolumeCtx(ctx, r.DailyVolume7d) }</div>
 									if r.DailyVolume7d < float64(r.OutputQty) {
-										<div class="text-[9px] text-amber-300">LOW VOL</div>
+										<div class="text-[9px] text-amber-300">{ i18n.L(ctx, "LOW VOLUME", "VOLUME RENDAH") }</div>
 									}
 								</td>
 								<td class="px-3 py-3 text-right font-mono whitespace-nowrap">
