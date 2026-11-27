@@ -1515,7 +1515,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							var templ_7745c5c3_Var71 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&me=%d&te=%d", bp.TypeID, bp.MaterialEfficiency, bp.TimeEfficiency))
+							var templ_7745c5c3_Var71 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&me=%d&te=%d&hub=%s", bp.TypeID, bp.MaterialEfficiency, bp.TimeEfficiency, view.ActiveHub.Key))
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var71)))
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err

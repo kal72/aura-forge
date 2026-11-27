@@ -111,8 +111,8 @@ templ DashboardPage(data *service.DashboardSummary) {
 						<a href="/scanner" class="rounded-md border border-amber-500/40 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition">
 							Opportunity Scanner
 						</a>
-						<a href="/calculator?mode=blueprint" class="rounded-md border border-sky-500/40 bg-sky-500/15 px-3 py-1.5 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition">
-							Blueprint Calculator
+						<a href="/manufacture" class="rounded-md border border-sky-500/40 bg-sky-500/15 px-3 py-1.5 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition">
+							Manufacture &amp; Profit
 						</a>
 						<a href="/wealth" class="rounded-md border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 transition">
 							100B+ Roadmap
@@ -124,8 +124,8 @@ templ DashboardPage(data *service.DashboardSummary) {
 						<a href="/scanner" class="rounded-md border border-amber-500/40 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition">
 							Opportunity Scanner
 						</a>
-						<a href="/calculator?mode=blueprint" class="rounded-md border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 transition">
-							Blueprint Calculator
+						<a href="/manufacture" class="rounded-md border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 transition">
+							Manufacture &amp; Profit
 						</a>
 					}
 				</div>
@@ -524,7 +524,7 @@ templ MineralTickerPartial(pulse service.MarketPulseResponse) {
 					<!-- Top Row: Official EVE Icon + Name + Signal Badge -->
 					<div class="flex items-start justify-between gap-2">
 						<a
-							href={ templ.SafeURL(fmt.Sprintf("/marketplace?hub=%s&q=%s", m.HubKey, m.Name)) }
+							href={ templ.SafeURL(fmt.Sprintf("/marketplace?hub=%s&q=%s", m.HubKey, url.QueryEscape(m.Name))) }
 							title={ fmt.Sprintf("Open %s order book in %s Marketplace", m.Name, m.HubName) }
 							class="flex items-center gap-2.5 min-w-0 flex-1"
 						>
@@ -627,8 +627,8 @@ templ MineralTickerPartial(pulse service.MarketPulseResponse) {
 								</a>
 							} else if m.BlueprintID > 0 {
 								<a
-									href="/calculator?mode=blueprint"
-									title="Open Blueprint SDE Mode in Profit Calculator"
+									href={ templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&hub=%s", m.BlueprintID, m.HubKey)) }
+									title={ "Open " + m.Name + " in Manufacture & Profit" }
 									class="rounded border border-emerald-400/40 bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold text-emerald-200 hover:bg-emerald-500/30 transition"
 								>
 									Craft →
@@ -766,7 +766,7 @@ templ DashboardRadarPartial(snap service.RadarSnapshot) {
 								<td class="px-3 py-2 text-right whitespace-nowrap">
 									<div class="inline-flex items-center gap-1">
 										<a
-											href={ templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&me=%d&te=%d", r.BlueprintTypeID, r.ME, r.TE)) }
+											href={ templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&me=%d&te=%d&runs=%d&hub=%s", r.BlueprintTypeID, r.ME, r.TE, r.Runs, r.HubKey)) }
 											class="rounded border border-emerald-400/35 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-200 hover:bg-emerald-500/25"
 										>
 											Craft →

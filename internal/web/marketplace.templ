@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"math"
+	"net/url"
 	"strings"
 
 	"aura-forge/internal/domain"
@@ -691,17 +692,17 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 					</form>
 					if snap.HasBlueprint {
 						<a
-							href="/calculator?mode=blueprint"
+							href={ templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&hub=%s", snap.BlueprintTypeID, snap.SelectedHub.Key)) }
 							class="rounded-lg border border-amber-400/45 bg-amber-500/15 px-3.5 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition"
 						>
-							Craft in Blueprint Calculator →
+							Manufacture &amp; Profit →
 						</a>
 					} else {
 						<a
-							href="/calculator"
+							href={ templ.SafeURL(fmt.Sprintf("/manufacture?product_id=%d&q=%s&hub=%s", snap.TypeID, url.QueryEscape(snap.TypeName), snap.SelectedHub.Key)) }
 							class="rounded-lg border border-sky-400/40 bg-sky-500/15 px-3.5 py-2 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition"
 						>
-							Open in Calculator →
+							Open in Manufacture →
 						</a>
 					}
 				</div>

@@ -604,7 +604,7 @@ templ ScannerManufacturingPartial(isAdmin bool, results []domain.ManufacturingOp
 								<td class="px-4 py-3 text-right whitespace-nowrap">
 									<div class="inline-flex items-center gap-1">
 										<a
-											href={ templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&me=%d&te=%d", r.BlueprintTypeID, r.ME, r.TE)) }
+											href={ templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&me=%d&te=%d&runs=%d&hub=%s", r.BlueprintTypeID, r.ME, r.TE, r.Runs, r.HubKey)) }
 											title="Open in Blueprint Manufacturing Calculator with this ME/TE"
 											class="rounded border border-emerald-400/35 bg-emerald-500/15 px-2 py-1 text-[10px] font-semibold text-emerald-200 hover:bg-emerald-500/25"
 										>

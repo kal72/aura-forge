@@ -818,8 +818,8 @@ templ CatalogTable(hub domain.TradeHub, items []domain.MarketItem) {
 											Edit
 										</button>
 										<a
-											href="/calculator?mode=blueprint"
-											title="Open Blueprint SDE Mode in Profit Calculator"
+											href={ templ.SafeURL(fmt.Sprintf("/manufacture?product_id=%d&q=%s&hub=%s", it.TypeID, url.QueryEscape(it.Name), hub.Key)) }
+											title={ "Open " + it.Name + " in Manufacture & Profit" }
 											class="rounded border border-emerald-400/35 bg-emerald-500/15 px-2 py-1 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-500/30 transition"
 										>
 											Calc
