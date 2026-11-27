@@ -84,6 +84,16 @@ type MarketplaceSnapshot struct {
 	AvgDailyVolume30d float64                `json:"avg_daily_volume_30d"`
 	EstimatedDailyISK float64                `json:"estimated_daily_isk"`
 
+	// Buyer Activity & Regional Demand Breakdown (from CCP ESI /markets/{region}/history/)
+	LatestDayDate    string  `json:"latest_day_date,omitempty"`
+	LatestDayOrders  int64   `json:"latest_day_orders"`
+	LatestDayVolume  int64   `json:"latest_day_volume"`
+	AvgDailyOrders7d float64 `json:"avg_daily_orders_7d"`
+	Total7dOrders    int64   `json:"total_7d_orders"`
+	Total7dVolume    int64   `json:"total_7d_volume"`
+	Total49dOrders   int64   `json:"total_49d_orders"`
+	Total49dVolume   int64   `json:"total_49d_volume"`
+
 	// v2 Trading & Price Intelligence
 	Avg7dPrice           float64  `json:"avg_7d_price"`
 	Low7dPrice           float64  `json:"low_7d_price"`

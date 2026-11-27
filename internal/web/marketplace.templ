@@ -735,6 +735,42 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 				</div>
 			</div>
 
+			<!-- Buyer Activity & Regional Demand Breakdown (Latest Day, 7d Avg, 7d Total, 7-Week / 49d Total) -->
+			if snap.LatestDayDate != "" || snap.Total49dOrders > 0 {
+				<div class="tactical-panel rounded-xl p-4 space-y-2.5">
+					<div class="flex flex-wrap items-center justify-between gap-2">
+						<div class="text-[10px] font-mono font-bold uppercase tracking-wider text-cyan-300">
+							Buyer Activity &amp; Regional Demand ({ snap.SelectedHub.RegionName })
+						</div>
+						<div class="text-[10px] text-slate-400">
+							CCP ESI daily history (<code class="text-slate-300">tx</code> = completed market orders; latest UTC day: <span class="font-mono text-sky-200">{ snap.LatestDayDate }</span>)
+						</div>
+					</div>
+					<div class="grid grid-cols-2 gap-2.5 lg:grid-cols-4 font-mono text-xs">
+						<div class="rounded-lg border border-slate-700/70 bg-slate-950/60 px-3 py-2">
+							<div class="text-[9.5px] uppercase text-slate-400">Latest Day ({ snap.LatestDayDate })</div>
+							<div class="mt-0.5 text-sm font-bold text-white">{ formatInt64(snap.LatestDayOrders) } tx</div>
+							<div class="text-[10.5px] text-sky-300">{ formatInt64(snap.LatestDayVolume) } units</div>
+						</div>
+						<div class="rounded-lg border border-slate-700/70 bg-slate-950/60 px-3 py-2">
+							<div class="text-[9.5px] uppercase text-slate-400">Daily Avg (7d)</div>
+							<div class="mt-0.5 text-sm font-bold text-emerald-300">{ fmt.Sprintf("%.1f", snap.AvgDailyOrders7d) } tx/day</div>
+							<div class="text-[10.5px] text-sky-300">{ formatInt64(int64(snap.AvgDailyVolume7d)) } u/day</div>
+						</div>
+						<div class="rounded-lg border border-slate-700/70 bg-slate-950/60 px-3 py-2">
+							<div class="text-[9.5px] uppercase text-slate-400">7-Day Total (1 Week)</div>
+							<div class="mt-0.5 text-sm font-bold text-amber-200">{ formatInt64(snap.Total7dOrders) } tx</div>
+							<div class="text-[10.5px] text-sky-300">{ formatInt64(snap.Total7dVolume) } units</div>
+						</div>
+						<div class="rounded-lg border border-slate-700/70 bg-slate-950/60 px-3 py-2">
+							<div class="text-[9.5px] uppercase text-slate-400">7-Week Total (49 Days)</div>
+							<div class="mt-0.5 text-sm font-bold text-violet-200">{ formatInt64(snap.Total49dOrders) } tx</div>
+							<div class="text-[10.5px] text-sky-300">{ formatInt64(snap.Total49dVolume) } units</div>
+						</div>
+					</div>
+				</div>
+			}
+
 			<!-- v2 Trading & Pricing Intelligence Banner -->
 			<div class="grid grid-cols-1 gap-3 lg:grid-cols-3">
 				<!-- Recommended Order Prices (with 1-click Copy) -->
