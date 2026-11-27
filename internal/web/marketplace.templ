@@ -569,16 +569,23 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 				class="fixed bottom-6 right-6 z-40"
 			>
 				<div class="tactical-panel flex items-center gap-2 rounded-2xl px-3 py-2 shadow-2xl">
-					<div class="flex items-center -space-x-1.5 pr-1">
+					<div class="flex items-center gap-1.5 pr-1">
 						<template x-for="cItem in compareQueue" :key="cItem.name">
-							<img
-								x-show="cItem.typeId > 0"
-								:src="'https://images.evetech.net/types/' + cItem.typeId + '/icon?size=32'"
-								:alt="cItem.name"
-								:title="cItem.name"
-								class="h-7 w-7 rounded-lg border border-amber-300/60 bg-slate-950 p-0.5 object-contain shadow"
-								onerror="this.style.display='none'"
-							/>
+							<button
+								type="button"
+								@click="toggleCompareItem(cItem.name, cItem.typeId)"
+								:title="'Click to remove ' + cItem.name"
+								class="group relative inline-flex h-7 w-7 items-center justify-center rounded-lg border border-amber-300/60 bg-slate-950 p-0.5 shadow hover:border-rose-400/80 transition cursor-pointer"
+							>
+								<img
+									x-show="cItem.typeId > 0"
+									:src="'https://images.evetech.net/types/' + cItem.typeId + '/icon?size=32'"
+									:alt="cItem.name"
+									class="h-full w-full rounded object-contain group-hover:opacity-35 transition"
+									onerror="this.style.display='none'"
+								/>
+								<span class="pointer-events-none absolute inset-0 flex items-center justify-center text-[11px] font-extrabold text-rose-300 opacity-0 group-hover:opacity-100 transition">✕</span>
+							</button>
 						</template>
 					</div>
 					<button
