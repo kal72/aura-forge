@@ -1221,95 +1221,108 @@ func PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) templ.Com
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 112, "</div></div><!-- Multi-Week Growth Projection (Week 1 -> Week 4) --><div class=\"tactical-panel rounded-xl p-5 space-y-4\"><div><h2 class=\"text-sm font-bold uppercase tracking-wider text-sky-300\">Working Capital Compounding Simulation (Week 1 → Week 4)</h2><p class=\"text-xs text-slate-400 mt-0.5\">4-week compounding projection reinvesting 85% of weekly net profit (keeping 15% cash buffer) with production tier milestones.</p></div><div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs\"><thead class=\"border-b border-slate-800 font-mono uppercase text-[10px] text-slate-400\"><tr><th class=\"py-2.5 pr-3\">Week</th><th class=\"py-2.5 px-3 text-right\">Starting Capital</th><th class=\"py-2.5 px-3 text-right\">Weekly Profit</th><th class=\"py-2.5 px-3 text-right\">Ending Capital</th><th class=\"py-2.5 px-3\">Recommended Tier</th><th class=\"py-2.5 pl-3\">Strategic Guidance</th></tr></thead> <tbody class=\"divide-y divide-slate-800/70\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 112, "</div></div><!-- Multi-Week Growth Projection (Week 1 -> Week 4) --><div class=\"tactical-panel rounded-xl p-5 space-y-4\"><div><h2 class=\"text-sm font-bold uppercase tracking-wider text-sky-300\">Working Capital Compounding Simulation (Week 1 → Week 4)</h2><p class=\"text-xs text-slate-400 mt-0.5\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var78 string
+			templ_7745c5c3_Var78, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "4-week compounding projection reinvesting 85% of weekly net profit (keeping 15% cash buffer) with production tier milestones.", "Proyeksi compounding 4 minggu dengan reinvestasi 85% profit bersih mingguan (menyisakan 15% cadangan kas) beserta target tier produksi."))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 312, Col: 327}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var78))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 113, "</p></div><div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs\"><thead class=\"border-b border-slate-800 font-mono uppercase text-[10px] text-slate-400\"><tr><th class=\"py-2.5 pr-3\">Week</th><th class=\"py-2.5 px-3 text-right\">Starting Capital</th><th class=\"py-2.5 px-3 text-right\">Weekly Profit</th><th class=\"py-2.5 px-3 text-right\">Ending Capital</th><th class=\"py-2.5 px-3\">Recommended Tier</th><th class=\"py-2.5 pl-3\">Strategic Guidance</th></tr></thead> <tbody class=\"divide-y divide-slate-800/70\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, g := range data.Growth4Weeks {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 113, "<tr class=\"hover:bg-slate-800/30\"><td class=\"py-2.5 pr-3 font-mono font-bold text-sky-300\">Week #")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var78 string
-				templ_7745c5c3_Var78, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", g.Week))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 329, Col: 99}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var78))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 114, "</td><td class=\"py-2.5 px-3 text-right font-mono text-slate-300\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 114, "<tr class=\"hover:bg-slate-800/30\"><td class=\"py-2.5 pr-3 font-mono font-bold text-sky-300\">Week #")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var79 string
-				templ_7745c5c3_Var79, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(g.StartingCapital))
+				templ_7745c5c3_Var79, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", g.Week))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 330, Col: 99}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 329, Col: 99}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var79))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 115, "</td><td class=\"py-2.5 px-3 text-right font-mono text-emerald-300\">+")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 115, "</td><td class=\"py-2.5 px-3 text-right font-mono text-slate-300\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var80 string
-				templ_7745c5c3_Var80, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(g.WeeklyProfit))
+				templ_7745c5c3_Var80, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(g.StartingCapital))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 331, Col: 99}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 330, Col: 99}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var80))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 116, "</td><td class=\"py-2.5 px-3 text-right font-mono font-bold text-white\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 116, "</td><td class=\"py-2.5 px-3 text-right font-mono text-emerald-300\">+")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var81 string
-				templ_7745c5c3_Var81, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(g.EndingCapital))
+				templ_7745c5c3_Var81, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(g.WeeklyProfit))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 332, Col: 103}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 331, Col: 99}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var81))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 117, "</td><td class=\"py-2.5 px-3 font-semibold text-amber-300\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 117, "</td><td class=\"py-2.5 px-3 text-right font-mono font-bold text-white\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var82 string
-				templ_7745c5c3_Var82, templ_7745c5c3_Err = templ.JoinStringErrs(g.RecommendedTier)
+				templ_7745c5c3_Var82, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(g.EndingCapital))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 333, Col: 81}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 332, Col: 103}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var82))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 118, "</td><td class=\"py-2.5 pl-3 text-slate-300\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 118, "</td><td class=\"py-2.5 px-3 font-semibold text-amber-300\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var83 string
-				templ_7745c5c3_Var83, templ_7745c5c3_Err = templ.JoinStringErrs(g.StrategicGuidance)
+				templ_7745c5c3_Var83, templ_7745c5c3_Err = templ.JoinStringErrs(g.RecommendedTier)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 334, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 333, Col: 81}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var83))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 119, "</td></tr>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 119, "</td><td class=\"py-2.5 pl-3 text-slate-300\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var84 string
+				templ_7745c5c3_Var84, templ_7745c5c3_Err = templ.JoinStringErrs(g.StrategicGuidance)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/planner.templ`, Line: 334, Col: 69}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var84))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 120, "</td></tr>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 120, "</tbody></table></div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 121, "</tbody></table></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -336,7 +336,7 @@ templ DashboardPage(data *service.DashboardSummary) {
 						<div class="flex flex-wrap items-center justify-between gap-2">
 							<div>
 								<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Daily Copilot Assistant</h2>
-								<p class="text-[11px] text-slate-400 mt-0.5">Prioritized next actions for <strong class="text-sky-200">{ dashboardHubName(data.ActiveHub) }</strong> — click to execute.</p>
+								<p class="text-[11px] text-slate-400 mt-0.5">{ i18n.L(ctx, "Prioritized next actions for", "Prioritas aksi berikutnya untuk") } <strong class="text-sky-200">{ dashboardHubName(data.ActiveHub) }</strong> — { i18n.L(ctx, "click to execute.", "klik untuk eksekusi.") }</p>
 							</div>
 							<div class="flex items-center gap-2">
 								if data.Mode.AI.Enabled {

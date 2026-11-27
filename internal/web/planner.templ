@@ -309,7 +309,7 @@ templ PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) {
 			<div class="tactical-panel rounded-xl p-5 space-y-4">
 				<div>
 					<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">Working Capital Compounding Simulation (Week 1 → Week 4)</h2>
-					<p class="text-xs text-slate-400 mt-0.5">4-week compounding projection reinvesting 85% of weekly net profit (keeping 15% cash buffer) with production tier milestones.</p>
+					<p class="text-xs text-slate-400 mt-0.5">{ i18n.L(ctx, "4-week compounding projection reinvesting 85% of weekly net profit (keeping 15% cash buffer) with production tier milestones.", "Proyeksi compounding 4 minggu dengan reinvestasi 85% profit bersih mingguan (menyisakan 15% cadangan kas) beserta target tier produksi.") }</p>
 				</div>
 				<div class="overflow-x-auto">
 					<table class="w-full text-left text-xs">

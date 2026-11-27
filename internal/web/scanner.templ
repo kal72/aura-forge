@@ -90,7 +90,7 @@ templ ScannerPage(mode service.ModeInfo, settings domain.UserSettings) {
 					<div class="flex flex-wrap items-center justify-between gap-2">
 						<div>
 							<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Multi-Hub SDE Manufacturing Margin Scanner</h2>
-							<p class="text-xs text-slate-300/80 mt-0.5">Scans popular &amp; searchable CCP SDE blueprints at your chosen Trade Hub, ranking by true ISK/Hour, ROI %, and 7d Daily Volume after taxes, SCI, and freight.</p>
+							<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Scans popular & searchable CCP SDE blueprints at your chosen Trade Hub, ranking by true ISK/Hour, ROI %, and 7-Day Daily Volume after taxes, SCI, and freight.", "Memindai Blueprint CCP SDE populer di Trade Hub pilihan Anda, mengurutkan berdasarkan ISK/Jam, ROI %, dan Volume Harian 7 Hari setelah pajak, SCI, dan kargo.") }</p>
 						</div>
 						<span class="text-[10px] font-mono text-slate-400">
 							{ fmt.Sprintf("Broker %.2f%% • Tax %.2f%% • SCI %.4f", settings.BrokerFeePercent, settings.SalesTaxPercent, settings.SystemCostIndex) }
@@ -240,7 +240,7 @@ templ ScannerPage(mode service.ModeInfo, settings domain.UserSettings) {
 					<div class="flex flex-wrap items-center justify-between gap-2">
 						<div>
 							<h2 class="text-sm font-bold uppercase tracking-wider text-cyan-300">Gas Reactions — Hybrid Polymer Profit Scanner (8 Formulas)</h2>
-							<p class="text-xs text-slate-300/80 mt-0.5">Calculates live profit for all 8 Fullerite Hybrid Polymers (<strong>Gas + Mineral + Fuel Block → Polymer</strong>) with Athanor/Tatara rig bonuses, Cross-Hub sourcing, Break-Even Floor, and 1-click EVE Multibuy.</p>
+							<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Calculates live profit for all 8 Fullerite Hybrid Polymers (Gas + Mineral + Fuel Block → Polymer) with Athanor/Tatara rig bonuses, Cross-Hub sourcing, Break-Even Floor, and 1-click EVE Multibuy.", "Menghitung profit live untuk 8 Fullerite Hybrid Polymer (Gas + Mineral + Fuel Block → Polymer) dengan bonus rig Athanor/Tatara, sourcing lintas hub, batas Break-Even, dan 1-klik EVE Multibuy.") }</p>
 						</div>
 						<span class="text-[10px] font-mono text-slate-400">
 							{ fmt.Sprintf("SCI %.4f • Broker %.2f%% • Tax %.2f%%", settings.SystemCostIndex, settings.BrokerFeePercent, settings.SalesTaxPercent) }
@@ -327,7 +327,7 @@ templ ScannerPage(mode service.ModeInfo, settings domain.UserSettings) {
 					<div class="flex flex-wrap items-center justify-between gap-2">
 						<div>
 							<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">Multi-Hub Station Trading Spread Scanner</h2>
-							<p class="text-xs text-slate-300/80 mt-0.5">Finds net-profitable Buy Order → Sell Order flips at any of the 5 hubs after deducting <strong>2× Broker Fee + Sales Tax</strong>, with EVE 4-sig-fig Recommended Order prices &amp; 7d volume.</p>
+							<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Finds net-profitable Buy Order → Sell Order flips at any of the 5 hubs after deducting 2× Broker Fee + Sales Tax, with EVE 4-sig-fig Recommended Order prices & 7-Day volume.", "Mencari peluang flip Buy Order → Sell Order yang untung bersih di 5 hub setelah potong 2× Broker Fee + Sales Tax, lengkap dengan rekomendasi harga EVE 4-sig-fig & volume 7 Hari.") }</p>
 						</div>
 						<span class="text-[10px] font-mono text-slate-400">
 							{ fmt.Sprintf("Round-Trip Fees: %.2f%%", settings.BrokerFeePercent*2+settings.SalesTaxPercent) }
@@ -387,7 +387,7 @@ templ ScannerPage(mode service.ModeInfo, settings domain.UserSettings) {
 					<div class="flex flex-wrap items-center justify-between gap-2">
 						<div>
 							<h2 class="text-sm font-bold uppercase tracking-wider text-emerald-300">Inter-Hub Hauling &amp; Arbitrage Scanner</h2>
-							<p class="text-xs text-slate-300/80 mt-0.5">Compares ~30 compact high-demand items in parallel across hubs, calculating <strong>Max Trip Units</strong>, <strong>Estimated Profit / Trip</strong>, freight ({ FormatISK(settings.FreightCostPerM3) }/m³), and <strong>High-Sec Gank-Safe (&le;200M ISK)</strong> warnings.</p>
+							<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Compares ~30 compact high-demand items in parallel across hubs, calculating Max Trip Units, Estimated Profit / Trip, freight", "Membandingkan ~30 item ringkas berpermintaan tinggi antar hub secara paralel, menghitung Unit Maksimal/Trip, Estimasi Profit/Trip, biaya angkut") } ({ FormatISK(settings.FreightCostPerM3) }/m³), { i18n.L(ctx, "and High-Sec Gank-Safe (≤200M ISK) warnings.", "dan peringatan aman gank High-Sec (≤200M ISK).") }</p>
 						</div>
 					</div>
 

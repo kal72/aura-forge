@@ -194,32 +194,32 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 			<!-- 4 KPI Summary Cards -->
 			<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-slate-400">Total Catalog</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-slate-400">{ i18n.L(ctx, "Total Catalog", "Total Katalog") }</div>
 					<div class="mt-1 text-2xl font-bold font-mono text-white">{ fmt.Sprintf("%d", summary.TotalCount) }</div>
 					<div class="mt-0.5 text-[11px] text-slate-400">
-						{ fmt.Sprintf("%d synced via CCP SDE BOM", summary.SDESyncedCount) }
+						{ fmt.Sprintf("%d %s", summary.SDESyncedCount, i18n.L(ctx, "synced via CCP SDE BOM", "tersinkron via CCP SDE BOM")) }
 					</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-emerald-300/90">Viable / Safe</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-emerald-300/90">{ i18n.L(ctx, "Viable / Safe", "Layak / Aman") }</div>
 					<div class="mt-1 text-2xl font-bold font-mono text-emerald-300">{ fmt.Sprintf("%d", summary.ViableCount) }</div>
-					<div class="mt-0.5 text-[11px] text-slate-400">Eligible for Smart Allocator</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">{ i18n.L(ctx, "Eligible for Smart Allocator", "Siap masuk Smart Allocator") }</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-amber-300/90">Watchlist / Caution</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-amber-300/90">{ i18n.L(ctx, "Watchlist / Caution", "Pantauan / Waspada") }</div>
 					<div class="mt-1 text-2xl font-bold font-mono text-amber-300">{ fmt.Sprintf("%d", summary.WatchlistCount) }</div>
 					<div class="mt-0.5 text-[11px] text-slate-400">
 						if summary.SpikeCount > 0 {
-							<span class="text-amber-200">{ fmt.Sprintf("%d price spike alert(s)", summary.SpikeCount) }</span>
+							<span class="text-amber-200">{ fmt.Sprintf("%d %s", summary.SpikeCount, i18n.L(ctx, "price spike alert(s)", "peringatan lonjakan harga")) }</span>
 						} else {
-							<span>Capital lock-up, thin margin, or slow mover</span>
+							<span>{ i18n.L(ctx, "Capital lock-up, thin margin, or slow mover", "Modal terkunci, Margin tipis, atau perputaran lambat") }</span>
 						}
 					</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-rose-300/90">Traps Blocked</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-rose-300/90">{ i18n.L(ctx, "Traps Blocked", "Jebakan Diblokir") }</div>
 					<div class="mt-1 text-2xl font-bold font-mono text-rose-300">{ fmt.Sprintf("%d", summary.TrapCount) }</div>
-					<div class="mt-0.5 text-[11px] text-slate-400">Auto-excluded from Capital Allocator</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">{ i18n.L(ctx, "Auto-excluded from Capital Allocator", "Otomatis dikeluarkan dari Capital Allocator") }</div>
 				</div>
 			</div>
 
@@ -457,9 +457,9 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 			if summary.TotalCount == 0 {
 				<div class="tactical-panel rounded-xl border border-violet-400/30 p-5 flex flex-wrap items-center justify-between gap-4">
 					<div>
-						<div class="text-sm font-bold text-white">Your Catalog is Empty</div>
+						<div class="text-sm font-bold text-white">{ i18n.L(ctx, "Your Catalog is Empty", "Katalog Anda Masih Kosong") }</div>
 						<p class="text-xs text-slate-300/80 mt-0.5">
-							Add items via <strong>Opportunity Scanner</strong>, <strong>Marketplace</strong>, <strong>Blueprint Calculator</strong>, or click <strong>+ Add Item → Browse SDE Blueprints</strong>.
+							{ i18n.L(ctx, "Add items via Opportunity Scanner, Marketplace, Manufacture & Profit, or click + Add Item → Browse SDE Blueprints.", "Tambahkan item melalui Opportunity Scanner, Marketplace, Manufacture & Profit, atau klik + Tambah Item → Browse SDE Blueprints.") }
 						</p>
 					</div>
 					<div class="flex flex-wrap gap-2">
@@ -535,7 +535,7 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 					<div class="flex items-center justify-between gap-3 border-b border-violet-400/20 px-5 py-4">
 						<div>
 							<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Pick Blueprint from Official CCP SDE</h2>
-							<p class="text-[11px] text-slate-400 mt-0.5">Select any product blueprint to auto-fill its name, category, batch output, live Jita price, and SDE BOM cost.</p>
+							<p class="text-[11px] text-slate-400 mt-0.5">{ i18n.L(ctx, "Select any product blueprint to auto-fill its name, category, batch output, live market price, and SDE BOM cost.", "Pilih Blueprint produk apa saja untuk mengisi otomatis nama, kategori, output batch, harga live, dan biaya SDE BOM.") }</p>
 						</div>
 						<button type="button" @click="showSDEModal = false" class="rounded-lg border border-slate-700 px-2.5 py-1 text-xs text-slate-300 hover:text-white cursor-pointer">✕</button>
 					</div>
@@ -614,7 +614,7 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 					<div class="flex items-center justify-between border-b border-violet-400/20 pb-3">
 						<div>
 							<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Edit Catalog Item</h2>
-							<p class="text-[11px] text-slate-400 mt-0.5">Adjust batch size, BPC setup cost, or override material cost — Trap Guard re-evaluates immediately.</p>
+							<p class="text-[11px] text-slate-400 mt-0.5">{ i18n.L(ctx, "Adjust batch size, BPC setup cost, or override material cost — Trap Guard re-evaluates immediately.", "Sesuaikan ukuran batch, biaya BPC, atau ubah biaya material — Trap Guard akan mengevaluasi ulang secara instan.") }</p>
 						</div>
 						<button type="button" @click="showEdit = false" class="rounded-lg border border-slate-700 px-2.5 py-1 text-xs text-slate-300 hover:text-white cursor-pointer">✕</button>
 					</div>

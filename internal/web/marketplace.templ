@@ -292,7 +292,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-white">New Eden Marketplace Browser</h1>
-					<p class="text-xs text-slate-300/80 mt-0.5">Live SDE autocomplete, parallel 5-hub comparisons (Jita, Amarr, Dodixie, Rens, Hek), bulk clipboard Appraisal, and Order Book depth.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Live SDE autocomplete, parallel 5-hub comparisons (Jita, Amarr, Dodixie, Rens, Hek), bulk clipboard Appraisal, and Order Book depth.", "Pencarian otomatis SDE live, perbandingan 5 Trade Hub paralel (Jita, Amarr, Dodixie, Rens, Hek), Appraisal clipboard massal, dan kedalaman Order Book.") }</p>
 				</div>
 				<div class="inline-flex rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur">
 					<button
@@ -421,7 +421,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 					<div class="flex flex-wrap items-center justify-between gap-3">
 						<div>
 							<h2 class="text-sm font-bold uppercase tracking-wider text-emerald-300">EVE Online Bulk Appraisal (Paste from Game)</h2>
-							<p class="text-xs text-slate-300/80 mt-0.5">Press <span class="font-mono text-amber-200">Ctrl+A → Ctrl+C</span> in your EVE Hangar, Ship Cargo, Loot, Epithal, Contract, Multibuy, or EFT Fit and paste below for instant 5-Hub valuation.</p>
+							<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Press Ctrl+A → Ctrl+C in your EVE Hangar, Ship Cargo, Loot, Epithal, Contract, Multibuy, or EFT Fit and paste below for instant 5-Hub valuation.", "Tekan Ctrl+A → Ctrl+C di EVE Hangar, Ship Cargo, Loot, Epithal, Contract, Multibuy, atau EFT Fit lalu tempel di bawah untuk valuasi 5-Hub instan.") }</p>
 						</div>
 						<div class="flex items-center gap-2">
 							<button
@@ -497,9 +497,9 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 
 				<div id="marketplace-appraisal-results">
 					<div class="tactical-panel rounded-xl p-10 text-center space-y-2">
-						<div class="text-sm font-bold text-white">Ready to Appraise Your EVE Online Items</div>
+						<div class="text-sm font-bold text-white">{ i18n.L(ctx, "Ready to Appraise Your EVE Online Items", "Siap Menilai (Appraise) Item EVE Online Anda") }</div>
 						<p class="text-xs text-slate-400 max-w-md mx-auto">
-							Paste any list of items copied from EVE Online above and click <strong>Appraise (Live ESI)</strong> to see Total Sell, Instant Buy, post-tax net ISK, Buyback value, and cargo volume.
+							{ i18n.L(ctx, "Paste any list of items copied from EVE Online above and click Appraise (Live ESI) to see Total Sell, Instant Buy, post-tax net ISK, Buyback value, and cargo volume.", "Tempel daftar item yang disalin dari EVE Online di atas lalu klik Appraise (Live ESI) untuk melihat Total Sell, Instant Buy, ISK bersih setelah pajak, nilai Buyback, dan volume kargo.") }
 						</p>
 					</div>
 				</div>
@@ -514,7 +514,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 					<div class="flex items-center justify-between gap-3 border-b border-violet-400/20 px-5 py-4">
 						<div>
 							<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">EVE Online Market Catalog (Browse by Type)</h2>
-							<p class="text-[11px] text-slate-400 mt-0.5">Browse all published CCP SDE market items by category &amp; sub-group (0 ESI calls) — click any item to inspect its live Order Book.</p>
+							<p class="text-[11px] text-slate-400 mt-0.5">{ i18n.L(ctx, "Browse all published CCP SDE market items by category & sub-group (0 ESI calls) — click any item to inspect its live Order Book.", "Jelajahi semua item market CCP SDE berdasarkan kategori & sub-grup (0 panggilan ESI) — klik item apa saja untuk melihat Order Book live.") }</p>
 						</div>
 						<button type="button" @click="showBrowse = false" class="rounded-lg border border-slate-700 px-2.5 py-1 text-xs text-slate-300 hover:text-white cursor-pointer">✕</button>
 					</div>

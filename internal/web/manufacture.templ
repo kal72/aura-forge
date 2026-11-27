@@ -1086,7 +1086,7 @@ templ ManufactureTreePartial(res *domain.BlueprintCalcResult, errMsg string) {
 				<div class="flex flex-wrap items-center justify-between gap-3">
 					<div>
 						<h3 class="text-xs font-bold uppercase tracking-wider text-emerald-300">Smart Shopping List &amp; Hangar Checklist ({ res.PriceHub.Name })</h3>
-						<p class="text-[11px] text-slate-400 mt-0.5">Choose your build strategy, uncheck items you already own in your hangar, and copy the exact EVE Multibuy list in 1 click. Click any craftable node in the tree above to copy its individual ingredients.</p>
+						<p class="text-[11px] text-slate-400 mt-0.5">{ i18n.L(ctx, "Choose your build strategy, uncheck items you already own in your hangar, and copy the exact EVE Multibuy list in 1 click. Click any craftable node in the tree above to copy its individual ingredients.", "Pilih strategi produksi, hapus centang item yang sudah ada di hangar Anda, lalu salin daftar EVE Multibuy dengan 1 klik. Klik node di pohon di atas untuk menyalin bahan per komponen.") }</p>
 					</div>
 					<button
 						type="button"

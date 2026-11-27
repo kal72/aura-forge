@@ -9,12 +9,28 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"context"
 	"fmt"
 
 	"aura-forge/internal/domain"
 	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
+
+func bucketDescriptionCtx(ctx context.Context, bt domain.BucketType, fallback string) string {
+	switch bt {
+	case domain.BucketFastCashflow:
+		return i18n.L(ctx, "High daily volume, low-cost items for steady daily ISK velocity.", "Item bervolume harian tinggi dan biaya rendah untuk perputaran ISK harian yang stabil.")
+	case domain.BucketMidTier:
+		return i18n.L(ctx, "Balanced sales velocity and reliable profit margins.", "Keseimbangan antara kecepatan terjual dan Margin profit yang stabil.")
+	case domain.BucketHighROI:
+		return i18n.L(ctx, "Higher ROI or profit-per-batch items to accelerate capital compounding.", "Item dengan ROI atau profit per batch lebih tinggi untuk mempercepat compounding modal.")
+	case domain.BucketCashBuffer:
+		return i18n.L(ctx, "Reserved 10%–15% safety cushion for Broker Fees, Job Install Costs, and Relists.", "Cadangan keamanan 10%–15% untuk Broker Fee, Job Install Cost, dan biaya Relist.")
+	default:
+		return fallback
+	}
+}
 
 func allocatorHubName(res *domain.AllocationResult) string {
 	if res != nil && res.ActiveHubName != "" {
@@ -111,7 +127,7 @@ func AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *d
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(allocatorHubName(result))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 68, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 84, Col: 38}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -124,7 +140,7 @@ func AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *d
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Splits available working capital across 4 risk-managed buckets (Fast Cashflow, Mid-Tier, High ROI, and 10%–15% Cash Buffer) while automatically filtering out TRAP items.", "Membagi modal kerja ke 4 keranjang risiko (Fast Cashflow, Mid-Tier, High ROI, dan 10%–15% Cash Buffer) sambil otomatis menyaring item TRAP."))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 71, Col: 379}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 87, Col: 379}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -137,7 +153,7 @@ func AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *d
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Refresh", "Segarkan Harga"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 74, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 90, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -150,7 +166,7 @@ func AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *d
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(allocatorHubName(result))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 74, Col: 76}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 90, Col: 76}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -178,7 +194,7 @@ func AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *d
 					}
 				}`, cfg.FastCashflowPct, cfg.MidTierPct, cfg.HighROIPct, cfg.CashBufferPct))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 96, Col: 79}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 112, Col: 79}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -191,7 +207,7 @@ func AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *d
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Compute Allocation", "Hitung Alokasi"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 144, Col: 60}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 160, Col: 60}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -204,7 +220,7 @@ func AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *d
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Saves this 4-bucket allocation to your active Weekly Plan so you can verify slot capacity and copy your consolidated EVE Multibuy list.", "Menyimpan alokasi 4 keranjang ini ke Weekly Plan aktif agar Anda bisa cek kapasitas slot dan salin daftar EVE Multibuy."))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 151, Col: 281}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 167, Col: 281}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -217,7 +233,7 @@ func AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *d
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Next: Send to Weekly Planner (Step 3) →", "Lanjut: Kirim ke Weekly Planner (Langkah 3) →"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 160, Col: 115}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 176, Col: 115}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -274,7 +290,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 176, Col: 58}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 192, Col: 58}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -292,7 +308,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Working Capital", "Modal Kerja"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 183, Col: 112}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 199, Col: 112}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -305,7 +321,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(res.CapitalSource)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 183, Col: 135}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 199, Col: 135}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -318,7 +334,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.TotalCapital))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 184, Col: 91}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 200, Col: 91}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -331,7 +347,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Capital Allocated", "Modal Dialokasikan"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 187, Col: 121}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 203, Col: 121}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
@@ -344,7 +360,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var17 string
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.TotalAllocatedISK))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 188, Col: 98}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 204, Col: 98}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
@@ -357,7 +373,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Operational Cash Buffer", "Cadangan Kas Operasional"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 191, Col: 133}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 207, Col: 133}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
@@ -370,7 +386,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.CashBufferISK))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 192, Col: 96}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 208, Col: 96}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -383,7 +399,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var20 string
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Estimated Cycle Profit", "Estimasi Profit Siklus"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 195, Col: 130}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 211, Col: 130}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 			if templ_7745c5c3_Err != nil {
@@ -396,7 +412,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var21 string
 			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.TotalEstimatedProfit))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 196, Col: 106}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 212, Col: 106}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 			if templ_7745c5c3_Err != nil {
@@ -409,7 +425,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var22 string
 			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Capital Distribution Breakdown", "Rincian Distribusi Modal"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 203, Col: 119}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 219, Col: 119}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 			if templ_7745c5c3_Err != nil {
@@ -422,7 +438,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var23 string
 			templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Deployable", "Siap Dipakai"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 205, Col: 49}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 221, Col: 49}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 			if templ_7745c5c3_Err != nil {
@@ -435,7 +451,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var24 string
 			templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.DeployableCapital))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 205, Col: 114}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 221, Col: 114}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 			if templ_7745c5c3_Err != nil {
@@ -448,7 +464,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var25 string
 			templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.CashBufferISK))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 206, Col: 75}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 222, Col: 75}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 			if templ_7745c5c3_Err != nil {
@@ -484,7 +500,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				var templ_7745c5c3_Var28 string
 				templ_7745c5c3_Var28, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(fmt.Sprintf("width: %.2f%%;", b.Percent))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 213, Col: 55}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 229, Col: 55}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 				if templ_7745c5c3_Err != nil {
@@ -497,7 +513,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				var templ_7745c5c3_Var29 string
 				templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%s: %.0f%% (%s)", b.Label, b.Percent, FormatISK(b.BudgetISK)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 214, Col: 89}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 230, Col: 89}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 				if templ_7745c5c3_Err != nil {
@@ -542,7 +558,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				var templ_7745c5c3_Var32 string
 				templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(b.Label)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 222, Col: 22}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 238, Col: 22}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 				if templ_7745c5c3_Err != nil {
@@ -555,7 +571,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				var templ_7745c5c3_Var33 string
 				templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.0f%%", b.Percent))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 222, Col: 60}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 238, Col: 60}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 				if templ_7745c5c3_Err != nil {
@@ -578,7 +594,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				var templ_7745c5c3_Var34 string
 				templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(b.Label)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 234, Col: 58}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 250, Col: 58}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 				if templ_7745c5c3_Err != nil {
@@ -589,9 +605,9 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var35 string
-				templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(b.Description)
+				templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(bucketDescriptionCtx(ctx, b.Type, b.Description))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 235, Col: 68}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 251, Col: 103}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 				if templ_7745c5c3_Err != nil {
@@ -626,7 +642,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				var templ_7745c5c3_Var38 string
 				templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.0f%%", b.Percent))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 238, Col: 42}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 254, Col: 42}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 				if templ_7745c5c3_Err != nil {
@@ -639,7 +655,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				var templ_7745c5c3_Var39 string
 				templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Budget", "Anggaran"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 244, Col: 49}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 260, Col: 49}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 				if templ_7745c5c3_Err != nil {
@@ -652,7 +668,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				var templ_7745c5c3_Var40 string
 				templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(b.BudgetISK))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 244, Col: 104}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 260, Col: 104}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 				if templ_7745c5c3_Err != nil {
@@ -670,7 +686,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 					var templ_7745c5c3_Var41 string
 					templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Used", "Terpakai"))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 246, Col: 48}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 262, Col: 48}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
 					if templ_7745c5c3_Err != nil {
@@ -683,7 +699,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 					var templ_7745c5c3_Var42 string
 					templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(b.UsedISK))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 246, Col: 103}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 262, Col: 103}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 					if templ_7745c5c3_Err != nil {
@@ -696,7 +712,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 					var templ_7745c5c3_Var43 string
 					templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Estimated Profit", "Estimasi Profit"))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 247, Col: 67}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 263, Col: 67}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 					if templ_7745c5c3_Err != nil {
@@ -709,7 +725,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 					var templ_7745c5c3_Var44 string
 					templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(b.EstimatedProfit))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 247, Col: 135}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 263, Col: 135}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 					if templ_7745c5c3_Err != nil {
@@ -754,7 +770,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 					var templ_7745c5c3_Var47 string
 					templ_7745c5c3_Var47, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(fmt.Sprintf("width: %.1f%%;", bucketUtilPct(b.UsedISK, b.BudgetISK)))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 254, Col: 86}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 270, Col: 86}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var47))
 					if templ_7745c5c3_Err != nil {
@@ -777,7 +793,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 					var templ_7745c5c3_Var48 string
 					templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "This capital is reserved as an operational safety cushion for Broker Fees, Job Install Costs (SCI), and safe Relist adjustments if undercut at", "Modal ini dicadangkan sebagai pengaman operasional untuk Broker Fee, Job Install Cost (SCI), dan penyesuaian Relist aman jika terkena undercut di"))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 262, Col: 316}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 278, Col: 316}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 					if templ_7745c5c3_Err != nil {
@@ -790,7 +806,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 					var templ_7745c5c3_Var49 string
 					templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.JoinStringErrs(allocatorHubName(res))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 262, Col: 350}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 278, Col: 350}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var49))
 					if templ_7745c5c3_Err != nil {
@@ -808,7 +824,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 					var templ_7745c5c3_Var50 string
 					templ_7745c5c3_Var50, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "No eligible VIABLE items in your", "Belum ada item LAYAK di"))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 266, Col: 84}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 282, Col: 84}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var50))
 					if templ_7745c5c3_Err != nil {
@@ -821,7 +837,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 					var templ_7745c5c3_Var51 string
 					templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "fit this bucket's budget yet.", "yang sesuai dengan anggaran keranjang ini."))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 266, Col: 260}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 282, Col: 260}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var51))
 					if templ_7745c5c3_Err != nil {
@@ -849,7 +865,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 							var templ_7745c5c3_Var52 string
 							templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("https://images.evetech.net/types/%d/icon?size=32", it.TypeID))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 275, Col: 93}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 291, Col: 93}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var52))
 							if templ_7745c5c3_Err != nil {
@@ -862,7 +878,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 							var templ_7745c5c3_Var53 string
 							templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.JoinStringErrs(it.Name)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 276, Col: 26}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 292, Col: 26}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var53))
 							if templ_7745c5c3_Err != nil {
@@ -880,7 +896,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 						var templ_7745c5c3_Var54 string
 						templ_7745c5c3_Var54, templ_7745c5c3_Err = templ.JoinStringErrs(it.Name)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 283, Col: 68}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 299, Col: 68}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var54))
 						if templ_7745c5c3_Err != nil {
@@ -893,7 +909,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 						var templ_7745c5c3_Var55 string
 						templ_7745c5c3_Var55, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%dx batch • ROI %s • %s", it.RecommendedRuns, FormatPercent(it.ROIPercent), FormatVolumeCtx(ctx, it.DailyVolume)))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 285, Col: 145}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 301, Col: 145}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var55))
 						if templ_7745c5c3_Err != nil {
@@ -906,7 +922,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 						var templ_7745c5c3_Var56 string
 						templ_7745c5c3_Var56, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(it.TotalCost))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 290, Col: 64}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 306, Col: 64}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var56))
 						if templ_7745c5c3_Err != nil {
@@ -919,7 +935,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 						var templ_7745c5c3_Var57 string
 						templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(it.EstimatedProfit))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 291, Col: 85}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 307, Col: 85}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var57))
 						if templ_7745c5c3_Err != nil {
