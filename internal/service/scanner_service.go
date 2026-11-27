@@ -521,6 +521,26 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 
 		me, te, ownedMatched, _ := domain.RecommendManufacturingMETE(tech, ownedPtr, req.ME, req.TE)
 
+		// Scale relist penalty realistically based on live hub seller competition
+		sellOrders := sellPrices[bp.ProductTypeID].SellOrdersCount
+		estRelists := 1
+		if sellOrders >= 40 {
+			estRelists = 3
+		} else if sellOrders >= 15 {
+			estRelists = 2
+		}
+
+		// Conservative per-run T2 BPC / Invention cost floor when the pilot does not own a matching T2 BPC
+		needsInventionBPC := tech >= 2 && !ownedMatched
+		perRunInventionFloor := 0.0
+		if needsInventionBPC {
+			if strings.EqualFold(bp.Category, "Ships") {
+				perRunInventionFloor = 350_000.0
+			} else {
+				perRunInventionFloor = 150_000.0
+			}
+		}
+
 		baseInput := domain.BlueprintCalcInput{
 			BlueprintTypeID:     bp.BlueprintTypeID,
 			Runs:                1,
@@ -529,13 +549,14 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 			StructureKey:        req.StructureKey,
 			HubKey:              hub.Key,
 			MaterialPriceSource: req.MaterialPriceSource,
+			ExtraSetupCost:      perRunInventionFloor,
 			SystemCostIndex:     settings.SystemCostIndex,
 			FacilityTaxPercent:  settings.FacilityTaxPercent,
 			FreightCostPerM3:    settings.FreightCostPerM3,
 			BrokerFeePercent:    settings.BrokerFeePercent,
 			SalesTaxPercent:     settings.SalesTaxPercent,
 			RelistFeePercent:    settings.RelistFeePercent,
-			EstimatedRelists:    1,
+			EstimatedRelists:    estRelists,
 			BatchesPerWeek:      4,
 		}
 
@@ -549,28 +570,31 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 
 		dailyVol := vols[bp.ProductTypeID]
 
-		// Build per-blueprint price map so Cross-Hub Manufacturing buys materials at matHub and sells product at hub
-		bpPrices := sellPrices
-		if crossHub {
-			bpPrices = make(map[int32]domain.JitaPrice, len(reqs)+1)
-			for _, r := range reqs {
-				if mp, ok := matPrices[r.MaterialTypeID]; ok {
-					bpPrices[r.MaterialTypeID] = mp
+		// Build per-blueprint price map (supports Cross-Hub sourcing + globalAvg fallback for missing hub material orders)
+		bpPrices := make(map[int32]domain.JitaPrice, len(reqs)+1)
+		for _, r := range reqs {
+			mp := matPrices[r.MaterialTypeID]
+			if mp.LowestSell <= 0 && mp.HighestBuy <= 0 {
+				if gAvg := globalAvg[r.MaterialTypeID]; gAvg > 0 {
+					mp.LowestSell = gAvg
+					mp.HighestBuy = gAvg
 				}
 			}
-			if sp, ok := sellPrices[bp.ProductTypeID]; ok {
-				bpPrices[bp.ProductTypeID] = sp
-			}
+			bpPrices[r.MaterialTypeID] = mp
+		}
+		if sp, ok := sellPrices[bp.ProductTypeID]; ok {
+			bpPrices[bp.ProductTypeID] = sp
 		}
 
 		if req.Runs > 0 {
 			runs, runReason, autoSized = domain.RecommendManufacturingRuns(0, 0, bp.ProductQtyPerRun, dailyVol, availCap, req.Runs)
 			baseInput.Runs = runs
+			baseInput.ExtraSetupCost = perRunInventionFloor * float64(runs)
 			calcRes, cErr = domain.CalculateBlueprintManufacturing(bp, reqs, baseInput, bpPrices)
 		} else {
 			// Evaluate 1-run baseline to measure exact duration & direct cost, then auto-size optimal runs
 			singleRes, sErr := domain.CalculateBlueprintManufacturing(bp, reqs, baseInput, bpPrices)
-			if sErr != nil || singleRes.ProductUnitSellPrice <= 0 {
+			if sErr != nil || singleRes.ProductUnitSellPrice <= 0 || singleRes.MissingMaterialPrices > 0 {
 				continue
 			}
 			outPerRun := bp.ProductQtyPerRun
@@ -589,11 +613,13 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 				calcRes, cErr = singleRes, nil
 			} else {
 				baseInput.Runs = runs
+				baseInput.ExtraSetupCost = perRunInventionFloor * float64(runs)
 				calcRes, cErr = domain.CalculateBlueprintManufacturing(bp, reqs, baseInput, bpPrices)
 			}
 		}
 
-		if cErr != nil || calcRes.ProductUnitSellPrice <= 0 {
+		// Strict Missing Material Price Guard: never display fake profits when any component has 0 ISK price
+		if cErr != nil || calcRes.ProductUnitSellPrice <= 0 || calcRes.MissingMaterialPrices > 0 {
 			continue
 		}
 
@@ -657,6 +683,9 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 			DurationFormatted: calcRes.DurationFormatted,
 			IsPriceSpike:      isSpike,
 			PriceSpikePct:     spikePct,
+			NeedsInventionBPC: needsInventionBPC,
+			SellOrdersCount:   sellOrders,
+			EstimatedRelists:  estRelists,
 			Verdict:           verdict,
 		})
 	}

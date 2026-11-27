@@ -56,7 +56,7 @@ func (s *CopilotService) FindBPCAndBPOSources(ctx context.Context, query string,
 		go func() {
 			defer wg.Done()
 			contracts, scanned, scannedPages, totalPages, cErr := contractProv.FindPublicBlueprintContracts(
-				ctx, hub.RegionID, hub.RegionName, bp.BlueprintTypeID, bp.Name, bp.ProductName,
+				ctx, hub.RegionID, hub.RegionName, bp.BlueprintTypeID, bp.ProductTypeID, bp.Name, bp.ProductName,
 			)
 			mu.Lock()
 			defer mu.Unlock()

@@ -368,13 +368,13 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 			@mp-switch-hub.window="runSearch($event.detail.name, $event.detail.hub)"
 			@mp-copy-price.window="copyPrice($event.detail.val, $event.detail.label)"
 		>
-			<!-- Header -->
-			<div class="flex flex-wrap items-center justify-between gap-4">
-				<div>
+			<!-- Header & Right-Aligned Tab Switcher -->
+			<div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+				<div class="min-w-0">
 					<h1 class="text-2xl font-bold tracking-tight text-white">New Eden Marketplace Browser</h1>
 					<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Live SDE autocomplete, parallel 5-hub comparisons (Jita, Amarr, Dodixie, Rens, Hek), bulk clipboard Appraisal, and Order Book depth.", "Pencarian otomatis SDE live, perbandingan 5 Trade Hub paralel (Jita, Amarr, Dodixie, Rens, Hek), Appraisal clipboard massal, dan kedalaman Order Book.") }</p>
 				</div>
-				<div class="inline-flex flex-wrap rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur">
+				<div class="ml-auto self-end xl:self-auto shrink-0 inline-flex flex-wrap justify-end rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur">
 					<button
 						type="button"
 						@click="mpTab = 'orderbook'"

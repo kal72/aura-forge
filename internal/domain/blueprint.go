@@ -179,6 +179,7 @@ type BlueprintCalcResult struct {
 	Profit                   ProfitCalcResult        `json:"profit"`
 	MultibuyText             string                  `json:"multibuy_text"`
 	LivePricesUsed           bool                    `json:"live_prices_used"`
+	MissingMaterialPrices    int                     `json:"missing_material_prices,omitempty"`
 	IndustryTree             *IndustryTreeAnalysis   `json:"industry_tree,omitempty"`
 }
 
@@ -292,21 +293,26 @@ func CalculateBlueprintManufacturing(
 	var totalMatCost float64
 	var totalMatVol float64
 	liveUsed := false
+	missingMatPrices := 0
 
 	for _, req := range reqs {
 		adjQty := ComputeAdjustedMaterialQty(req.BaseQuantity, runs, me, structure.MEBonusPct)
 		var unitPrice float64
 		if jp, ok := prices[req.MaterialTypeID]; ok {
 			if priceSource == "jita_buy" && jp.HighestBuy > 0 {
-				unitPrice = jp.HighestBuy
+				// Placing Buy Orders for materials incurs Buy Broker Fee
+				unitPrice = jp.HighestBuy * (1.0 + math.Max(0, in.BrokerFeePercent)/100.0)
 				liveUsed = true
 			} else if jp.LowestSell > 0 {
 				unitPrice = jp.LowestSell
 				liveUsed = true
 			} else if jp.HighestBuy > 0 {
-				unitPrice = jp.HighestBuy
+				unitPrice = jp.HighestBuy * (1.0 + math.Max(0, in.BrokerFeePercent)/100.0)
 				liveUsed = true
 			}
+		}
+		if unitPrice <= 0 {
+			missingMatPrices++
 		}
 		lineCost := RoundISK(unitPrice * float64(adjQty))
 		lineVol := math.Round((req.VolumeM3*float64(adjQty))*100) / 100
@@ -392,5 +398,6 @@ func CalculateBlueprintManufacturing(
 		Profit:                   profitRes,
 		MultibuyText:             strings.Join(multibuyLines, "\n"),
 		LivePricesUsed:           liveUsed,
+		MissingMaterialPrices:    missingMatPrices,
 	}, nil
 }

@@ -43,6 +43,7 @@ func (p *PublicMarketClient) FindPublicBlueprintContracts(
 	regionID int32,
 	regionName string,
 	blueprintTypeID int32,
+	productTypeID int32,
 	blueprintName string,
 	productName string,
 ) ([]domain.PublicBPCContract, int, int, int, error) {
@@ -50,11 +51,40 @@ func (p *PublicMarketClient) FindPublicBlueprintContracts(
 		return nil, 0, 0, 0, nil
 	}
 
-	const maxContractPages = 15
-	const maxInspectContracts = 50
+	const maxContractPages = 50
+	const maxInspectContracts = 180
 
-	pathPage1 := fmt.Sprintf("/contracts/public/%d/?datasource=tranquility&page=1", regionID)
-	body1, hdrs1, err := p.client.DoGetWithHeaders(ctx, pathPage1, "", true)
+	// Concurrently fetch page 1 of public contracts AND global market reference price for smart BPC price-band filtering
+	var (
+		body1           []byte
+		hdrs1           map[string][]string
+		err             error
+		refProductPrice float64
+		initWg          sync.WaitGroup
+	)
+	initWg.Add(2)
+	go func() {
+		defer initWg.Done()
+		pathPage1 := fmt.Sprintf("/contracts/public/%d/?datasource=tranquility&page=1", regionID)
+		body1, hdrs1, err = p.client.DoGetWithHeaders(ctx, pathPage1, "", true)
+	}()
+	go func() {
+		defer initWg.Done()
+		if list, gErr := p.GetGlobalMarketPrices(ctx); gErr == nil {
+			for _, gp := range list {
+				if productTypeID > 0 && gp.TypeID == productTypeID {
+					if gp.AveragePrice > 0 {
+						refProductPrice = gp.AveragePrice
+					} else if gp.AdjustedPrice > 0 {
+						refProductPrice = gp.AdjustedPrice
+					}
+					break
+				}
+			}
+		}
+	}()
+	initWg.Wait()
+
 	if err != nil {
 		return nil, 0, 0, 0, fmt.Errorf("fetching public contracts page 1: %w", err)
 	}
@@ -65,9 +95,18 @@ func (p *PublicMarketClient) FindPublicBlueprintContracts(
 	}
 
 	totalPages := 1
-	if rawPages := strings.TrimSpace(hdrs1.Get("X-Pages")); rawPages != "" {
-		if parsed, pErr := strconv.Atoi(rawPages); pErr == nil && parsed > 1 {
-			totalPages = parsed
+	if hdrs1 != nil {
+		var rawPages string
+		for k, vals := range hdrs1 {
+			if strings.EqualFold(k, "X-Pages") && len(vals) > 0 {
+				rawPages = strings.TrimSpace(vals[0])
+				break
+			}
+		}
+		if rawPages != "" {
+			if parsed, pErr := strconv.Atoi(rawPages); pErr == nil && parsed > 1 {
+				totalPages = parsed
+			}
 		}
 	}
 	scannedPages := totalPages
@@ -75,12 +114,12 @@ func (p *PublicMarketClient) FindPublicBlueprintContracts(
 		scannedPages = maxContractPages
 	}
 
-	// Fetch remaining contract pages in parallel (bounded to 5 concurrent ESI requests)
+	// Fetch remaining contract pages in parallel (bounded to 8 concurrent ESI requests, cached in esi_cache)
 	if scannedPages > 1 {
 		var (
 			mu  sync.Mutex
 			wg  sync.WaitGroup
-			sem = make(chan struct{}, 5)
+			sem = make(chan struct{}, 8)
 		)
 		for page := 2; page <= scannedPages; page++ {
 			wg.Add(1)
@@ -108,50 +147,103 @@ func (p *PublicMarketClient) FindPublicBlueprintContracts(
 		wg.Wait()
 	}
 
-	// Pre-filter item_exchange contracts that can plausibly contain blueprints (volume <= 1.0 m³; every EVE BP is 0.01 m³)
+	// Pre-filter public item_exchange contracts (note: for_corporation=true on public contracts is still publicly buyable!)
 	bpLower := strings.ToLower(strings.TrimSpace(blueprintName))
 	prodLower := strings.ToLower(strings.TrimSpace(productName))
-	titleMatches := make([]esiPublicContract, 0, 24)
-	volCandidates := make([]esiPublicContract, 0, 64)
+	prodWords := strings.Fields(prodLower)
+
+	titleMatches := make([]esiPublicContract, 0, 32)
+	priceBandSingle := make([]esiPublicContract, 0, 128)
+	priceBandPack := make([]esiPublicContract, 0, 64)
+	fallbackSingle := make([]esiPublicContract, 0, 64)
+
+	minBand := 0.0
+	maxBandSingle := 0.0
+	maxBandPack := 0.0
+	if refProductPrice >= 500_000 {
+		minBand = refProductPrice * 0.03
+		maxBandSingle = refProductPrice * 1.50
+		maxBandPack = refProductPrice * 4.00
+	}
+
+	matchesTitle := func(titleLower string) bool {
+		if titleLower == "" {
+			return false
+		}
+		if (prodLower != "" && strings.Contains(titleLower, prodLower)) ||
+			(bpLower != "" && strings.Contains(titleLower, bpLower)) {
+			return true
+		}
+		if len(prodWords) >= 2 {
+			allHit := true
+			for _, w := range prodWords {
+				if len(w) <= 1 {
+					continue
+				}
+				if !strings.Contains(titleLower, w) {
+					allHit = false
+					break
+				}
+			}
+			if allHit {
+				return true
+			}
+		}
+		return false
+	}
 
 	for _, c := range allRaw {
-		if c.Type != "item_exchange" || c.Price <= 0 || c.ForCorporation {
+		if c.Type != "item_exchange" || c.Price <= 0 {
 			continue
 		}
 		if c.Volume <= 0 || c.Volume > 1.0 {
 			continue
 		}
-		titleLower := strings.ToLower(c.Title)
-		if (prodLower != "" && strings.Contains(titleLower, prodLower)) ||
-			(bpLower != "" && strings.Contains(titleLower, bpLower)) {
+		if matchesTitle(strings.ToLower(c.Title)) {
 			titleMatches = append(titleMatches, c)
+			continue
+		}
+		if minBand > 0 {
+			if c.Volume <= 0.02 && c.Price >= minBand && c.Price <= maxBandSingle {
+				priceBandSingle = append(priceBandSingle, c)
+			} else if c.Price >= minBand && c.Price <= maxBandPack {
+				priceBandPack = append(priceBandPack, c)
+			} else if c.Volume <= 0.02 {
+				fallbackSingle = append(fallbackSingle, c)
+			}
+		} else if c.Volume <= 0.02 {
+			priceBandSingle = append(priceBandSingle, c)
 		} else {
-			volCandidates = append(volCandidates, c)
+			fallbackSingle = append(fallbackSingle, c)
 		}
 	}
 
-	// Sort each pool by cheapest price first so we inspect the best deals first
 	sort.Slice(titleMatches, func(i, j int) bool { return titleMatches[i].Price < titleMatches[j].Price })
-	sort.Slice(volCandidates, func(i, j int) bool { return volCandidates[i].Price < volCandidates[j].Price })
+	sort.Slice(priceBandSingle, func(i, j int) bool { return priceBandSingle[i].Price < priceBandSingle[j].Price })
+	sort.Slice(priceBandPack, func(i, j int) bool { return priceBandPack[i].Price < priceBandPack[j].Price })
+	sort.Slice(fallbackSingle, func(i, j int) bool { return fallbackSingle[i].Price < fallbackSingle[j].Price })
 
 	toInspect := make([]esiPublicContract, 0, maxInspectContracts)
-	toInspect = append(toInspect, titleMatches...)
-	if len(toInspect) < maxInspectContracts {
-		remain := maxInspectContracts - len(toInspect)
-		if remain > len(volCandidates) {
-			remain = len(volCandidates)
+	appendUpTo := func(src []esiPublicContract) {
+		if len(toInspect) >= maxInspectContracts || len(src) == 0 {
+			return
 		}
-		toInspect = append(toInspect, volCandidates[:remain]...)
+		remain := maxInspectContracts - len(toInspect)
+		if remain > len(src) {
+			remain = len(src)
+		}
+		toInspect = append(toInspect, src[:remain]...)
 	}
-	if len(toInspect) > maxInspectContracts {
-		toInspect = toInspect[:maxInspectContracts]
-	}
+	appendUpTo(titleMatches)
+	appendUpTo(priceBandSingle)
+	appendUpTo(priceBandPack)
+	appendUpTo(fallbackSingle)
 
-	// Inspect candidate contract items in parallel (bounded to 6 concurrent ESI requests)
+	// Inspect candidate contract items in parallel (bounded to 10 concurrent ESI requests; items are immutable & cached)
 	var (
 		resMu   sync.Mutex
 		wg      sync.WaitGroup
-		sem     = make(chan struct{}, 6)
+		sem     = make(chan struct{}, 10)
 		matches = make([]domain.PublicBPCContract, 0, 12)
 	)
 	for _, cand := range toInspect {

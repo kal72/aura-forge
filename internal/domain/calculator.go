@@ -97,10 +97,12 @@ func CalculateProfit(in ProfitCalcInput) (ProfitCalcResult, error) {
 
 	grossRevenue := in.UnitSellPrice * float64(in.OutputQty)
 
-	// Calculate job install cost from SCI if not explicitly supplied
+	// Official EVE Online (post-Viridian/Equinox) Job Installation Fee:
+	// EIV/MaterialCost * (SystemCostIndex + FacilityTax% + 4.0% SCC Surcharge).
+	const eveSCCSurchargeRate = 0.04
 	jobInstall := in.JobInstallCost
-	if jobInstall == 0 && in.SystemCostIndex > 0 && in.MaterialCost > 0 {
-		jobInstall = in.MaterialCost * in.SystemCostIndex * (1.0 + in.FacilityTaxPercent/100.0)
+	if jobInstall == 0 && (in.SystemCostIndex > 0 || in.FacilityTaxPercent > 0) && in.MaterialCost > 0 {
+		jobInstall = in.MaterialCost * (in.SystemCostIndex + (in.FacilityTaxPercent / 100.0) + eveSCCSurchargeRate)
 	}
 
 	brokerFee := grossRevenue * (in.BrokerFeePercent / 100.0)

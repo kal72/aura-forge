@@ -552,6 +552,14 @@ templ ScannerManufacturingPartial(isAdmin bool, results []domain.ManufacturingOp
 												if r.OwnedBPO {
 													<span class="rounded border border-emerald-400/40 bg-emerald-500/20 px-1.5 py-0.2 font-mono text-[9px] font-bold text-emerald-200">OWNED BPO</span>
 												}
+												if r.NeedsInventionBPC {
+													<span
+														class="rounded border border-violet-400/45 bg-violet-500/20 px-1.5 py-0.2 font-mono text-[9px] font-bold text-violet-200"
+														title={ i18n.L(ctx, "Tech II item requires a BPC or Invention — includes a conservative baseline BPC/Invention cost per run.", "Item Tech II memerlukan BPC atau Invention — estimasi biaya dasar BPC/Invention per run sudah dimasukkan.") }
+													>
+														+ BPC/INVENT
+													</span>
+												}
 												if r.IsPriceSpike {
 													<span
 														class="rounded border border-amber-400/55 bg-amber-500/20 px-1.5 py-0.2 font-mono text-[9px] font-bold text-amber-200"
@@ -574,6 +582,9 @@ templ ScannerManufacturingPartial(isAdmin bool, results []domain.ManufacturingOp
 												<span>{ fmt.Sprintf(" • %s • %dx runs (%d %s) • %s", r.Category, r.Runs, r.OutputQty, i18n.L(ctx, "units", "unit"), r.DurationFormatted) }</span>
 												if r.RunSizingReason != "" {
 													<span class="text-amber-300/90"> • { r.RunSizingReason }</span>
+												}
+												if r.SellOrdersCount > 0 {
+													<span class="text-slate-400">{ fmt.Sprintf(" • %d sellers (%d× relist)", r.SellOrdersCount, r.EstimatedRelists) }</span>
 												}
 											</div>
 										</div>
