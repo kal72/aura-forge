@@ -132,6 +132,9 @@ templ DashboardPage(data *service.DashboardSummary) {
 				</div>
 			</div>
 
+			<!-- Embedded Background AI Daily Action Strip (Non-Blocking HTMX Hydration) -->
+			<div hx-get="/ai/embedded/daily-strip" hx-trigger="load" hx-swap="innerHTML"></div>
+
 			<!-- Admin-Only Financial KPI Grid -->
 			if data.Mode.IsAdmin() {
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -33,6 +33,7 @@ type TacticalViewData struct {
 	Mode          ModeInfo                       `json:"mode"`
 	ActiveHub     domain.TradeHub                `json:"active_hub"`
 	Factions      []domain.PvEFactionPreset      `json:"factions"`
+	DuelOpponents []domain.DuelOpponentPreset    `json:"duel_opponents"`
 	Presets       []TacticalPresetSummary        `json:"presets"`
 	SavedFittings []domain.TacticalFittingRecord `json:"saved_fittings"`
 }
@@ -204,6 +205,7 @@ func (s *CopilotService) GetTacticalViewData(ctx context.Context) *TacticalViewD
 		Mode:          mode,
 		ActiveHub:     hub,
 		Factions:      domain.BuiltInPvEFactions(),
+		DuelOpponents: domain.BuiltInDuelOpponents(),
 		Presets:       BuiltInTacticalPresets(),
 		SavedFittings: saved,
 	}

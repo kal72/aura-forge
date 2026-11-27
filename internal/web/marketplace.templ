@@ -1020,6 +1020,9 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 		</div>
 	} else {
 		<div class="space-y-6">
+			<!-- Embedded AI Inline Order Book Verdict Strip -->
+			@MarketplaceVerdictStrip(snap)
+
 			<!-- Item Title Banner + 1-Click Actions -->
 			<div class="tactical-panel rounded-xl p-5 flex flex-wrap items-center justify-between gap-4">
 				<div class="flex items-center gap-3.5">

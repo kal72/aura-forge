@@ -68,7 +68,18 @@ templ TacticalPage(data *service.TacticalViewData) {
 							<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 								<path stroke-linecap="round" stroke-linejoin="round" d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 0v10l6 4"></path>
 							</svg>
-							<span>2D Combat Radar</span>
+							<span>Combat Arena</span>
+						</button>
+						<button
+							type="button"
+							@click="activeMode = 'intel'"
+							:class="activeMode === 'intel' ? 'bg-rose-600 text-white shadow-[0_0_12px_rgba(225,29,72,0.45)]' : 'text-slate-300 hover:text-white'"
+							class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold transition cursor-pointer"
+						>
+							<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+							</svg>
+							<span>Intel &amp; Autopsy</span>
 						</button>
 						<button
 							type="button"
@@ -98,6 +109,15 @@ templ TacticalPage(data *service.TacticalViewData) {
 							<button type="button" @click="setSkillProfile('maxed')" :class="fit.skill_profile === 'maxed' ? 'bg-violet-500/30 text-violet-200 border-violet-400/40' : 'text-slate-400 border-transparent hover:text-white'" class="rounded border px-2 py-0.5 cursor-pointer transition" title="Maxed Pilot (All Level V)">Lv V</button>
 						</div>
 
+						<button
+							type="button"
+							@click="runFlyToday()"
+							:disabled="flyTodayRunning"
+							title="Downgrade Tech 2 modules into beginner-accessible Compact/Meta/T1 equivalents (0 ESI calls)"
+							class="rounded-lg border border-violet-400/50 bg-violet-500/20 px-2.5 py-1 text-xs font-semibold text-violet-100 hover:bg-violet-500/30 transition cursor-pointer disabled:opacity-50"
+						>
+							<span x-text="flyTodayRunning ? 'Adapting...' : 'Fly Today'"></span>
+						</button>
 						<button
 							type="button"
 							@click="eftModalOpen = true; eftError = ''"
@@ -512,6 +532,229 @@ templ TacticalPage(data *service.TacticalViewData) {
 								<input type="range" min="30" max="400" step="5" x-model.number="radarTargetSigM" class="w-full accent-violet-400"/>
 							</div>
 						</div>
+
+						<!-- Synced Applied DPS vs Distance (0–80 km) SVG Area Chart -->
+						<div class="mt-3 rounded-xl border border-sky-400/25 bg-slate-950/75 p-2.5">
+							<div class="flex items-center justify-between text-[10.5px] font-mono mb-1">
+								<span class="text-sky-300 font-bold uppercase">Applied DPS vs Distance (0–80 km)</span>
+								<span class="text-amber-300" x-text="'Crosshair synced to Radar: ' + radarTargetDistKM + ' km'"></span>
+							</div>
+							<svg viewBox="0 0 560 128" class="w-full h-32" x-html="rangeCurveSVG()"></svg>
+						</div>
+
+						<!-- PHASE 3: SECOND-BY-SECOND 1v1 DUEL & BOSS TIMELINE SCRUBBER -->
+						<div class="mt-4 border-t border-violet-500/25 pt-4">
+							<div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+								<div>
+									<h3 class="text-xs font-bold uppercase tracking-wider text-amber-300">1v1 Duel &amp; Boss Combat Timeline (180s)</h3>
+									<p class="text-[11px] text-slate-300">Simulate second-by-second Shield/Armor/Capacitor survival against PvE bosses or PvP archetypes.</p>
+								</div>
+								<button
+									type="button"
+									@click="runDuelSim()"
+									:disabled="duelRunning"
+									class="rounded-lg border border-amber-400/50 bg-amber-500/20 px-3 py-1.5 text-xs font-bold text-amber-100 hover:bg-amber-500/30 cursor-pointer transition disabled:opacity-50"
+								>
+									<span x-text="duelRunning ? 'Simulating...' : 'Run 1v1 Simulation'"></span>
+								</button>
+							</div>
+
+							<!-- Opponent Archetype Chips + EWAR Toggles -->
+							<div class="flex flex-wrap items-center gap-1.5 mb-3">
+								<template x-for="op in duelOpponents" :key="op.key">
+									<button
+										type="button"
+										@click="duelOpponentKey = op.key; duelRangeKM = op.optimal_km; runDuelSim()"
+										:class="duelOpponentKey === op.key ? 'border-rose-400 bg-rose-500/20 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300 hover:border-slate-500'"
+										class="rounded-lg border px-2.5 py-1 text-[11px] font-semibold cursor-pointer transition"
+										x-text="op.name"
+									></button>
+								</template>
+							</div>
+							<div class="flex flex-wrap items-center gap-3 mb-3 text-[11px] font-mono">
+								<label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-200">
+									<input type="checkbox" x-model="duelEnemyWeb" @change="runDuelSim()" class="accent-sky-400"/>
+									<span>Enemy Web (-60% Speed)</span>
+								</label>
+								<label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-200">
+									<input type="checkbox" x-model="duelEnemyScram" @change="runDuelSim()" class="accent-amber-400"/>
+									<span>Enemy Scram</span>
+								</label>
+								<label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-200">
+									<input type="checkbox" x-model="duelEnemyNeut" @change="runDuelSim()" class="accent-rose-400"/>
+									<span>Energy Neutralizer</span>
+								</label>
+								<div class="flex items-center gap-2 ml-auto">
+									<span class="text-slate-400">Range:</span>
+									<input type="range" min="2" max="50" x-model.number="duelRangeKM" @change="runDuelSim()" class="w-24 accent-amber-400"/>
+									<span class="text-amber-300 font-bold" x-text="duelRangeKM + ' km'"></span>
+								</div>
+							</div>
+
+							<!-- Timeline Verdict & Interactive SVG Dual-Curve Chart -->
+							<div x-show="duelResult" class="rounded-xl border border-slate-700/70 bg-slate-950/75 p-3">
+								<div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+									<div class="flex items-center gap-2">
+										<span
+											:class="{
+												'bg-emerald-500/20 text-emerald-200 border-emerald-400/50': duelResult && duelResult.verdict === 'VICTORY',
+												'bg-rose-500/20 text-rose-200 border-rose-400/50': duelResult && duelResult.verdict === 'DEFEAT',
+												'bg-amber-500/20 text-amber-200 border-amber-400/50': duelResult && duelResult.verdict === 'STALEMATE'
+											}"
+											class="rounded-md border px-2 py-0.5 text-xs font-mono font-extrabold"
+											x-text="duelResult ? duelResult.verdict : ''"
+										></span>
+										<span class="text-xs text-slate-200" x-text="duelResult ? duelResult.verdict_detail : ''"></span>
+									</div>
+									<div class="flex items-center gap-3 text-[10.5px] font-mono">
+										<span class="text-emerald-300">● Your HP</span>
+										<span class="text-rose-300">● Enemy HP</span>
+										<span class="text-amber-300">┄ Your Cap</span>
+									</div>
+								</div>
+
+								<svg viewBox="0 0 560 170" class="w-full h-44" x-html="duelTimelineSVG()"></svg>
+
+								<!-- Draggable Time Scrubber -->
+								<div class="mt-2 flex items-center gap-3">
+									<span class="text-[10.5px] font-mono text-slate-400">Scrub Time:</span>
+									<input
+										type="range"
+										min="0"
+										:max="Math.max(0, (duelResult && duelResult.points ? duelResult.points.length - 1 : 0))"
+										x-model.number="duelScrubIdx"
+										class="flex-1 accent-violet-400"
+									/>
+									<div x-show="duelScrubPoint()" class="flex items-center gap-2 text-[10.5px] font-mono">
+										<span class="text-white font-bold" x-text="'t=' + (duelScrubPoint() ? duelScrubPoint().second : 0) + 's'"></span>
+										<span class="text-emerald-300" x-text="'You ' + (duelScrubPoint() ? duelScrubPoint().pilot_hp_pct : 0) + '%'"></span>
+										<span class="text-rose-300" x-text="'Enemy ' + (duelScrubPoint() ? duelScrubPoint().enemy_hp_pct : 0) + '%'"></span>
+										<span class="text-amber-300" x-text="'Cap ' + (duelScrubPoint() ? duelScrubPoint().pilot_cap_pct : 0) + '%'"></span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- MODE 3: PHASE 5 INTEL & AUTOPSY STUDIO (D-SCAN THREAT RADAR + COMBAT LOG POST-MORTEM) -->
+					<div x-show="activeMode === 'intel'" class="grid grid-cols-1 gap-3 xl:grid-cols-2">
+						<!-- D-Scan Instant Threat Analyzer -->
+						<div class="tactical-panel flex flex-col rounded-2xl p-4">
+							<div class="flex items-center justify-between mb-2">
+								<div>
+									<h2 class="text-sm font-bold text-white">D-Scan Instant Threat Radar</h2>
+									<p class="text-[11px] text-slate-300">Paste from EVE Directional Scanner (Ctrl+A → Ctrl+C) — 0 ESI calls.</p>
+								</div>
+								<button type="button" @click="loadSampleDScan()" class="rounded-lg border border-slate-600 bg-slate-800/80 px-2.5 py-1 text-[10.5px] font-semibold text-slate-200 hover:bg-slate-700 cursor-pointer">Load Sample</button>
+							</div>
+							<textarea
+								x-model="dscanInput"
+								rows="5"
+								placeholder="16240&#9;Pilot Ship&#9;Catalyst&#9;0.4 AU&#10;17918&#9;Combat Scanner Probe&#9;Combat Scanner Probe&#9;1,200 km"
+								class="w-full rounded-xl border border-violet-400/30 bg-slate-950/80 p-2.5 font-mono text-[11px] text-slate-100 placeholder-slate-500 focus:border-rose-400 focus:outline-none"
+							></textarea>
+							<div class="mt-2 flex items-center justify-between">
+								<span x-show="dscanError" class="text-xs text-rose-300" x-text="dscanError"></span>
+								<button type="button" @click="runDScan()" :disabled="dscanRunning" class="ml-auto rounded-lg border border-rose-400/50 bg-rose-500/20 px-3.5 py-1.5 text-xs font-bold text-rose-100 hover:bg-rose-500/30 cursor-pointer transition">
+									<span x-text="dscanRunning ? 'Scanning...' : 'Analyze D-Scan'"></span>
+								</button>
+							</div>
+
+							<div x-show="dscanResult" class="mt-3 space-y-2.5">
+								<div
+									:class="{
+										'border-rose-500/70 bg-rose-500/20 text-rose-100': dscanResult && (dscanResult.threat_level === 'GANK ALERT' || dscanResult.threat_level === 'GATECAMP DANGER'),
+										'border-amber-400/60 bg-amber-500/15 text-amber-100': dscanResult && dscanResult.threat_level === 'CAUTION',
+										'border-emerald-400/50 bg-emerald-500/15 text-emerald-100': dscanResult && dscanResult.threat_level === 'SAFE'
+									}"
+									class="rounded-xl border p-3"
+								>
+									<div class="flex items-center justify-between">
+										<span class="text-xs font-mono font-extrabold uppercase tracking-wider" x-text="dscanResult ? dscanResult.threat_level : ''"></span>
+										<span class="text-[11px] font-mono opacity-85" x-text="dscanResult ? (dscanResult.total_objects + ' contacts') : ''"></span>
+									</div>
+									<div class="mt-1 text-xs font-bold text-white" x-text="dscanResult ? dscanResult.headline : ''"></div>
+									<div class="mt-0.5 text-[11px] opacity-90" x-text="dscanResult ? dscanResult.recommendation : ''"></div>
+								</div>
+
+								<div class="grid grid-cols-2 gap-2">
+									<template x-for="r in (dscanResult && dscanResult.roles) || []" :key="r.role">
+										<div class="rounded-xl border border-slate-700/70 bg-slate-950/70 p-2.5">
+											<div class="flex items-center justify-between mb-1">
+												<span class="text-[11px] font-bold text-white" x-text="r.role"></span>
+												<span class="rounded bg-violet-500/25 px-1.5 py-0.5 text-[10px] font-mono font-bold text-violet-200" x-text="r.count"></span>
+											</div>
+											<div class="text-[10.5px] font-mono text-slate-300" x-text="(r.ships || []).join(', ')"></div>
+										</div>
+									</template>
+								</div>
+							</div>
+						</div>
+
+						<!-- Combat Log Post-Mortem Autopsy -->
+						<div class="tactical-panel flex flex-col rounded-2xl p-4">
+							<div class="flex items-center justify-between mb-2">
+								<div>
+									<h2 class="text-sm font-bold text-white">Combat Log Post-Mortem Autopsy</h2>
+									<p class="text-[11px] text-slate-300">Paste EVE Online Gamelogs/*.txt — 100% deterministic Go parser (0 tokens).</p>
+								</div>
+								<button type="button" @click="loadSampleCombatLog()" class="rounded-lg border border-slate-600 bg-slate-800/80 px-2.5 py-1 text-[10.5px] font-semibold text-slate-200 hover:bg-slate-700 cursor-pointer">Load Sample</button>
+							</div>
+							<textarea
+								x-model="combatLogInput"
+								rows="5"
+								placeholder="[ 2026.11.27 14:22:01 ] (combat) 340 from Sansha's Centurion - Penetrates"
+								class="w-full rounded-xl border border-violet-400/30 bg-slate-950/80 p-2.5 font-mono text-[11px] text-slate-100 placeholder-slate-500 focus:border-sky-400 focus:outline-none"
+							></textarea>
+							<div class="mt-2 flex items-center justify-between">
+								<span x-show="combatLogError" class="text-xs text-rose-300" x-text="combatLogError"></span>
+								<button type="button" @click="runCombatLog()" :disabled="combatLogRunning" class="ml-auto rounded-lg border border-sky-400/50 bg-sky-500/20 px-3.5 py-1.5 text-xs font-bold text-sky-100 hover:bg-sky-500/30 cursor-pointer transition">
+									<span x-text="combatLogRunning ? 'Parsing...' : 'Run Log Autopsy'"></span>
+								</button>
+							</div>
+
+							<div x-show="combatLogResult" class="mt-3 space-y-2.5">
+								<div class="grid grid-cols-2 gap-2 font-mono">
+									<div class="rounded-xl border border-rose-400/35 bg-rose-500/15 p-2.5">
+										<div class="text-[9.5px] uppercase text-rose-300">Incoming Damage</div>
+										<div class="text-base font-extrabold text-white" x-text="combatLogResult ? formatNum(combatLogResult.incoming_damage) : '0'"></div>
+										<div class="text-[10px] text-rose-200" x-text="combatLogResult ? ('~' + combatLogResult.estimated_in_dps + ' DPS') : ''"></div>
+									</div>
+									<div class="rounded-xl border border-emerald-400/35 bg-emerald-500/15 p-2.5">
+										<div class="text-[9.5px] uppercase text-emerald-300">Outgoing Damage</div>
+										<div class="text-base font-extrabold text-white" x-text="combatLogResult ? formatNum(combatLogResult.outgoing_damage) : '0'"></div>
+										<div class="text-[10px] text-emerald-200" x-text="combatLogResult ? ('~' + combatLogResult.estimated_out_dps + ' DPS') : ''"></div>
+									</div>
+								</div>
+
+								<!-- Hit Quality Distribution Spectrum -->
+								<div class="rounded-xl border border-slate-700/70 bg-slate-950/70 p-2.5">
+									<div class="text-[10px] font-mono uppercase text-slate-400 mb-1.5">Hit Quality Distribution</div>
+									<div class="flex flex-wrap gap-1.5 text-[10.5px] font-mono">
+										<template x-for="qk in ['Miss','Glances Off','Hits','Penetrates','Smashes','Wrecks']" :key="qk">
+											<span x-show="combatLogResult && combatLogResult.hit_quality_counts && combatLogResult.hit_quality_counts[qk] > 0" class="rounded bg-slate-800 px-2 py-0.5 text-slate-200" x-text="qk + ': ' + (combatLogResult && combatLogResult.hit_quality_pct[qk]) + '%'"></span>
+										</template>
+									</div>
+								</div>
+
+								<!-- Top Threat Sources -->
+								<div class="space-y-1.5">
+									<template x-for="th in (combatLogResult && combatLogResult.top_threats) || []" :key="th.source_name">
+										<div class="rounded-lg border border-slate-700/60 bg-slate-950/65 px-2.5 py-1.5">
+											<div class="flex justify-between text-[11px]">
+												<span class="font-bold text-white" x-text="th.source_name"></span>
+												<span class="font-mono text-rose-300" x-text="formatNum(th.total_dmg) + ' dmg (' + th.share_pct + '%)'"></span>
+											</div>
+											<div class="mt-1 h-1 w-full rounded-full bg-slate-800 overflow-hidden">
+												<div class="h-full bg-rose-400" :style="'width:' + Math.min(100, th.share_pct) + '%'"></div>
+											</div>
+										</div>
+									</template>
+								</div>
+
+								<div class="rounded-xl border border-amber-400/35 bg-amber-500/10 p-2.5 text-[11px] text-amber-100" x-text="combatLogResult ? combatLogResult.key_takeaway : ''"></div>
+							</div>
+						</div>
 					</div>
 
 					<!-- MODE 3: VISUAL DOCTRINES GALLERY -->
@@ -566,19 +809,64 @@ templ TacticalPage(data *service.TacticalViewData) {
 							</div>
 						</div>
 
-						<!-- Beginner Readiness Diagnostics & Hull Traits -->
+						<!-- Beginner Readiness Diagnostics, Embedded AI Strategist & Hull Traits -->
 						<div class="tactical-panel rounded-2xl p-3">
-							<div class="flex items-center justify-between mb-2">
-								<div class="text-xs font-bold text-white uppercase tracking-wider">Tactical Diagnostics</div>
-								<button
-									type="button"
-									x-show="sim && sim.traits"
-									@click="traitsExpanded = !traitsExpanded"
-									class="text-[10.5px] font-mono text-amber-300 hover:underline cursor-pointer"
-									x-text="traitsExpanded ? 'Hide Hull Bonuses' : 'Show Hull Bonuses (Traits)'"
-								></button>
+							<div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+								<div class="text-xs font-bold text-white uppercase tracking-wider">Tactical Strategist</div>
+								<div class="flex items-center gap-2">
+									<button
+										type="button"
+										@click="runAIAudit()"
+										:disabled="aiAuditing"
+										class="rounded-lg border border-violet-400/60 bg-violet-600/30 px-2.5 py-0.5 text-[10.5px] font-bold text-violet-100 hover:bg-violet-500/40 cursor-pointer transition disabled:opacity-50"
+									>
+										<span x-text="aiAuditing ? 'Auditing...' : '⚡ AI Audit & Swaps'"></span>
+									</button>
+									<button
+										type="button"
+										x-show="sim && sim.traits"
+										@click="traitsExpanded = !traitsExpanded"
+										class="text-[10.5px] font-mono text-amber-300 hover:underline cursor-pointer"
+										x-text="traitsExpanded ? 'Hide Traits' : 'Hull Traits'"
+									></button>
+								</div>
 							</div>
-							<div class="space-y-1.5" x-show="!traitsExpanded">
+
+							<!-- Embedded AI Audit Result Card (Structured JSON + 1-Click Module Swaps) -->
+							<div x-show="aiAudit && !traitsExpanded" class="mb-2.5 space-y-2 rounded-xl border border-violet-400/40 bg-violet-950/35 p-2.5">
+								<div class="flex items-center justify-between">
+									<span class="text-xs font-bold text-white" x-text="aiAudit ? aiAudit.summary : ''"></span>
+									<span class="shrink-0 ml-2 rounded bg-violet-500/30 px-1.5 py-0.5 text-[9.5px] font-mono uppercase text-violet-200" x-text="aiAudit ? aiAudit.source : ''"></span>
+								</div>
+								<!-- 1-Click Recommended Module Swaps -->
+								<template x-for="(sw, idx) in (aiAudit && aiAudit.recommended_swaps) || []" :key="'sw-' + idx">
+									<div class="flex items-center justify-between gap-2 rounded-lg border border-amber-400/35 bg-slate-950/75 px-2.5 py-1.5">
+										<div class="min-w-0">
+											<div class="flex items-center gap-1.5 text-[11px]">
+												<span class="font-bold text-amber-200" x-text="sw.suggested_module"></span>
+												<span class="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9.5px] font-mono text-emerald-200" x-text="sw.impact_badge"></span>
+											</div>
+											<div class="text-[10.5px] text-slate-300" x-text="sw.reason"></div>
+										</div>
+										<button
+											type="button"
+											@click="applyAISwap(sw)"
+											class="shrink-0 rounded-lg border border-emerald-400/50 bg-emerald-500/20 px-2.5 py-1 text-[10.5px] font-bold text-emerald-100 hover:bg-emerald-500/35 cursor-pointer transition"
+										>
+											Apply Swap
+										</button>
+									</div>
+								</template>
+								<!-- Compact 4-Step Playbook -->
+								<div x-show="aiAudit && aiAudit.playbook" class="grid grid-cols-1 gap-1 sm:grid-cols-2 text-[10.5px] pt-1">
+									<div class="rounded bg-slate-950/55 px-2 py-1"><strong class="text-sky-300">Pre-Warp:</strong> <span class="text-slate-200" x-text="aiAudit && aiAudit.playbook.pre_warp"></span></div>
+									<div class="rounded bg-slate-950/55 px-2 py-1"><strong class="text-emerald-300">Position:</strong> <span class="text-slate-200" x-text="aiAudit && aiAudit.playbook.positioning"></span></div>
+									<div class="rounded bg-slate-950/55 px-2 py-1"><strong class="text-amber-300">Priority:</strong> <span class="text-slate-200" x-text="aiAudit && aiAudit.playbook.threat_priority"></span></div>
+									<div class="rounded bg-slate-950/55 px-2 py-1"><strong class="text-rose-300">Disengage:</strong> <span class="text-slate-200" x-text="aiAudit && aiAudit.playbook.disengage_trigger"></span></div>
+								</div>
+							</div>
+
+							<div class="space-y-1.5" x-show="!traitsExpanded && !aiAudit">
 								<template x-for="(f, i) in (sim && sim.findings) || []" :key="'find-' + i">
 									<div
 										:class="{
@@ -778,6 +1066,52 @@ templ TacticalPage(data *service.TacticalViewData) {
 								<div class="text-[9.5px] text-slate-400 uppercase">Signature / Cargo</div>
 								<div class="font-bold text-white" x-text="sim ? (sim.navigation.signature_radius_m + 'm • ' + formatNum(sim.navigation.cargo_capacity_m3) + ' m³') : '—'"></div>
 							</div>
+						</div>
+					</div>
+
+					<!-- 5. COMBAT ROI & PAYBACK BRIDGE (CONNECTED TO AURA FORGE 100B+ ISK MISSION) -->
+					<div class="tactical-panel rounded-2xl p-3.5">
+						<div class="flex items-center justify-between mb-2">
+							<div class="text-[10.5px] font-mono font-bold uppercase tracking-wider text-amber-300">Combat ROI &amp; Payback</div>
+							<span
+								:class="{
+									'bg-emerald-500/20 text-emerald-200 border-emerald-400/40': roiMetrics().risk === 'SAFE',
+									'bg-amber-500/20 text-amber-200 border-amber-400/40': roiMetrics().risk === 'MODERATE',
+									'bg-rose-500/20 text-rose-200 border-rose-400/40': roiMetrics().risk === 'HIGH EXPOSURE'
+								}"
+								class="rounded border px-1.5 py-0.5 text-[9.5px] font-mono font-bold"
+								x-text="roiMetrics().risk"
+							></span>
+						</div>
+						<select x-model="roiActivityKey" class="mb-2 w-full rounded-lg border border-slate-700 bg-slate-950/80 px-2.5 py-1.5 text-[11px] font-semibold text-slate-200 focus:outline-none">
+							<template x-for="act in roiActivities" :key="act.key">
+								<option :value="act.key" x-text="act.label + ' (~' + formatISK(act.iskPerHour) + '/hr)'"></option>
+							</template>
+						</select>
+						<div class="flex items-baseline justify-between font-mono text-xs">
+							<span class="text-slate-300">Est. Payback Time</span>
+							<span class="text-base font-extrabold text-amber-200" x-text="roiMetrics().paybackHours + ' hrs'"></span>
+						</div>
+						<div class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+							<div
+								class="h-full rounded-full transition-all duration-300"
+								:class="roiMetrics().risk === 'SAFE' ? 'bg-emerald-400' : (roiMetrics().risk === 'MODERATE' ? 'bg-amber-400' : 'bg-rose-500')"
+								:style="'width:' + roiMetrics().barPct + '%'"
+							></div>
+						</div>
+						<div class="mt-2.5 grid grid-cols-2 gap-1.5">
+							<a
+								:href="'/marketplace?q=' + encodeURIComponent(fit.ship_name || '')"
+								class="inline-flex items-center justify-center rounded-lg border border-sky-400/40 bg-sky-500/15 px-2 py-1.5 text-[10.5px] font-bold text-sky-200 hover:bg-sky-500/25 transition"
+							>
+								Buy Hull →
+							</a>
+							<a
+								:href="'/manufacture?q=' + encodeURIComponent(fit.ship_name || '')"
+								class="inline-flex items-center justify-center rounded-lg border border-amber-400/40 bg-amber-500/15 px-2 py-1.5 text-[10.5px] font-bold text-amber-200 hover:bg-amber-500/25 transition"
+							>
+								Craft Hull →
+							</a>
 						</div>
 					</div>
 				</aside>

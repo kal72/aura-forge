@@ -300,6 +300,11 @@ templ MarketplaceComparePartial(res *domain.ItemCompareResult, errMsg string) {
 				return "traits"
 			}()) }
 		>
+			<!-- Embedded AI Beginner Pick Winner Strip (when comparing 2-3 items) -->
+			if isComparing {
+				@CompareBeginnerPickBanner(res)
+			}
+
 			<!-- 1. EVE SHOW INFO HEADER CARDS (3D Render / Icon + Meta + Live Price + Compact Action Bar) -->
 			<div class={ "grid gap-3 " + compareGridColsClass(len(res.Items)) }>
 				for _, it := range res.Items {

@@ -79,6 +79,11 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.Get("/api/fittings", h.HandleTacticalListFittings)
 			r.Post("/api/fittings", h.HandleTacticalSaveFitting)
 			r.Delete("/api/fittings/{id}", h.HandleTacticalDeleteFitting)
+			r.Post("/api/duel", h.HandleTacticalDuel)
+			r.Post("/api/ai-audit", h.HandleTacticalAIAudit)
+			r.Post("/api/dscan", h.HandleTacticalDScan)
+			r.Post("/api/combat-log", h.HandleTacticalCombatLog)
+			r.Post("/api/fly-today", h.HandleTacticalFlyToday)
 		})
 
 		// Dedicated EVE Online Pilot Hub (accessible via Topbar Account Chip when EVE SSO is connected)
@@ -115,6 +120,9 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 		// Background Top-Opportunities Radar (Dashboard auto-sweep >40 blueprints)
 		r.Get("/radar/top", h.HandleDashboardRadar)
 		r.Post("/radar/refresh", h.HandleTriggerRadarRefresh)
+
+		// Embedded Background AI Native UI Strips (non-blocking HTMX hydration)
+		r.Get("/ai/embedded/daily-strip", h.HandleEmbeddedDailyStrip)
 
 		// Public ESI actions (lookup & market pulse for all; sync/undercuts for admin only)
 		r.Route("/esi", func(r chi.Router) {

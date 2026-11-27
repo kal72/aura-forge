@@ -111,3 +111,94 @@ func (h *Handlers) HandleTacticalDeleteFitting(w http.ResponseWriter, r *http.Re
 	}
 	h.writeJSON(w, http.StatusOK, map[string]any{"deleted": true, "id": id})
 }
+
+// HandleTacticalDuel runs a second-by-second 1v1 PvP/PvE boss combat timeline simulation.
+func (h *Handlers) HandleTacticalDuel(w http.ResponseWriter, r *http.Request) {
+	var req domain.DuelSimRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid duel simulation payload"})
+		return
+	}
+	res, err := h.svc.SimulateTacticalDuel(r.Context(), req)
+	if err != nil {
+		h.writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return
+	}
+	h.writeJSON(w, http.StatusOK, res)
+}
+
+// HandleTacticalAIAudit runs Embedded Background AI (or deterministic fallback) structured audit on a ShipFit.
+func (h *Handlers) HandleTacticalAIAudit(w http.ResponseWriter, r *http.Request) {
+	var fit domain.ShipFit
+	if err := json.NewDecoder(r.Body).Decode(&fit); err != nil {
+		h.writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid fitting JSON payload"})
+		return
+	}
+	res, err := h.svc.AuditTacticalFit(r.Context(), fit)
+	if err != nil {
+		h.writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return
+	}
+	h.writeJSON(w, http.StatusOK, res)
+}
+
+// HandleTacticalDScan classifies a live EVE Online Directional Scanner paste locally (0 ESI calls).
+func (h *Handlers) HandleTacticalDScan(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Raw string `json:"raw"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.Raw) == "" {
+		h.writeJSON(w, http.StatusBadRequest, map[string]string{"error": "please paste a Directional Scanner dump from EVE Online"})
+		return
+	}
+	res, err := domain.AnalyzeDScan(req.Raw)
+	if err != nil {
+		h.writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return
+	}
+	h.writeJSON(w, http.StatusOK, res)
+}
+
+// HandleTacticalCombatLog parses an EVE Online Gamelog combat paste deterministically (0 AI tokens).
+func (h *Handlers) HandleTacticalCombatLog(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Raw string `json:"raw"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.Raw) == "" {
+		h.writeJSON(w, http.StatusBadRequest, map[string]string{"error": "please paste lines from EVE Online Gamelogs/*.txt"})
+		return
+	}
+	res, err := domain.AnalyzeCombatLog(req.Raw)
+	if err != nil {
+		h.writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return
+	}
+	h.writeJSON(w, http.StatusOK, res)
+}
+
+// HandleTacticalFlyToday downgrades Tech 2 modules into beginner-accessible Compact/Meta/T1 equivalents.
+func (h *Handlers) HandleTacticalFlyToday(w http.ResponseWriter, r *http.Request) {
+	var fit domain.ShipFit
+	if err := json.NewDecoder(r.Body).Decode(&fit); err != nil {
+		h.writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid fitting JSON payload"})
+		return
+	}
+	res, err := h.svc.AdaptFitToFlyToday(r.Context(), fit)
+	if err != nil {
+		h.writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return
+	}
+	h.writeJSON(w, http.StatusOK, res)
+}
+
+// HandleEmbeddedDailyStrip hydrates the non-blocking Dashboard Daily Action Strip via HTMX.
+func (h *Handlers) HandleEmbeddedDailyStrip(w http.ResponseWriter, r *http.Request) {
+	strip := h.svc.GetDashboardDailyStrip(r.Context())
+	if h.renderer != nil {
+		if err := h.renderer.RenderDashboardDailyStrip(w, r, strip); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+	h.writeJSON(w, http.StatusOK, strip)
+}

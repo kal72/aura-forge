@@ -80,6 +80,7 @@
 		}
 		const presets = (bootData && bootData.presets) || [];
 		const factions = (bootData && bootData.factions) || [];
+		const duelOpponents = (bootData && bootData.duel_opponents) || [];
 		const initialSaved = (bootData && bootData.saved_fittings) || [];
 		const defaultFit = presets.length > 0 ? JSON.parse(JSON.stringify(presets[0].fit)) : {
 			name: 'Omen — Imperial Pulse Cruiser',
@@ -113,7 +114,43 @@
 
 			presets: presets,
 			factions: factions,
+			duelOpponents: duelOpponents,
 			savedFittings: initialSaved,
+
+			// Phase 3: 1v1 Duel Timeline state
+			duelOpponentKey: 'l3_boss',
+			duelRangeKM: 18,
+			duelEnemyWeb: false,
+			duelEnemyScram: false,
+			duelEnemyNeut: false,
+			duelResult: null,
+			duelRunning: false,
+			duelScrubIdx: 0,
+
+			// Phase 4: Embedded Background AI Tactical Audit state
+			aiAudit: null,
+			aiAuditing: false,
+
+			// Phase 5: D-Scan & Combat Log Autopsy state
+			dscanInput: '',
+			dscanResult: null,
+			dscanError: '',
+			dscanRunning: false,
+			combatLogInput: '',
+			combatLogResult: null,
+			combatLogError: '',
+			combatLogRunning: false,
+
+			// Batch 3: Fly Today Auto-Downgrade & Combat ROI Payback Bridge
+			flyTodayRunning: false,
+			roiActivityKey: 'l3_mission',
+			roiActivities: [
+				{ key: 'l2_mission', label: 'L2 Missions', iskPerHour: 12000000 },
+				{ key: 'l3_mission', label: 'L3 Missions', iskPerHour: 28000000 },
+				{ key: 'l4_mission', label: 'L4 Missions', iskPerHour: 55000000 },
+				{ key: 'ratting',    label: 'Belt / Anom Ratting', iskPerHour: 45000000 },
+				{ key: 'abyssal_t2', label: 'Abyssal T2–T3', iskPerHour: 65000000 },
+			],
 
 			fit: defaultFit,
 			sim: null,
@@ -155,7 +192,10 @@
 				this.fetchShips();
 				this.$watch('activeMode', (val) => {
 					if (val === 'radar') {
-						this.$nextTick(() => this.startRadarLoop());
+						this.$nextTick(() => {
+							this.startRadarLoop();
+							if (!this.duelResult) this.runDuelSim();
+						});
 					} else {
 						this.stopRadarLoop();
 					}
@@ -852,6 +892,256 @@
 				ctx.fillText('TARGET • ' + this.radarTargetDistKM + ' km', tx + 13, ty - 6);
 
 				ctx.restore();
+			},
+
+			// =================================================================
+			// Phase 3: 1v1 Duel & Boss Combat Timeline Simulator + SVG Chart
+			// =================================================================
+			async runDuelSim() {
+				this.duelRunning = true;
+				try {
+					const res = await fetch('/tactical/api/duel', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							fit: this.fit,
+							opponent_key: this.duelOpponentKey,
+							range_km: Number(this.duelRangeKM) || 18,
+							enemy_web: this.duelEnemyWeb,
+							enemy_scram: this.duelEnemyScram,
+							enemy_neut: this.duelEnemyNeut,
+						}),
+					});
+					const data = await res.json();
+					if (res.ok) {
+						this.duelResult = data;
+						this.duelScrubIdx = Math.max(0, (data.points || []).length - 1);
+					}
+				} catch (_) {
+				} finally {
+					this.duelRunning = false;
+				}
+			},
+
+			duelScrubPoint() {
+				if (!this.duelResult || !this.duelResult.points || this.duelResult.points.length === 0) return null;
+				const idx = Math.max(0, Math.min(this.duelResult.points.length - 1, this.duelScrubIdx));
+				return this.duelResult.points[idx];
+			},
+
+			duelTimelineSVG() {
+				if (!this.duelResult || !this.duelResult.points || this.duelResult.points.length < 2) return '';
+				const pts = this.duelResult.points;
+				const W = 560, H = 170, padL = 34, padR = 14, padT = 14, padB = 22;
+				const innerW = W - padL - padR;
+				const innerH = H - padT - padB;
+				const maxT = Math.max(this.duelResult.duration_sec || 1, 1);
+
+				const xOf = (sec) => (padL + (sec / maxT) * innerW).toFixed(1);
+				const yOf = (pct) => (padT + (1 - Math.max(0, Math.min(100, pct)) / 100) * innerH).toFixed(1);
+
+				const poly = (getter) => pts.map((p) => `${xOf(p.second)},${yOf(getter(p))}`).join(' ');
+
+				let svg = '';
+				// Horizontal grid lines (0%, 50%, 100%)
+				for (const pct of [0, 50, 100]) {
+					const y = yOf(pct);
+					svg += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(148,163,184,0.16)" stroke-dasharray="3 4"></line>`;
+					svg += `<text x="${padL - 5}" y="${Number(y) + 3}" text-anchor="end" fill="#94a3b8" font-size="9" font-family="monospace">${pct}%</text>`;
+				}
+				// Pilot HP (Emerald), Enemy HP (Rose), Pilot Cap (Amber dashed)
+				svg += `<polyline fill="none" stroke="#34d399" stroke-width="2.4" points="${poly((p) => p.pilot_hp_pct)}"></polyline>`;
+				svg += `<polyline fill="none" stroke="#fb7185" stroke-width="2.4" points="${poly((p) => p.enemy_hp_pct)}"></polyline>`;
+				svg += `<polyline fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="4 3" points="${poly((p) => p.pilot_cap_pct)}"></polyline>`;
+
+				// Cap Burnout Marker
+				if (this.duelResult.cap_burnout_sec > 0) {
+					const bx = xOf(this.duelResult.cap_burnout_sec);
+					svg += `<line x1="${bx}" y1="${padT}" x2="${bx}" y2="${H - padB}" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="2 2"></line>`;
+					svg += `<text x="${bx}" y="${padT + 9}" text-anchor="middle" fill="#fbbf24" font-size="8.5" font-family="monospace">CAP DRY ${this.duelResult.cap_burnout_sec}s</text>`;
+				}
+
+				// Interactive Scrubber Vertical Line
+				const sp = this.duelScrubPoint();
+				if (sp) {
+					const sx = xOf(sp.second);
+					svg += `<line x1="${sx}" y1="${padT}" x2="${sx}" y2="${H - padB}" stroke="#e2e8f0" stroke-width="1.2"></line>`;
+					svg += `<circle cx="${sx}" cy="${yOf(sp.pilot_hp_pct)}" r="3.8" fill="#34d399" stroke="#0f172a" stroke-width="1.2"></circle>`;
+					svg += `<circle cx="${sx}" cy="${yOf(sp.enemy_hp_pct)}" r="3.8" fill="#fb7185" stroke="#0f172a" stroke-width="1.2"></circle>`;
+					svg += `<text x="${sx}" y="${H - 6}" text-anchor="middle" fill="#e2e8f0" font-size="9" font-family="monospace">t=${sp.second}s</text>`;
+				}
+				return svg;
+			},
+
+			// =================================================================
+			// Phase 4: Embedded Background AI Tactical Audit + 1-Click Swap
+			// =================================================================
+			async runAIAudit() {
+				this.aiAuditing = true;
+				try {
+					const res = await fetch('/tactical/api/ai-audit', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify(this.fit),
+					});
+					const data = await res.json();
+					if (res.ok) {
+						this.aiAudit = data;
+						this.notify(data.source === 'ai_cached' ? 'AI Audit loaded instantly (cached)' : 'Tactical Audit ready');
+					}
+				} catch (_) {
+					this.notify('Failed to run Tactical Audit');
+				} finally {
+					this.aiAuditing = false;
+				}
+			},
+
+			applyAISwap(swap) {
+				if (!swap || !swap.suggested_type_id) {
+					this.notify('Search "' + (swap && swap.suggested_module) + '" in Module Drawer to equip');
+					return;
+				}
+				this.equipModuleToSlot(
+					{ type_id: swap.suggested_type_id, name: swap.suggested_module, group_name: '' },
+					swap.slot_kind || 'mid'
+				);
+			},
+
+			// =================================================================
+			// Phase 5: D-Scan Instant Threat Radar & Combat Log Post-Mortem
+			// =================================================================
+			loadSampleDScan() {
+				this.dscanInput = "16240\tUedama Ganker 1\tCatalyst\t0.4 AU\n16240\tUedama Ganker 2\tCatalyst\t0.4 AU\n16240\tUedama Ganker 3\tCatalyst\t0.4 AU\n17918\tCombat Scanner Probe\tCombat Scanner Probe\t1,200 km\n11198\tGate Scout\tStiletto\t850 km";
+				this.runDScan();
+			},
+
+			async runDScan() {
+				if (!this.dscanInput.trim()) return;
+				this.dscanRunning = true;
+				this.dscanError = '';
+				try {
+					const res = await fetch('/tactical/api/dscan', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ raw: this.dscanInput }),
+					});
+					const data = await res.json();
+					if (!res.ok) {
+						this.dscanError = data.error || 'Failed to parse D-Scan';
+						return;
+					}
+					this.dscanResult = data;
+				} catch (_) {
+					this.dscanError = 'Network error analyzing D-Scan';
+				} finally {
+					this.dscanRunning = false;
+				}
+			},
+
+			loadSampleCombatLog() {
+				this.combatLogInput = "[ 2026.11.27 14:22:01 ] (combat) 340 from Sansha's Centurion - Penetrates\n[ 2026.11.27 14:22:03 ] (combat) 290 from Sansha's Centurion - Hits\n[ 2026.11.27 14:22:05 ] (combat) 410 to Sansha's Centurion - Smashes\n[ 2026.11.27 14:22:07 ] (combat) 85 from Sansha's Frigate - Glances Off\n[ 2026.11.27 14:22:09 ] (combat) Energy Neutralizer drained 60 GJ\n[ 2026.11.27 14:22:11 ] (combat) 480 to Sansha's Centurion - Wrecks";
+				this.runCombatLog();
+			},
+
+			async runCombatLog() {
+				if (!this.combatLogInput.trim()) return;
+				this.combatLogRunning = true;
+				this.combatLogError = '';
+				try {
+					const res = await fetch('/tactical/api/combat-log', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ raw: this.combatLogInput }),
+					});
+					const data = await res.json();
+					if (!res.ok) {
+						this.combatLogError = data.error || 'Failed to parse Combat Log';
+						return;
+					}
+					this.combatLogResult = data;
+				} catch (_) {
+					this.combatLogError = 'Network error parsing Combat Log';
+				} finally {
+					this.combatLogRunning = false;
+				}
+			},
+
+			// =================================================================
+			// Batch 3: Fly Today (T2 -> Beginner Meta/T1) & Combat ROI Bridge
+			// =================================================================
+			async runFlyToday() {
+				this.flyTodayRunning = true;
+				try {
+					const res = await fetch('/tactical/api/fly-today', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify(this.fit),
+					});
+					const data = await res.json();
+					if (!res.ok) {
+						this.notify(data.error || 'Could not adapt fit');
+						return;
+					}
+					if (data.simulation) {
+						this.sim = data.simulation;
+						this.fit = data.simulation.fit;
+					}
+					if (data.swapped_count > 0) {
+						this.notify('Adapted ' + data.swapped_count + ' T2 modules for beginners (Saved ' + formatISK(data.isk_saved) + ')');
+					} else {
+						this.notify('Fit is already beginner-friendly (no Tech 2 swaps needed)');
+					}
+				} catch (_) {
+					this.notify('Network error adapting fit');
+				} finally {
+					this.flyTodayRunning = false;
+				}
+			},
+
+			roiMetrics() {
+				const cost = (this.sim && this.sim.total_fit_cost_isk) || 0;
+				const act = this.roiActivities.find((a) => a.key === this.roiActivityKey) || this.roiActivities[1];
+				const hrs = act.iskPerHour > 0 ? cost / act.iskPerHour : 0;
+				let risk = 'SAFE';
+				if (hrs > 6) risk = 'HIGH EXPOSURE';
+				else if (hrs > 2.5) risk = 'MODERATE';
+				return {
+					iskPerHour: act.iskPerHour,
+					paybackHours: Math.round(hrs * 10) / 10,
+					risk,
+					barPct: Math.min(100, Math.round((hrs / 8) * 100)),
+				};
+			},
+
+			rangeCurveSVG() {
+				if (!this.sim || !this.sim.range_curve || this.sim.range_curve.length < 2) return '';
+				const pts = this.sim.range_curve;
+				const W = 560, H = 128, padL = 38, padR = 12, padT = 12, padB = 20;
+				const innerW = W - padL - padR;
+				const innerH = H - padT - padB;
+				const maxDPS = Math.max(10, ...pts.map((p) => p.applied_dps));
+				const maxKM = 80;
+
+				const xOf = (km) => (padL + (Math.min(km, maxKM) / maxKM) * innerW).toFixed(1);
+				const yOf = (dps) => (padT + (1 - Math.max(0, dps) / maxDPS) * innerH).toFixed(1);
+
+				const linePts = pts.map((p) => `${xOf(p.distance_km)},${yOf(p.applied_dps)}`).join(' ');
+				const areaPts = `${xOf(0)},${yOf(0)} ${linePts} ${xOf(pts[pts.length - 1].distance_km)},${yOf(0)}`;
+
+				let svg = '';
+				for (const frac of [0, 0.5, 1]) {
+					const y = yOf(maxDPS * frac);
+					svg += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(148,163,184,0.14)" stroke-dasharray="3 4"></line>`;
+					svg += `<text x="${padL - 5}" y="${Number(y) + 3}" text-anchor="end" fill="#94a3b8" font-size="8.5" font-family="monospace">${Math.round(maxDPS * frac)}</text>`;
+				}
+				svg += `<polygon points="${areaPts}" fill="rgba(56,189,248,0.18)"></polygon>`;
+				svg += `<polyline fill="none" stroke="#38bdf8" stroke-width="2.2" points="${linePts}"></polyline>`;
+
+				// Synced vertical crosshair matching 2D Radar Target Distance
+				const cx = xOf(this.radarTargetDistKM);
+				svg += `<line x1="${cx}" y1="${padT}" x2="${cx}" y2="${H - padB}" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="3 2"></line>`;
+				svg += `<text x="${cx}" y="${H - 5}" text-anchor="middle" fill="#fbbf24" font-size="8.5" font-family="monospace">${this.radarTargetDistKM} km</text>`;
+				return svg;
 			},
 		};
 	};
