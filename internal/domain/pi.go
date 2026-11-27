@@ -95,14 +95,21 @@ type PIProfitRow struct {
 // PIColony tracks an active player Planetary Industry colony and its extractor expiry timer.
 type PIColony struct {
 	ID                 int64     `json:"id"`
+	CharacterID        int64     `json:"character_id,omitempty"`
+	PlanetID           int32     `json:"planet_id,omitempty"`
 	PlanetName         string    `json:"planet_name"`
 	SolarSystem        string    `json:"solar_system"`
+	SecurityStatus     float64   `json:"security_status,omitempty"`
 	PlanetType         string    `json:"planet_type"`
+	UpgradeLevel       int       `json:"upgrade_level,omitempty"`
+	NumPins            int       `json:"num_pins,omitempty"`
 	ProductTypeID      int32     `json:"product_type_id"`
 	ProductName        string    `json:"product_name"`
 	Tier               PITier    `json:"tier"`
 	ExtractorExpiresAt time.Time `json:"extractor_expires_at"`
 	EstDailyISK        float64   `json:"est_daily_isk"`
+	StorageSummary     string    `json:"storage_summary,omitempty"`
+	SyncedFromSSO      bool      `json:"synced_from_sso,omitempty"`
 	Note               string    `json:"note"`
 	CreatedAt          time.Time `json:"created_at"`
 	UpdatedAt          time.Time `json:"updated_at"`

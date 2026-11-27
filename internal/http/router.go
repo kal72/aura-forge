@@ -147,6 +147,7 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.Get("/tree", h.HandlePITree)
 			r.Post("/scan", h.HandlePIScan)
 			r.Post("/sales-calc", h.HandlePISalesCalc)
+			r.Post("/sync", h.HandlePISync)
 			r.With(adminOnly).Post("/colonies", h.HandlePIColonySave)
 			r.With(adminOnly).Post("/colonies/{id}/reset", h.HandlePIColonyReset)
 			r.With(adminOnly).Delete("/colonies/{id}", h.HandlePIColonyDelete)

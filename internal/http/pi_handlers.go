@@ -84,6 +84,27 @@ func (h *Handlers) HandlePIScan(w http.ResponseWriter, r *http.Request) {
 	_ = h.renderer.RenderPIScanPartial(w, r, rows, tier, hub, errMsg)
 }
 
+// HandlePISync syncs live Planetary Industry colonies (planets, locations, P0–P4 production, storage, expiry) from EVE SSO.
+func (h *Handlers) HandlePISync(w http.ResponseWriter, r *http.Request) {
+	count, err := h.svc.SyncPIColoniesFromSSO(r.Context())
+	if err != nil {
+		if IsHTMX(r) {
+			TriggerToast(w, "error", "PI Sync failed: "+err.Error())
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if IsHTMX(r) {
+		TriggerToast(w, "success", "Synced "+strconv.Itoa(count)+" live PI planet colonies from EVE Online SSO.")
+		w.Header().Set("HX-Refresh", "true")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	http.Redirect(w, r, "/pi?tab=colonies", http.StatusFound)
+}
+
 // HandlePISalesCalc simulates multi-item PI sales profit for custom unit quantities (from row builder or EVE Hangar paste).
 func (h *Handlers) HandlePISalesCalc(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {

@@ -288,3 +288,38 @@ func (s *CopilotService) DeletePIColony(ctx context.Context, id int64) error {
 	}
 	return s.pi.DeleteColony(ctx, id)
 }
+
+// SyncPIColoniesFromSSO fetches live Planetary Industry colonies (planet, system, production, storage, expiry)
+// from EVE Online ESI for the currently connected SSO character and persists them to PostgreSQL.
+func (s *CopilotService) SyncPIColoniesFromSSO(ctx context.Context) (int, error) {
+	if s.pi == nil {
+		return 0, fmt.Errorf("PI colony repository is not available")
+	}
+	if s.chars == nil {
+		return 0, fmt.Errorf("EVE SSO is not connected")
+	}
+	piSync, ok := s.charSync.(domain.CharacterPISyncProvider)
+	if !ok || piSync == nil {
+		return 0, fmt.Errorf("EVE ESI PI sync provider is not configured")
+	}
+	tok, err := s.chars.GetPrimaryToken(ctx)
+	if err != nil || tok == nil || tok.CharacterID <= 0 {
+		return 0, fmt.Errorf("please connect your EVE Online character via SSO first")
+	}
+
+	colonies, err := piSync.SyncPIPlanets(ctx, tok)
+	if err != nil {
+		return 0, err
+	}
+
+	if syncRepo, ok := s.pi.(domain.PISyncRepository); ok && syncRepo != nil {
+		if err := syncRepo.ReplaceSyncedColonies(ctx, tok.CharacterID, colonies); err != nil {
+			return 0, err
+		}
+	} else {
+		for i := range colonies {
+			_ = s.pi.SaveColony(ctx, &colonies[i])
+		}
+	}
+	return len(colonies), nil
+}

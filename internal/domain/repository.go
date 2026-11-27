@@ -170,6 +170,16 @@ type PIRepository interface {
 	DeleteColony(ctx context.Context, id int64) error
 }
 
+// PISyncRepository is an optional extension on PIRepository for replacing SSO-synced colonies.
+type PISyncRepository interface {
+	ReplaceSyncedColonies(ctx context.Context, characterID int64, colonies []PIColony) error
+}
+
+// CharacterPISyncProvider is an optional Private ESI extension for syncing a pilot's live Planetary Industry colonies.
+type CharacterPISyncProvider interface {
+	SyncPIPlanets(ctx context.Context, token *EVEToken) ([]PIColony, error)
+}
+
 // CharacterSyncProvider specifies operations to fetch authenticated character data via ESI OAuth2.
 type CharacterSyncProvider interface {
 	SyncWallet(ctx context.Context, token *EVEToken) (float64, error)
