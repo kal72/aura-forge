@@ -85,19 +85,22 @@ type AIToolCallFunction struct {
 }
 
 // AIToolCall represents one tool invocation emitted by the LLM.
+// ExtraContent preserves vendor-specific metadata such as Gemini's google.thought_signature.
 type AIToolCall struct {
-	ID       string             `json:"id"`
-	Type     string             `json:"type"` // "function"
-	Function AIToolCallFunction `json:"function"`
+	ID           string             `json:"id"`
+	Type         string             `json:"type"` // "function"
+	Function     AIToolCallFunction `json:"function"`
+	ExtraContent json.RawMessage    `json:"extra_content,omitempty"`
 }
 
 // AIChatMessage is one OpenAI-compatible chat message (system, user, assistant, or tool).
 type AIChatMessage struct {
-	Role       string       `json:"role"`
-	Content    string       `json:"content,omitempty"`
-	Name       string       `json:"name,omitempty"`
-	ToolCallID string       `json:"tool_call_id,omitempty"`
-	ToolCalls  []AIToolCall `json:"tool_calls,omitempty"`
+	Role         string          `json:"role"`
+	Content      string          `json:"content,omitempty"`
+	Name         string          `json:"name,omitempty"`
+	ToolCallID   string          `json:"tool_call_id,omitempty"`
+	ToolCalls    []AIToolCall    `json:"tool_calls,omitempty"`
+	ExtraContent json.RawMessage `json:"extra_content,omitempty"`
 }
 
 // AIChatRequest is sent to AIProvider.ChatCompletion.
@@ -110,12 +113,13 @@ type AIChatRequest struct {
 
 // AIChatResponse is returned by AIProvider.ChatCompletion.
 type AIChatResponse struct {
-	Content          string       `json:"content"`
-	ToolCalls        []AIToolCall `json:"tool_calls,omitempty"`
-	FinishReason     string       `json:"finish_reason,omitempty"`
-	PromptTokens     int          `json:"prompt_tokens,omitempty"`
-	CompletionTokens int          `json:"completion_tokens,omitempty"`
-	ModelUsed        string       `json:"model_used,omitempty"`
+	Content          string          `json:"content"`
+	ToolCalls        []AIToolCall    `json:"tool_calls,omitempty"`
+	ExtraContent     json.RawMessage `json:"extra_content,omitempty"`
+	FinishReason     string          `json:"finish_reason,omitempty"`
+	PromptTokens     int             `json:"prompt_tokens,omitempty"`
+	CompletionTokens int             `json:"completion_tokens,omitempty"`
+	ModelUsed        string          `json:"model_used,omitempty"`
 }
 
 // AIProvider abstracts any OpenAI-compatible LLM backend (OpenAI, Gemini, DeepSeek, Groq, Ollama, etc.).

@@ -112,9 +112,10 @@ type openAIResponseBody struct {
 	Model   string `json:"model"`
 	Choices []struct {
 		Message struct {
-			Role      string              `json:"role"`
-			Content   string              `json:"content"`
-			ToolCalls []domain.AIToolCall `json:"tool_calls"`
+			Role         string              `json:"role"`
+			Content      string              `json:"content"`
+			ToolCalls    []domain.AIToolCall `json:"tool_calls"`
+			ExtraContent json.RawMessage     `json:"extra_content,omitempty"`
 		} `json:"message"`
 		FinishReason string `json:"finish_reason"`
 	} `json:"choices"`
@@ -227,6 +228,7 @@ func (c *OpenAIClient) ChatCompletion(ctx context.Context, req domain.AIChatRequ
 	return &domain.AIChatResponse{
 		Content:          strings.TrimSpace(choice.Message.Content),
 		ToolCalls:        choice.Message.ToolCalls,
+		ExtraContent:     choice.Message.ExtraContent,
 		FinishReason:     choice.FinishReason,
 		PromptTokens:     parsed.Usage.PromptTokens,
 		CompletionTokens: parsed.Usage.CompletionTokens,

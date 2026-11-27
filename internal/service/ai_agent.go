@@ -224,11 +224,12 @@ func (s *CopilotService) AskAuraCopilot(ctx context.Context, in AIChatTurnInput)
 			break
 		}
 
-		// Record assistant's tool call request in the conversation trace
+		// Record assistant's tool call request in the conversation trace (preserving Gemini extra_content / thought_signature)
 		messages = append(messages, domain.AIChatMessage{
-			Role:      "assistant",
-			Content:   resp.Content,
-			ToolCalls: resp.ToolCalls,
+			Role:         "assistant",
+			Content:      resp.Content,
+			ToolCalls:    resp.ToolCalls,
+			ExtraContent: resp.ExtraContent,
 		})
 
 		for _, tc := range resp.ToolCalls {
