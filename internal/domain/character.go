@@ -60,18 +60,20 @@ type CharacterJob struct {
 	UpdatedAt     time.Time  `json:"updated_at"`
 }
 
-// CharacterBlueprint represents a blueprint in character possession.
+// CharacterBlueprint represents a blueprint in character or corporation possession.
 type CharacterBlueprint struct {
 	ItemID             int64     `json:"item_id"`
 	CharacterID        int64     `json:"character_id"`
 	TypeID             int32     `json:"type_id"`
 	TypeName           string    `json:"type_name"`
 	LocationID         int64     `json:"location_id"`
+	LocationFlag       string    `json:"location_flag,omitempty"`
 	Quantity           int       `json:"quantity"`
 	MaterialEfficiency int       `json:"material_efficiency"`
 	TimeEfficiency     int       `json:"time_efficiency"`
 	Runs               int       `json:"runs"` // -1 for original (BPO), >0 for copy (BPC)
 	IsCopy             bool      `json:"is_copy"`
+	IsCorp             bool      `json:"is_corp,omitempty"`
 	UpdatedAt          time.Time `json:"updated_at"`
 }
 

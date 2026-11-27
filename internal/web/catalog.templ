@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -130,11 +131,13 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 			@open-catalog-edit.window="openEdit($event.detail)"
 			@keydown.escape.window="showEdit = false; showSDEModal = false"
 		>
+			@ProductionWorkflowStepper(1)
+
 			<!-- Header & Focused Actions -->
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-white">Catalog &amp; Trap Guard Advisor</h1>
-					<p class="text-xs text-slate-300/80 mt-0.5">Live <strong class="text-amber-200">{ hub.Name }</strong> pricing ({ hub.RegionName }), Official CCP SDE auto-BOM material costs, 7d fake price-spike detection, and beginner trap protection.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Live", "Harga live") } <strong class="text-amber-200">{ hub.Name }</strong> ({ hub.RegionName }), { i18n.L(ctx, "Official CCP SDE auto-BOM material costs, 7-day fake price-spike detection, and beginner trap protection.", "biaya material BOM otomatis CCP SDE, deteksi lonjakan harga palsu 7 hari, dan pelindung jebakan pemula.") }</p>
 				</div>
 				<div class="flex flex-wrap gap-2">
 					<button
@@ -145,23 +148,26 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 						hx-indicator="#rec-spinner"
 						class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/50 bg-emerald-500/20 px-3.5 py-2 text-xs font-bold text-emerald-100 hover:bg-emerald-500/35 transition cursor-pointer"
 					>
-						<span>Recommend for My Capital</span>
+						<span>{ i18n.L(ctx, "Recommend for My Capital", "Rekomendasi untuk Modal Saya") }</span>
 						<span id="rec-spinner" class="htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-emerald-200 border-t-transparent"></span>
 					</button>
 					<button type="button" @click="showAdd = !showAdd" class="rounded-lg bg-amber-400 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer">
-						+ Add Item
+						+ { i18n.L(ctx, "Add Item", "Tambah Item") }
 					</button>
 					<button type="button" hx-post="/esi/sync-prices" hx-swap="none" class="rounded-lg border border-amber-400/45 bg-amber-500/15 px-3.5 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer">
-						Sync { hub.Name } + SDE BOM
+						{ i18n.L(ctx, "Sync", "Sinkron") } { hub.Name } + SDE BOM
 					</button>
+					<a href="/allocator" class="rounded-lg border border-sky-400/45 bg-sky-500/15 px-3.5 py-2 text-xs font-bold text-sky-200 hover:bg-sky-500/25 transition">
+						{ i18n.L(ctx, "Next: Capital Allocator →", "Lanjut: Capital Allocator →") }
+					</a>
 				</div>
 			</div>
 
 			<!-- Primary Trade Hub Switcher (Jita | Amarr | Dodixie | Rens | Hek) -->
 			<div class="tactical-panel rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3">
 				<div class="flex items-center gap-2 text-xs">
-					<span class="font-mono text-[10px] font-bold uppercase tracking-wider text-violet-300">Target Trade Hub:</span>
-					<span class="text-slate-300">All catalog prices, SDE BOM costs, 7d spike checks, and recommendations use</span>
+					<span class="font-mono text-[10px] font-bold uppercase tracking-wider text-violet-300">{ i18n.L(ctx, "Target Trade Hub:", "Trade Hub Target:") }</span>
+					<span class="text-slate-300">{ i18n.L(ctx, "All catalog prices, SDE BOM costs, 7-day spike checks, and recommendations use", "Semua harga katalog, biaya SDE BOM, cek lonjakan 7 hari, dan rekomendasi menggunakan") }</span>
 					<strong class="text-amber-200">{ hub.Name }</strong>
 					<span id="hub-switch-spinner" class="htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-amber-300 border-t-transparent"></span>
 				</div>
@@ -188,32 +194,32 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 			<!-- 4 KPI Summary Cards -->
 			<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-slate-400">Total Catalog</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-slate-400">{ i18n.L(ctx, "Total Catalog", "Total Katalog") }</div>
 					<div class="mt-1 text-2xl font-bold font-mono text-white">{ fmt.Sprintf("%d", summary.TotalCount) }</div>
 					<div class="mt-0.5 text-[11px] text-slate-400">
-						{ fmt.Sprintf("%d synced via CCP SDE BOM", summary.SDESyncedCount) }
+						{ fmt.Sprintf("%d %s", summary.SDESyncedCount, i18n.L(ctx, "synced via CCP SDE BOM", "tersinkron via CCP SDE BOM")) }
 					</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-emerald-300/90">Viable / Safe</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-emerald-300/90">{ i18n.L(ctx, "Viable / Safe", "Layak / Aman") }</div>
 					<div class="mt-1 text-2xl font-bold font-mono text-emerald-300">{ fmt.Sprintf("%d", summary.ViableCount) }</div>
-					<div class="mt-0.5 text-[11px] text-slate-400">Eligible for Smart Allocator</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">{ i18n.L(ctx, "Eligible for Smart Allocator", "Siap masuk Smart Allocator") }</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-amber-300/90">Watchlist / Caution</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-amber-300/90">{ i18n.L(ctx, "Watchlist / Caution", "Pantauan / Waspada") }</div>
 					<div class="mt-1 text-2xl font-bold font-mono text-amber-300">{ fmt.Sprintf("%d", summary.WatchlistCount) }</div>
 					<div class="mt-0.5 text-[11px] text-slate-400">
 						if summary.SpikeCount > 0 {
-							<span class="text-amber-200">{ fmt.Sprintf("%d price spike alert(s)", summary.SpikeCount) }</span>
+							<span class="text-amber-200">{ fmt.Sprintf("%d %s", summary.SpikeCount, i18n.L(ctx, "price spike alert(s)", "peringatan lonjakan harga")) }</span>
 						} else {
-							<span>Capital lock-up, thin margin, or slow mover</span>
+							<span>{ i18n.L(ctx, "Capital lock-up, thin margin, or slow mover", "Modal terkunci, Margin tipis, atau perputaran lambat") }</span>
 						}
 					</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-rose-300/90">Traps Blocked</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-rose-300/90">{ i18n.L(ctx, "Traps Blocked", "Jebakan Diblokir") }</div>
 					<div class="mt-1 text-2xl font-bold font-mono text-rose-300">{ fmt.Sprintf("%d", summary.TrapCount) }</div>
-					<div class="mt-0.5 text-[11px] text-slate-400">Auto-excluded from Capital Allocator</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">{ i18n.L(ctx, "Auto-excluded from Capital Allocator", "Otomatis dikeluarkan dari Capital Allocator") }</div>
 				</div>
 			</div>
 
@@ -342,7 +348,7 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 						</select>
 					</div>
 					<div>
-						<label class="block text-[11px] font-mono uppercase text-slate-300">Output Qty / Batch</label>
+						<label class="block text-[11px] font-mono uppercase text-slate-300">Output Quantity / Batch</label>
 						<input type="number" name="batch_output_qty" x-model="batchQty" min="1" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 					</div>
 					<div>
@@ -414,7 +420,7 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 									Use Recommended
 								</button>
 								<button type="button" @click="if (priceIntel && priceIntel.avg_7d > 0) jitaSell = priceIntel.avg_7d" class="rounded-md border border-slate-600 bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-slate-200 hover:border-amber-300/60 cursor-pointer">
-									Use 7d Avg
+									Use 7-Day Average
 								</button>
 								<button type="button" @click="if (priceIntel && priceIntel.lowest_sell > 0) jitaSell = priceIntel.lowest_sell" class="rounded-md border border-slate-600 bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-slate-200 hover:border-amber-300/60 cursor-pointer">
 									Use Lowest Sell
@@ -427,7 +433,7 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 						<input type="number" step="0.01" name="extra_setup_cost" value="0" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 					</div>
 					<div>
-						<label class="block text-[11px] font-mono uppercase text-slate-300">Avg Daily Volume (Units/Day)</label>
+						<label class="block text-[11px] font-mono uppercase text-slate-300">Average Daily Volume (Units/Day)</label>
 						<input type="number" step="1" name="daily_volume" x-model="dailyVol" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 					</div>
 					<div class="flex flex-wrap items-center gap-4 pt-5 text-xs text-slate-300">
@@ -451,9 +457,9 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 			if summary.TotalCount == 0 {
 				<div class="tactical-panel rounded-xl border border-violet-400/30 p-5 flex flex-wrap items-center justify-between gap-4">
 					<div>
-						<div class="text-sm font-bold text-white">Your Catalog is Empty</div>
+						<div class="text-sm font-bold text-white">{ i18n.L(ctx, "Your Catalog is Empty", "Katalog Anda Masih Kosong") }</div>
 						<p class="text-xs text-slate-300/80 mt-0.5">
-							Add items via <strong>Opportunity Scanner</strong>, <strong>Marketplace</strong>, <strong>Blueprint Calculator</strong>, or click <strong>+ Add Item → Browse SDE Blueprints</strong>.
+							{ i18n.L(ctx, "Add items via Opportunity Scanner, Marketplace, Manufacture & Profit, or click + Add Item → Browse SDE Blueprints.", "Tambahkan item melalui Opportunity Scanner, Marketplace, Manufacture & Profit, atau klik + Tambah Item → Browse SDE Blueprints.") }
 						</p>
 					</div>
 					<div class="flex flex-wrap gap-2">
@@ -529,7 +535,7 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 					<div class="flex items-center justify-between gap-3 border-b border-violet-400/20 px-5 py-4">
 						<div>
 							<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Pick Blueprint from Official CCP SDE</h2>
-							<p class="text-[11px] text-slate-400 mt-0.5">Select any product blueprint to auto-fill its name, category, batch output, live Jita price, and SDE BOM cost.</p>
+							<p class="text-[11px] text-slate-400 mt-0.5">{ i18n.L(ctx, "Select any product blueprint to auto-fill its name, category, batch output, live market price, and SDE BOM cost.", "Pilih Blueprint produk apa saja untuk mengisi otomatis nama, kategori, output batch, harga live, dan biaya SDE BOM.") }</p>
 						</div>
 						<button type="button" @click="showSDEModal = false" class="rounded-lg border border-slate-700 px-2.5 py-1 text-xs text-slate-300 hover:text-white cursor-pointer">✕</button>
 					</div>
@@ -608,7 +614,7 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 					<div class="flex items-center justify-between border-b border-violet-400/20 pb-3">
 						<div>
 							<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Edit Catalog Item</h2>
-							<p class="text-[11px] text-slate-400 mt-0.5">Adjust batch size, BPC setup cost, or override material cost — Trap Guard re-evaluates immediately.</p>
+							<p class="text-[11px] text-slate-400 mt-0.5">{ i18n.L(ctx, "Adjust batch size, BPC setup cost, or override material cost — Trap Guard re-evaluates immediately.", "Sesuaikan ukuran batch, biaya BPC, atau ubah biaya material — Trap Guard akan mengevaluasi ulang secara instan.") }</p>
 						</div>
 						<button type="button" @click="showEdit = false" class="rounded-lg border border-slate-700 px-2.5 py-1 text-xs text-slate-300 hover:text-white cursor-pointer">✕</button>
 					</div>
@@ -633,7 +639,7 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 							</select>
 						</div>
 						<div>
-							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Batch Output Qty</label>
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Batch Output Quantity</label>
 							<input type="number" name="batch_output_qty" x-model="editItem.batch_output_qty" min="1" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
 						<div>
@@ -650,7 +656,7 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 							<input type="number" step="0.01" name="extra_setup_cost" x-model="editItem.extra_setup_cost" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
 						<div>
-							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Avg Daily Volume</label>
+							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Average Daily Volume</label>
 							<input type="number" step="0.1" name="daily_volume" x-model="editItem.daily_volume" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white"/>
 						</div>
 						<div class="flex flex-col justify-center gap-1.5 pt-2 text-xs text-slate-300">
@@ -678,21 +684,21 @@ templ CatalogTable(hub domain.TradeHub, items []domain.MarketItem) {
 	<div id="catalog-table" class="tactical-panel rounded-xl overflow-hidden">
 		if len(items) == 0 {
 			<div class="p-10 text-center space-y-2">
-				<div class="text-sm font-semibold text-slate-200">No items match the current catalog filter.</div>
-				<div class="text-xs text-slate-400">Click <strong>Recommend for My Capital</strong> or <strong>+ Add Item</strong> (with <strong>Browse SDE Blueprints</strong>) to populate your { hub.Name } catalog.</div>
+				<div class="text-sm font-semibold text-slate-200">{ i18n.L(ctx, "No items match the current catalog filter.", "Tidak ada item yang cocok dengan filter katalog saat ini.") }</div>
+				<div class="text-xs text-slate-400">{ i18n.L(ctx, "Click Recommend for My Capital or + Add Item (with Browse SDE Blueprints) to populate your catalog.", "Klik Rekomendasi untuk Modal Saya atau + Tambah Item (dengan Browse SDE Blueprints) untuk mengisi katalog Anda.") }</div>
 			</div>
 		} else {
 			<div class="overflow-x-auto">
 				<table class="w-full text-left text-xs">
 					<thead class="border-b border-violet-400/20 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400">
 						<tr>
-							<th class="px-4 py-3">Item &amp; Badges</th>
+							<th class="px-4 py-3">{ i18n.L(ctx, "Item & Badges", "Item & Label") }</th>
 							<th class="px-3 py-3 text-right">{ hub.Name } Sell / Buy</th>
-							<th class="px-3 py-3 text-right">Daily Vol / Batch</th>
-							<th class="px-3 py-3 text-right">Material Cost</th>
-							<th class="px-3 py-3 text-right">Est. Profit / ROI</th>
-							<th class="px-4 py-3">Trap Guard &amp; Copilot Advice</th>
-							<th class="px-4 py-3 text-right">Actions</th>
+							<th class="px-3 py-3 text-right">{ i18n.L(ctx, "Daily Volume / Batch", "Volume Harian / Batch") }</th>
+							<th class="px-3 py-3 text-right">{ i18n.L(ctx, "Material Cost", "Biaya Material") }</th>
+							<th class="px-3 py-3 text-right">{ i18n.L(ctx, "Estimated Profit / ROI", "Estimasi Profit / ROI") }</th>
+							<th class="px-4 py-3">{ i18n.L(ctx, "Trap Guard & Copilot Advice", "Trap Guard & Saran Copilot") }</th>
+							<th class="px-4 py-3 text-right">{ i18n.L(ctx, "Actions", "Aksi") }</th>
 						</tr>
 					</thead>
 					<tbody class="divide-y divide-slate-800/80">
@@ -740,8 +746,8 @@ templ CatalogTable(hub domain.TradeHub, items []domain.MarketItem) {
 
 								<!-- Volume & Batch Qty -->
 								<td class="px-3 py-3 text-right font-mono text-slate-200 whitespace-nowrap">
-									<div>{ FormatVolume(it.DailyVolume) }</div>
-									<div class="text-[10px] text-slate-500">Batch: { fmt.Sprintf("%d u", it.BatchOutputQty) }</div>
+									<div>{ FormatVolumeCtx(ctx, it.DailyVolume) }</div>
+									<div class="text-[10px] text-slate-500">Batch: { fmt.Sprintf("%d %s", it.BatchOutputQty, i18n.L(ctx, "units", "unit")) }</div>
 								</td>
 
 								<!-- Material Cost + SDE BOM badge -->
@@ -780,28 +786,28 @@ templ CatalogTable(hub domain.TradeHub, items []domain.MarketItem) {
 								<td class="px-4 py-3 max-w-sm">
 									<div class="flex flex-wrap items-center gap-1.5">
 										<span class={ "inline-block rounded px-2 py-0.5 font-mono text-[10px] font-bold " + TrapBadgeClass(it.TrapAnalysis.Status) }>
-											{ TrapStatusLabel(it.TrapAnalysis.Status) }
+											{ TrapStatusLabelCtx(ctx, it.TrapAnalysis.Status) }
 										</span>
 										if it.TrapAnalysis.IsPriceSpike {
 											<span class="inline-block rounded border border-amber-400/50 bg-amber-500/20 px-1.5 py-0.5 font-mono text-[9px] font-bold text-amber-200">
-												{ fmt.Sprintf("PRICE SPIKE +%.0f%%", it.TrapAnalysis.PriceSpikePct) }
+												{ fmt.Sprintf("%s +%.0f%%", i18n.L(ctx, "PRICE SPIKE", "LONJAKAN HARGA"), it.TrapAnalysis.PriceSpikePct) }
 											</span>
 										}
-										<span class="font-mono text-[10px] text-slate-400">Risk: { string(it.TrapAnalysis.RiskLevel) }</span>
+										<span class="font-mono text-[10px] text-slate-400">{ i18n.L(ctx, "Risk", "Risiko") }: { string(it.TrapAnalysis.RiskLevel) }</span>
 									</div>
 									if len(it.TrapAnalysis.Reasons) > 0 {
 										<ul class="mt-1.5 space-y-0.5 text-[11px] text-rose-200/90 leading-snug">
 											for _, reason := range it.TrapAnalysis.Reasons {
-												<li>• { reason }</li>
+												<li>• { TrapReasonCtx(ctx, reason) }</li>
 											}
 										</ul>
 									}
 									if it.TrapAnalysis.Recommendation != "" {
-										<div class="mt-1 text-[11px] text-slate-300/90 italic">{ it.TrapAnalysis.Recommendation }</div>
+										<div class="mt-1 text-[11px] text-slate-300/90 italic">{ TrapRecommendationCtx(ctx, it.TrapAnalysis) }</div>
 									}
 								</td>
 
-								<!-- Quick Actions: Edit, Calc, Market, Delete -->
+								<!-- Quick Actions: Edit, Manufacture, Market, Delete -->
 								<td class="px-4 py-3 text-right whitespace-nowrap">
 									<div class="inline-flex flex-wrap justify-end gap-1">
 										<button
@@ -810,18 +816,18 @@ templ CatalogTable(hub domain.TradeHub, items []domain.MarketItem) {
 											@click="$dispatch('open-catalog-edit', JSON.parse($el.dataset.item))"
 											class="rounded border border-amber-400/35 bg-amber-500/15 px-2 py-1 text-[11px] font-semibold text-amber-200 hover:bg-amber-500/30 transition cursor-pointer"
 										>
-											Edit
+											{ i18n.L(ctx, "Edit", "Ubah") }
 										</button>
 										<a
-											href="/calculator?mode=blueprint"
-											title="Open Blueprint SDE Mode in Profit Calculator"
+											href={ templ.SafeURL(fmt.Sprintf("/manufacture?product_id=%d&q=%s&hub=%s", it.TypeID, url.QueryEscape(it.Name), hub.Key)) }
+											title={ i18n.L(ctx, "Open ", "Buka ") + it.Name + i18n.L(ctx, " in Manufacture & Profit", " di Manufacture & Profit") }
 											class="rounded border border-emerald-400/35 bg-emerald-500/15 px-2 py-1 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-500/30 transition"
 										>
-											Calc
+											Manufacture
 										</a>
 										<a
 											href={ templ.SafeURL("/marketplace?hub=" + hub.Key + "&q=" + url.QueryEscape(it.Name)) }
-											title={ "Inspect Live Order Book in " + hub.Name + " Marketplace" }
+											title={ i18n.L(ctx, "Inspect Live Order Book in ", "Lihat Order Book Live di ") + hub.Name }
 											class="rounded border border-sky-400/35 bg-sky-500/15 px-2 py-1 text-[11px] font-semibold text-sky-200 hover:bg-sky-500/30 transition"
 										>
 											Market
@@ -831,10 +837,14 @@ templ CatalogTable(hub domain.TradeHub, items []domain.MarketItem) {
 											hx-delete={ fmt.Sprintf("/catalog/items/%d", it.ID) }
 											hx-target="#catalog-table"
 											hx-swap="outerHTML"
-											hx-confirm={ fmt.Sprintf("Delete %s from catalog?", it.Name) }
-											class="rounded border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-[11px] text-rose-300 hover:bg-rose-500/25 transition cursor-pointer"
+											hx-confirm={ fmt.Sprintf(i18n.L(ctx, "Delete %s from catalog?", "Hapus %s dari katalog?"), it.Name) }
+											title={ i18n.L(ctx, "Delete from catalog", "Hapus dari katalog") }
+											aria-label={ i18n.L(ctx, "Delete", "Hapus") }
+											class="inline-flex items-center justify-center rounded border border-rose-500/30 bg-rose-500/10 p-1.5 text-rose-300 hover:bg-rose-500/25 transition cursor-pointer"
 										>
-											Delete
+											<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+												<path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+											</svg>
 										</button>
 									</div>
 								</td>
@@ -903,7 +913,7 @@ templ CatalogRecommendationsPartial(res *service.CatalogRecommendResult) {
 										<div class="min-w-0">
 											<div class="truncate text-xs font-bold text-white">{ rec.Name }</div>
 											<div class="text-[10px] font-mono text-slate-400">
-												{ fmt.Sprintf("T%d • %s • %d u/batch", rec.TechLevel, rec.Category, rec.BatchOutputQty) }
+												{ fmt.Sprintf("T%d • %s • %d units/batch", rec.TechLevel, rec.Category, rec.BatchOutputQty) }
 											</div>
 										</div>
 									</div>
@@ -920,7 +930,7 @@ templ CatalogRecommendationsPartial(res *service.CatalogRecommendResult) {
 										<div class="text-slate-200 font-semibold">{ FormatISK(rec.MaterialCost) }</div>
 									</div>
 									<div class="text-right">
-										<div class="text-slate-500">Est. Profit / ROI</div>
+										<div class="text-slate-500">Estimated Profit / ROI</div>
 										<div class={ "font-bold " + catalogProfitClass(rec.NetProfit) }>
 											{ FormatISK(rec.NetProfit) } ({ FormatPercent(rec.ROIPercent) })
 										</div>
@@ -936,7 +946,7 @@ templ CatalogRecommendationsPartial(res *service.CatalogRecommendResult) {
 								</div>
 								if rec.Avg7d > 0 {
 									<div class="text-[9.5px] font-mono text-slate-400">
-										{ fmt.Sprintf("7d: Low %s • Avg %s • High %s", FormatISK(rec.Low7d), FormatISK(rec.Avg7d), FormatISK(rec.High7d)) }
+										{ fmt.Sprintf("7-Day: Low %s • Average %s • High %s", FormatISK(rec.Low7d), FormatISK(rec.Avg7d), FormatISK(rec.High7d)) }
 									</div>
 								}
 							</div>

@@ -82,6 +82,51 @@ func (h *Handlers) HandleMarketplaceBrowse(w http.ResponseWriter, r *http.Reques
 	h.writeJSON(w, http.StatusOK, res)
 }
 
+// HandleMarketplaceBPC searches live Public ESI BPC/BPO contracts, NPC BPO seed orders, and LP Store offers for a blueprint.
+func (h *Handlers) HandleMarketplaceBPC(w http.ResponseWriter, r *http.Request) {
+	query := strings.TrimSpace(r.URL.Query().Get("q"))
+	hubKey := strings.TrimSpace(r.URL.Query().Get("hub"))
+	if hubKey == "" {
+		hubKey = h.svc.ActiveCatalogHub(r.Context()).Key
+	}
+
+	res, err := h.svc.FindBPCAndBPOSources(r.Context(), query, hubKey)
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
+
+	if h.renderer == nil {
+		h.writeJSON(w, http.StatusOK, map[string]any{"result": res, "error": errMsg})
+		return
+	}
+	_ = h.renderer.RenderMarketplaceBPC(w, r, res, errMsg)
+}
+
+// HandleMarketplaceCompare fetches Dogma attributes, visual slot/resistance profiles, and live hub prices for 1–3 items.
+func (h *Handlers) HandleMarketplaceCompare(w http.ResponseWriter, r *http.Request) {
+	hubKey := strings.TrimSpace(r.URL.Query().Get("hub"))
+	if hubKey == "" {
+		hubKey = h.svc.ActiveCatalogHub(r.Context()).Key
+	}
+	queries := []string{
+		r.URL.Query().Get("q1"),
+		r.URL.Query().Get("q2"),
+		r.URL.Query().Get("q3"),
+	}
+	res, err := h.svc.CompareItems(r.Context(), queries, hubKey)
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
+
+	if h.renderer == nil {
+		h.writeJSON(w, http.StatusOK, map[string]any{"result": res, "error": errMsg})
+		return
+	}
+	_ = h.renderer.RenderMarketplaceCompare(w, r, res, errMsg)
+}
+
 // HandleMarketplaceAppraise evaluates pasted EVE Online clipboard items (Inventory, Cargo, Multibuy, Fit)
 // against live prices at the chosen Trade Hub.
 func (h *Handlers) HandleMarketplaceAppraise(w http.ResponseWriter, r *http.Request) {

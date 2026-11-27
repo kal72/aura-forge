@@ -22,7 +22,9 @@ func NewPIRepo(pool *pgxpool.Pool) *PIRepo {
 
 func (r *PIRepo) ListColonies(ctx context.Context) ([]domain.PIColony, error) {
 	rows, err := r.pool.Query(ctx, `
-		SELECT id, planet_name, solar_system, planet_type, product_type_id, product_name, tier, extractor_expires_at, est_daily_isk, note, created_at, updated_at
+		SELECT id, character_id, planet_id, planet_name, solar_system, security_status, planet_type,
+		       upgrade_level, num_pins, product_type_id, product_name, tier, extractor_expires_at,
+		       est_daily_isk, storage_summary, synced_from_sso, note, created_at, updated_at
 		FROM pi_colonies
 		ORDER BY extractor_expires_at ASC, id ASC
 	`)
@@ -36,9 +38,9 @@ func (r *PIRepo) ListColonies(ctx context.Context) ([]domain.PIColony, error) {
 		var c domain.PIColony
 		var tier string
 		if err := rows.Scan(
-			&c.ID, &c.PlanetName, &c.SolarSystem, &c.PlanetType,
-			&c.ProductTypeID, &c.ProductName, &tier, &c.ExtractorExpiresAt,
-			&c.EstDailyISK, &c.Note, &c.CreatedAt, &c.UpdatedAt,
+			&c.ID, &c.CharacterID, &c.PlanetID, &c.PlanetName, &c.SolarSystem, &c.SecurityStatus, &c.PlanetType,
+			&c.UpgradeLevel, &c.NumPins, &c.ProductTypeID, &c.ProductName, &tier, &c.ExtractorExpiresAt,
+			&c.EstDailyISK, &c.StorageSummary, &c.SyncedFromSSO, &c.Note, &c.CreatedAt, &c.UpdatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("scanning pi_colony: %w", err)
 		}
@@ -50,12 +52,51 @@ func (r *PIRepo) ListColonies(ctx context.Context) ([]domain.PIColony, error) {
 
 func (r *PIRepo) SaveColony(ctx context.Context, c *domain.PIColony) error {
 	err := r.pool.QueryRow(ctx, `
-		INSERT INTO pi_colonies (planet_name, solar_system, planet_type, product_type_id, product_name, tier, extractor_expires_at, est_daily_isk, note, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+		INSERT INTO pi_colonies (
+			character_id, planet_id, planet_name, solar_system, security_status, planet_type,
+			upgrade_level, num_pins, product_type_id, product_name, tier, extractor_expires_at,
+			est_daily_isk, storage_summary, synced_from_sso, note, created_at, updated_at
+		)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), NOW())
 		RETURNING id, created_at, updated_at
-	`, c.PlanetName, c.SolarSystem, c.PlanetType, c.ProductTypeID, c.ProductName, string(c.Tier), c.ExtractorExpiresAt, c.EstDailyISK, c.Note).Scan(&c.ID, &c.CreatedAt, &c.UpdatedAt)
+	`, c.CharacterID, c.PlanetID, c.PlanetName, c.SolarSystem, c.SecurityStatus, c.PlanetType,
+		c.UpgradeLevel, c.NumPins, c.ProductTypeID, c.ProductName, string(c.Tier), c.ExtractorExpiresAt,
+		c.EstDailyISK, c.StorageSummary, c.SyncedFromSSO, c.Note).Scan(&c.ID, &c.CreatedAt, &c.UpdatedAt)
 	if err != nil {
 		return fmt.Errorf("saving pi_colony: %w", err)
+	}
+	return nil
+}
+
+// ReplaceSyncedColonies replaces all SSO-synced colonies for characterID with the latest live ESI list.
+func (r *PIRepo) ReplaceSyncedColonies(ctx context.Context, characterID int64, colonies []domain.PIColony) error {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("begin pi sync tx: %w", err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	if _, err := tx.Exec(ctx, `DELETE FROM pi_colonies WHERE synced_from_sso = TRUE OR character_id = $1`, characterID); err != nil {
+		return fmt.Errorf("clearing old synced pi_colonies: %w", err)
+	}
+
+	for _, c := range colonies {
+		if _, err := tx.Exec(ctx, `
+			INSERT INTO pi_colonies (
+				character_id, planet_id, planet_name, solar_system, security_status, planet_type,
+				upgrade_level, num_pins, product_type_id, product_name, tier, extractor_expires_at,
+				est_daily_isk, storage_summary, synced_from_sso, note, created_at, updated_at
+			)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, TRUE, $15, NOW(), NOW())
+		`, characterID, c.PlanetID, c.PlanetName, c.SolarSystem, c.SecurityStatus, c.PlanetType,
+			c.UpgradeLevel, c.NumPins, c.ProductTypeID, c.ProductName, string(c.Tier), c.ExtractorExpiresAt,
+			c.EstDailyISK, c.StorageSummary, c.Note); err != nil {
+			return fmt.Errorf("inserting synced pi_colony %s: %w", c.PlanetName, err)
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("committing pi sync tx: %w", err)
 	}
 	return nil
 }

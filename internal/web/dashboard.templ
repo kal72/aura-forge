@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -100,10 +101,10 @@ templ DashboardPage(data *service.DashboardSummary) {
 				<div>
 					if data.Mode.IsAdmin() {
 						<h1 class="text-2xl font-bold tracking-tight text-white">Command Center // Dashboard</h1>
-						<p class="text-xs text-slate-300/80 mt-0.5">Summary of available capital, manufacturing slot capacity, realized profit, and daily copilot directives.</p>
+						<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Summary of available capital, manufacturing slot capacity, realized profit, and daily copilot directives.", "Ringkasan modal tersedia, kapasitas slot produksi, profit terealisasi, dan arahan copilot harian.") }</p>
 					} else {
 						<h1 class="text-2xl font-bold tracking-tight text-white">Market &amp; Research Dashboard</h1>
-						<p class="text-xs text-slate-300/80 mt-0.5">Live New Eden Market Pulse across Minerals, Gas, PI, Macro, Hot Blueprints, and Global Movers, plus Quick Profit Calculator.</p>
+						<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Live New Eden Market Pulse across Minerals, Gas, PI, Macro, Hot Blueprints, and Global Movers, plus Quick Profit Calculator.", "Pantauan Live Market Pulse New Eden untuk Minerals, Gas, PI, Macro, Hot Blueprints, dan Kalkulator Profit Cepat.") }</p>
 					}
 				</div>
 				<div class="flex flex-wrap gap-2">
@@ -111,8 +112,8 @@ templ DashboardPage(data *service.DashboardSummary) {
 						<a href="/scanner" class="rounded-md border border-amber-500/40 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition">
 							Opportunity Scanner
 						</a>
-						<a href="/calculator?mode=blueprint" class="rounded-md border border-sky-500/40 bg-sky-500/15 px-3 py-1.5 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition">
-							Blueprint Calculator
+						<a href="/manufacture" class="rounded-md border border-sky-500/40 bg-sky-500/15 px-3 py-1.5 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition">
+							Manufacture &amp; Profit
 						</a>
 						<a href="/wealth" class="rounded-md border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 transition">
 							100B+ Roadmap
@@ -124,8 +125,8 @@ templ DashboardPage(data *service.DashboardSummary) {
 						<a href="/scanner" class="rounded-md border border-amber-500/40 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition">
 							Opportunity Scanner
 						</a>
-						<a href="/calculator?mode=blueprint" class="rounded-md border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 transition">
-							Blueprint Calculator
+						<a href="/manufacture" class="rounded-md border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25 transition">
+							Manufacture &amp; Profit
 						</a>
 					}
 				</div>
@@ -135,31 +136,31 @@ templ DashboardPage(data *service.DashboardSummary) {
 			if data.Mode.IsAdmin() {
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 					<div class="tactical-panel rounded-xl p-4">
-						<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300">Available Capital</div>
+						<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300">{ i18n.L(ctx, "Available Capital", "Modal Tersedia") }</div>
 						<div class="mt-2 text-2xl font-bold font-mono text-emerald-300">{ FormatISK(data.AvailableCapital) }</div>
-						<div class="mt-1 text-[11px] text-slate-400">Source: { data.CapitalSource }</div>
+						<div class="mt-1 text-[11px] text-slate-400">{ i18n.L(ctx, "Source", "Sumber") }: { data.CapitalSource }</div>
 					</div>
 
 					<div class="tactical-panel rounded-xl p-4">
-						<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300">Locked Capital</div>
+						<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300">{ i18n.L(ctx, "Locked Capital", "Modal Terkunci") }</div>
 						<div class="mt-2 text-2xl font-bold font-mono text-amber-300">{ FormatISK(data.LockedCapital) }</div>
-						<div class="mt-1 text-[11px] text-slate-400">{ fmt.Sprintf("%d active batches (%d undercut)", data.ActiveBatchesCount, data.UndercutBatchesCount) }</div>
+						<div class="mt-1 text-[11px] text-slate-400">{ fmt.Sprintf("%d %s (%d undercut)", data.ActiveBatchesCount, i18n.L(ctx, "active batches", "batch aktif"), data.UndercutBatchesCount) }</div>
 					</div>
 
 					<div class="tactical-panel rounded-xl p-4">
-						<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300">Realized Profit</div>
+						<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300">{ i18n.L(ctx, "Realized Profit", "Profit Terealisasi") }</div>
 						<div class="mt-2 text-2xl font-bold font-mono text-sky-300">{ FormatISK(data.RealizedProfit) }</div>
-						<div class="mt-1 text-[11px] text-slate-400">Accumulated from SOLD batches</div>
+						<div class="mt-1 text-[11px] text-slate-400">{ i18n.L(ctx, "Accumulated from SOLD batches", "Akumulasi dari batch SOLD") }</div>
 					</div>
 
 					<div class="tactical-panel rounded-xl p-4">
-						<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300">Slot Capacity</div>
+						<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300">{ i18n.L(ctx, "Slot Capacity", "Kapasitas Slot") }</div>
 						<div class="mt-2 text-2xl font-bold font-mono text-white">
 							{ fmt.Sprintf("%d / %d", data.MfgSlotsUsed, data.MfgSlotsTotal) }
 							<span class="text-xs font-normal text-slate-400">MFG</span>
 						</div>
 						<div class="mt-1 text-[11px] text-slate-400">
-							{ fmt.Sprintf("Science/Invention: %d / %d • Catalog: %d safe, %d traps", data.SciSlotsUsed, data.SciSlotsTotal, data.LayakItemsCount, data.JebakanItemsCount) }
+							{ fmt.Sprintf("Science/Invention: %d / %d • Catalog: %d %s, %d %s", data.SciSlotsUsed, data.SciSlotsTotal, data.LayakItemsCount, i18n.L(ctx, "safe", "aman"), data.JebakanItemsCount, i18n.L(ctx, "traps", "jebakan")) }
 						</div>
 					</div>
 				</div>
@@ -335,11 +336,22 @@ templ DashboardPage(data *service.DashboardSummary) {
 						<div class="flex flex-wrap items-center justify-between gap-2">
 							<div>
 								<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Daily Copilot Assistant</h2>
-								<p class="text-[11px] text-slate-400 mt-0.5">Prioritized next actions for <strong class="text-sky-200">{ dashboardHubName(data.ActiveHub) }</strong> — click to execute.</p>
+								<p class="text-[11px] text-slate-400 mt-0.5">{ i18n.L(ctx, "Prioritized next actions for", "Prioritas aksi berikutnya untuk") } <strong class="text-sky-200">{ dashboardHubName(data.ActiveHub) }</strong> — { i18n.L(ctx, "click to execute.", "klik untuk eksekusi.") }</p>
 							</div>
-							<span class="rounded-full border border-amber-400/40 bg-amber-500/15 px-2.5 py-0.5 font-mono text-[10px] font-bold text-amber-200">
-								{ fmt.Sprintf("%d BRIEFING", len(data.CopilotActions)) }
-							</span>
+							<div class="flex items-center gap-2">
+								if data.Mode.AI.Enabled {
+									<button
+										type="button"
+										@click="window.dispatchEvent(new CustomEvent('open-aura-ai', { detail: { prompt: 'Give me my prioritized daily pilot briefing for today based on my live capital, idle slots, catalog, and best opportunities.' } }))"
+										class="rounded-md border border-violet-400/50 bg-violet-500/20 px-2.5 py-1 text-[10px] font-bold text-violet-100 hover:bg-violet-500/35 transition cursor-pointer"
+									>
+										⚡ Ask Aura Briefing
+									</button>
+								}
+								<span class="rounded-full border border-amber-400/40 bg-amber-500/15 px-2.5 py-0.5 font-mono text-[10px] font-bold text-amber-200">
+									{ fmt.Sprintf("%d BRIEFING", len(data.CopilotActions)) }
+								</span>
+							</div>
 						</div>
 
 						<div class="space-y-2.5">
@@ -381,13 +393,13 @@ templ DashboardPage(data *service.DashboardSummary) {
 
 						if data.ActivePlan != nil {
 							<div class="rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-3.5">
-								<div class="text-[11px] font-mono uppercase text-emerald-400">Active Weekly Plan</div>
+								<div class="text-[11px] font-mono uppercase text-emerald-400">{ i18n.L(ctx, "Active Weekly Plan", "Rencana Mingguan Aktif") }</div>
 								<div class="mt-1 font-semibold text-white">{ data.ActivePlan.Title }</div>
 								<div class="mt-1 text-xs text-slate-300">
-									Est. Profit: <span class="font-mono text-emerald-300">{ FormatISK(data.ActivePlan.TotalEstimatedProfit) }</span>
+									{ i18n.L(ctx, "Estimated Profit", "Estimasi Profit") }: <span class="font-mono text-emerald-300">{ FormatISK(data.ActivePlan.TotalEstimatedProfit) }</span>
 									({ FormatPercent(data.ActivePlan.ProjectedROI) } ROI)
 								</div>
-								<a href="/planner" class="mt-2 inline-block text-xs font-semibold text-sky-300 hover:underline">Open Day 1–7 Schedule &amp; Shopping List →</a>
+								<a href="/planner" class="mt-2 inline-block text-xs font-semibold text-sky-300 hover:underline">{ i18n.L(ctx, "Open Day 1–7 Schedule & Shopping List →", "Buka Jadwal Hari 1–7 & Daftar Belanja →") }</a>
 							</div>
 						}
 					</div>
@@ -419,8 +431,8 @@ templ DashboardPage(data *service.DashboardSummary) {
 					}`, dashboardHubName(data.ActiveHub)) }
 				>
 					<div class="flex items-center justify-between">
-						<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Quick Profit Calculator</h2>
-						<a href="/calculator" class="text-xs text-sky-300 hover:underline">Full Dual-Mode →</a>
+						<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">{ i18n.L(ctx, "Quick Profit Calculator", "Kalkulator Profit Cepat") }</h2>
+						<a href="/manufacture" class="text-xs text-sky-300 hover:underline">Manufacture &amp; Profit →</a>
 					</div>
 
 					<form
@@ -430,38 +442,38 @@ templ DashboardPage(data *service.DashboardSummary) {
 						class="grid grid-cols-1 gap-3 sm:grid-cols-2"
 					>
 						<div class="sm:col-span-2">
-							<label class="block text-[11px] font-mono uppercase text-slate-300">Item Name (Auto-Fill { dashboardHubName(data.ActiveHub) } Price via Public ESI)</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">{ i18n.L(ctx, "Item Name (Auto-Fill", "Nama Item (Isi Otomatis Harga") } { dashboardHubName(data.ActiveHub) } { i18n.L(ctx, "Price via Public ESI)", "via Public ESI)") }</label>
 							<div class="mt-1 flex gap-2">
 								<input type="text" name="item_name" x-model="itemName" class="flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-sky-400 focus:outline-none"/>
 								<button type="button" @click="fetchHubPrice()" class="rounded-md border border-amber-400/40 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer">
-									Fetch { dashboardHubName(data.ActiveHub) } ESI
+									{ i18n.L(ctx, "Fetch", "Ambil") } { dashboardHubName(data.ActiveHub) } ESI
 								</button>
 							</div>
 							<div x-show="esiHint" x-text="esiHint" class="mt-1 text-[11px] font-mono text-emerald-300"></div>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Output Qty / Batch</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">{ i18n.L(ctx, "Output Quantity / Batch", "Jumlah Output / Batch") }</label>
 							<input type="number" name="output_qty" value="500" min="1" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Jita Sell Price / Unit (ISK)</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">{ i18n.L(ctx, "Sell Price / Unit (ISK)", "Harga Sell Order / Unit (ISK)") }</label>
 							<input type="number" step="0.01" name="unit_sell_price" x-model="sellPrice" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Material Cost / Batch (ISK)</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">{ i18n.L(ctx, "Material Cost / Batch (ISK)", "Biaya Material / Batch (ISK)") }</label>
 							<input type="number" step="0.01" name="material_cost" value="4900000" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Extra BPC / Decryptor Cost</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">{ i18n.L(ctx, "Extra BPC / Decryptor Cost", "Biaya Tambahan BPC / Decryptor") }</label>
 							<input type="number" step="0.01" name="extra_setup_cost" value="0" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Target Batches / Week</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">{ i18n.L(ctx, "Target Batches / Week", "Target Batch / Minggu") }</label>
 							<input type="number" name="batches_per_week" value="4" min="1" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none"/>
 						</div>
 						<div class="flex items-end justify-end">
 							<button type="submit" class="w-full rounded-md bg-sky-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer">
-								Calculate Net Profit &amp; Break-Even
+								{ i18n.L(ctx, "Calculate Net Profit & Break-Even", "Hitung Net Profit & Break-Even") }
 							</button>
 						</div>
 					</form>
@@ -513,7 +525,7 @@ templ MineralTickerPartial(pulse service.MarketPulseResponse) {
 					<!-- Top Row: Official EVE Icon + Name + Signal Badge -->
 					<div class="flex items-start justify-between gap-2">
 						<a
-							href={ templ.SafeURL(fmt.Sprintf("/marketplace?hub=%s&q=%s", m.HubKey, m.Name)) }
+							href={ templ.SafeURL(fmt.Sprintf("/marketplace?hub=%s&q=%s", m.HubKey, url.QueryEscape(m.Name))) }
 							title={ fmt.Sprintf("Open %s order book in %s Marketplace", m.Name, m.HubName) }
 							class="flex items-center gap-2.5 min-w-0 flex-1"
 						>
@@ -560,7 +572,7 @@ templ MineralTickerPartial(pulse service.MarketPulseResponse) {
 						<div>
 							<div class="text-[9.5px] font-mono uppercase text-slate-400">
 								if m.IsGlobalMover && !m.IsLive {
-									Global Avg
+									Global Average
 								} else {
 									Lowest Sell
 								}
@@ -616,8 +628,8 @@ templ MineralTickerPartial(pulse service.MarketPulseResponse) {
 								</a>
 							} else if m.BlueprintID > 0 {
 								<a
-									href="/calculator?mode=blueprint"
-									title="Open Blueprint SDE Mode in Profit Calculator"
+									href={ templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&hub=%s", m.BlueprintID, m.HubKey)) }
+									title={ "Open " + m.Name + " in Manufacture & Profit" }
 									class="rounded border border-emerald-400/40 bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold text-emerald-200 hover:bg-emerald-500/30 transition"
 								>
 									Craft →
@@ -729,7 +741,7 @@ templ DashboardRadarPartial(snap service.RadarSnapshot) {
 												}
 											</div>
 											<div class="font-mono text-[9.5px] text-slate-400">
-												{ fmt.Sprintf("%s • %dx runs (%d u) • %s", r.Category, r.Runs, r.OutputQty, r.DurationFormatted) }
+												{ fmt.Sprintf("%s • %dx runs (%d units) • %s", r.Category, r.Runs, r.OutputQty, r.DurationFormatted) }
 												if r.RunSizingReason != "" {
 													<span class="text-amber-300/85"> • { r.RunSizingReason }</span>
 												}
@@ -737,7 +749,7 @@ templ DashboardRadarPartial(snap service.RadarSnapshot) {
 										</div>
 									</div>
 								</td>
-								<td class="px-2.5 py-2 text-right font-mono text-sky-200 whitespace-nowrap">{ FormatVolume(r.DailyVolume7d) }/d</td>
+								<td class="px-2.5 py-2 text-right font-mono text-sky-200 whitespace-nowrap">{ FormatVolume(r.DailyVolume7d) }</td>
 								<td class="px-2.5 py-2 text-right font-mono whitespace-nowrap">
 									<div class="text-amber-200 font-semibold">{ FormatISK(r.RecommendedSell) }</div>
 									if r.BreakEvenSell > 0 {
@@ -755,7 +767,7 @@ templ DashboardRadarPartial(snap service.RadarSnapshot) {
 								<td class="px-3 py-2 text-right whitespace-nowrap">
 									<div class="inline-flex items-center gap-1">
 										<a
-											href={ templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&me=%d&te=%d", r.BlueprintTypeID, r.ME, r.TE)) }
+											href={ templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&me=%d&te=%d&runs=%d&hub=%s", r.BlueprintTypeID, r.ME, r.TE, r.Runs, r.HubKey)) }
 											class="rounded border border-emerald-400/35 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-200 hover:bg-emerald-500/25"
 										>
 											Craft →

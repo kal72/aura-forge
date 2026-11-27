@@ -36,14 +36,16 @@ type PilotHubViewData struct {
 	ActiveHub        domain.TradeHub             `json:"active_hub"`
 	AvailableCapital float64                     `json:"available_capital"`
 	CapitalSource    string                      `json:"capital_source"`
-	TotalJobs        int                         `json:"total_jobs"`
-	TotalOrders      int                         `json:"total_orders"`
-	TotalBlueprints  int                         `json:"total_blueprints"`
-	TotalHangarItems int                         `json:"total_hangar_items"`
-	Jobs             []domain.CharacterJob       `json:"jobs"`
-	Orders           []domain.CharacterOrder     `json:"orders"`
-	Blueprints       []domain.CharacterBlueprint `json:"blueprints"`
-	HangarItems      []PilotHangarItem           `json:"hangar_items"`
+	TotalJobs           int                         `json:"total_jobs"`
+	TotalOrders         int                         `json:"total_orders"`
+	TotalBlueprints     int                         `json:"total_blueprints"`
+	TotalCorpBlueprints int                         `json:"total_corp_blueprints"`
+	TotalHangarItems    int                         `json:"total_hangar_items"`
+	Jobs                []domain.CharacterJob       `json:"jobs"`
+	Orders              []domain.CharacterOrder     `json:"orders"`
+	Blueprints          []domain.CharacterBlueprint `json:"blueprints"`
+	CorpBlueprints      []domain.CharacterBlueprint `json:"corp_blueprints"`
+	HangarItems         []PilotHangarItem           `json:"hangar_items"`
 	TotalSellISK     float64                            `json:"total_sell_isk"`
 	TotalBuyISK      float64                            `json:"total_buy_isk"`
 	ReadyJobsCount   int                                `json:"ready_jobs_count"`
@@ -55,7 +57,7 @@ type PilotHubViewData struct {
 // with search, category filter, and pagination.
 func (s *CopilotService) GetPilotHubView(ctx context.Context, activeTab, searchQuery, typeFilter string, page int) (*PilotHubViewData, error) {
 	switch strings.ToLower(strings.TrimSpace(activeTab)) {
-	case "orders", "blueprints", "assets":
+	case "orders", "blueprints", "corp_blueprints", "assets":
 		activeTab = strings.ToLower(strings.TrimSpace(activeTab))
 	default:
 		activeTab = "jobs"
@@ -104,10 +106,17 @@ func (s *CopilotService) GetPilotHubView(ctx context.Context, activeTab, searchQ
 	jobs, _ := s.chars.ListJobs(ctx, charID)
 	orders, _ := s.chars.ListOrders(ctx, charID)
 	bps, _ := s.chars.ListBlueprints(ctx, charID)
+	var corpBPs []domain.CharacterBlueprint
+	if corpRepo, ok := s.chars.(domain.CorpBlueprintRepository); ok && corpRepo != nil {
+		corpBPs, _ = corpRepo.ListCorpBlueprints(ctx, charID)
+	}
 	assets, _ := s.chars.ListAssets(ctx, charID)
 
 	// Instant local PostgreSQL SDE resolution only (0ms, zero network ESI calls during tab/page navigation)
 	s.resolveCharacterTypeNamesLocalOnly(ctx, orders, jobs, bps, assets)
+	if len(corpBPs) > 0 {
+		s.resolveCharacterTypeNamesLocalOnly(ctx, nil, nil, corpBPs, nil)
+	}
 
 	now := time.Now()
 	for _, j := range jobs {
@@ -142,6 +151,17 @@ func (s *CopilotService) GetPilotHubView(ctx context.Context, activeTab, searchQ
 		return bps[i].TypeName < bps[j].TypeName
 	})
 	view.TotalBlueprints = len(bps)
+
+	sort.Slice(corpBPs, func(i, j int) bool {
+		if corpBPs[i].IsCopy != corpBPs[j].IsCopy {
+			return !corpBPs[i].IsCopy
+		}
+		if corpBPs[i].MaterialEfficiency != corpBPs[j].MaterialEfficiency {
+			return corpBPs[i].MaterialEfficiency > corpBPs[j].MaterialEfficiency
+		}
+		return corpBPs[i].TypeName < corpBPs[j].TypeName
+	})
+	view.TotalCorpBlueprints = len(corpBPs)
 
 	byType := make(map[int32]*PilotHangarItem)
 	for _, a := range assets {
@@ -299,6 +319,23 @@ func (s *CopilotService) GetPilotHubView(ctx context.Context, activeTab, searchQ
 		sIdx, eIdx := paginate(len(filtered))
 		view.Blueprints = filtered[sIdx:eIdx]
 
+	case "corp_blueprints":
+		filtered := make([]domain.CharacterBlueprint, 0, len(corpBPs))
+		for _, bp := range corpBPs {
+			if tf == "BPO" && bp.IsCopy {
+				continue
+			}
+			if tf == "BPC" && !bp.IsCopy {
+				continue
+			}
+			if qLower != "" && !strings.Contains(strings.ToLower(bp.TypeName), qLower) {
+				continue
+			}
+			filtered = append(filtered, bp)
+		}
+		sIdx, eIdx := paginate(len(filtered))
+		view.CorpBlueprints = filtered[sIdx:eIdx]
+
 	case "assets":
 		filtered := make([]PilotHangarItem, 0, len(hangar))
 		for _, it := range hangar {
@@ -312,6 +349,126 @@ func (s *CopilotService) GetPilotHubView(ctx context.Context, activeTab, searchQ
 	}
 
 	return view, nil
+}
+
+// SyncCorpBlueprintsSSO explicitly syncs the connected character's corporation blueprints from EVE ESI
+// and surfaces any exact CCP ESI permission/role error (e.g. missing Director role or scope).
+func (s *CopilotService) SyncCorpBlueprintsSSO(ctx context.Context) (int, error) {
+	if s.chars == nil || s.charSync == nil {
+		return 0, fmt.Errorf("character sync dependencies unavailable")
+	}
+	corpSync, ok := s.charSync.(domain.CorpBlueprintSyncProvider)
+	if !ok || corpSync == nil {
+		return 0, fmt.Errorf("corporation blueprint sync is not supported")
+	}
+	corpRepo, ok := s.chars.(domain.CorpBlueprintRepository)
+	if !ok || corpRepo == nil {
+		return 0, fmt.Errorf("corporation blueprint repository is not configured")
+	}
+	tok, err := s.chars.GetPrimaryToken(ctx)
+	if err != nil || tok == nil {
+		return 0, fmt.Errorf("no connected EVE Online SSO character")
+	}
+	bps, err := corpSync.SyncCorpBlueprints(ctx, tok)
+	if err != nil {
+		return 0, err
+	}
+	if len(bps) > 0 {
+		s.resolveCharacterTypeNames(ctx, nil, nil, bps, nil)
+	}
+	if err := corpRepo.UpsertCorpBlueprints(ctx, tok.CharacterID, bps); err != nil {
+		return 0, err
+	}
+	return len(bps), nil
+}
+
+// ImportPastedCorpBlueprints parses EVE Online in-game copy-paste text (Ctrl+C from Corp Hangar / Industry),
+// resolves official Blueprint TypeIDs from the local SDE, and saves them under the Corp Blueprints tab.
+func (s *CopilotService) ImportPastedCorpBlueprints(ctx context.Context, rawText, hangarLabel string, defaultME, defaultTE int, replaceExisting bool) (int, error) {
+	if s.chars == nil {
+		return 0, fmt.Errorf("character repository unavailable")
+	}
+	corpRepo, ok := s.chars.(domain.CorpBlueprintRepository)
+	if !ok || corpRepo == nil {
+		return 0, fmt.Errorf("corporation blueprint repository is not configured")
+	}
+	mode := s.GetModeInfo(ctx)
+	if !mode.SSOConnected || mode.CharacterID <= 0 {
+		return 0, fmt.Errorf("no connected EVE Online SSO character")
+	}
+
+	parsed := domain.ParsePastedCorpBlueprints(mode.CharacterID, rawText, hangarLabel, defaultME, defaultTE)
+	if len(parsed) == 0 {
+		return 0, fmt.Errorf("no valid blueprint lines found in pasted text")
+	}
+
+	// Resolve official BlueprintTypeID and canonical BlueprintName via local SDE
+	if s.sde != nil {
+		for i := range parsed {
+			name := strings.TrimSpace(parsed[i].TypeName)
+			searchQ := strings.TrimSuffix(name, " Blueprint")
+			if found, err := s.sde.SearchBlueprints(ctx, searchQ, "", 10); err == nil && len(found) > 0 {
+				var best *domain.SDEBlueprint
+				for idx := range found {
+					bp := &found[idx]
+					if strings.EqualFold(bp.Name, name) || strings.EqualFold(bp.ProductName, searchQ) {
+						best = bp
+						break
+					}
+				}
+				if best == nil && len(found) == 1 {
+					best = &found[0]
+				}
+				if best != nil {
+					parsed[i].TypeID = best.BlueprintTypeID
+					parsed[i].TypeName = best.Name
+				}
+			}
+		}
+	}
+
+	finalList := parsed
+	if !replaceExisting {
+		if existing, err := corpRepo.ListCorpBlueprints(ctx, mode.CharacterID); err == nil && len(existing) > 0 {
+			byID := make(map[int64]domain.CharacterBlueprint, len(existing)+len(parsed))
+			order := make([]int64, 0, len(existing)+len(parsed))
+			for _, bp := range existing {
+				byID[bp.ItemID] = bp
+				order = append(order, bp.ItemID)
+			}
+			for _, bp := range parsed {
+				if _, exists := byID[bp.ItemID]; !exists {
+					order = append(order, bp.ItemID)
+				}
+				byID[bp.ItemID] = bp
+			}
+			finalList = make([]domain.CharacterBlueprint, 0, len(order))
+			for _, id := range order {
+				finalList = append(finalList, byID[id])
+			}
+		}
+	}
+
+	if err := corpRepo.UpsertCorpBlueprints(ctx, mode.CharacterID, finalList); err != nil {
+		return 0, err
+	}
+	return len(parsed), nil
+}
+
+// ClearCorpBlueprints removes all saved corporation blueprints for the connected character.
+func (s *CopilotService) ClearCorpBlueprints(ctx context.Context) error {
+	if s.chars == nil {
+		return fmt.Errorf("character repository unavailable")
+	}
+	corpRepo, ok := s.chars.(domain.CorpBlueprintRepository)
+	if !ok || corpRepo == nil {
+		return fmt.Errorf("corporation blueprint repository is not configured")
+	}
+	mode := s.GetModeInfo(ctx)
+	if !mode.SSOConnected || mode.CharacterID <= 0 {
+		return fmt.Errorf("no connected EVE Online SSO character")
+	}
+	return corpRepo.UpsertCorpBlueprints(ctx, mode.CharacterID, nil)
 }
 
 // SyncWorkingCapitalFromWallet explicitly copies the connected character's live EVE Wallet Balance

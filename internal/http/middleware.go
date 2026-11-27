@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -94,6 +96,24 @@ func HTMXMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// PreferencesMiddleware reads UI language (af_lang) and timezone (af_tz) cookies and injects them into the request context.
+func PreferencesMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		lang := i18n.LangEN
+		if c, err := r.Cookie(i18n.CookieName); err == nil && c.Value != "" {
+			lang = i18n.Normalize(c.Value)
+		}
+		tz := i18n.TZWIB
+		if c, err := r.Cookie(i18n.TZCookieName); err == nil && c.Value != "" {
+			tz = i18n.NormalizeTZ(c.Value)
+		}
+		w.Header().Add("Vary", "Cookie")
+		ctx := i18n.WithLang(r.Context(), lang)
+		ctx = i18n.WithTZ(ctx, tz)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 // SecurityHeadersMiddleware adds baseline HTTP security headers.
 func SecurityHeadersMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -106,10 +126,11 @@ func SecurityHeadersMiddleware(next http.Handler) http.Handler {
 
 // TriggerToast sets an HX-Trigger header so Alpine.js displays a toast notification on HTMX responses.
 func TriggerToast(w http.ResponseWriter, level, message string) {
+	cleanMsg := strings.Join(strings.Fields(message), " ")
 	payload := map[string]any{
 		"showToast": map[string]string{
 			"level":   level,
-			"message": message,
+			"message": cleanMsg,
 		},
 	}
 	if b, err := json.Marshal(payload); err == nil {

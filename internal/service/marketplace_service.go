@@ -195,7 +195,7 @@ func (s *CopilotService) GetMarketplaceSnapshot(ctx context.Context, query strin
 		}()
 		go func() {
 			defer wg.Done()
-			if h, hErr := browser.GetMarketHistory(ctx, selectedHub.RegionID, typeID, 30); hErr == nil {
+			if h, hErr := browser.GetMarketHistory(ctx, selectedHub.RegionID, typeID, 49); hErr == nil {
 				hist = h
 			}
 		}()
@@ -234,10 +234,15 @@ func (s *CopilotService) GetMarketplaceSnapshot(ctx context.Context, query strin
 		snap.BuyOrdersCount = summary.BuyOrdersCount
 
 		if len(hist) > 0 {
-			snap.History = hist
+			chartHist := hist
+			if len(chartHist) > 30 {
+				chartHist = chartHist[len(chartHist)-30:]
+			}
+			snap.History = chartHist
 			snap.AvgDailyVolume7d = avgHistoryVolume(hist, 7)
 			snap.AvgDailyVolume30d = avgHistoryVolume(hist, 30)
 			populateMarketplace7dSignal(snap, hist)
+			populateMarketplaceBuyerActivity(snap, hist)
 		}
 
 		if compareHubs {
@@ -411,6 +416,43 @@ func avgHistoryVolume(hist []domain.MarketHistoryPoint, days int) float64 {
 		total += pt.Volume
 	}
 	return domain.RoundISK(float64(total) / float64(len(slice)))
+}
+
+func populateMarketplaceBuyerActivity(snap *domain.MarketplaceSnapshot, hist []domain.MarketHistoryPoint) {
+	if snap == nil || len(hist) == 0 {
+		return
+	}
+	latest := hist[len(hist)-1]
+	snap.LatestDayDate = latest.Date
+	snap.LatestDayOrders = latest.OrderCount
+	snap.LatestDayVolume = latest.Volume
+
+	start7 := len(hist) - 7
+	if start7 < 0 {
+		start7 = 0
+	}
+	var orders7, vol7 int64
+	for _, pt := range hist[start7:] {
+		orders7 += pt.OrderCount
+		vol7 += pt.Volume
+	}
+	snap.Total7dOrders = orders7
+	snap.Total7dVolume = vol7
+	if days7 := len(hist) - start7; days7 > 0 {
+		snap.AvgDailyOrders7d = float64(orders7) / float64(days7)
+	}
+
+	start49 := len(hist) - 49
+	if start49 < 0 {
+		start49 = 0
+	}
+	var orders49, vol49 int64
+	for _, pt := range hist[start49:] {
+		orders49 += pt.OrderCount
+		vol49 += pt.Volume
+	}
+	snap.Total49dOrders = orders49
+	snap.Total49dVolume = vol49
 }
 
 // QuickAddMarketplaceItemToCatalog adds an item inspected in Marketplace directly into the Catalog & Trap Guard.

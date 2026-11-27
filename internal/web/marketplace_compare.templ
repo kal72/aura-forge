@@ -1,0 +1,710 @@
+package web
+
+import (
+	"fmt"
+	"math"
+	"strings"
+
+	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
+)
+
+func compareGridColsClass(n int) string {
+	switch n {
+	case 1:
+		return "grid-cols-1"
+	case 2:
+		return "grid-cols-1 md:grid-cols-2"
+	default:
+		return "grid-cols-1 md:grid-cols-3"
+	}
+}
+
+func compareSectionAccent(color string) string {
+	switch color {
+	case "amber":
+		return "text-amber-300 border-amber-400/25"
+	case "sky":
+		return "text-sky-300 border-sky-400/25"
+	case "emerald":
+		return "text-emerald-300 border-emerald-400/25"
+	case "violet":
+		return "text-violet-300 border-violet-400/25"
+	default:
+		return "text-cyan-300 border-cyan-400/25"
+	}
+}
+
+func cheapestComparePrice(items []domain.ItemSpecDetail) float64 {
+	if len(items) < 2 {
+		return 0
+	}
+	best := 0.0
+	for _, it := range items {
+		if it.LiveSellPrice > 0 && (best == 0 || it.LiveSellPrice < best) {
+			best = it.LiveSellPrice
+		}
+	}
+	return best
+}
+
+func anyItemHasSlots(items []domain.ItemSpecDetail) bool {
+	for _, it := range items {
+		if it.Slots.HasSlots() {
+			return true
+		}
+	}
+	return false
+}
+
+func hasFittingSection(sections []domain.CompareSection) bool {
+	for _, s := range sections {
+		if s.ID == "fitting" && len(s.Rows) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func anyItemHasResists(items []domain.ItemSpecDetail) bool {
+	for _, it := range items {
+		if it.ShieldResists.HasAny() || it.ArmorResists.HasAny() {
+			return true
+		}
+	}
+	return false
+}
+
+func anyItemHasSkills(items []domain.ItemSpecDetail) bool {
+	for _, it := range items {
+		if len(it.RequiredSkills) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func slotPips(count int) []int {
+	if count <= 0 {
+		return nil
+	}
+	if count > 8 {
+		count = 8
+	}
+	out := make([]int, count)
+	for i := range out {
+		out[i] = i
+	}
+	return out
+}
+
+func filledSquareCount(pct float64, total int) int {
+	if pct <= 0 || total <= 0 {
+		return 0
+	}
+	if pct >= 100 {
+		return total
+	}
+	n := int(math.Round((pct / 100.0) * float64(total)))
+	if n < 1 {
+		n = 1
+	}
+	if n > total {
+		n = total
+	}
+	return n
+}
+
+// eveAttrIcon renders a crisp vector icon matching the EVE attribute type.
+templ eveAttrIcon(label string) {
+	{{ l := strings.ToLower(label) }}
+	if strings.Contains(l, "shield") {
+		<svg class="h-4 w-4 shrink-0 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+			<path stroke-linecap="round" stroke-linejoin="round" d="M12 3l7 4v5c0 5-3.5 8.5-7 9-3.5-.5-7-4-7-9V7l7-4z"></path>
+		</svg>
+	} else if strings.Contains(l, "armor") || strings.Contains(l, "structure") {
+		<svg class="h-4 w-4 shrink-0 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+			<path stroke-linecap="round" stroke-linejoin="round" d="M4 6l8-3 8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"></path>
+		</svg>
+	} else if strings.Contains(l, "cpu") || strings.Contains(l, "calibration") {
+		<svg class="h-4 w-4 shrink-0 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+			<rect x="7" y="7" width="10" height="10" rx="2"></rect>
+			<path stroke-linecap="round" d="M9 3v4M15 3v4M9 17v4M15 17v4M3 9h4M3 15h4M17 9h4M17 15h4"></path>
+		</svg>
+	} else if strings.Contains(l, "powergrid") || strings.Contains(l, "capacitor") || strings.Contains(l, "activation") {
+		<svg class="h-4 w-4 shrink-0 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+			<path stroke-linecap="round" stroke-linejoin="round" d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"></path>
+		</svg>
+	} else if strings.Contains(l, "velocity") || strings.Contains(l, "warp") || strings.Contains(l, "speed") || strings.Contains(l, "inertia") {
+		<svg class="h-4 w-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+			<path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+		</svg>
+	} else if strings.Contains(l, "cargo") || strings.Contains(l, "volume") {
+		<svg class="h-4 w-4 shrink-0 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+			<path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+		</svg>
+	} else if strings.Contains(l, "drone") {
+		<svg class="h-4 w-4 shrink-0 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+			<circle cx="12" cy="12" r="3"></circle>
+			<path stroke-linecap="round" d="M12 2v4M12 18v4M2 12h4M18 12h4"></path>
+		</svg>
+	} else if strings.Contains(l, "target") || strings.Contains(l, "range") || strings.Contains(l, "falloff") || strings.Contains(l, "scan") || strings.Contains(l, "signature") {
+		<svg class="h-4 w-4 shrink-0 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+			<circle cx="12" cy="12" r="7"></circle>
+			<circle cx="12" cy="12" r="2"></circle>
+			<path stroke-linecap="round" d="M12 2v3M12 19v3M2 12h3M19 12h3"></path>
+		</svg>
+	} else {
+		<svg class="h-4 w-4 shrink-0 text-violet-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+			<path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+		</svg>
+	}
+}
+
+// segmentedSquareBar renders a full-width row of soft semi-transparent squares (kotak-kotak kecil) spanning the entire bar width.
+templ segmentedSquareBar(pct float64, segments int, activeCls string) {
+	{{ filled := filledSquareCount(pct, segments) }}
+	<div class="flex-1 flex items-center gap-1 w-full" title={ fmt.Sprintf("%.0f%%", pct) }>
+		for i := 1; i <= segments; i++ {
+			if i <= filled {
+				<span class={ "flex-1 h-2.5 rounded-[2px] border " + activeCls }></span>
+			} else {
+				<span class="flex-1 h-2.5 rounded-[2px] border border-slate-700/60 bg-slate-900/50"></span>
+			}
+		}
+	</div>
+}
+
+templ resistSquareRow(label string, pct float64, dotCls string, activeSquareCls string, txtCls string, isComparing bool) {
+	if isComparing {
+		<div class="space-y-1 text-[11px] font-mono">
+			<div class="flex items-center justify-between gap-2">
+				<span class={ "inline-flex items-center gap-1.5 font-semibold " + txtCls }>
+					<span class={ "h-2 w-2 rounded-[2px] shrink-0 " + dotCls }></span>
+					<span>{ label }</span>
+				</span>
+				<span class="font-bold text-slate-100">{ fmt.Sprintf("%.0f%%", pct) }</span>
+			</div>
+			@segmentedSquareBar(pct, 16, activeSquareCls)
+		</div>
+	} else {
+		<div class="flex items-center gap-3 text-[11px] font-mono">
+			<span class={ "inline-flex items-center gap-1.5 w-32 shrink-0 font-semibold " + txtCls }>
+				<span class={ "h-2 w-2 rounded-[2px] shrink-0 " + dotCls }></span>
+				<span class="truncate">{ label }</span>
+			</span>
+			@segmentedSquareBar(pct, 20, activeSquareCls)
+			<span class="w-10 text-right font-bold text-slate-100 shrink-0">{ fmt.Sprintf("%.0f%%", pct) }</span>
+		</div>
+	}
+}
+
+templ eveSkillLevelPips(level int) {
+	<div class="inline-flex items-center gap-1" title={ fmt.Sprintf("Required Level %d of 5", level) }>
+		for i := 1; i <= 5; i++ {
+			if i <= level {
+				<span class="h-2.5 w-2.5 rounded-[2px] bg-amber-400 border border-amber-300/80"></span>
+			} else {
+				<span class="h-2.5 w-2.5 rounded-[2px] bg-slate-900 border border-slate-700"></span>
+			}
+		}
+	</div>
+}
+
+templ compareSectionCard(sec domain.CompareSection, items []domain.ItemSpecDetail, isComparing bool) {
+	<div class="rounded-xl border border-violet-400/20 bg-slate-950/60 overflow-hidden">
+		<div class={ "px-4 py-2.5 border-b flex items-center justify-between " + compareSectionAccent(sec.Color) }>
+			<h4 class="text-xs font-bold uppercase tracking-wider">{ sec.Title }</h4>
+			if isComparing {
+				<span class="text-[10.5px] font-mono text-emerald-300">★ = { i18n.L(ctx, "Best in Row", "Terbaik") }</span>
+			}
+		</div>
+		if isComparing {
+			<div class={ "grid divide-y md:divide-y-0 md:divide-x divide-violet-400/15 " + compareGridColsClass(len(items)) }>
+				for idx, it := range items {
+					<div class="divide-y divide-violet-400/10">
+						<div class="px-4 py-2 bg-slate-900/50 text-xs font-bold text-white truncate">{ it.Name }</div>
+						for _, row := range sec.Rows {
+							{{ cell := row.Cells[idx] }}
+							<div class="px-4 py-2.5 flex items-center justify-between gap-2 hover:bg-white/5 transition">
+								<div class="flex items-center gap-2 min-w-0">
+									@eveAttrIcon(row.Label)
+									<span class="text-xs font-semibold text-slate-200 truncate">{ row.Label }</span>
+									if row.LowerIsBetter {
+										<span class="text-[10px] font-mono text-slate-400 shrink-0" title="Lower value is better">↓</span>
+									}
+								</div>
+								<div class="text-xs font-mono shrink-0">
+									if cell.HasValue {
+										<span class={ func() string {
+											if cell.IsBest {
+												return "font-extrabold text-emerald-300"
+											}
+											return "font-semibold text-white"
+										}() }>
+											if cell.IsBest {
+												<span>★ </span>
+											}
+											{ cell.Formatted }
+										</span>
+									} else {
+										<span class="text-slate-600">—</span>
+									}
+								</div>
+							</div>
+						}
+					</div>
+				}
+			</div>
+		} else {
+			<div class="divide-y divide-violet-400/10">
+				for _, row := range sec.Rows {
+					{{ cell := row.Cells[0] }}
+					<div class="px-4 py-2.5 flex items-center justify-between gap-3 hover:bg-white/5 transition">
+						<div class="flex items-center gap-2 min-w-0">
+							@eveAttrIcon(row.Label)
+							<span class="text-xs font-semibold text-slate-200">{ row.Label }</span>
+							if row.LowerIsBetter {
+								<span class="text-[10px] font-mono text-slate-400" title="Lower value is better">↓</span>
+							}
+						</div>
+						<div class="text-xs font-mono shrink-0">
+							if cell.HasValue {
+								<span class="font-semibold text-white">{ cell.Formatted }</span>
+							} else {
+								<span class="text-slate-600">—</span>
+							}
+						</div>
+					</div>
+				}
+			</div>
+		}
+	</div>
+}
+
+templ MarketplaceComparePartial(res *domain.ItemCompareResult, errMsg string) {
+	if errMsg != "" {
+		<div class="rounded-xl border border-rose-500/40 bg-rose-950/40 p-4 text-xs text-rose-200">
+			<strong>{ i18n.L(ctx, "Show Info Lookup Failed:", "Pencarian Show Info Gagal:") }</strong> { errMsg }
+		</div>
+	} else if res != nil && len(res.Items) > 0 {
+		{{ cheapest := cheapestComparePrice(res.Items) }}
+		{{ isComparing := len(res.Items) > 1 }}
+		{{ showFittingsTab := anyItemHasSlots(res.Items) || hasFittingSection(res.Sections) }}
+		<div
+			class="space-y-4"
+			x-data={ fmt.Sprintf("{ infoTab: %q }", func() string {
+				if isComparing {
+					return "attributes"
+				}
+				return "traits"
+			}()) }
+		>
+			<!-- 1. EVE SHOW INFO HEADER CARDS (3D Render / Icon + Meta + Live Price + Compact Action Bar) -->
+			<div class={ "grid gap-3 " + compareGridColsClass(len(res.Items)) }>
+				for _, it := range res.Items {
+					<div class="relative rounded-xl border border-violet-400/30 bg-slate-900/70 p-3 flex flex-col justify-between gap-2.5">
+						<button
+							type="button"
+							x-cloak
+							x-show="compareModalOpen"
+							data-compare-name={ it.Name }
+							data-compare-id={ fmt.Sprintf("%d", it.TypeID) }
+							@click="toggleCompareItem($el.dataset.compareName, Number($el.dataset.compareId))"
+							title={ "Remove " + it.Name + " from Compare" }
+							class="absolute top-2 right-2 inline-flex h-5 w-5 items-center justify-center rounded-md border border-rose-400/35 bg-rose-500/15 text-[10px] font-bold text-rose-200 hover:bg-rose-500/30 transition cursor-pointer"
+						>
+							✕
+						</button>
+						<div class="flex items-center gap-3 min-w-0 pr-5">
+							if it.IsShip {
+								<img
+									src={ fmt.Sprintf("https://images.evetech.net/types/%d/render?size=256", it.TypeID) }
+									data-fallback={ EVEItemIconURL(it.TypeID, 64) }
+									alt={ it.Name }
+									class="h-14 w-14 shrink-0 rounded-xl border border-amber-300/45 bg-slate-950 object-cover shadow-lg"
+									onerror="if(this.dataset.fallback && this.src!==this.dataset.fallback){this.src=this.dataset.fallback}else{this.style.display='none'}"
+								/>
+							} else {
+								<img
+									src={ EVEItemIconURL(it.TypeID, 64) }
+									alt={ it.Name }
+									class="h-12 w-12 shrink-0 rounded-xl border border-sky-400/45 bg-slate-950 p-1 object-contain shadow-lg"
+									onerror="this.style.display='none'"
+								/>
+							}
+							<div class="min-w-0 flex-1">
+								<div class="flex flex-wrap items-center gap-1.5">
+									<span class="rounded border border-violet-400/45 bg-violet-500/20 px-1.5 py-0.5 font-mono text-[9.5px] font-bold text-violet-200">
+										Tech { fmt.Sprintf("%d", it.TechLevel) }
+									</span>
+									if it.MetaLevel > 0 {
+										<span class="rounded border border-amber-400/40 bg-amber-500/15 px-1.5 py-0.5 font-mono text-[9.5px] font-bold text-amber-200">
+											Meta Level { fmt.Sprintf("%d", it.MetaLevel) }
+										</span>
+									}
+									if cheapest > 0 && it.LiveSellPrice == cheapest {
+										<span class="rounded border border-emerald-400/50 bg-emerald-500/20 px-1.5 py-0.5 font-mono text-[9.5px] font-bold text-emerald-200">
+											Best Price
+										</span>
+									}
+								</div>
+								<h3 class="text-sm sm:text-base font-bold text-white leading-tight truncate mt-0.5" title={ it.Name }>{ it.Name }</h3>
+								<div class="text-[11px] text-slate-300 truncate">{ it.GroupName }</div>
+							</div>
+						</div>
+						<div class="flex items-center justify-between gap-2 border-t border-violet-400/15 pt-2">
+							<div class="font-mono text-xs font-bold text-amber-200 truncate">
+								if it.LiveSellPrice > 0 {
+									{ FormatISK(it.LiveSellPrice) }
+								} else {
+									<span class="text-slate-500">—</span>
+								}
+							</div>
+							<div class="flex items-center gap-1.5 shrink-0">
+								<button
+									type="button"
+									x-show="!compareModalOpen"
+									data-compare-name={ it.Name }
+									data-compare-id={ fmt.Sprintf("%d", it.TypeID) }
+									@click="toggleCompareItem($el.dataset.compareName, Number($el.dataset.compareId))"
+									:class="isInCompare($el.dataset.compareName) ? 'border-emerald-400/60 bg-emerald-500/25 text-emerald-200' : 'border-amber-400/45 bg-amber-500/15 text-amber-200 hover:bg-amber-500/25'"
+									class="rounded border px-2 py-0.5 text-[10px] font-bold transition cursor-pointer"
+								>
+									<span x-show="!isInCompare($el.closest('button').dataset.compareName)">+ Compare</span>
+									<span x-cloak x-show="isInCompare($el.closest('button').dataset.compareName)">✓ Added</span>
+								</button>
+								if it.BlueprintTypeID > 0 {
+									<a
+										href={ templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&hub=%s", it.BlueprintTypeID, res.Hub.Key)) }
+										x-data="{ navLoading: false }"
+										@click="navLoading = true"
+										:class="navLoading ? 'opacity-80 pointer-events-none' : ''"
+										class="inline-flex items-center gap-1 rounded border border-emerald-400/35 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-200 hover:bg-emerald-500/25 transition"
+									>
+										<span x-cloak x-show="navLoading" class="h-2.5 w-2.5 animate-spin rounded-full border-2 border-emerald-300 border-t-transparent"></span>
+										<span x-show="!navLoading">Manufacture →</span>
+										<span x-cloak x-show="navLoading">Loading...</span>
+									</a>
+								}
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+
+			<!-- 2. EVE-AUTHENTIC INNER POPUP TABS (Traits & Info | Fittings | Attributes | Requirements) -->
+			<div class="flex flex-wrap items-center gap-1.5 border-b border-violet-400/25 pb-2">
+				<button
+					type="button"
+					@click="infoTab = 'traits'"
+					:class="infoTab === 'traits' ? 'bg-amber-400/20 border-amber-300/60 text-amber-200' : 'border-slate-800 bg-slate-900/50 text-slate-300 hover:text-white'"
+					class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition cursor-pointer"
+				>
+					<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+					</svg>
+					<span>Traits &amp; Info</span>
+				</button>
+				if showFittingsTab {
+					<button
+						type="button"
+						@click="infoTab = 'fittings'"
+						:class="infoTab === 'fittings' ? 'bg-emerald-400/20 border-emerald-300/60 text-emerald-200' : 'border-slate-800 bg-slate-900/50 text-slate-300 hover:text-white'"
+						class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition cursor-pointer"
+					>
+						<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+							<rect x="7" y="7" width="10" height="10" rx="2"></rect>
+							<path stroke-linecap="round" d="M9 3v4M15 3v4M9 17v4M15 17v4M3 9h4M3 15h4M17 9h4M17 15h4"></path>
+						</svg>
+						<span>Fittings</span>
+					</button>
+				}
+				<button
+					type="button"
+					@click="infoTab = 'attributes'"
+					:class="infoTab === 'attributes' ? 'bg-sky-400/20 border-sky-300/60 text-sky-200' : 'border-slate-800 bg-slate-900/50 text-slate-300 hover:text-white'"
+					class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition cursor-pointer"
+				>
+					<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+					</svg>
+					<span>Attributes</span>
+				</button>
+				if anyItemHasSkills(res.Items) {
+					<button
+						type="button"
+						@click="infoTab = 'requirements'"
+						:class="infoTab === 'requirements' ? 'bg-violet-500/25 border-violet-300/60 text-violet-200' : 'border-slate-800 bg-slate-900/50 text-slate-300 hover:text-white'"
+						class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition cursor-pointer"
+					>
+						<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+						</svg>
+						<span>Requirements</span>
+					</button>
+				}
+			</div>
+
+			<!-- TAB 1: TRAITS & INFO (Official CCP SDE Hull Bonuses + Description ONLY) -->
+			<div x-show="infoTab === 'traits'" class="space-y-4">
+				<div class={ "grid gap-4 " + compareGridColsClass(len(res.Items)) }>
+					for _, it := range res.Items {
+						<div class="rounded-xl border border-violet-400/20 bg-slate-950/60 p-4 space-y-4">
+							if isComparing {
+								<div class="text-xs font-bold text-white border-b border-violet-400/15 pb-2 truncate">{ it.Name }</div>
+							}
+
+							<!-- Hull Bonuses / Traits -->
+							if it.Traits != nil && it.Traits.HasAny() {
+								<div class="space-y-3">
+									<div class="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-amber-300 font-bold">
+										<svg class="h-4 w-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+											<path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+										</svg>
+										<span>{ i18n.L(ctx, "Hull Bonuses & Traits", "Bonus Hull & Traits") }</span>
+									</div>
+
+									for _, sg := range it.Traits.SkillBonuses {
+										<div class="rounded-lg border border-amber-400/20 bg-amber-950/15 p-3 space-y-1.5">
+											<div class="text-xs font-bold text-amber-200">
+												{ sg.SkillName } { i18n.L(ctx, "bonuses (per skill level):", "bonus (per level skill):") }
+											</div>
+											<ul class="space-y-1 text-xs text-slate-200">
+												for _, b := range sg.Bonuses {
+													<li class="flex items-start gap-2">
+														<span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-[2px] bg-amber-400"></span>
+														<span>
+															if b.Prefix != "" {
+																<strong class="font-mono text-amber-300">{ b.Prefix }</strong>
+																<span> </span>
+															}
+															{ b.Text }
+														</span>
+													</li>
+												}
+											</ul>
+										</div>
+									}
+
+									if len(it.Traits.RoleBonuses) > 0 {
+										<div class="rounded-lg border border-sky-400/20 bg-sky-950/15 p-3 space-y-1.5">
+											<div class="text-xs font-bold text-sky-200">
+												{ i18n.L(ctx, "Role Bonus:", "Bonus Peran (Role Bonus):") }
+											</div>
+											<ul class="space-y-1 text-xs text-slate-200">
+												for _, b := range it.Traits.RoleBonuses {
+													<li class="flex items-start gap-2">
+														<span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-[2px] bg-sky-400"></span>
+														<span>
+															if b.Prefix != "" {
+																<strong class="font-mono text-sky-300">{ b.Prefix }</strong>
+																<span> </span>
+															}
+															{ b.Text }
+														</span>
+													</li>
+												}
+											</ul>
+										</div>
+									}
+
+									if len(it.Traits.MiscBonuses) > 0 {
+										<div class="rounded-lg border border-violet-400/20 bg-violet-950/15 p-3 space-y-1.5">
+											<div class="text-xs font-bold text-violet-200">
+												{ i18n.L(ctx, "Additional Bonuses:", "Bonus Tambahan:") }
+											</div>
+											<ul class="space-y-1 text-xs text-slate-200">
+												for _, b := range it.Traits.MiscBonuses {
+													<li class="flex items-start gap-2">
+														<span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-[2px] bg-violet-400"></span>
+														<span>
+															if b.Prefix != "" {
+																<strong class="font-mono text-violet-300">{ b.Prefix }</strong>
+																<span> </span>
+															}
+															{ b.Text }
+														</span>
+													</li>
+												}
+											</ul>
+										</div>
+									}
+								</div>
+							} else if it.IsShip {
+								<div class="rounded-lg border border-amber-400/25 bg-amber-950/20 px-3.5 py-2.5 text-xs text-amber-200/90">
+									{ i18n.L(ctx, "Hull bonuses are loaded from the official CCP SDE. Run Import Official CCP SDE once in Settings to display all ship traits.", "Bonus hull diambil dari CCP SDE resmi. Jalankan Import Official CCP SDE sekali di halaman Settings untuk menampilkan seluruh trait kapal.") }
+								</div>
+							}
+
+							<!-- Description -->
+							if it.Description != "" {
+								<div class="space-y-1.5 border-t border-violet-400/15 pt-3">
+									<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300 font-bold">
+										{ i18n.L(ctx, "Description", "Deskripsi") }
+									</div>
+									<div class="text-xs text-slate-300/90 whitespace-pre-line leading-relaxed">{ it.Description }</div>
+								</div>
+							}
+						</div>
+					}
+				</div>
+			</div>
+
+			<!-- TAB 2: FITTINGS (Slot Rack + Hardpoints + Fitting & Capacitor Attributes) -->
+			if showFittingsTab {
+				<div x-cloak x-show="infoTab === 'fittings'" class="space-y-4">
+					if anyItemHasSlots(res.Items) {
+						<div class={ "grid gap-4 " + compareGridColsClass(len(res.Items)) }>
+							for _, it := range res.Items {
+								if it.Slots.HasSlots() {
+									<div class="rounded-xl border border-emerald-400/25 bg-slate-950/60 p-4 space-y-3">
+										<div class="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-400/15 pb-2">
+											<span class="text-xs font-bold uppercase tracking-wider text-emerald-300">
+												if isComparing {
+													{ it.Name } — Slot Layout
+												} else {
+													Slot Layout
+												}
+											</span>
+											if it.Slots.TurretSlots > 0 || it.Slots.LauncherSlots > 0 {
+												<span class="font-mono text-[11px] text-amber-200">
+													{ fmt.Sprintf("%d Turret Hardpoints • %d Launcher Hardpoints", it.Slots.TurretSlots, it.Slots.LauncherSlots) }
+												</span>
+											}
+										</div>
+										<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs font-mono">
+											<div class="flex items-center justify-between rounded-lg border border-amber-400/20 bg-slate-900/70 px-3 py-2">
+												<span class="text-amber-300 font-bold">High Slots</span>
+												<div class="flex items-center gap-1">
+													for range slotPips(it.Slots.HighSlots) {
+														<span class="h-2.5 w-2.5 rounded-[2px] bg-amber-400 border border-amber-300/80"></span>
+													}
+													<span class="ml-1.5 text-white font-bold">{ fmt.Sprintf("%d", it.Slots.HighSlots) }</span>
+												</div>
+											</div>
+											<div class="flex items-center justify-between rounded-lg border border-sky-400/20 bg-slate-900/70 px-3 py-2">
+												<span class="text-sky-300 font-bold">Medium Slots</span>
+												<div class="flex items-center gap-1">
+													for range slotPips(it.Slots.MidSlots) {
+														<span class="h-2.5 w-2.5 rounded-[2px] bg-sky-400 border border-sky-300/80"></span>
+													}
+													<span class="ml-1.5 text-white font-bold">{ fmt.Sprintf("%d", it.Slots.MidSlots) }</span>
+												</div>
+											</div>
+											<div class="flex items-center justify-between rounded-lg border border-emerald-400/20 bg-slate-900/70 px-3 py-2">
+												<span class="text-emerald-300 font-bold">Low Slots</span>
+												<div class="flex items-center gap-1">
+													for range slotPips(it.Slots.LowSlots) {
+														<span class="h-2.5 w-2.5 rounded-[2px] bg-emerald-400 border border-emerald-300/80"></span>
+													}
+													<span class="ml-1.5 text-white font-bold">{ fmt.Sprintf("%d", it.Slots.LowSlots) }</span>
+												</div>
+											</div>
+											<div class="flex items-center justify-between rounded-lg border border-violet-400/20 bg-slate-900/70 px-3 py-2">
+												<span class="text-violet-300 font-bold">Rig Slots</span>
+												<div class="flex items-center gap-1">
+													for range slotPips(it.Slots.RigSlots) {
+														<span class="h-2.5 w-2.5 rounded-[2px] bg-violet-400 border border-violet-300/80"></span>
+													}
+													<span class="ml-1.5 text-white font-bold">{ fmt.Sprintf("%d", it.Slots.RigSlots) }</span>
+												</div>
+											</div>
+										</div>
+									</div>
+								}
+							}
+						</div>
+					}
+
+					for _, sec := range res.Sections {
+						if sec.ID == "fitting" {
+							@compareSectionCard(sec, res.Items, isComparing)
+						}
+					}
+				</div>
+			}
+
+			<!-- TAB 3: ATTRIBUTES (Segmented Square Resistance Gauges + Defense, Navigation, Targeting) -->
+			<div x-cloak x-show="infoTab === 'attributes'" class="space-y-4">
+				if anyItemHasResists(res.Items) {
+					<div class="rounded-xl border border-sky-400/25 bg-slate-950/60 overflow-hidden">
+						<div class="px-4 py-2.5 border-b border-sky-400/20 flex flex-wrap items-center justify-between gap-2">
+							<div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sky-300">
+								<svg class="h-4 w-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M12 3l7 4v5c0 5-3.5 8.5-7 9-3.5-.5-7-4-7-9V7l7-4z"></path>
+								</svg>
+								<span>{ i18n.L(ctx, "Base Resistance Profile", "Profil Resistensi Dasar") }</span>
+							</div>
+							<span class="text-[10.5px] font-mono text-slate-400">Electromagnetic • Thermal • Kinetic • Explosive</span>
+						</div>
+						<div class={ "grid divide-y md:divide-y-0 md:divide-x divide-violet-400/15 " + compareGridColsClass(len(res.Items)) }>
+							for _, it := range res.Items {
+								<div class="p-4 space-y-3.5">
+									if isComparing {
+										<div class="text-xs font-bold text-white truncate">{ it.Name }</div>
+									}
+									if it.ShieldResists.HasAny() {
+										<div class="space-y-2">
+											<div class="text-[10.5px] font-mono uppercase text-sky-300 font-bold">Shield Resistances</div>
+											@resistSquareRow("Electromagnetic", it.ShieldResists.EM, "bg-sky-400/75", "bg-sky-400/45 border-sky-300/55", "text-sky-300", isComparing)
+											@resistSquareRow("Thermal", it.ShieldResists.Thermal, "bg-rose-400/75", "bg-rose-400/45 border-rose-300/55", "text-rose-300", isComparing)
+											@resistSquareRow("Kinetic", it.ShieldResists.Kinetic, "bg-slate-300/75", "bg-slate-300/40 border-slate-200/50", "text-slate-200", isComparing)
+											@resistSquareRow("Explosive", it.ShieldResists.Explosive, "bg-amber-400/75", "bg-amber-400/45 border-amber-300/55", "text-amber-300", isComparing)
+										</div>
+									}
+									if it.ArmorResists.HasAny() {
+										<div class="space-y-2 pt-1">
+											<div class="text-[10.5px] font-mono uppercase text-amber-300 font-bold">Armor Resistances</div>
+											@resistSquareRow("Electromagnetic", it.ArmorResists.EM, "bg-sky-400/75", "bg-sky-400/45 border-sky-300/55", "text-sky-300", isComparing)
+											@resistSquareRow("Thermal", it.ArmorResists.Thermal, "bg-rose-400/75", "bg-rose-400/45 border-rose-300/55", "text-rose-300", isComparing)
+											@resistSquareRow("Kinetic", it.ArmorResists.Kinetic, "bg-slate-300/75", "bg-slate-300/40 border-slate-200/50", "text-slate-200", isComparing)
+											@resistSquareRow("Explosive", it.ArmorResists.Explosive, "bg-amber-400/75", "bg-amber-400/45 border-amber-300/55", "text-amber-300", isComparing)
+										</div>
+									}
+								</div>
+							}
+						</div>
+					</div>
+				}
+
+				for _, sec := range res.Sections {
+					if sec.ID != "fitting" {
+						@compareSectionCard(sec, res.Items, isComparing)
+					}
+				}
+			</div>
+
+			<!-- TAB 4: REQUIREMENTS (EVE 5-Square Skill Level Indicators) -->
+			if anyItemHasSkills(res.Items) {
+				<div x-cloak x-show="infoTab === 'requirements'" class={ "grid gap-4 " + compareGridColsClass(len(res.Items)) }>
+					for _, it := range res.Items {
+						<div class="rounded-xl border border-violet-400/20 bg-slate-950/60 p-4 space-y-3">
+							<div class="flex items-center gap-2 border-b border-violet-400/15 pb-2">
+								<svg class="h-4 w-4 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+								</svg>
+								<span class="text-xs font-bold text-white truncate">{ it.Name }</span>
+							</div>
+							if len(it.RequiredSkills) == 0 {
+								<div class="text-xs text-slate-400">{ i18n.L(ctx, "No skill prerequisites.", "Tidak memerlukan skill khusus.") }</div>
+							} else {
+								<div class="space-y-2.5">
+									for _, sk := range it.RequiredSkills {
+										<div class="flex items-center justify-between gap-2 rounded-lg border border-slate-800 bg-slate-900/70 px-3 py-2">
+											<div class="min-w-0">
+												<div class="text-xs font-semibold text-white truncate">{ sk.SkillName }</div>
+												<div class="text-[10.5px] font-mono text-slate-400">Level { fmt.Sprintf("%d", sk.Level) }</div>
+											</div>
+											@eveSkillLevelPips(sk.Level)
+										</div>
+									}
+								</div>
+							}
+						</div>
+					}
+				</div>
+			}
+		</div>
+	}
+}

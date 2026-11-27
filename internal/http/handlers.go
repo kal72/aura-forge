@@ -3,6 +3,7 @@ package http
 import (
 	"encoding/json"
 	"fmt"
+	"html"
 	"net/http"
 	"strconv"
 	"strings"
@@ -38,6 +39,8 @@ type Renderer interface {
 	RenderMarketplace(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, query string, hubKey string, presets []service.MarketplacePreset, snap *domain.MarketplaceSnapshot, errMsg string) error
 	RenderMarketplaceResults(w http.ResponseWriter, r *http.Request, snap *domain.MarketplaceSnapshot, errMsg string) error
 	RenderMarketplaceAppraisal(w http.ResponseWriter, r *http.Request, res *domain.AppraisalResult, errMsg string) error
+	RenderMarketplaceBPC(w http.ResponseWriter, r *http.Request, res *domain.BPCFinderResult, errMsg string) error
+	RenderMarketplaceCompare(w http.ResponseWriter, r *http.Request, res *domain.ItemCompareResult, errMsg string) error
 	RenderScanner(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings) error
 	RenderScannerManufacturing(w http.ResponseWriter, r *http.Request, isAdmin bool, results []domain.ManufacturingOpportunity, errMsg string) error
 	RenderScannerStationTrading(w http.ResponseWriter, r *http.Request, results []domain.StationTradeOpportunity, errMsg string) error
@@ -310,19 +313,35 @@ func (h *Handlers) HandleLoadSampleData(w http.ResponseWriter, r *http.Request) 
 func (h *Handlers) HandleSyncJitaPrices(w http.ResponseWriter, r *http.Request) {
 	hub := h.svc.ActiveCatalogHub(r.Context())
 	res, err := h.svc.SyncScopedJitaPrices(r.Context())
+	inlineTarget := r.Header.Get("HX-Target") == "price-sync-result"
+
 	if err != nil {
+		cleanErr := strings.Join(strings.Fields(err.Error()), " ")
 		if IsHTMX(r) {
-			TriggerToast(w, "error", fmt.Sprintf("Public ESI %s sync failed: %s", hub.Name, err.Error()))
+			TriggerToast(w, "error", fmt.Sprintf("Public ESI %s sync failed: %s", hub.Name, cleanErr))
+			if inlineTarget {
+				w.Header().Set("Content-Type", "text/html; charset=utf-8")
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write([]byte(`<div class="rounded-lg border border-rose-400/45 bg-rose-950/40 px-3 py-2 text-xs font-mono text-rose-200 break-words"><strong>✕ Sync Failed:</strong> ` + html.EscapeString(cleanErr) + `</div>`))
+				return
+			}
 			w.WriteHeader(http.StatusOK)
 			return
 		}
-		http.Error(w, err.Error(), http.StatusBadGateway)
+		http.Error(w, cleanErr, http.StatusBadGateway)
 		return
 	}
 
 	if res.SkippedBusy {
+		msg := fmt.Sprintf("A %s price sync cycle is already running in the background.", hub.Name)
 		if IsHTMX(r) {
-			TriggerToast(w, "info", fmt.Sprintf("A %s price sync cycle is already running in the background.", hub.Name))
+			TriggerToast(w, "info", msg)
+			if inlineTarget {
+				w.Header().Set("Content-Type", "text/html; charset=utf-8")
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write([]byte(`<div class="rounded-lg border border-amber-400/45 bg-amber-950/35 px-3 py-2 text-xs font-mono text-amber-200"><strong>ℹ Busy:</strong> ` + html.EscapeString(msg) + `</div>`))
+				return
+			}
 			w.WriteHeader(http.StatusOK)
 			return
 		}
@@ -330,8 +349,16 @@ func (h *Handlers) HandleSyncJitaPrices(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	msg := fmt.Sprintf("%s prices synced: %d/%d scoped items warmed (%d catalog updated) in %.1fs.",
+		hub.Name, res.WarmedCount, res.TotalTypeIDs, res.CatalogUpdated, float64(res.DurationMs)/1000.0)
 	if IsHTMX(r) {
-		TriggerToast(w, "success", fmt.Sprintf("%s prices synced: %d/%d scoped items warmed (%d catalog updated) in %dms.", hub.Name, res.WarmedCount, res.TotalTypeIDs, res.CatalogUpdated, res.DurationMs))
+		TriggerToast(w, "success", msg)
+		if inlineTarget {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`<div class="rounded-lg border border-emerald-400/45 bg-emerald-950/40 px-3 py-2 text-xs font-mono text-emerald-200 break-words"><strong>✓ Synced:</strong> ` + html.EscapeString(msg) + `</div>`))
+			return
+		}
 		w.Header().Set("HX-Refresh", "true")
 		w.WriteHeader(http.StatusOK)
 		return
@@ -686,6 +713,52 @@ func (h *Handlers) HandleAllocatorToPlan(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	http.Redirect(w, r, fmt.Sprintf("/planner?plan_id=%d", plan.ID), http.StatusSeeOther)
+}
+
+// HandlePlannerDelete removes a single saved Weekly Plan by ID.
+func (h *Handlers) HandlePlannerDelete(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	if err != nil || id <= 0 {
+		http.Error(w, "Invalid plan ID", http.StatusBadRequest)
+		return
+	}
+	if err := h.svc.DeleteWeeklyPlan(r.Context(), id); err != nil {
+		if IsHTMX(r) {
+			TriggerToast(w, "error", "Failed to delete plan: "+err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if IsHTMX(r) {
+		TriggerToast(w, "success", "Weekly Plan deleted.")
+		w.Header().Set("HX-Redirect", "/planner")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	http.Redirect(w, r, "/planner", http.StatusSeeOther)
+}
+
+// HandlePlannerClear removes all saved Weekly Plans so the user can reset cleanly.
+func (h *Handlers) HandlePlannerClear(w http.ResponseWriter, r *http.Request) {
+	count, err := h.svc.ClearAllWeeklyPlans(r.Context())
+	if err != nil {
+		if IsHTMX(r) {
+			TriggerToast(w, "error", "Failed to reset plans: "+err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if IsHTMX(r) {
+		TriggerToast(w, "success", fmt.Sprintf("Reset complete — cleared %d saved Weekly Plan(s).", count))
+		w.Header().Set("HX-Redirect", "/planner")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	http.Redirect(w, r, "/planner", http.StatusSeeOther)
 }
 
 // HandleAllocatorToBatches converts allocation directly into Draft Batches in Tracker.

@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -335,6 +336,7 @@ func (r *SDERepo) UpsertSDEData(ctx context.Context, types []domain.SDEType, blu
 		cats := make([]string, len(chunk))
 		vols := make([]float64, len(chunk))
 		portions := make([]int32, len(chunk))
+		traits := make([]string, len(chunk))
 		for i, t := range chunk {
 			ids[i] = t.TypeID
 			names[i] = t.Name
@@ -342,17 +344,19 @@ func (r *SDERepo) UpsertSDEData(ctx context.Context, types []domain.SDEType, blu
 			cats[i] = t.Category
 			vols[i] = t.VolumeM3
 			portions[i] = int32(t.PortionSize)
+			traits[i] = t.TraitsJSON
 		}
 		if _, err := tx.Exec(ctx, `
-			INSERT INTO sde_types (type_id, name, group_name, category, volume_m3, portion_size)
-			SELECT * FROM UNNEST($1::int[], $2::varchar[], $3::varchar[], $4::varchar[], $5::double precision[], $6::int[])
+			INSERT INTO sde_types (type_id, name, group_name, category, volume_m3, portion_size, traits_json)
+			SELECT * FROM UNNEST($1::int[], $2::varchar[], $3::varchar[], $4::varchar[], $5::double precision[], $6::int[], $7::text[])
 			ON CONFLICT (type_id) DO UPDATE SET
 				name = EXCLUDED.name,
 				group_name = EXCLUDED.group_name,
 				category = EXCLUDED.category,
 				volume_m3 = EXCLUDED.volume_m3,
-				portion_size = EXCLUDED.portion_size
-		`, ids, names, groups, cats, vols, portions); err != nil {
+				portion_size = EXCLUDED.portion_size,
+				traits_json = CASE WHEN EXCLUDED.traits_json <> '' THEN EXCLUDED.traits_json ELSE sde_types.traits_json END
+		`, ids, names, groups, cats, vols, portions, traits); err != nil {
 			return fmt.Errorf("bulk upserting sde_types batch %d-%d: %w", start, end, err)
 		}
 	}
@@ -787,4 +791,31 @@ func (r *SDERepo) ListReactionBlueprints(ctx context.Context, query string, limi
 		out = append(out, bp)
 	}
 	return out, rows.Err()
+}
+
+// GetTypeTraits returns the parsed CCP SDE Hull Bonuses (Traits) for a given EVE type_id, or nil if none exist.
+func (r *SDERepo) GetTypeTraits(ctx context.Context, typeID int32) (*domain.ItemTraits, error) {
+	if typeID <= 0 {
+		return nil, nil
+	}
+	var raw string
+	err := r.pool.QueryRow(ctx, `SELECT traits_json FROM sde_types WHERE type_id = $1`, typeID).Scan(&raw)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("getting traits for type %d: %w", typeID, err)
+	}
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil, nil
+	}
+	var tr domain.ItemTraits
+	if err := json.Unmarshal([]byte(raw), &tr); err != nil {
+		return nil, nil
+	}
+	if !tr.HasAny() {
+		return nil, nil
+	}
+	return &tr, nil
 }

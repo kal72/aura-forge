@@ -12,6 +12,7 @@ import (
 	"fmt"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -62,134 +63,160 @@ func InventionPage(mode service.ModeInfo, settings domain.UserSettings) templ.Co
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(settings.ActiveTradeHub().Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 26, Col: 52}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 27, Col: 52}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</span></div><p class=\"text-xs text-slate-300/80 mt-0.5\">Scale toward 100B+ ISK Total Wealth by optimizing all 9 T2 Decryptor strategies with live 5-Hub ESI prices and auditing intermediate component Make-vs-Buy costs.</p></div><div class=\"inline-flex rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur\"><button type=\"button\" @click=\"tab = &#39;decryptor&#39;\" :class=\"tab === &#39;decryptor&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">T2 Decryptor Optimizer</button> <button type=\"button\" @click=\"tab = &#39;makebuy&#39;\" :class=\"tab === &#39;makebuy&#39; ? &#39;bg-sky-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">Make-vs-Buy Analyzer</button> <a href=\"/calculator?mode=blueprint\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide text-emerald-300 hover:bg-emerald-500/15 transition\">Recursive T2 Tree →</a></div></div><!-- TAB 1: T2 DECRYPTOR OPTIMIZER --><div x-show=\"tab === &#39;decryptor&#39;\" class=\"space-y-5\"><div class=\"tactical-panel rounded-xl p-5 space-y-4\"><div class=\"flex flex-wrap items-center justify-between gap-2\"><div><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">9-Decryptor Live Profit Matrix</h2><p class=\"text-xs text-slate-300/80 mt-0.5\">Fetches live Trade Hub prices for all 8 Decryptors, required Datacores, and the T2 product from Public ESI to pick the single most profitable Decryptor.</p></div><span class=\"text-[10px] font-mono text-slate-400\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</span></div><p class=\"text-xs text-slate-300/80 mt-0.5\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var4 string
-			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Broker %.2f%% • Tax %.2f%%", settings.BrokerFeePercent, settings.SalesTaxPercent))
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Scale toward 100B+ ISK Total Wealth by optimizing all 9 T2 Decryptor strategies with live 5-Hub ESI prices and auditing intermediate component Make-vs-Buy costs.", "Skalakan kekayaan menuju 100B+ ISK dengan mengoptimalkan 9 strategi T2 Decryptor memakai harga ESI live 5-Hub dan mengaudit biaya Make-vs-Buy komponen."))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 67, Col: 105}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 30, Col: 382}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</span></div><form hx-post=\"/invention/optimize\" hx-target=\"#inv-result-panel\" hx-swap=\"innerHTML\" hx-indicator=\"#inv-opt-spinner\" class=\"grid grid-cols-2 gap-3 sm:grid-cols-6\"><div class=\"col-span-2\"><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">T2 Product Preset</label> <select name=\"preset_key\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</p></div><div class=\"inline-flex rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur\"><button type=\"button\" @click=\"tab = &#39;decryptor&#39;\" :class=\"tab === &#39;decryptor&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">T2 Decryptor Optimizer</button> <button type=\"button\" @click=\"tab = &#39;makebuy&#39;\" :class=\"tab === &#39;makebuy&#39; ? &#39;bg-sky-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">Make-vs-Buy Analyzer</button> <a href=\"/manufacture\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide text-emerald-300 hover:bg-emerald-500/15 transition\">Recursive T2 Tree →</a></div></div><!-- TAB 1: T2 DECRYPTOR OPTIMIZER --><div x-show=\"tab === &#39;decryptor&#39;\" class=\"space-y-5\"><div class=\"tactical-panel rounded-xl p-5 space-y-4\"><div class=\"flex flex-wrap items-center justify-between gap-2\"><div><h2 class=\"text-sm font-bold uppercase tracking-wider text-amber-300\">9-Decryptor Live Profit Matrix</h2><p class=\"text-xs text-slate-300/80 mt-0.5\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var5 string
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Fetches live Trade Hub prices for all 8 Decryptors, required Datacores, and the T2 product from Public ESI to pick the single most profitable Decryptor.", "Mengambil harga Trade Hub live untuk 8 Decryptor, Datacore yang dibutuhkan, dan produk T2 dari Public ESI untuk memilih Decryptor paling menguntungkan."))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 65, Col: 375}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</p></div><span class=\"text-[10px] font-mono text-slate-400\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var6 string
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Broker %.2f%% • Tax %.2f%%", settings.BrokerFeePercent, settings.SalesTaxPercent))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 68, Col: 105}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</span></div><form hx-post=\"/invention/optimize\" hx-target=\"#inv-result-panel\" hx-swap=\"innerHTML\" hx-indicator=\"#inv-opt-spinner\" class=\"grid grid-cols-2 gap-3 sm:grid-cols-6\"><div class=\"col-span-2\"><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">T2 Product Preset</label> <select name=\"preset_key\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, p := range domain.DefaultT2Presets {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<option value=\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var5 string
-				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(p.Key)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 82, Col: 30}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var6 string
-				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("[%s] %s", p.Category, p.ProductName))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 82, Col: 84}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</option>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</select></div><div class=\"col-span-2 sm:col-span-1\"><label class=\"block text-[10px] font-mono uppercase text-sky-300 mb-1\">Trade Hub</label> <select name=\"hub\" class=\"w-full rounded-lg border border-sky-500/40 bg-slate-900 px-2.5 py-2 text-xs text-white\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			for _, h := range domain.MajorTradeHubs {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<option value=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<option value=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var7 string
-				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(h.Key)
+				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(p.Key)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 90, Col: 30}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 83, Col: 30}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				if h.Key == settings.ActiveTradeHub().Key {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, " selected")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, ">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var8 string
-				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(h.Name)
+				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("[%s] %s", p.Category, p.ProductName))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 90, Col: 94}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 83, Col: 84}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</option>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</option>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</select></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Encryption Skill (1–5)</label> <input type=\"number\" name=\"encryption_skill\" value=\"4\" min=\"1\" max=\"5\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Datacore 1 Skill (1–5)</label> <input type=\"number\" name=\"datacore_1_skill\" value=\"4\" min=\"1\" max=\"5\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Datacore 2 Skill (1–5)</label> <input type=\"number\" name=\"datacore_2_skill\" value=\"4\" min=\"1\" max=\"5\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white\"></div><div class=\"col-span-2 sm:col-span-2\"><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Job Fee / Attempt (ISK)</label> <input type=\"number\" step=\"1000\" name=\"invention_job_fee\" value=\"50000\" min=\"0\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white\"></div><div class=\"col-span-2 sm:col-span-2\"><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Base ME 0 T2 Build Cost / Run (0 = Preset Default)</label> <input type=\"number\" step=\"1000\" name=\"base_build_cost_per_run\" value=\"0\" min=\"0\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white\"></div><div class=\"col-span-2 sm:col-span-2\"><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">T2 Product Sell Override (0 = Live Hub Sell)</label> <input type=\"number\" step=\"100\" name=\"product_sell_override\" value=\"0\" min=\"0\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white\"></div><div class=\"col-span-2 sm:col-span-6 flex justify-end\"><button type=\"submit\" class=\"inline-flex items-center gap-2 rounded-lg bg-amber-400 px-5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer\"><span id=\"inv-opt-spinner\" class=\"htmx-indicator h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent\"></span> <span>Optimize All 9 Decryptors (Live ESI)</span></button></div></form></div><div id=\"inv-result-panel\"><div class=\"tactical-panel rounded-xl p-8 text-center text-xs text-slate-300/80\">Choose a T2 product and click <strong>Optimize All 9 Decryptors</strong> to compare success chance, resulting ME/TE/Runs, live Decryptor prices, and true Net Profit per Unit.</div></div></div><!-- TAB 2: MAKE-VS-BUY COMPONENT ANALYZER --><div x-cloak x-show=\"tab === &#39;makebuy&#39;\" class=\"grid grid-cols-1 gap-6 lg:grid-cols-12\"><div class=\"tactical-panel rounded-xl p-5 lg:col-span-6 space-y-4\"><div><h2 class=\"text-sm font-bold uppercase tracking-wider text-sky-300\">Intermediate Component Make-vs-Buy</h2><p class=\"text-xs text-slate-300/80 mt-0.5\">Verify whether manufacturing an intermediate T2/Capital component in-house beats buying it at your Trade Hub (after SCI ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</select></div><div class=\"col-span-2 sm:col-span-1\"><label class=\"block text-[10px] font-mono uppercase text-sky-300 mb-1\">Trade Hub</label> <select name=\"hub\" class=\"w-full rounded-lg border border-sky-500/40 bg-slate-900 px-2.5 py-2 text-xs text-white\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var9 string
-			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.4f", settings.SystemCostIndex))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 142, Col: 217}
+			for _, h := range domain.MajorTradeHubs {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<option value=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var9 string
+				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(h.Key)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 91, Col: 30}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if h.Key == settings.ActiveTradeHub().Key {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, " selected")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, ">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var10 string
+				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(h.Name)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 91, Col: 94}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</option>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</select></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Encryption Skill (1–5)</label> <input type=\"number\" name=\"encryption_skill\" value=\"4\" min=\"1\" max=\"5\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Datacore 1 Skill (1–5)</label> <input type=\"number\" name=\"datacore_1_skill\" value=\"4\" min=\"1\" max=\"5\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Datacore 2 Skill (1–5)</label> <input type=\"number\" name=\"datacore_2_skill\" value=\"4\" min=\"1\" max=\"5\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white\"></div><div class=\"col-span-2 sm:col-span-2\"><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Job Fee / Attempt (ISK)</label> <input type=\"number\" step=\"1000\" name=\"invention_job_fee\" value=\"50000\" min=\"0\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white\"></div><div class=\"col-span-2 sm:col-span-2\"><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Base ME 0 T2 Build Cost / Run (0 = Preset Default)</label> <input type=\"number\" step=\"1000\" name=\"base_build_cost_per_run\" value=\"0\" min=\"0\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white\"></div><div class=\"col-span-2 sm:col-span-2\"><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">T2 Product Sell Override (0 = Live Hub Sell)</label> <input type=\"number\" step=\"100\" name=\"product_sell_override\" value=\"0\" min=\"0\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white\"></div><div class=\"col-span-2 sm:col-span-6 flex justify-end\"><button type=\"submit\" class=\"inline-flex items-center gap-2 rounded-lg bg-amber-400 px-5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer\"><span id=\"inv-opt-spinner\" class=\"htmx-indicator h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent\"></span> <span>Optimize All 9 Decryptors (Live ESI)</span></button></div></form></div><div id=\"inv-result-panel\"><div class=\"tactical-panel rounded-xl p-8 text-center text-xs text-slate-300/80\">Choose a T2 product and click <strong>Optimize All 9 Decryptors</strong> to compare success chance, resulting ME/TE/Runs, live Decryptor prices, and true Net Profit per Unit.</div></div></div><!-- TAB 2: MAKE-VS-BUY COMPONENT ANALYZER --><div x-cloak x-show=\"tab === &#39;makebuy&#39;\" class=\"grid grid-cols-1 gap-6 lg:grid-cols-12\"><div class=\"tactical-panel rounded-xl p-5 lg:col-span-6 space-y-4\"><div><h2 class=\"text-sm font-bold uppercase tracking-wider text-sky-300\">Intermediate Component Make-vs-Buy</h2><p class=\"text-xs text-slate-300/80 mt-0.5\">Verify whether manufacturing an intermediate T2/Capital component in-house beats buying it at your Trade Hub (after SCI ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, " + Facility Tax ")
+			var templ_7745c5c3_Var11 string
+			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.4f", settings.SystemCostIndex))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 143, Col: 217}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var10 string
-			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f%%", settings.FacilityTaxPercent))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 142, Col: 287}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, " + Facility Tax ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, ").</p></div><form hx-post=\"/invention/make-vs-buy\" hx-target=\"#makebuy-result-panel\" hx-swap=\"innerHTML\" class=\"grid grid-cols-1 gap-3 sm:grid-cols-2\"><div class=\"sm:col-span-2\"><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Component Name</label> <input type=\"text\" name=\"component_name\" value=\"Construction Blocks\" required class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Batch Quantity Needed</label> <input type=\"number\" name=\"quantity\" value=\"500\" min=\"1\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Hub Unit Sell Price (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"jita_unit_price\" value=\"14500\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div class=\"sm:col-span-2\"><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">In-House Raw Material Cost / Unit (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"raw_material_per_unit\" value=\"11200\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div class=\"sm:col-span-2 pt-1\"><button type=\"submit\" class=\"w-full rounded-lg bg-sky-400 py-2.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-sky-300 transition cursor-pointer\">Compare Make vs. Buy</button></div></form></div><div id=\"makebuy-result-panel\" class=\"tactical-panel rounded-xl p-5 lg:col-span-6\"><div class=\"py-10 text-center text-xs text-slate-300/80\">Enter a component's Jita sell price and raw material build cost, then click <strong>Compare Make vs. Buy</strong>.</div></div></div></div>")
+			var templ_7745c5c3_Var12 string
+			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f%%", settings.FacilityTaxPercent))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 143, Col: 287}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, ").</p></div><form hx-post=\"/invention/make-vs-buy\" hx-target=\"#makebuy-result-panel\" hx-swap=\"innerHTML\" class=\"grid grid-cols-1 gap-3 sm:grid-cols-2\"><div class=\"sm:col-span-2\"><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Component Name</label> <input type=\"text\" name=\"component_name\" value=\"Construction Blocks\" required class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Batch Quantity Needed</label> <input type=\"number\" name=\"quantity\" value=\"500\" min=\"1\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">Hub Unit Sell Price (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"jita_unit_price\" value=\"14500\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div class=\"sm:col-span-2\"><label class=\"block text-[10px] font-mono uppercase text-slate-300 mb-1\">In-House Raw Material Cost / Unit (ISK)</label> <input type=\"number\" step=\"0.01\" name=\"raw_material_per_unit\" value=\"11200\" class=\"w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div class=\"sm:col-span-2 pt-1\"><button type=\"submit\" class=\"w-full rounded-lg bg-sky-400 py-2.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-sky-300 transition cursor-pointer\">Compare Make vs. Buy</button></div></form></div><div id=\"makebuy-result-panel\" class=\"tactical-panel rounded-xl p-5 lg:col-span-6\"><div class=\"py-10 text-center text-xs text-slate-300/80\">Enter a component's Jita sell price and raw material build cost, then click <strong>Compare Make vs. Buy</strong>.</div></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -219,406 +246,406 @@ func InventionResultPartial(res *domain.InventionOptimizationResult, errMsg stri
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var11 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var11 == nil {
-			templ_7745c5c3_Var11 = templ.NopComponent
+		templ_7745c5c3_Var13 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var13 == nil {
+			templ_7745c5c3_Var13 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		if errMsg != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"tactical-panel rounded-xl p-4 border-rose-400/40 text-xs text-rose-200\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var12 string
-			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 187, Col: 94}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		} else if res != nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<div class=\"space-y-4\"><!-- Winner Banner --><div class=\"tactical-panel rounded-xl p-5 border-emerald-400/40 flex flex-wrap items-center justify-between gap-4\"><div class=\"flex items-center gap-3.5\"><img src=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var13 string
-			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(res.Preset.ProductTypeID, 64))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 193, Col: 60}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" alt=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<div class=\"tactical-panel rounded-xl p-4 border-rose-400/40 text-xs text-rose-200\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var14 string
-			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(res.Preset.ProductName)
+			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 193, Col: 91}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 188, Col: 94}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" class=\"h-12 w-12 shrink-0 rounded-lg border border-emerald-400/45 bg-slate-950/80 p-0.5 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"><div><div class=\"text-[10px] font-mono uppercase tracking-widest text-emerald-300\">Recommended Optimal Decryptor</div><div class=\"text-xl font-bold text-white mt-0.5\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else if res != nil {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<div class=\"space-y-4\"><!-- Winner Banner --><div class=\"tactical-panel rounded-xl p-5 border-emerald-400/40 flex flex-wrap items-center justify-between gap-4\"><div class=\"flex items-center gap-3.5\"><img src=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var15 string
-			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(res.BestScenario.Decryptor.Name)
+			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(res.Preset.ProductTypeID, 64))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 196, Col: 88}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 194, Col: 60}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</div><div class=\"text-xs font-mono text-slate-300 mt-1\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" alt=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var16 string
-			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%s • Live %s Sell: %s • Datacores/Try: %s", res.Preset.ProductName, inventionHubLabel(res.HubName), FormatISK(res.ProductSellPrice), FormatISK(res.DatacoreCostPerTry)))
+			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(res.Preset.ProductName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 198, Col: 193}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 194, Col: 91}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</div></div></div><div class=\"flex flex-wrap gap-4 font-mono text-right\"><div><div class=\"text-[10px] uppercase text-slate-400\">Net Profit / Unit</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\" class=\"h-12 w-12 shrink-0 rounded-lg border border-emerald-400/45 bg-slate-950/80 p-0.5 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"><div><div class=\"text-[10px] font-mono uppercase tracking-widest text-emerald-300\">Recommended Optimal Decryptor</div><div class=\"text-xl font-bold text-white mt-0.5\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var17 = []any{"text-lg font-bold " + profitColor(res.BestScenario.NetProfitPerUnit)}
-			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var17...)
+			var templ_7745c5c3_Var17 string
+			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(res.BestScenario.Decryptor.Name)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 197, Col: 88}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<div class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</div><div class=\"text-xs font-mono text-slate-300 mt-1\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var18 string
-			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var17).String())
+			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%s • Live %s Sell: %s • Datacores/Try: %s", res.Preset.ProductName, inventionHubLabel(res.HubName), FormatISK(res.ProductSellPrice), FormatISK(res.DatacoreCostPerTry)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 1, Col: 0}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 199, Col: 193}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</div></div></div><div class=\"flex flex-wrap gap-4 font-mono text-right\"><div><div class=\"text-[10px] uppercase text-slate-400\">Net Profit / Unit</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var19 string
-			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.BestScenario.NetProfitPerUnit))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 205, Col: 137}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
+			var templ_7745c5c3_Var19 = []any{"text-lg font-bold " + profitColor(res.BestScenario.NetProfitPerUnit)}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var19...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</div></div><div><div class=\"text-[10px] uppercase text-slate-400\">Net Profit / T2 BPC</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var20 = []any{"text-lg font-bold " + profitColor(res.BestScenario.NetProfitPerBPC)}
-			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var20...)
+			var templ_7745c5c3_Var20 string
+			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var19).String())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 1, Col: 0}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<div class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var21 string
-			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var20).String())
+			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.BestScenario.NetProfitPerUnit))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 1, Col: 0}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 206, Col: 137}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</div></div><div><div class=\"text-[10px] uppercase text-slate-400\">Net Profit / T2 BPC</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var22 string
-			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.BestScenario.NetProfitPerBPC))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 209, Col: 135}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
+			var templ_7745c5c3_Var22 = []any{"text-lg font-bold " + profitColor(res.BestScenario.NetProfitPerBPC)}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var22...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</div></div><div><div class=\"text-[10px] uppercase text-slate-400\">Success / BPC Stats</div><div class=\"text-sm font-bold text-amber-200\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<div class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var23 string
-			templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.1f%% • ME %d / %d runs", res.BestScenario.SuccessChancePct, res.BestScenario.ResultME, res.BestScenario.ResultRuns))
+			templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var22).String())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 213, Col: 186}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 1, Col: 0}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</div></div></div></div><!-- All 9 Decryptors Matrix --><div class=\"tactical-panel rounded-xl overflow-hidden\"><div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs font-mono\"><thead class=\"bg-slate-950/50 text-[10px] uppercase tracking-wider text-slate-400 border-b border-violet-400/15\"><tr><th class=\"px-4 py-3\">Decryptor</th><th class=\"px-3 py-3 text-right\">Chance</th><th class=\"px-3 py-3 text-right\">ME / TE / Runs</th><th class=\"px-3 py-3 text-right\">Decryptor Cost</th><th class=\"px-3 py-3 text-right\">Inv Cost / Unit</th><th class=\"px-3 py-3 text-right\">Total Cost / Unit</th><th class=\"px-3 py-3 text-right\">Net Profit / Unit</th><th class=\"px-4 py-3 text-right\">Profit / BPC (ROI)</th></tr></thead> <tbody class=\"divide-y divide-violet-400/15\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var24 string
+			templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.BestScenario.NetProfitPerBPC))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 210, Col: 135}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</div></div><div><div class=\"text-[10px] uppercase text-slate-400\">Success / BPC Stats</div><div class=\"text-sm font-bold text-amber-200\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var25 string
+			templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.1f%% • ME %d / %d runs", res.BestScenario.SuccessChancePct, res.BestScenario.ResultME, res.BestScenario.ResultRuns))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 214, Col: 186}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</div></div></div></div><!-- All 9 Decryptors Matrix --><div class=\"tactical-panel rounded-xl overflow-hidden\"><div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs font-mono\"><thead class=\"bg-slate-950/50 text-[10px] uppercase tracking-wider text-slate-400 border-b border-violet-400/15\"><tr><th class=\"px-4 py-3\">Decryptor</th><th class=\"px-3 py-3 text-right\">Chance</th><th class=\"px-3 py-3 text-right\">ME / TE / Runs</th><th class=\"px-3 py-3 text-right\">Decryptor Cost</th><th class=\"px-3 py-3 text-right\">Inv Cost / Unit</th><th class=\"px-3 py-3 text-right\">Total Cost / Unit</th><th class=\"px-3 py-3 text-right\">Net Profit / Unit</th><th class=\"px-4 py-3 text-right\">Profit / BPC (ROI)</th></tr></thead> <tbody class=\"divide-y divide-violet-400/15\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, sc := range res.Scenarios {
-				var templ_7745c5c3_Var24 = []any{"hover:bg-white/5 " + func() string {
+				var templ_7745c5c3_Var26 = []any{"hover:bg-white/5 " + func() string {
 					if sc.IsBest {
 						return "bg-emerald-500/10"
 					}
 					return ""
 				}()}
-				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var24...)
+				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var26...)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<tr class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<tr class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var25 string
-				templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var24).String())
+				var templ_7745c5c3_Var27 string
+				templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var26).String())
 				if templ_7745c5c3_Err != nil {
 					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 1, Col: 0}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\"><td class=\"px-4 py-2.5 font-sans\"><div class=\"flex items-center gap-2\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\"><td class=\"px-4 py-2.5 font-sans\"><div class=\"flex items-center gap-2\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if sc.Decryptor.TypeID > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<img src=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<img src=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var26 string
-					templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(sc.Decryptor.TypeID, 32))
+					var templ_7745c5c3_Var28 string
+					templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(sc.Decryptor.TypeID, 32))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 240, Col: 62}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 241, Col: 62}
 					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" alt=\"")
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var27 string
-					templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(sc.Decryptor.Name)
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 240, Col: 88}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" alt=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\" loading=\"lazy\" class=\"h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"> ")
+					var templ_7745c5c3_Var29 string
+					templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(sc.Decryptor.Name)
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 241, Col: 88}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<span class=\"font-semibold text-white\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var28 string
-				templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(sc.Decryptor.Name)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 242, Col: 69}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</span> ")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				if sc.IsBest {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<span class=\"rounded border border-emerald-400/45 bg-emerald-500/20 px-1.5 py-0.5 font-mono text-[9px] font-bold text-emerald-200\">BEST</span>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\" loading=\"lazy\" class=\"h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain\" onerror=\"this.style.display=&#39;none&#39;\"> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</div></td><td class=\"px-3 py-2.5 text-right text-sky-200\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var29 string
-				templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.1f%%", sc.SuccessChancePct))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 248, Col: 101}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</td><td class=\"px-3 py-2.5 text-right text-slate-200\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<span class=\"font-semibold text-white\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var30 string
-				templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d%% / %d%% / %dr", sc.ResultME, sc.ResultTE, sc.ResultRuns))
+				templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(sc.Decryptor.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 249, Col: 134}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 243, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</td><td class=\"px-3 py-2.5 text-right text-slate-300\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</span> ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if sc.IsBest {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<span class=\"rounded border border-emerald-400/45 bg-emerald-500/20 px-1.5 py-0.5 font-mono text-[9px] font-bold text-emerald-200\">BEST</span>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</div></td><td class=\"px-3 py-2.5 text-right text-sky-200\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var31 string
-				templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(sc.DecryptorPrice))
+				templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.1f%%", sc.SuccessChancePct))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 250, Col: 89}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 249, Col: 101}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</td><td class=\"px-3 py-2.5 text-right text-amber-200\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</td><td class=\"px-3 py-2.5 text-right text-slate-200\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var32 string
-				templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(sc.InventionCostPerUnit))
+				templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d%% / %d%% / %dr", sc.ResultME, sc.ResultTE, sc.ResultRuns))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 251, Col: 95}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 250, Col: 134}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "</td><td class=\"px-3 py-2.5 text-right text-slate-200\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "</td><td class=\"px-3 py-2.5 text-right text-slate-300\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var33 string
-				templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(sc.TotalCostPerUnit))
+				templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(sc.DecryptorPrice))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 252, Col: 91}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 251, Col: 89}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "</td>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "</td><td class=\"px-3 py-2.5 text-right text-amber-200\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var34 = []any{"px-3 py-2.5 text-right font-bold " + profitColor(sc.NetProfitPerUnit)}
-				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var34...)
+				var templ_7745c5c3_Var34 string
+				templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(sc.InventionCostPerUnit))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 252, Col: 95}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<td class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "</td><td class=\"px-3 py-2.5 text-right text-slate-200\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var35 string
-				templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var34).String())
+				templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(sc.TotalCostPerUnit))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 1, Col: 0}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 253, Col: 91}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</td>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var36 string
-				templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(sc.NetProfitPerUnit))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 253, Col: 126}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
+				var templ_7745c5c3_Var36 = []any{"px-3 py-2.5 text-right font-bold " + profitColor(sc.NetProfitPerUnit)}
+				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var36...)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "</td><td class=\"px-4 py-2.5 text-right\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<td class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var37 = []any{"font-bold " + profitColor(sc.NetProfitPerBPC)}
-				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var37...)
+				var templ_7745c5c3_Var37 string
+				templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var36).String())
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 1, Col: 0}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "<span class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var38 string
-				templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var37).String())
+				templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(sc.NetProfitPerUnit))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 1, Col: 0}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 254, Col: 126}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "</td><td class=\"px-4 py-2.5 text-right\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var39 string
-				templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(sc.NetProfitPerBPC))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 255, Col: 104}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
+				var templ_7745c5c3_Var39 = []any{"font-bold " + profitColor(sc.NetProfitPerBPC)}
+				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var39...)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "</span> <span class=\"text-slate-400 ml-1\">(")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<span class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var40 string
-				templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(sc.ROIPercent))
+				templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var39).String())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 256, Col: 75}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 1, Col: 0}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, ")</span></td></tr>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var41 string
+				templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(sc.NetProfitPerBPC))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 256, Col: 104}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "</span> <span class=\"text-slate-400 ml-1\">(")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var42 string
+				templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(sc.ROIPercent))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 257, Col: 75}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, ")</span></td></tr>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "</tbody></table></div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</tbody></table></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -643,89 +670,71 @@ func MakeVsBuyResultPartial(res *domain.MakeVsBuyResult, errMsg string) templ.Co
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var41 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var41 == nil {
-			templ_7745c5c3_Var41 = templ.NopComponent
+		templ_7745c5c3_Var43 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var43 == nil {
+			templ_7745c5c3_Var43 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		if errMsg != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "<div class=\"rounded-lg border border-rose-400/40 bg-rose-950/40 p-4 text-xs text-rose-200\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var42 string
-			templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 270, Col: 101}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</div>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		} else if res != nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<div class=\"space-y-4\"><div class=\"flex items-center justify-between border-b border-violet-400/20 pb-3\"><div><div class=\"text-[10px] font-mono uppercase text-slate-400\">Decision for ")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var43 string
-			templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%dx %s", res.Quantity, res.ComponentName))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 275, Col: 134}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "</div><div class=\"text-xl font-bold text-white mt-0.5\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<div class=\"rounded-lg border border-rose-400/40 bg-rose-950/40 p-4 text-xs text-rose-200\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var44 string
-			templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(res.Recommendation)
+			templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 276, Col: 74}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 271, Col: 101}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "</div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else if res != nil {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "<div class=\"space-y-4\"><div class=\"flex items-center justify-between border-b border-violet-400/20 pb-3\"><div><div class=\"text-[10px] font-mono uppercase text-slate-400\">Decision for ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var45 string
+			templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%dx %s", res.Quantity, res.ComponentName))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 276, Col: 134}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "</div><div class=\"text-xl font-bold text-white mt-0.5\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var46 string
+			templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(res.Recommendation)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 277, Col: 74}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "</div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if res.Recommendation == "MAKE COMPONENT" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "<span class=\"rounded-full border border-emerald-400/45 bg-emerald-500/20 px-3 py-1 font-mono text-xs font-bold text-emerald-200\">SAVE ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "<span class=\"rounded-full border border-emerald-400/45 bg-emerald-500/20 px-3 py-1 font-mono text-xs font-bold text-emerald-200\">SAVE ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var45 string
-				templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(res.SavingsPercent))
+				var templ_7745c5c3_Var47 string
+				templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(res.SavingsPercent))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 280, Col: 46}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 281, Col: 46}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "</span>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "<span class=\"rounded-full border border-sky-400/45 bg-sky-500/20 px-3 py-1 font-mono text-xs font-bold text-sky-200\">BUY CHEAPER BY ")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var46 string
-				templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(res.SavingsPercent))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 284, Col: 56}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var47))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -733,82 +742,100 @@ func MakeVsBuyResultPartial(res *domain.MakeVsBuyResult, errMsg string) templ.Co
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "<span class=\"rounded-full border border-sky-400/45 bg-sky-500/20 px-3 py-1 font-mono text-xs font-bold text-sky-200\">BUY CHEAPER BY ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var48 string
+				templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(res.SavingsPercent))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 285, Col: 56}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "</span>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "</div><div class=\"grid grid-cols-2 gap-3 font-mono\"><div class=\"rounded-lg border border-slate-800 bg-slate-900/75 p-3\"><div class=\"text-[10px] uppercase text-slate-400\">Total Buy Cost (Market)</div><div class=\"mt-1 text-lg font-bold text-amber-200\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var47 string
-			templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.TotalBuyCost))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 292, Col: 85}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var47))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "</div></div><div class=\"rounded-lg border border-slate-800 bg-slate-900/75 p-3\"><div class=\"text-[10px] uppercase text-slate-400\">Total Make Cost (Raw + SCI)</div><div class=\"mt-1 text-lg font-bold text-sky-200\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var48 string
-			templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.TotalMakeCost))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 296, Col: 84}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "</div></div></div><div class=\"rounded-lg border border-slate-800 bg-slate-950/60 p-3.5 text-xs font-mono space-y-1.5\"><div class=\"flex justify-between\"><span class=\"text-slate-400\">Job Install Cost (SCI + Facility Tax)</span><span class=\"text-slate-200\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "</div><div class=\"grid grid-cols-2 gap-3 font-mono\"><div class=\"rounded-lg border border-slate-800 bg-slate-900/75 p-3\"><div class=\"text-[10px] uppercase text-slate-400\">Total Buy Cost (Market)</div><div class=\"mt-1 text-lg font-bold text-amber-200\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var49 string
-			templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISKExact(res.JobInstallTotal))
+			templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.TotalBuyCost))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 301, Col: 177}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 293, Col: 85}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var49))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "</span></div><div class=\"flex justify-between font-bold border-t border-slate-800 pt-1.5\"><span class=\"text-slate-300\">Net ISK Difference (Buy − Make)</span> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "</div></div><div class=\"rounded-lg border border-slate-800 bg-slate-900/75 p-3\"><div class=\"text-[10px] uppercase text-slate-400\">Total Make Cost (Raw + SCI)</div><div class=\"mt-1 text-lg font-bold text-sky-200\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var50 = []any{profitColor(res.SavingsISK)}
-			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var50...)
+			var templ_7745c5c3_Var50 string
+			templ_7745c5c3_Var50, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.TotalMakeCost))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 297, Col: 84}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var50))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "<span class=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "</div></div></div><div class=\"rounded-lg border border-slate-800 bg-slate-950/60 p-3.5 text-xs font-mono space-y-1.5\"><div class=\"flex justify-between\"><span class=\"text-slate-400\">Job Install Cost (SCI + Facility Tax)</span><span class=\"text-slate-200\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var51 string
-			templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var50).String())
+			templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISKExact(res.JobInstallTotal))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 1, Col: 0}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 302, Col: 177}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var51))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "</span></div><div class=\"flex justify-between font-bold border-t border-slate-800 pt-1.5\"><span class=\"text-slate-300\">Net ISK Difference (Buy − Make)</span> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var52 string
-			templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISKExact(res.SavingsISK))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 304, Col: 81}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var52))
+			var templ_7745c5c3_Var52 = []any{profitColor(res.SavingsISK)}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var52...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "</span></div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "<span class=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var53 string
+			templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var52).String())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 1, Col: 0}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var53))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var54 string
+			templ_7745c5c3_Var54, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISKExact(res.SavingsISK))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/invention.templ`, Line: 305, Col: 81}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var54))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "</span></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

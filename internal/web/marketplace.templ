@@ -3,9 +3,11 @@ package web
 import (
 	"fmt"
 	"math"
+	"net/url"
 	"strings"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -154,7 +156,100 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 			x-data={ fmt.Sprintf(`{
 				isAdmin: %t,
 				aiEnabled: %t,
-				mpTab: 'orderbook',
+				mpTab: new URLSearchParams(window.location.search).get('tab') || 'orderbook',
+				bpcQuery: %q,
+				bpcHub: %q,
+				bpcSuggestions: [],
+				showBPCSuggest: false,
+				bpcSuggestTimer: null,
+				showInfoOpen: false,
+				infoLoading: false,
+				infoHtml: '',
+				compareQueue: (() => {
+					try {
+						const raw = JSON.parse(localStorage.getItem('af_compare_queue') || '[]');
+						if (Array.isArray(raw)) return raw.filter(x => x && x.name).slice(0, 3);
+					} catch (e) {}
+					return [];
+				})(),
+				compareModalOpen: false,
+				compareLoading: false,
+				compareHtml: '',
+				saveCompareQueue() {
+					try { localStorage.setItem('af_compare_queue', JSON.stringify(this.compareQueue)); } catch (e) {}
+				},
+				isInCompare(name) {
+					const q = (name || '').trim().toLowerCase();
+					return this.compareQueue.some(x => (x.name || '').toLowerCase() === q);
+				},
+				toggleCompareItem(name, typeId) {
+					const clean = (name || '').trim();
+					if (!clean) return;
+					const idx = this.compareQueue.findIndex(x => (x.name || '').toLowerCase() === clean.toLowerCase());
+					if (idx >= 0) {
+						this.compareQueue.splice(idx, 1);
+						this.saveCompareQueue();
+						window.dispatchEvent(new CustomEvent('showToast', { detail: { level: 'info', message: clean + ' removed from Compare (' + this.compareQueue.length + '/3).' } }));
+						if (this.compareModalOpen) {
+							if (this.compareQueue.length === 0) {
+								this.compareModalOpen = false;
+							} else {
+								this.openCompareModal();
+							}
+						}
+						return;
+					}
+					if (this.compareQueue.length >= 3) {
+						window.dispatchEvent(new CustomEvent('showToast', { detail: { level: 'error', message: 'Compare queue is full (maximum 3 items). Reset or remove one item first.' } }));
+						return;
+					}
+					this.compareQueue.push({ name: clean, typeId: Number(typeId) || 0 });
+					this.saveCompareQueue();
+					window.dispatchEvent(new CustomEvent('showToast', { detail: { level: 'success', message: clean + ' added to Compare (' + this.compareQueue.length + '/3).' } }));
+				},
+				resetCompareQueue() {
+					this.compareQueue = [];
+					this.saveCompareQueue();
+					this.compareModalOpen = false;
+					this.compareHtml = '';
+				},
+				async openCompareModal() {
+					if (this.compareQueue.length === 0) return;
+					this.showInfoOpen = false;
+					this.compareModalOpen = true;
+					this.compareLoading = true;
+					this.compareHtml = '';
+					try {
+						const params = new URLSearchParams({ hub: this.selectedHub || 'jita' });
+						this.compareQueue.slice(0, 3).forEach((it, idx) => {
+							params.set('q' + (idx + 1), it.name);
+						});
+						const r = await fetch('/marketplace/compare?' + params.toString());
+						this.compareHtml = await r.text();
+					} catch (e) {
+						this.compareHtml = '<div class="rounded-xl border border-rose-500/40 bg-rose-950/40 p-4 text-xs text-rose-200">Network error loading Compare Popup.</div>';
+					} finally {
+						this.compareLoading = false;
+					}
+				},
+				async openShowInfoModal(name) {
+					const q = (name || '').trim();
+					if (!q) return;
+					this.compareModalOpen = false;
+					this.showInfoOpen = true;
+					this.infoLoading = true;
+					this.infoHtml = '';
+					try {
+						const params = new URLSearchParams({ q1: q, hub: this.selectedHub || 'jita' });
+						const r = await fetch('/marketplace/compare?' + params.toString());
+						this.infoHtml = await r.text();
+					} catch (e) {
+						this.infoHtml = '<div class="rounded-xl border border-rose-500/40 bg-rose-950/40 p-4 text-xs text-rose-200">Network error loading Show Info.</div>';
+					} finally {
+						this.infoLoading = false;
+					}
+				},
+				browseTarget: 'orderbook',
 				appraisalText: '',
 				queryText: %q,
 				selectedHub: %q,
@@ -198,9 +293,48 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 						} catch (e) {}
 					}, 160);
 				},
-				openBrowseModal() {
+				debounceBPCSuggest() {
+					clearTimeout(this.bpcSuggestTimer);
+					const q = (this.bpcQuery || '').trim();
+					if (q.length < 2) {
+						this.bpcSuggestions = [];
+						this.showBPCSuggest = false;
+						return;
+					}
+					this.bpcSuggestTimer = setTimeout(async () => {
+						try {
+							const r = await fetch('/calculator/blueprints/search?q=' + encodeURIComponent(q) + '&limit=12');
+							if (r.ok) {
+								const d = await r.json();
+								this.bpcSuggestions = d.items || [];
+								this.showBPCSuggest = this.bpcSuggestions.length > 0;
+							}
+						} catch (e) {}
+					}, 160);
+				},
+				runBPCSearch(name, hub) {
+					if (name) this.bpcQuery = name;
+					if (hub) this.bpcHub = hub;
+					this.showBPCSuggest = false;
+					const q = (this.bpcQuery || '').trim();
+					if (!q) return;
+					htmx.ajax('GET', '/marketplace/bpc?q=' + encodeURIComponent(q) + '&hub=' + encodeURIComponent(this.bpcHub), {
+						target: '#marketplace-bpc-results',
+						swap: 'innerHTML',
+						indicator: '#mp-bpc-spinner'
+					});
+				},
+				openBrowseModal(target) {
+					const nextTarget = target || 'orderbook';
+					const changed = this.browseTarget !== nextTarget;
+					this.browseTarget = nextTarget;
 					this.showBrowse = true;
-					if (this.browseItems.length === 0) {
+					if (changed || this.browseItems.length === 0) {
+						this.browseCat = '';
+						this.browseGroup = '';
+						this.browseQuery = '';
+						this.browseCategories = [];
+						this.browseGroups = [];
 						this.loadBrowse(1);
 					}
 				},
@@ -217,6 +351,37 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 					this.browseLoading = true;
 					this.browsePage = page;
 					try {
+						if (this.browseTarget === 'bpc') {
+							let techVal = '0';
+							if (this.browseGroup === 'Tech I (T1)') techVal = '1';
+							else if (this.browseGroup === 'Tech II (T2)') techVal = '2';
+							else if (this.browseGroup === 'Tech III (T3)') techVal = '3';
+							const params = new URLSearchParams({
+								q: this.browseQuery,
+								category: this.browseCat,
+								tech: techVal,
+								page: String(page),
+								limit: '24'
+							});
+							const r = await fetch('/calculator/blueprints/search?' + params.toString());
+							if (r.ok) {
+								const d = await r.json();
+								this.browseItems = (d.items || []).map(bp => ({
+									type_id: bp.product_type_id || bp.blueprint_type_id,
+									name: bp.name,
+									product_name: bp.product_name,
+									category: bp.category || 'Blueprint',
+									group_name: 'T' + (bp.tech_level || 1) + ' • ' + (bp.product_name || '')
+								}));
+								this.browseTotal = d.total || 0;
+								this.browseTotalPages = d.total_pages || 1;
+								if (d.categories && d.categories.length) {
+									this.browseCategories = d.categories.map(c => typeof c === 'string' ? { category: c, count: '' } : c);
+								}
+								this.browseGroups = ['Tech I (T1)', 'Tech II (T2)', 'Tech III (T3)'];
+							}
+							return;
+						}
 						const params = new URLSearchParams({
 							q: this.browseQuery,
 							category: this.browseCat,
@@ -261,6 +426,10 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 				pickBrowseItem(item) {
 					if (!item || !item.name) return;
 					this.showBrowse = false;
+					if (this.browseTarget === 'bpc') {
+						this.runBPCSearch(item.name, this.bpcHub);
+						return;
+					}
 					this.runSearch(item.name, this.selectedHub);
 				},
 				runSearch(name, hub) {
@@ -281,18 +450,20 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 						window.dispatchEvent(new CustomEvent('showToast', { detail: { level: 'success', message: label + ' copied (' + Number(val).toLocaleString() + ' ISK)' } }));
 					});
 				}
-			}`, mode.IsAdmin(), mode.AI.Enabled, query, hubKey) }
-			@keydown.escape.window="showBrowse = false"
+			}`, mode.IsAdmin(), mode.AI.Enabled, query, hubKey, query, hubKey) }
+			@keydown.escape.window="showBrowse = false; showInfoOpen = false; compareModalOpen = false"
 			@mp-switch-hub.window="runSearch($event.detail.name, $event.detail.hub)"
 			@mp-copy-price.window="copyPrice($event.detail.val, $event.detail.label)"
+			@mp-show-info.window="openShowInfoModal($event.detail.name)"
+			@mp-toggle-compare.window="toggleCompareItem($event.detail.name, $event.detail.typeId)"
 		>
-			<!-- Header -->
-			<div class="flex flex-wrap items-center justify-between gap-4">
-				<div>
+			<!-- Header & Right-Aligned Tab Switcher -->
+			<div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+				<div class="min-w-0">
 					<h1 class="text-2xl font-bold tracking-tight text-white">New Eden Marketplace Browser</h1>
-					<p class="text-xs text-slate-300/80 mt-0.5">Live SDE autocomplete, parallel 5-hub comparisons (Jita, Amarr, Dodixie, Rens, Hek), bulk clipboard Appraisal, and Order Book depth.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Live SDE autocomplete, parallel 5-hub comparisons (Jita, Amarr, Dodixie, Rens, Hek), bulk clipboard Appraisal, and Order Book depth.", "Pencarian otomatis SDE live, perbandingan 5 Trade Hub paralel (Jita, Amarr, Dodixie, Rens, Hek), Appraisal clipboard massal, dan kedalaman Order Book.") }</p>
 				</div>
-				<div class="inline-flex rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur">
+				<div class="ml-auto self-end xl:self-auto shrink-0 inline-flex flex-wrap justify-end rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur">
 					<button
 						type="button"
 						@click="mpTab = 'orderbook'"
@@ -303,12 +474,234 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 					</button>
 					<button
 						type="button"
+						@click="mpTab = 'bpc'"
+						:class="mpTab === 'bpc' ? 'bg-sky-400 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'"
+						class="rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
+					>
+						NPC BPO &amp; LP Store
+					</button>
+					<button
+						type="button"
 						@click="mpTab = 'appraisal'"
 						:class="mpTab === 'appraisal' ? 'bg-emerald-400 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'"
 						class="rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
 					>
 						Appraisal
 					</button>
+				</div>
+			</div>
+
+			<!-- FLOATING EVE ONLINE "SHOW INFO" POPUP MODAL (Fixed 82vh height, Day/Night adaptive tactical-panel) -->
+			<div x-cloak x-show="showInfoOpen" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6">
+				<div class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm" @click="showInfoOpen = false"></div>
+				<div class="relative z-10 tactical-panel w-full max-w-4xl h-[82vh] flex flex-col rounded-2xl shadow-2xl overflow-hidden">
+					<!-- EVE Show Info Window Bar -->
+					<div class="flex items-center justify-between gap-2 border-b border-violet-400/25 bg-slate-950/60 px-5 py-3 shrink-0">
+						<div class="flex items-center gap-2">
+							<span class="inline-flex h-6 w-6 items-center justify-center rounded-full border border-sky-400/50 bg-sky-500/15 font-mono text-xs font-bold text-sky-300">i</span>
+							<span class="text-xs font-bold uppercase tracking-wider text-white">Show Info</span>
+							<span x-show="infoLoading" class="h-3.5 w-3.5 animate-spin rounded-full border-2 border-amber-300 border-t-transparent"></span>
+						</div>
+						<button
+							type="button"
+							@click="showInfoOpen = false"
+							class="rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer"
+						>
+							✕
+						</button>
+					</div>
+
+					<!-- Scrollable Fixed-Height Popup Body -->
+					<div class="flex-1 min-h-0 overflow-y-auto p-5">
+						<div x-show="infoLoading" class="h-full flex items-center justify-center text-xs font-mono text-amber-200">
+							Loading EVE Show Info...
+						</div>
+						<div x-show="!infoLoading" x-html="infoHtml"></div>
+					</div>
+				</div>
+			</div>
+
+			<!-- FLOATING SIDE-BY-SIDE COMPARE POPUP MODAL (Fixed 84vh height, 1-3 items, Day/Night adaptive tactical-panel) -->
+			<div x-cloak x-show="compareModalOpen" style="display: none;" class="fixed inset-0 z-[105] flex items-center justify-center p-3 sm:p-6">
+				<div class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm" @click="compareModalOpen = false"></div>
+				<div class="relative z-10 tactical-panel w-full max-w-6xl h-[84vh] flex flex-col rounded-2xl shadow-2xl overflow-hidden">
+					<!-- Compare Popup Window Bar -->
+					<div class="flex items-center justify-between gap-2 border-b border-violet-400/25 bg-slate-950/60 px-5 py-3 shrink-0">
+						<div class="flex items-center gap-2.5">
+							<span class="inline-flex h-6 w-6 items-center justify-center rounded-md border border-amber-400/50 bg-amber-500/15 font-mono text-xs font-bold text-amber-300">⇄</span>
+							<span class="text-xs font-bold uppercase tracking-wider text-white">Compare Items</span>
+							<span class="rounded border border-violet-400/40 bg-violet-500/20 px-2 py-0.5 font-mono text-[10.5px] font-bold text-violet-200" x-text="compareQueue.length + ' / 3 Selected'"></span>
+							<span x-show="compareLoading" class="h-3.5 w-3.5 animate-spin rounded-full border-2 border-amber-300 border-t-transparent"></span>
+						</div>
+						<div class="flex items-center gap-2">
+							<button
+								type="button"
+								@click="resetCompareQueue()"
+								class="rounded-md border border-rose-400/40 bg-rose-500/15 px-2.5 py-1 text-[11px] font-bold text-rose-200 hover:bg-rose-500/25 transition cursor-pointer"
+							>
+								Reset (0)
+							</button>
+							<button
+								type="button"
+								@click="compareModalOpen = false"
+								class="rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer"
+							>
+								✕
+							</button>
+						</div>
+					</div>
+
+					<!-- Scrollable Fixed-Height Compare Body -->
+					<div class="flex-1 min-h-0 overflow-y-auto p-5">
+						<div x-show="compareLoading" class="h-full flex items-center justify-center text-xs font-mono text-amber-200">
+							Loading Item Comparison...
+						</div>
+						<div x-show="!compareLoading" x-html="compareHtml"></div>
+					</div>
+				</div>
+			</div>
+
+			<!-- FLOATING BOTTOM-RIGHT COMPARE TRAY PILL (Visible when 1..3 items queued, Day/Night adaptive) -->
+			<div
+				x-cloak
+				x-show="compareQueue.length > 0"
+				style="display: none;"
+				class="fixed bottom-6 right-6 z-40"
+			>
+				<div class="tactical-panel flex items-center gap-2 rounded-2xl px-3 py-2 shadow-2xl">
+					<div class="flex items-center gap-1.5 pr-1">
+						<template x-for="cItem in compareQueue" :key="cItem.name">
+							<button
+								type="button"
+								@click="toggleCompareItem(cItem.name, cItem.typeId)"
+								:title="'Click to remove ' + cItem.name"
+								class="group relative inline-flex h-7 w-7 items-center justify-center rounded-lg border border-amber-300/60 bg-slate-950 p-0.5 shadow hover:border-rose-400/80 transition cursor-pointer"
+							>
+								<img
+									x-show="cItem.typeId > 0"
+									:src="'https://images.evetech.net/types/' + cItem.typeId + '/icon?size=32'"
+									:alt="cItem.name"
+									class="h-full w-full rounded object-contain group-hover:opacity-35 transition"
+									onerror="this.style.display='none'"
+								/>
+								<span class="pointer-events-none absolute inset-0 flex items-center justify-center text-[11px] font-extrabold text-rose-300 opacity-0 group-hover:opacity-100 transition">✕</span>
+							</button>
+						</template>
+					</div>
+					<button
+						type="button"
+						@click="openCompareModal()"
+						class="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-3.5 py-1.5 text-xs font-extrabold text-white shadow hover:from-violet-500 hover:to-indigo-500 transition cursor-pointer"
+					>
+						<span>Compare (<span x-text="compareQueue.length"></span>)</span>
+					</button>
+					<button
+						type="button"
+						@click="resetCompareQueue()"
+						title="Reset compare queue to 0"
+						class="rounded-xl border border-rose-400/40 bg-rose-500/15 px-2.5 py-1.5 text-[11px] font-bold text-rose-200 hover:bg-rose-500/30 transition cursor-pointer"
+					>
+						Reset
+					</button>
+				</div>
+			</div>
+
+			<!-- TAB 2: NPC BPO & LP STORE FINDER -->
+			<div x-cloak x-show="mpTab === 'bpc'" class="space-y-6">
+				<div class="tactical-panel relative z-30 rounded-xl p-5 space-y-4">
+					<div>
+						<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">
+							{ i18n.L(ctx, "NPC BPO & LP Store Finder", "Pencari BPO Resmi NPC & LP Store") }
+						</h2>
+						<p class="text-xs text-slate-300/80 mt-0.5">
+							{ i18n.L(ctx, "Instantly check official NPC BPO seed stations in your region and 10 major Empire/Pirate LP Stores, plus 1-click copy for checking player BPC contracts in-game.", "Cek instan stasiun BPO resmi NPC di region Anda dan 10 LP Store korporasi utama Empire/Pirate, plus tombol salin 1-klik untuk mengecek kontrak BPC pemain di dalam game.") }
+						</p>
+					</div>
+					<form
+						@submit.prevent="runBPCSearch(bpcQuery, bpcHub)"
+						class="grid grid-cols-1 gap-3 sm:grid-cols-12 items-end"
+					>
+						<div class="sm:col-span-6 relative" @click.outside="showBPCSuggest = false">
+							<label class="block text-[10px] font-mono uppercase tracking-wider text-slate-300 mb-1">
+								{ i18n.L(ctx, "Item or Blueprint Name (Live SDE Autocomplete or Browse)", "Nama Item atau Blueprint (Autocomplete SDE Live atau Browse)") }
+							</label>
+							<div class="flex gap-2">
+								<input
+									type="text"
+									name="q"
+									x-model="bpcQuery"
+									@input="debounceBPCSuggest()"
+									@focus="if (bpcSuggestions.length > 0) showBPCSuggest = true"
+									autocomplete="off"
+									required
+									placeholder={ i18n.L(ctx, "Type e.g. hobgob, caracal, venture, hookbill...", "Ketik mis. hobgob, caracal, venture, hookbill...") }
+									class="flex-1 min-w-0 rounded-lg border border-slate-700 bg-slate-900/90 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:border-sky-400/70 focus:outline-none"
+								/>
+								<button
+									type="button"
+									@click="openBrowseModal('bpc')"
+									class="shrink-0 rounded-lg border border-violet-400/50 bg-violet-500/20 px-3.5 py-2.5 text-xs font-bold text-violet-100 hover:bg-violet-500/35 hover:border-sky-300/60 transition cursor-pointer"
+								>
+									{ i18n.L(ctx, "Browse", "Jelajahi") }
+								</button>
+							</div>
+							<!-- Live SDE Blueprint Autocomplete Dropdown -->
+							<div
+								x-cloak
+								x-show="showBPCSuggest && bpcSuggestions.length > 0"
+								class="absolute left-0 right-0 top-full z-50 mt-1 max-h-72 overflow-y-auto rounded-xl border border-sky-400/40 bg-[#121329]/95 shadow-2xl backdrop-blur"
+							>
+								<template x-for="bp in bpcSuggestions" :key="bp.blueprint_type_id">
+									<button
+										type="button"
+										@click="runBPCSearch(bp.product_name || bp.name, bpcHub)"
+										class="flex w-full items-center gap-2.5 border-b border-violet-400/10 px-3 py-2 text-left hover:bg-sky-500/20 transition cursor-pointer"
+									>
+										<img
+											x-show="bp.product_type_id > 0"
+											:src="'https://images.evetech.net/types/' + bp.product_type_id + '/icon?size=64'"
+											:alt="bp.product_name"
+											class="h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950 object-contain"
+											onerror="this.style.display='none'"
+										/>
+										<div class="min-w-0 flex-1">
+											<div class="truncate text-xs font-semibold text-white" x-text="bp.name"></div>
+											<div class="text-[10px] font-mono text-slate-400" x-text="'T' + (bp.tech_level || 1) + ' • ' + (bp.category || 'Blueprint') + ' • ' + (bp.product_name || '')"></div>
+										</div>
+										<span class="font-mono text-[10px] text-sky-300" x-text="'#' + bp.blueprint_type_id"></span>
+									</button>
+								</template>
+							</div>
+						</div>
+						<div class="sm:col-span-3">
+							<label class="block text-[10px] font-mono uppercase tracking-wider text-slate-300 mb-1">
+								{ i18n.L(ctx, "NPC BPO Region / Hub", "Region / Trade Hub BPO NPC") }
+							</label>
+							<select name="hub" x-model="bpcHub" @change="if ((bpcQuery || '').trim()) runBPCSearch(bpcQuery, bpcHub)" class="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2.5 text-sm text-white">
+								for _, h := range domain.MajorTradeHubs {
+									<option value={ h.Key } selected?={ hubKey == h.Key }>{ h.Name } ({ h.RegionName })</option>
+								}
+							</select>
+						</div>
+						<div class="sm:col-span-3">
+							<button
+								type="submit"
+								class="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-sky-400 px-4 py-2.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-sky-300 transition cursor-pointer"
+							>
+								<span id="mp-bpc-spinner" class="htmx-indicator h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent"></span>
+								<span>{ i18n.L(ctx, "Find BPO & LP Store", "Cari BPO & LP Store") }</span>
+							</button>
+						</div>
+					</form>
+				</div>
+
+				<div id="marketplace-bpc-results">
+					<div class="tactical-panel rounded-xl p-10 text-center space-y-2">
+						<div class="text-sm font-bold text-white">{ i18n.L(ctx, "Search Official NPC BPOs & LP Store Offers", "Cari BPO Resmi NPC & Penawaran LP Store") }</div>
+						<p class="text-xs text-slate-400 max-w-lg mx-auto">
+							{ i18n.L(ctx, "Enter any ship, module, drone, or ammo name above (e.g. Caracal Navy Issue, Hobgoblin I, Venture) to see official NPC BPO seed stations and LP Store locations instantly.", "Masukkan nama kapal, modul, drone, atau amunisi di atas (mis. Caracal Navy Issue, Hobgoblin I, Venture) untuk melihat stasiun BPO resmi NPC dan lokasi LP Store secara instan.") }
+						</p>
+					</div>
 				</div>
 			</div>
 
@@ -332,7 +725,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 								@focus="if (suggestions.length > 0) showSuggest = true"
 								autocomplete="off"
 								required
-								placeholder="Type partial name e.g. hobgob, shield extender, venture, plex..."
+								placeholder={ i18n.L(ctx, "Type partial name e.g. hobgob, shield extender, venture, plex...", "Ketik sebagian nama item, mis. hobgob, shield extender, venture, plex...") }
 								class="flex-1 min-w-0 rounded-lg border border-slate-700 bg-slate-900/90 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none"
 							/>
 							<button
@@ -340,7 +733,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 								@click="openBrowseModal()"
 								class="shrink-0 rounded-lg border border-violet-400/50 bg-violet-500/20 px-3.5 py-2.5 text-xs font-bold text-violet-100 hover:bg-violet-500/35 hover:border-amber-300/60 transition cursor-pointer"
 							>
-								Browse Catalog
+								{ i18n.L(ctx, "Browse Catalog", "Jelajahi Katalog") }
 							</button>
 						</div>
 						<!-- Live Autocomplete Dropdown -->
@@ -373,7 +766,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 						</div>
 					</div>
 					<div class="sm:col-span-3">
-						<label class="block text-[10px] font-mono uppercase tracking-wider text-slate-300 mb-1">Primary Trade Hub</label>
+						<label class="block text-[10px] font-mono uppercase tracking-wider text-slate-300 mb-1">{ i18n.L(ctx, "Primary Trade Hub", "Trade Hub Utama") }</label>
 						<select name="hub" x-model="selectedHub" @change="if ((queryText || '').trim()) runSearch(queryText, selectedHub)" class="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2.5 text-sm text-white">
 							for _, h := range domain.MajorTradeHubs {
 								<option value={ h.Key } selected?={ hubKey == h.Key }>{ h.Name } ({ h.RegionName })</option>
@@ -386,7 +779,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 							class="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-amber-400 px-4 py-2.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer"
 						>
 							<span id="mp-search-spinner" class="htmx-indicator h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent"></span>
-							<span>Search Market</span>
+							<span>{ i18n.L(ctx, "Search Market", "Cari Market") }</span>
 						</button>
 					</div>
 				</form>
@@ -419,7 +812,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 					<div class="flex flex-wrap items-center justify-between gap-3">
 						<div>
 							<h2 class="text-sm font-bold uppercase tracking-wider text-emerald-300">EVE Online Bulk Appraisal (Paste from Game)</h2>
-							<p class="text-xs text-slate-300/80 mt-0.5">Press <span class="font-mono text-amber-200">Ctrl+A → Ctrl+C</span> in your EVE Hangar, Ship Cargo, Loot, Epithal, Contract, Multibuy, or EFT Fit and paste below for instant 5-Hub valuation.</p>
+							<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Press Ctrl+A → Ctrl+C in your EVE Hangar, Ship Cargo, Loot, Epithal, Contract, Multibuy, or EFT Fit and paste below for instant 5-Hub valuation.", "Tekan Ctrl+A → Ctrl+C di EVE Hangar, Ship Cargo, Loot, Epithal, Contract, Multibuy, atau EFT Fit lalu tempel di bawah untuk valuasi 5-Hub instan.") }</p>
 						</div>
 						<div class="flex items-center gap-2">
 							<button
@@ -495,9 +888,9 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 
 				<div id="marketplace-appraisal-results">
 					<div class="tactical-panel rounded-xl p-10 text-center space-y-2">
-						<div class="text-sm font-bold text-white">Ready to Appraise Your EVE Online Items</div>
+						<div class="text-sm font-bold text-white">{ i18n.L(ctx, "Ready to Appraise Your EVE Online Items", "Siap Menilai (Appraise) Item EVE Online Anda") }</div>
 						<p class="text-xs text-slate-400 max-w-md mx-auto">
-							Paste any list of items copied from EVE Online above and click <strong>Appraise (Live ESI)</strong> to see Total Sell, Instant Buy, post-tax net ISK, Buyback value, and cargo volume.
+							{ i18n.L(ctx, "Paste any list of items copied from EVE Online above and click Appraise (Live ESI) to see Total Sell, Instant Buy, post-tax net ISK, Buyback value, and cargo volume.", "Tempel daftar item yang disalin dari EVE Online di atas lalu klik Appraise (Live ESI) untuk melihat Total Sell, Instant Buy, ISK bersih setelah pajak, nilai Buyback, dan volume kargo.") }
 						</p>
 					</div>
 				</div>
@@ -511,8 +904,8 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 					<!-- Modal Header -->
 					<div class="flex items-center justify-between gap-3 border-b border-violet-400/20 px-5 py-4">
 						<div>
-							<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">EVE Online Market Catalog (Browse by Type)</h2>
-							<p class="text-[11px] text-slate-400 mt-0.5">Browse all published CCP SDE market items by category &amp; sub-group (0 ESI calls) — click any item to inspect its live Order Book.</p>
+							<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300" x-text="browseTarget === 'bpc' ? 'CCP SDE Blueprint Catalog (Blueprints Only)' : 'EVE Online Market Catalog (Browse by Type)'"></h2>
+							<p class="text-[11px] text-slate-400 mt-0.5">{ i18n.L(ctx, "Browse all published CCP SDE market items by category & sub-group (0 ESI calls) — click any item to inspect its live Order Book.", "Jelajahi semua item market CCP SDE berdasarkan kategori & sub-grup (0 panggilan ESI) — klik item apa saja untuk melihat Order Book live.") }</p>
 						</div>
 						<button type="button" @click="showBrowse = false" class="rounded-lg border border-slate-700 px-2.5 py-1 text-xs text-slate-300 hover:text-white cursor-pointer">✕</button>
 					</div>
@@ -536,7 +929,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 									:disabled="browseGroups.length === 0"
 									class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white disabled:opacity-50"
 								>
-									<option value="" x-text="browseCat ? 'All Sub-Groups in ' + browseCat : 'Select a Category to filter Sub-Groups'"></option>
+									<option value="" x-text="browseTarget === 'bpc' ? 'All Tech Levels (T1 / T2 / T3)' : (browseCat ? 'All Sub-Groups in ' + browseCat : 'Select a Category to filter Sub-Groups')"></option>
 									<template x-for="g in browseGroups" :key="g">
 										<option :value="g" x-text="g"></option>
 									</template>
@@ -645,6 +1038,27 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 					<div>
 						<div class="flex flex-wrap items-center gap-2">
 							<h2 class="text-xl font-bold text-white">{ snap.TypeName }</h2>
+							<button
+								type="button"
+								data-item-name={ snap.TypeName }
+								@click="window.dispatchEvent(new CustomEvent('mp-show-info', { detail: { name: $el.dataset.itemName } }))"
+								title="Open EVE Online Show Info Popup"
+								class="inline-flex items-center gap-1 rounded-md border border-sky-400/50 bg-sky-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-sky-200 hover:bg-sky-500/30 transition cursor-pointer"
+							>
+								<span>ⓘ Show Info</span>
+							</button>
+							<button
+								type="button"
+								data-item-name={ snap.TypeName }
+								data-item-id={ fmt.Sprintf("%d", snap.TypeID) }
+								@click="window.dispatchEvent(new CustomEvent('mp-toggle-compare', { detail: { name: $el.dataset.itemName, typeId: Number($el.dataset.itemId) } }))"
+								:class="isInCompare($el.dataset.itemName) ? 'border-emerald-400/60 bg-emerald-500/25 text-emerald-200' : 'border-amber-400/50 bg-amber-500/15 text-amber-200 hover:bg-amber-500/30'"
+								title="Add or remove this item in the Compare queue"
+								class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 font-mono text-[10px] font-bold transition cursor-pointer"
+							>
+								<span x-show="!isInCompare($el.closest('button').dataset.itemName)">+ Compare</span>
+								<span x-cloak x-show="isInCompare($el.closest('button').dataset.itemName)">✓ Added</span>
+							</button>
 							<span class="rounded border border-violet-400/35 bg-violet-500/20 px-2 py-0.5 font-mono text-[10px] text-violet-200">
 								TypeID #{ fmt.Sprintf("%d", snap.TypeID) }
 							</span>
@@ -686,22 +1100,22 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 							type="submit"
 							class="rounded-lg bg-emerald-500 px-3.5 py-2 text-xs font-bold text-slate-950 hover:bg-emerald-400 transition cursor-pointer"
 						>
-							+ Add to Catalog
+							+ { i18n.L(ctx, "Add to Catalog", "Tambah ke Catalog") }
 						</button>
 					</form>
 					if snap.HasBlueprint {
 						<a
-							href="/calculator?mode=blueprint"
+							href={ templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&hub=%s", snap.BlueprintTypeID, snap.SelectedHub.Key)) }
 							class="rounded-lg border border-amber-400/45 bg-amber-500/15 px-3.5 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition"
 						>
-							Craft in Blueprint Calculator →
+							Manufacture &amp; Profit →
 						</a>
 					} else {
 						<a
-							href="/calculator"
+							href={ templ.SafeURL(fmt.Sprintf("/manufacture?product_id=%d&q=%s&hub=%s", snap.TypeID, url.QueryEscape(snap.TypeName), snap.SelectedHub.Key)) }
 							class="rounded-lg border border-sky-400/40 bg-sky-500/15 px-3.5 py-2 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition"
 						>
-							Open in Calculator →
+							{ i18n.L(ctx, "Open in Manufacture →", "Buka di Manufacture →") }
 						</a>
 					}
 				</div>
@@ -710,30 +1124,66 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 			<!-- 4 Primary KPI Cards -->
 			<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-amber-300/85">Lowest Sell ({ snap.SelectedHub.Name })</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-amber-300/85">{ i18n.L(ctx, "Lowest Sell", "Sell Order Terendah") } ({ snap.SelectedHub.Name })</div>
 					<div class="mt-1 text-xl font-mono font-bold text-amber-200">{ FormatISK(snap.LowestSell) }</div>
-					<div class="mt-0.5 text-[11px] font-mono text-slate-400">Supply: { formatInt64(snap.TotalSellVolume) } units</div>
+					<div class="mt-0.5 text-[11px] font-mono text-slate-400">{ i18n.L(ctx, "Supply", "Stok Jual") }: { formatInt64(snap.TotalSellVolume) } { i18n.L(ctx, "units", "unit") }</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-sky-300/85">Highest Buy ({ snap.SelectedHub.Name })</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-sky-300/85">{ i18n.L(ctx, "Highest Buy", "Buy Order Tertinggi") } ({ snap.SelectedHub.Name })</div>
 					<div class="mt-1 text-xl font-mono font-bold text-sky-200">{ FormatISK(snap.HighestBuy) }</div>
-					<div class="mt-0.5 text-[11px] font-mono text-slate-400">Demand: { formatInt64(snap.TotalBuyVolume) } units</div>
+					<div class="mt-0.5 text-[11px] font-mono text-slate-400">{ i18n.L(ctx, "Demand", "Permintaan") }: { formatInt64(snap.TotalBuyVolume) } { i18n.L(ctx, "units", "unit") }</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-emerald-300/85">Net Flip Margin (After { FormatPercent(snap.RoundTripFeePct) } Fees)</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-emerald-300/85">{ i18n.L(ctx, "Net Flip Margin (After", "Net Flip Margin (Setelah") } { FormatPercent(snap.RoundTripFeePct) } { i18n.L(ctx, "Fees)", "Biaya)") }</div>
 					<div class={ "mt-1 text-xl font-mono font-bold " + profitColor(snap.NetFlipMarginPct) }>
 						{ FormatPercent(snap.NetFlipMarginPct) }
 					</div>
 					<div class="mt-0.5 text-[11px] font-mono text-slate-400">
-						{ FormatISK(snap.NetFlipProfitUnit) }/u • Gross Spd { FormatPercent(snap.SpreadPercent) }
+						{ FormatISK(snap.NetFlipProfitUnit) }/{ i18n.L(ctx, "unit", "unit") } • { i18n.L(ctx, "Gross Spread", "Spread Kotor") } { FormatPercent(snap.SpreadPercent) }
 					</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-violet-300/85">Daily Volume (7d Avg)</div>
-					<div class="mt-1 text-xl font-mono font-bold text-white">{ formatInt64(int64(snap.AvgDailyVolume7d)) } u/day</div>
-					<div class="mt-0.5 text-[11px] font-mono text-slate-400">Est. Turnover: { FormatISK(snap.EstimatedDailyISK) }/day</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-violet-300/85">{ i18n.L(ctx, "Daily Volume (7-Day Average)", "Volume Harian (Rata-rata 7 Hari)") }</div>
+					<div class="mt-1 text-xl font-mono font-bold text-white">{ formatInt64(int64(snap.AvgDailyVolume7d)) } { i18n.L(ctx, "units/day", "unit/hari") }</div>
+					<div class="mt-0.5 text-[11px] font-mono text-slate-400">{ i18n.L(ctx, "Estimated Turnover", "Estimasi Perputaran") }: { FormatISK(snap.EstimatedDailyISK) }/{ i18n.L(ctx, "day", "hari") }</div>
 				</div>
 			</div>
+
+			<!-- Buyer Activity & Regional Demand Breakdown (Latest Day, 7d Avg, 7d Total, 7-Week / 49d Total) -->
+			if snap.LatestDayDate != "" || snap.Total49dOrders > 0 {
+				<div class="tactical-panel rounded-xl p-4 space-y-2.5">
+					<div class="flex flex-wrap items-center justify-between gap-2">
+						<div class="text-[10px] font-mono font-bold uppercase tracking-wider text-cyan-300">
+							{ i18n.L(ctx, "Buyer Activity & Regional Demand", "Aktivitas Pembeli & Permintaan Region") } ({ snap.SelectedHub.RegionName })
+						</div>
+						<div class="text-[10px] text-slate-400">
+							{ i18n.L(ctx, "CCP ESI daily history (completed market orders; latest UTC day:", "Riwayat harian CCP ESI (transaksi market selesai; hari UTC terbaru:") } <span class="font-mono text-sky-200">{ snap.LatestDayDate }</span>)
+						</div>
+					</div>
+					<div class="grid grid-cols-2 gap-2.5 lg:grid-cols-4 font-mono text-xs">
+						<div class="rounded-lg border border-slate-700/70 bg-slate-950/60 px-3 py-2">
+							<div class="text-[9.5px] uppercase text-slate-400">{ i18n.L(ctx, "Latest Day", "Hari Terbaru") } ({ snap.LatestDayDate })</div>
+							<div class="mt-0.5 text-sm font-bold text-white">{ formatInt64(snap.LatestDayOrders) } { i18n.L(ctx, "orders", "transaksi") }</div>
+							<div class="text-[10.5px] text-sky-300">{ formatInt64(snap.LatestDayVolume) } { i18n.L(ctx, "units", "unit") }</div>
+						</div>
+						<div class="rounded-lg border border-slate-700/70 bg-slate-950/60 px-3 py-2">
+							<div class="text-[9.5px] uppercase text-slate-400">{ i18n.L(ctx, "Daily Average (7-Day)", "Rata-rata Harian (7 Hari)") }</div>
+							<div class="mt-0.5 text-sm font-bold text-emerald-300">{ fmt.Sprintf("%.1f", snap.AvgDailyOrders7d) } { i18n.L(ctx, "orders/day", "transaksi/hari") }</div>
+							<div class="text-[10.5px] text-sky-300">{ formatInt64(int64(snap.AvgDailyVolume7d)) } { i18n.L(ctx, "units/day", "unit/hari") }</div>
+						</div>
+						<div class="rounded-lg border border-slate-700/70 bg-slate-950/60 px-3 py-2">
+							<div class="text-[9.5px] uppercase text-slate-400">{ i18n.L(ctx, "7-Day Total (1 Week)", "Total 7 Hari (1 Minggu)") }</div>
+							<div class="mt-0.5 text-sm font-bold text-amber-200">{ formatInt64(snap.Total7dOrders) } { i18n.L(ctx, "orders", "transaksi") }</div>
+							<div class="text-[10.5px] text-sky-300">{ formatInt64(snap.Total7dVolume) } { i18n.L(ctx, "units", "unit") }</div>
+						</div>
+						<div class="rounded-lg border border-slate-700/70 bg-slate-950/60 px-3 py-2">
+							<div class="text-[9.5px] uppercase text-slate-400">{ i18n.L(ctx, "7-Week Total (49 Days)", "Total 7 Minggu (49 Hari)") }</div>
+							<div class="mt-0.5 text-sm font-bold text-violet-200">{ formatInt64(snap.Total49dOrders) } { i18n.L(ctx, "orders", "transaksi") }</div>
+							<div class="text-[10.5px] text-sky-300">{ formatInt64(snap.Total49dVolume) } { i18n.L(ctx, "units", "unit") }</div>
+						</div>
+					</div>
+				</div>
+			}
 
 			<!-- v2 Trading & Pricing Intelligence Banner -->
 			<div class="grid grid-cols-1 gap-3 lg:grid-cols-3">
@@ -800,7 +1250,7 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 					if snap.HasBlueprint && snap.EstCraftUnitCost > 0 {
 						<div class="space-y-1">
 							<div class="flex items-baseline justify-between font-mono text-xs">
-								<span class="text-slate-400">Est. BOM Craft / u:</span>
+								<span class="text-slate-400">Estimated BOM Craft / unit:</span>
 								<strong class="text-white">{ FormatISK(snap.EstCraftUnitCost) }</strong>
 							</div>
 							<div class="flex items-baseline justify-between font-mono text-xs">
@@ -907,7 +1357,7 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 						<h3 class="text-xs font-bold uppercase tracking-wider text-violet-200">30-Day Average Price Trend ({ snap.SelectedHub.RegionName })</h3>
 						<div class="flex flex-wrap items-center gap-3 text-[11px] font-mono text-slate-300">
 							<span>30d Low: <strong class="text-emerald-300">{ FormatISK(min30) }</strong></span>
-							<span>30d Avg: <strong class="text-amber-200">{ FormatISK(avg30) }</strong></span>
+							<span>30-Day Average: <strong class="text-amber-200">{ FormatISK(avg30) }</strong></span>
 							<span>30d High: <strong class="text-rose-300">{ FormatISK(max30) }</strong></span>
 							<span class="text-slate-400">Avg Vol: { formatInt64(int64(snap.AvgDailyVolume30d)) }/d</span>
 						</div>
@@ -968,20 +1418,20 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 				<!-- Top Sell Orders -->
 				<div class="tactical-panel rounded-xl overflow-hidden">
 					<div class="px-5 py-3 border-b border-amber-400/20 flex items-center justify-between">
-						<h3 class="text-xs font-bold uppercase tracking-wider text-amber-300">Top Sell Orders (Lowest — Watch for Sell Walls)</h3>
+						<h3 class="text-xs font-bold uppercase tracking-wider text-amber-300">{ i18n.L(ctx, "Top Sell Orders (Lowest — Watch for Sell Walls)", "Top Sell Orders (Termurah — Waspadai Sell Wall)") }</h3>
 						<span class="text-[10px] font-mono text-slate-400">{ fmt.Sprintf("Top %d", len(sellDepth)) }</span>
 					</div>
 					if len(sellDepth) == 0 {
-						<div class="p-6 text-center text-xs text-slate-400">No active sell orders at { snap.SelectedHub.Name }.</div>
+						<div class="p-6 text-center text-xs text-slate-400">{ i18n.L(ctx, "No active Sell Orders at", "Tidak ada Sell Order aktif di") } { snap.SelectedHub.Name }.</div>
 					} else {
 						<div class="overflow-x-auto">
 							<table class="w-full text-left text-xs font-mono">
 								<thead class="bg-slate-950/50 text-[10px] uppercase text-slate-400 border-b border-violet-400/15">
 									<tr>
-										<th class="px-4 py-2">Price (ISK)</th>
-										<th class="px-3 py-2 text-right">Qty</th>
-										<th class="px-3 py-2 text-right">Cum. Qty</th>
-										<th class="px-4 py-2 text-right">Order Value</th>
+										<th class="px-4 py-2">{ i18n.L(ctx, "Price (ISK)", "Harga (ISK)") }</th>
+										<th class="px-3 py-2 text-right">{ i18n.L(ctx, "Quantity", "Jumlah") }</th>
+										<th class="px-3 py-2 text-right">{ i18n.L(ctx, "Cumulative", "Kumulatif") }</th>
+										<th class="px-4 py-2 text-right">{ i18n.L(ctx, "Order Value", "Nilai Order") }</th>
 									</tr>
 								</thead>
 								<tbody class="divide-y divide-violet-400/10">
@@ -1005,20 +1455,20 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 				<!-- Top Buy Orders -->
 				<div class="tactical-panel rounded-xl overflow-hidden">
 					<div class="px-5 py-3 border-b border-sky-400/20 flex items-center justify-between">
-						<h3 class="text-xs font-bold uppercase tracking-wider text-sky-300">Top Buy Orders (Highest — Instant Demand)</h3>
+						<h3 class="text-xs font-bold uppercase tracking-wider text-sky-300">{ i18n.L(ctx, "Top Buy Orders (Highest — Instant Demand)", "Top Buy Orders (Tertinggi — Permintaan Instan)") }</h3>
 						<span class="text-[10px] font-mono text-slate-400">{ fmt.Sprintf("Top %d", len(buyDepth)) }</span>
 					</div>
 					if len(buyDepth) == 0 {
-						<div class="p-6 text-center text-xs text-slate-400">No active buy orders at { snap.SelectedHub.Name }.</div>
+						<div class="p-6 text-center text-xs text-slate-400">{ i18n.L(ctx, "No active Buy Orders at", "Tidak ada Buy Order aktif di") } { snap.SelectedHub.Name }.</div>
 					} else {
 						<div class="overflow-x-auto">
 							<table class="w-full text-left text-xs font-mono">
 								<thead class="bg-slate-950/50 text-[10px] uppercase text-slate-400 border-b border-violet-400/15">
 									<tr>
-										<th class="px-4 py-2">Price (ISK)</th>
-										<th class="px-3 py-2 text-right">Qty</th>
-										<th class="px-3 py-2 text-right">Cum. Qty</th>
-										<th class="px-4 py-2 text-right">Order Value</th>
+										<th class="px-4 py-2">{ i18n.L(ctx, "Price (ISK)", "Harga (ISK)") }</th>
+										<th class="px-3 py-2 text-right">{ i18n.L(ctx, "Quantity", "Jumlah") }</th>
+										<th class="px-3 py-2 text-right">{ i18n.L(ctx, "Cumulative", "Kumulatif") }</th>
+										<th class="px-4 py-2 text-right">{ i18n.L(ctx, "Order Value", "Nilai Order") }</th>
 									</tr>
 								</thead>
 								<tbody class="divide-y divide-violet-400/10">
@@ -1143,7 +1593,7 @@ templ MarketplaceAppraisalPartial(res *domain.AppraisalResult, errMsg string) {
 						<thead class="bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15">
 							<tr>
 								<th class="px-4 py-3">Item (Click to Open Order Book)</th>
-								<th class="px-3 py-3 text-right">Qty</th>
+								<th class="px-3 py-3 text-right">Quantity</th>
 								<th class="px-3 py-3 text-right">Volume</th>
 								<th class="px-3 py-3 text-right">Unit Buy</th>
 								<th class="px-3 py-3 text-right">Unit Sell</th>

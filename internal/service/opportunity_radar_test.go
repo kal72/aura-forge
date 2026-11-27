@@ -9,6 +9,7 @@ import (
 func TestRankRadarOpportunities_FiltersAndPrioritizes(t *testing.T) {
 	input := []domain.ManufacturingOpportunity{
 		{ProductName: "Loss Trap", NetProfit: -50000, Verdict: domain.VerdictAvoid, FitsCapital: true, DailyVolume7d: 500, ISKPerHour: -10000},
+		{ProductName: "Zero Vol Trap", NetProfit: 1200000, Verdict: domain.VerdictStrong, FitsCapital: true, DailyVolume7d: 0, ISKPerHour: 1200000},
 		{ProductName: "Dead Illiquid", NetProfit: 900000, Verdict: domain.VerdictStrong, FitsCapital: true, DailyVolume7d: 2, ISKPerHour: 900000},
 		{ProductName: "Over Cap Strong", NetProfit: 5000000, Verdict: domain.VerdictStrong, FitsCapital: false, DailyVolume7d: 100, ISKPerHour: 2000000},
 		{ProductName: "Fit Moderate", NetProfit: 300000, Verdict: domain.VerdictModerate, FitsCapital: true, DailyVolume7d: 200, ISKPerHour: 350000},

@@ -31,7 +31,7 @@ func TestCalculateProfit_HappyPathAndGuardClauses(t *testing.T) {
 		UnitSellPrice:      1_000_000, // Gross = 10,000,000
 		MaterialCost:       6_500_000,
 		ExtraSetupCost:     200_000,
-		SystemCostIndex:    0.04, // 4% -> 260,000 * 1.0025 = 260,650
+		SystemCostIndex:    0.04, // 4% SCI + 0.25% Facility + 4% SCC Surcharge = 8.25% -> 536,250
 		FacilityTaxPercent: 0.25,
 		FreightCost:        40_000,
 		BrokerFeePercent:   3.0, // 300,000
@@ -47,8 +47,8 @@ func TestCalculateProfit_HappyPathAndGuardClauses(t *testing.T) {
 	if res.GrossRevenue != 10_000_000 {
 		t.Errorf("expected GrossRevenue 10,000,000, got %.2f", res.GrossRevenue)
 	}
-	if !almostEqual(res.JobInstallCost, 260_650, 0.01) {
-		t.Errorf("expected JobInstallCost 260650, got %.2f", res.JobInstallCost)
+	if !almostEqual(res.JobInstallCost, 536_250, 0.01) {
+		t.Errorf("expected JobInstallCost 536250, got %.2f", res.JobInstallCost)
 	}
 	if !almostEqual(res.TotalMarketFees, 760_000, 0.01) {
 		t.Errorf("expected TotalMarketFees 760000, got %.2f", res.TotalMarketFees)

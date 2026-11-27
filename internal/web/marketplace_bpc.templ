@@ -1,0 +1,144 @@
+package web
+
+import (
+	"fmt"
+
+	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
+)
+
+templ MarketplaceBPCPartial(res *domain.BPCFinderResult, errMsg string) {
+	if errMsg != "" {
+		<div class="rounded-xl border border-rose-500/40 bg-rose-950/40 p-4 text-xs text-rose-200">
+			<strong>{ i18n.L(ctx, "BPC / BPO Lookup Failed:", "Pencarian BPC / BPO Gagal:") }</strong> { errMsg }
+		</div>
+	} else if res != nil && res.Blueprint != nil {
+		<div class="space-y-5">
+			<!-- Resolved Blueprint Header -->
+			<div class="tactical-panel rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+				<div class="flex items-center gap-3 min-w-0">
+					<img
+						src={ EVEItemIconURL(res.Blueprint.ProductTypeID, 64) }
+						alt={ res.Blueprint.ProductName }
+						class="h-11 w-11 shrink-0 rounded-xl border border-violet-400/40 bg-slate-950 p-1 object-contain"
+						onerror="this.style.display='none'"
+					/>
+					<div class="min-w-0">
+						<div class="flex flex-wrap items-center gap-2">
+							<h3 class="text-base font-bold text-white truncate">{ res.Blueprint.Name }</h3>
+							<span class="rounded border border-violet-400/40 bg-violet-500/20 px-1.5 py-0.5 font-mono text-[10px] font-bold text-violet-200">
+								T{ fmt.Sprintf("%d", res.Blueprint.TechLevel) }
+							</span>
+							<span class="rounded border border-sky-400/40 bg-sky-500/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-sky-200">
+								{ res.Hub.Name } ({ res.Hub.RegionName })
+							</span>
+						</div>
+						<div class="mt-0.5 text-[11px] font-mono text-slate-400">
+							{ i18n.L(ctx, "Product", "Produk") }: <strong class="text-slate-200">{ res.Blueprint.ProductName }</strong>
+							• Blueprint ID #{ fmt.Sprintf("%d", res.Blueprint.BlueprintTypeID) }
+						</div>
+					</div>
+				</div>
+				<div class="flex flex-wrap items-center gap-2">
+					<button
+						type="button"
+						data-item-name={ res.Blueprint.ProductName }
+						@click="window.dispatchEvent(new CustomEvent('mp-show-info', { detail: { name: $el.dataset.itemName } }))"
+						class="rounded-lg border border-sky-400/45 bg-sky-500/15 px-3 py-1.5 text-xs font-bold text-sky-200 hover:bg-sky-500/25 transition cursor-pointer"
+					>
+						ⓘ Show Info
+					</button>
+					<button
+						type="button"
+						data-bp-name={ res.Blueprint.Name }
+						@click="navigator.clipboard.writeText($el.dataset.bpName).then(() => window.dispatchEvent(new CustomEvent('showToast', { detail: { level: 'success', message: 'Copied: ' + $el.dataset.bpName } })))"
+						class="rounded-lg border border-amber-400/45 bg-amber-500/15 px-3 py-1.5 text-xs font-bold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer"
+					>
+						{ i18n.L(ctx, "Copy for In-Game Contracts", "Salin untuk Contracts In-Game") }
+					</button>
+					<a
+						href={ templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&hub=%s", res.Blueprint.BlueprintTypeID, res.Hub.Key)) }
+						class="rounded-lg border border-emerald-400/45 bg-emerald-500/15 px-3 py-1.5 text-xs font-bold text-emerald-200 hover:bg-emerald-500/25 transition"
+					>
+						Manufacture &amp; Profit →
+					</a>
+				</div>
+			</div>
+
+			if res.Notice != "" {
+				<div class="rounded-lg border border-amber-400/40 bg-amber-950/30 px-4 py-2.5 text-xs text-amber-200">
+					{ res.Notice }
+				</div>
+			}
+
+			<!-- NPC BPO SEED ORDERS & LP STORE OFFERS -->
+			<div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+				<!-- NPC BPO Seed Orders -->
+				<div class="tactical-panel rounded-xl overflow-hidden">
+					<div class="px-5 py-3 border-b border-emerald-400/20 flex items-center justify-between">
+						<h4 class="text-xs font-bold uppercase tracking-wider text-emerald-300">
+							{ i18n.L(ctx, "Official NPC BPO Seed Orders", "BPO Resmi NPC (Market)") }
+						</h4>
+						<span class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%d %s", len(res.NPCBPOOrders), i18n.L(ctx, "stations", "stasiun")) }</span>
+					</div>
+					if len(res.NPCBPOOrders) == 0 {
+						<div class="p-5 text-xs text-slate-400">
+							{ i18n.L(ctx, "No NPC BPO seed orders in this region (typical for T2, Faction, or Pirate blueprints — use BPC Contracts, Invention, or LP Store).", "Tidak ada BPO NPC resmi di region ini (umum untuk Blueprint T2, Faction, atau Pirate — gunakan Kontrak BPC, Invention, atau LP Store).") }
+						</div>
+					} else {
+						<div class="divide-y divide-violet-400/10 text-xs">
+							for _, s := range res.NPCBPOOrders {
+								<div class="px-5 py-2.5 flex items-center justify-between gap-3">
+									<div class="min-w-0">
+										<div class="font-semibold text-white truncate">{ s.StationName }</div>
+										<div class="text-[10px] text-slate-400">{ s.RegionName } • NPC 365-Day Seed</div>
+									</div>
+									<div class="font-mono font-bold text-emerald-300 shrink-0">{ FormatISK(s.Price) }</div>
+								</div>
+							}
+						</div>
+					}
+				</div>
+
+				<!-- LP Store Offers -->
+				<div class="tactical-panel rounded-xl overflow-hidden">
+					<div class="px-5 py-3 border-b border-sky-400/20 flex items-center justify-between">
+						<h4 class="text-xs font-bold uppercase tracking-wider text-sky-300">
+							{ i18n.L(ctx, "Major NPC LP Store Offers", "Penawaran LP Store NPC Utama") }
+						</h4>
+						<span class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%d %s", len(res.LPStoreOffers), i18n.L(ctx, "offers", "penawaran")) }</span>
+					</div>
+					if len(res.LPStoreOffers) == 0 {
+						<div class="p-5 text-xs text-slate-400">
+							{ i18n.L(ctx, "No matching LP Store offers found across the 10 major Empire & Pirate corporations.", "Tidak ditemukan penawaran LP Store yang cocok di 10 korporasi utama Empire & Pirate.") }
+						</div>
+					} else {
+						<div class="divide-y divide-violet-400/10 text-xs">
+							for _, of := range res.LPStoreOffers {
+								<div class="px-5 py-2.5 flex items-center justify-between gap-3">
+									<div class="min-w-0">
+										<div class="font-semibold text-white truncate">{ of.CorporationName }</div>
+										if of.StationHint != "" {
+											<div class="text-[10.5px] text-sky-200/90 mt-0.5">{ of.StationHint }</div>
+										}
+										<div class="text-[10px] text-slate-400">{ fmt.Sprintf("%d %s • Offer #%d", of.Quantity, i18n.L(ctx, "units", "unit"), of.OfferID) }</div>
+									</div>
+									<div class="text-right font-mono shrink-0">
+										<div class="font-bold text-sky-300">{ fmt.Sprintf("%d LP", of.LPCost) }</div>
+										<div class="text-[10px] text-amber-200">+ { FormatISK(float64(of.ISKCost)) }</div>
+									</div>
+								</div>
+							}
+						</div>
+					}
+				</div>
+			</div>
+
+			<!-- Beginner In-Game Purchase Tip -->
+			<div class="rounded-xl border border-violet-400/25 bg-slate-950/60 px-4 py-3 text-[11px] text-slate-300 leading-relaxed">
+				<strong class="text-amber-200">{ i18n.L(ctx, "How to buy BPC in EVE Online:", "Cara beli BPC di dalam game EVE Online:") }</strong>
+				{ i18n.L(ctx, "Click Copy Blueprint Name above → open Neocom → Finance → Contracts → Available Contracts → set Type = Item Exchange → paste name into Search → set Security/Region → sort by Price.", "Klik Salin Nama Blueprint di atas → buka Neocom → Finance → Contracts → Available Contracts → pilih Type = Item Exchange → tempel nama di Search → pilih Region → urutkan berdasarkan Price.") }
+			</div>
+		</div>
+	}
+}

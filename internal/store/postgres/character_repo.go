@@ -269,16 +269,25 @@ func (r *CharacterRepo) UpsertJobs(ctx context.Context, characterID int64, jobs 
 	return tx.Commit(ctx)
 }
 
-// Blueprints
+// Blueprints (Personal Character)
 func (r *CharacterRepo) ListBlueprints(ctx context.Context, characterID int64) ([]domain.CharacterBlueprint, error) {
+	return r.listBlueprintsByScope(ctx, characterID, false)
+}
+
+// ListCorpBlueprints returns all synced corporation blueprints accessible to the character.
+func (r *CharacterRepo) ListCorpBlueprints(ctx context.Context, characterID int64) ([]domain.CharacterBlueprint, error) {
+	return r.listBlueprintsByScope(ctx, characterID, true)
+}
+
+func (r *CharacterRepo) listBlueprintsByScope(ctx context.Context, characterID int64, isCorp bool) ([]domain.CharacterBlueprint, error) {
 	query := `
-		SELECT item_id, character_id, type_id, type_name, location_id, quantity,
-		       material_efficiency, time_efficiency, runs, is_copy, updated_at
+		SELECT item_id, character_id, type_id, type_name, location_id, location_flag, quantity,
+		       material_efficiency, time_efficiency, runs, is_copy, is_corp, updated_at
 		FROM character_blueprints
-		WHERE character_id = $1
+		WHERE character_id = $1 AND is_corp = $2
 		ORDER BY type_name ASC`
 
-	rows, err := r.pool.Query(ctx, query, characterID)
+	rows, err := r.pool.Query(ctx, query, characterID, isCorp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query blueprints: %w", err)
 	}
@@ -288,9 +297,9 @@ func (r *CharacterRepo) ListBlueprints(ctx context.Context, characterID int64) (
 	for rows.Next() {
 		var bp domain.CharacterBlueprint
 		err := rows.Scan(
-			&bp.ItemID, &bp.CharacterID, &bp.TypeID, &bp.TypeName, &bp.LocationID,
+			&bp.ItemID, &bp.CharacterID, &bp.TypeID, &bp.TypeName, &bp.LocationID, &bp.LocationFlag,
 			&bp.Quantity, &bp.MaterialEfficiency, &bp.TimeEfficiency, &bp.Runs,
-			&bp.IsCopy, &bp.UpdatedAt,
+			&bp.IsCopy, &bp.IsCorp, &bp.UpdatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan blueprint: %w", err)
@@ -301,28 +310,49 @@ func (r *CharacterRepo) ListBlueprints(ctx context.Context, characterID int64) (
 }
 
 func (r *CharacterRepo) UpsertBlueprints(ctx context.Context, characterID int64, bps []domain.CharacterBlueprint) error {
+	return r.upsertBlueprintsByScope(ctx, characterID, false, bps)
+}
+
+func (r *CharacterRepo) UpsertCorpBlueprints(ctx context.Context, characterID int64, bps []domain.CharacterBlueprint) error {
+	return r.upsertBlueprintsByScope(ctx, characterID, true, bps)
+}
+
+func (r *CharacterRepo) upsertBlueprintsByScope(ctx context.Context, characterID int64, isCorp bool, bps []domain.CharacterBlueprint) error {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback(ctx)
 
-	_, err = tx.Exec(ctx, `DELETE FROM character_blueprints WHERE character_id = $1`, characterID)
+	_, err = tx.Exec(ctx, `DELETE FROM character_blueprints WHERE character_id = $1 AND is_corp = $2`, characterID, isCorp)
 	if err != nil {
 		return err
 	}
 
 	query := `
 		INSERT INTO character_blueprints (
-			item_id, character_id, type_id, type_name, location_id, quantity,
-			material_efficiency, time_efficiency, runs, is_copy, updated_at
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
+			item_id, character_id, type_id, type_name, location_id, location_flag, quantity,
+			material_efficiency, time_efficiency, runs, is_copy, is_corp, updated_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+		ON CONFLICT (item_id) DO UPDATE SET
+			character_id = EXCLUDED.character_id,
+			type_id = EXCLUDED.type_id,
+			type_name = EXCLUDED.type_name,
+			location_id = EXCLUDED.location_id,
+			location_flag = EXCLUDED.location_flag,
+			quantity = EXCLUDED.quantity,
+			material_efficiency = EXCLUDED.material_efficiency,
+			time_efficiency = EXCLUDED.time_efficiency,
+			runs = EXCLUDED.runs,
+			is_copy = EXCLUDED.is_copy,
+			is_corp = EXCLUDED.is_corp,
+			updated_at = EXCLUDED.updated_at`
 
 	now := time.Now()
 	for _, bp := range bps {
 		_, err := tx.Exec(ctx, query,
-			bp.ItemID, characterID, bp.TypeID, bp.TypeName, bp.LocationID, bp.Quantity,
-			bp.MaterialEfficiency, bp.TimeEfficiency, bp.Runs, bp.IsCopy, now,
+			bp.ItemID, characterID, bp.TypeID, bp.TypeName, bp.LocationID, bp.LocationFlag, bp.Quantity,
+			bp.MaterialEfficiency, bp.TimeEfficiency, bp.Runs, bp.IsCopy, isCorp, now,
 		)
 		if err != nil {
 			return err

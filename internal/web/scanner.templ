@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -35,7 +36,7 @@ templ ScannerPage(mode service.ModeInfo, settings domain.UserSettings) {
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-white">Opportunity Scanner</h1>
-					<p class="text-xs text-slate-300/80 mt-0.5">Discover profitable manufacturing runs, gas reactions, multi-hub station flips, gank-safe hauling routes, and local stockouts across all 5 Empire Trade Hubs.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Discover profitable manufacturing runs, gas reactions, multi-hub station flips, gank-safe hauling routes, and local stockouts across all 5 Empire Trade Hubs.", "Temukan peluang produksi menguntungkan, gas reactions, station trading multi-hub, rute hauling aman dari gank, dan stok kosong lokal di 5 Empire Trade Hub.") }</p>
 				</div>
 
 				<!-- 5-Mode Scanner Switcher -->
@@ -89,7 +90,7 @@ templ ScannerPage(mode service.ModeInfo, settings domain.UserSettings) {
 					<div class="flex flex-wrap items-center justify-between gap-2">
 						<div>
 							<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Multi-Hub SDE Manufacturing Margin Scanner</h2>
-							<p class="text-xs text-slate-300/80 mt-0.5">Scans popular &amp; searchable CCP SDE blueprints at your chosen Trade Hub, ranking by true ISK/Hour, ROI %, and 7d Daily Volume after taxes, SCI, and freight.</p>
+							<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Scans popular & searchable CCP SDE blueprints at your chosen Trade Hub, ranking by true ISK/Hour, ROI %, and 7-Day Daily Volume after taxes, SCI, and freight.", "Memindai Blueprint CCP SDE populer di Trade Hub pilihan Anda, mengurutkan berdasarkan ISK/Jam, ROI %, dan Volume Harian 7 Hari setelah pajak, SCI, dan kargo.") }</p>
 						</div>
 						<span class="text-[10px] font-mono text-slate-400">
 							{ fmt.Sprintf("Broker %.2f%% • Tax %.2f%% • SCI %.4f", settings.BrokerFeePercent, settings.SalesTaxPercent, settings.SystemCostIndex) }
@@ -239,7 +240,7 @@ templ ScannerPage(mode service.ModeInfo, settings domain.UserSettings) {
 					<div class="flex flex-wrap items-center justify-between gap-2">
 						<div>
 							<h2 class="text-sm font-bold uppercase tracking-wider text-cyan-300">Gas Reactions — Hybrid Polymer Profit Scanner (8 Formulas)</h2>
-							<p class="text-xs text-slate-300/80 mt-0.5">Calculates live profit for all 8 Fullerite Hybrid Polymers (<strong>Gas + Mineral + Fuel Block → Polymer</strong>) with Athanor/Tatara rig bonuses, Cross-Hub sourcing, Break-Even Floor, and 1-click EVE Multibuy.</p>
+							<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Calculates live profit for all 8 Fullerite Hybrid Polymers (Gas + Mineral + Fuel Block → Polymer) with Athanor/Tatara rig bonuses, Cross-Hub sourcing, Break-Even Floor, and 1-click EVE Multibuy.", "Menghitung profit live untuk 8 Fullerite Hybrid Polymer (Gas + Mineral + Fuel Block → Polymer) dengan bonus rig Athanor/Tatara, sourcing lintas hub, batas Break-Even, dan 1-klik EVE Multibuy.") }</p>
 						</div>
 						<span class="text-[10px] font-mono text-slate-400">
 							{ fmt.Sprintf("SCI %.4f • Broker %.2f%% • Tax %.2f%%", settings.SystemCostIndex, settings.BrokerFeePercent, settings.SalesTaxPercent) }
@@ -326,7 +327,7 @@ templ ScannerPage(mode service.ModeInfo, settings domain.UserSettings) {
 					<div class="flex flex-wrap items-center justify-between gap-2">
 						<div>
 							<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">Multi-Hub Station Trading Spread Scanner</h2>
-							<p class="text-xs text-slate-300/80 mt-0.5">Finds net-profitable Buy Order → Sell Order flips at any of the 5 hubs after deducting <strong>2× Broker Fee + Sales Tax</strong>, with EVE 4-sig-fig Recommended Order prices &amp; 7d volume.</p>
+							<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Finds net-profitable Buy Order → Sell Order flips at any of the 5 hubs after deducting 2× Broker Fee + Sales Tax, with EVE 4-sig-fig Recommended Order prices & 7-Day volume.", "Mencari peluang flip Buy Order → Sell Order yang untung bersih di 5 hub setelah potong 2× Broker Fee + Sales Tax, lengkap dengan rekomendasi harga EVE 4-sig-fig & volume 7 Hari.") }</p>
 						</div>
 						<span class="text-[10px] font-mono text-slate-400">
 							{ fmt.Sprintf("Round-Trip Fees: %.2f%%", settings.BrokerFeePercent*2+settings.SalesTaxPercent) }
@@ -386,7 +387,7 @@ templ ScannerPage(mode service.ModeInfo, settings domain.UserSettings) {
 					<div class="flex flex-wrap items-center justify-between gap-2">
 						<div>
 							<h2 class="text-sm font-bold uppercase tracking-wider text-emerald-300">Inter-Hub Hauling &amp; Arbitrage Scanner</h2>
-							<p class="text-xs text-slate-300/80 mt-0.5">Compares ~30 compact high-demand items in parallel across hubs, calculating <strong>Max Trip Units</strong>, <strong>Est. Profit / Trip</strong>, freight ({ FormatISK(settings.FreightCostPerM3) }/m³), and <strong>High-Sec Gank-Safe (&le;200M ISK)</strong> warnings.</p>
+							<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Compares ~30 compact high-demand items in parallel across hubs, calculating Max Trip Units, Estimated Profit / Trip, freight", "Membandingkan ~30 item ringkas berpermintaan tinggi antar hub secara paralel, menghitung Unit Maksimal/Trip, Estimasi Profit/Trip, biaya angkut") } ({ FormatISK(settings.FreightCostPerM3) }/m³), { i18n.L(ctx, "and High-Sec Gank-Safe (≤200M ISK) warnings.", "dan peringatan aman gank High-Sec (≤200M ISK).") }</p>
 						</div>
 					</div>
 
@@ -524,15 +525,15 @@ templ ScannerManufacturingPartial(isAdmin bool, results []domain.ManufacturingOp
 				<table class="w-full text-left text-xs">
 					<thead class="bg-slate-950/50 font-mono uppercase text-[10px] tracking-wider text-slate-400 border-b border-violet-400/15">
 						<tr>
-							<th class="px-4 py-3">Product / Tech / Hub</th>
-							<th class="px-3 py-3 text-right">Daily Vol (7d)</th>
-							<th class="px-3 py-3 text-right">Material Cost</th>
-							<th class="px-3 py-3 text-right">Rec. Sell / Floor</th>
+							<th class="px-4 py-3">{ i18n.L(ctx, "Product / Tech / Hub", "Produk / Tech / Hub") }</th>
+							<th class="px-3 py-3 text-right">{ i18n.L(ctx, "Daily Volume (7-Day)", "Volume Harian (7 Hari)") }</th>
+							<th class="px-3 py-3 text-right">{ i18n.L(ctx, "Material Cost", "Biaya Material") }</th>
+							<th class="px-3 py-3 text-right">{ i18n.L(ctx, "Recommended Sell / Floor", "Saran Sell / Batas Aman") }</th>
 							<th class="px-3 py-3 text-right">Net Profit</th>
 							<th class="px-3 py-3 text-right">Margin / ROI</th>
-							<th class="px-3 py-3 text-right">ISK / Hour</th>
-							<th class="px-3 py-3">Verdict</th>
-							<th class="px-4 py-3 text-right">Action</th>
+							<th class="px-3 py-3 text-right">{ i18n.L(ctx, "ISK / Hour", "ISK / Jam") }</th>
+							<th class="px-3 py-3">{ i18n.L(ctx, "Verdict", "Status") }</th>
+							<th class="px-4 py-3 text-right">{ i18n.L(ctx, "Action", "Aksi") }</th>
 						</tr>
 					</thead>
 					<tbody class="divide-y divide-violet-400/15">
@@ -551,6 +552,26 @@ templ ScannerManufacturingPartial(isAdmin bool, results []domain.ManufacturingOp
 												if r.OwnedBPO {
 													<span class="rounded border border-emerald-400/40 bg-emerald-500/20 px-1.5 py-0.2 font-mono text-[9px] font-bold text-emerald-200">OWNED BPO</span>
 												}
+												if r.NeedsInventionBPC {
+													<span
+														class="rounded border border-violet-400/45 bg-violet-500/20 px-1.5 py-0.2 font-mono text-[9px] font-bold text-violet-200"
+														title={ i18n.L(ctx, "Tech II item requires a BPC or Invention — includes a conservative baseline BPC/Invention cost per run.", "Item Tech II memerlukan BPC atau Invention — estimasi biaya dasar BPC/Invention per run sudah dimasukkan.") }
+													>
+														+ BPC/INVENT
+													</span>
+												}
+												if r.IsPriceSpike {
+													<span
+														class="rounded border border-amber-400/55 bg-amber-500/20 px-1.5 py-0.2 font-mono text-[9px] font-bold text-amber-200"
+														title={ i18n.L(ctx, "Live Sell Order price is sharply above global average — verify Marketplace Order Book before buying materials!", "Harga Sell Order live melonjak tajam di atas rata-rata pasar — cek Order Book Marketplace dulu sebelum beli material!") }
+													>
+														if r.PriceSpikePct > 0 {
+															{ fmt.Sprintf("PRICE SPIKE +%.0f%%", r.PriceSpikePct) }
+														} else {
+															PRICE SPIKE
+														}
+													</span>
+												}
 											</div>
 											<div class="font-mono text-[10px] text-slate-400">
 												if r.MaterialHubKey != "" && r.MaterialHubKey != r.HubKey {
@@ -558,18 +579,21 @@ templ ScannerManufacturingPartial(isAdmin bool, results []domain.ManufacturingOp
 												} else {
 													<span>{ r.HubName }</span>
 												}
-												<span>{ fmt.Sprintf(" • %s • %dx runs (%d u) • %s", r.Category, r.Runs, r.OutputQty, r.DurationFormatted) }</span>
+												<span>{ fmt.Sprintf(" • %s • %dx runs (%d %s) • %s", r.Category, r.Runs, r.OutputQty, i18n.L(ctx, "units", "unit"), r.DurationFormatted) }</span>
 												if r.RunSizingReason != "" {
 													<span class="text-amber-300/90"> • { r.RunSizingReason }</span>
+												}
+												if r.SellOrdersCount > 0 {
+													<span class="text-slate-400">{ fmt.Sprintf(" • %d sellers (%d× relist)", r.SellOrdersCount, r.EstimatedRelists) }</span>
 												}
 											</div>
 										</div>
 									</div>
 								</td>
 								<td class="px-3 py-3 text-right font-mono whitespace-nowrap">
-									<div class="text-sky-200 font-semibold">{ FormatVolume(r.DailyVolume7d) }</div>
+									<div class="text-sky-200 font-semibold">{ FormatVolumeCtx(ctx, r.DailyVolume7d) }</div>
 									if r.DailyVolume7d < float64(r.OutputQty) {
-										<div class="text-[9px] text-amber-300">LOW VOL</div>
+										<div class="text-[9px] text-amber-300">{ i18n.L(ctx, "LOW VOLUME", "VOLUME RENDAH") }</div>
 									}
 								</td>
 								<td class="px-3 py-3 text-right font-mono whitespace-nowrap">
@@ -604,7 +628,7 @@ templ ScannerManufacturingPartial(isAdmin bool, results []domain.ManufacturingOp
 								<td class="px-4 py-3 text-right whitespace-nowrap">
 									<div class="inline-flex items-center gap-1">
 										<a
-											href={ templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&me=%d&te=%d", r.BlueprintTypeID, r.ME, r.TE)) }
+											href={ templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&me=%d&te=%d&runs=%d&hub=%s", r.BlueprintTypeID, r.ME, r.TE, r.Runs, r.HubKey)) }
 											title="Open in Blueprint Manufacturing Calculator with this ME/TE"
 											class="rounded border border-emerald-400/35 bg-emerald-500/15 px-2 py-1 text-[10px] font-semibold text-emerald-200 hover:bg-emerald-500/25"
 										>
@@ -654,7 +678,7 @@ templ ScannerStationTradingPartial(results []domain.StationTradeOpportunity, err
 							<th class="px-3 py-3 text-right">Rec. Sell Order</th>
 							<th class="px-3 py-3 text-right">Net Profit / Unit</th>
 							<th class="px-3 py-3 text-right">Net Margin</th>
-							<th class="px-3 py-3 text-right">Est. Daily Flip</th>
+							<th class="px-3 py-3 text-right">Estimated Daily Flip</th>
 							<th class="px-3 py-3">Verdict</th>
 							<th class="px-4 py-3 text-right">Action</th>
 						</tr>
@@ -727,7 +751,7 @@ templ ScannerArbitragePartial(results []domain.ArbitrageOpportunity, errMsg stri
 							<th class="px-3 py-3 text-right">Origin → Dest Sell</th>
 							<th class="px-3 py-3 text-right">Net / Unit &amp; Margin</th>
 							<th class="px-3 py-3 text-right">Trip Size (Units / m³)</th>
-							<th class="px-3 py-3 text-right">Est. Profit / Trip</th>
+							<th class="px-3 py-3 text-right">Estimated Profit / Trip</th>
 							<th class="px-3 py-3">Verdict &amp; Safety</th>
 							<th class="px-4 py-3 text-right">Action</th>
 						</tr>
@@ -761,7 +785,7 @@ templ ScannerArbitragePartial(results []domain.ArbitrageOpportunity, errMsg stri
 									<div class={ "text-[10px] " + profitColor(r.NetMarginPct) }>{ FormatPercent(r.NetMarginPct) } (Haul { FormatISK(r.HaulCostPerUnit) })</div>
 								</td>
 								<td class="px-3 py-3 text-right whitespace-nowrap">
-									<div class="text-white font-semibold">{ fmt.Sprintf("%d u", r.MaxTripUnits) }</div>
+									<div class="text-white font-semibold">{ fmt.Sprintf("%d units", r.MaxTripUnits) }</div>
 									<div class="text-[10px] text-slate-400">{ fmt.Sprintf("%.1f m³ • %s", r.TripCargoM3, FormatISK(r.TripCapitalRequired)) }</div>
 								</td>
 								<td class={ "px-3 py-3 text-right font-bold whitespace-nowrap " + profitColor(r.EstProfitPerTrip) }>
@@ -819,7 +843,7 @@ templ ScannerStockoutsPartial(results []domain.StockoutOpportunity, errMsg strin
 							<th class="px-3 py-3 text-right">Competitors</th>
 							<th class="px-3 py-3 text-right">7d Regional Vol</th>
 							<th class="px-3 py-3 text-right">Hub Sell vs Jita</th>
-							<th class="px-3 py-3 text-right">Est. Daily Market</th>
+							<th class="px-3 py-3 text-right">Estimated Daily Market</th>
 							<th class="px-4 py-3 text-right">Action</th>
 						</tr>
 					</thead>
@@ -850,7 +874,7 @@ templ ScannerStockoutsPartial(results []domain.StockoutOpportunity, errMsg strin
 									}
 									<div class="text-[10px] text-slate-400">{ fmt.Sprintf("%d buy orders", r.BuyOrdersCount) }</div>
 								</td>
-								<td class="px-3 py-3 text-right text-sky-200 whitespace-nowrap">{ FormatVolume(r.DailyVolume7d) }/d</td>
+								<td class="px-3 py-3 text-right text-sky-200 whitespace-nowrap">{ FormatVolume(r.DailyVolume7d) }</td>
 								<td class="px-3 py-3 text-right whitespace-nowrap">
 									if r.RecommendedSell > 0 {
 										<div class="text-amber-200 font-semibold" title="Recommended 4-sig-fig EVE list price (1 tick under hub sell, or Jita +18% when stocked out)">
@@ -933,7 +957,7 @@ templ ScannerReactionsPartial(results []domain.ReactionOpportunity, errMsg strin
 										</div>
 									</div>
 								</td>
-								<td class="px-3 py-3 text-right font-mono text-sky-200 whitespace-nowrap">{ FormatVolume(r.DailyVolume7d) }/d</td>
+								<td class="px-3 py-3 text-right font-mono text-sky-200 whitespace-nowrap">{ FormatVolume(r.DailyVolume7d) }</td>
 								<td class="px-3 py-3 text-right font-mono whitespace-nowrap">
 									<div class="text-slate-200">{ FormatISK(r.InputCost + r.JobFeeISK) }</div>
 									<div class="text-[9.5px] text-slate-400">Job { FormatISK(r.JobFeeISK) }</div>

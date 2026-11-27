@@ -3,12 +3,13 @@ package web
 import (
 	"fmt"
 
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
 templ Layout(title string, activeNav string, mode service.ModeInfo) {
 	<!DOCTYPE html>
-	<html lang="en">
+	<html lang={ i18n.FromContext(ctx) } data-af-tz={ i18n.TZFromContext(ctx) }>
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -34,6 +35,7 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 			<link rel="stylesheet" href={ StaticAssetURL("/static/tailwind.css") }/>
 			<link rel="stylesheet" href={ StaticAssetURL("/static/app.css") }/>
 			<script src="https://unpkg.com/htmx.org@2.0.4"></script>
+			<script src={ StaticAssetURL("/static/pi_colony_map.js") }></script>
 			<script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
 		</head>
 		<body
@@ -79,6 +81,9 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 			@open-aura-ai.window="openAura($event.detail?.prompt || '', $event.detail?.context || '')"
 			@keydown.escape.window="auraOpen = false"
 		>
+			<!-- Global Top Progress Bar for all user-initiated HTMX requests -->
+			<div id="af-global-progress" class="af-htmx-bar" aria-hidden="true"></div>
+
 			<!-- Unified Full-Viewport Orbital Shipyard + Planet Horizon Backdrop (Flows seamlessly from Sidebar into Main) -->
 			<svg
 				class="pointer-events-none fixed inset-0 z-0 h-full w-full select-none"
@@ -454,12 +459,40 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 								<span class="hidden sm:inline">Wiki</span>
 							</a>
 
+							<!-- Language Switcher (EN | ID) -->
+							<div class="inline-flex items-center rounded-lg border border-violet-400/35 bg-violet-950/50 p-0.5 text-[11px] font-mono font-bold" title={ i18n.L(ctx, "Switch UI Language (English / Indonesian)", "Ganti Bahasa UI (Inggris / Indonesia)") }>
+								<form method="POST" action="/lang" hx-boost="false" class="inline">
+									<input type="hidden" name="lang" value="en"/>
+									<button
+										type="submit"
+										class={ "rounded-md px-2 py-1 transition cursor-pointer " + func() string {
+											if !i18n.IsID(ctx) {
+												return "bg-amber-400/25 text-amber-200 border border-amber-300/50"
+											}
+											return "text-slate-300 hover:text-white"
+										}() }
+									>EN</button>
+								</form>
+								<form method="POST" action="/lang" hx-boost="false" class="inline">
+									<input type="hidden" name="lang" value="id"/>
+									<button
+										type="submit"
+										class={ "rounded-md px-2 py-1 transition cursor-pointer " + func() string {
+											if i18n.IsID(ctx) {
+												return "bg-amber-400/25 text-amber-200 border border-amber-300/50"
+											}
+											return "text-slate-300 hover:text-white"
+										}() }
+									>ID</button>
+								</form>
+							</div>
+
 							<!-- Day / Night Card Theme Toggle -->
 							<button
 								type="button"
 								@click="toggleTheme()"
 								class="inline-flex items-center gap-1.5 rounded-lg border border-violet-400/35 bg-violet-950/50 px-3 py-1.5 text-xs font-semibold text-violet-100 hover:bg-violet-900/60 transition cursor-pointer"
-								:title="isDark ? 'Switch Cards to Day Mode' : 'Switch Cards to Night Mode'"
+								:title="isDark ? 'Switch to Day Mode' : 'Switch to Night Mode'"
 							>
 								<svg x-cloak x-show="isDark" class="h-4 w-4 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 									<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
@@ -467,7 +500,7 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 								<svg x-cloak x-show="!isDark" class="h-4 w-4 text-violet-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 									<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
 								</svg>
-								<span x-text="isDark ? 'Day Cards' : 'Night Cards'"></span>
+								<span x-text="isDark ? 'Day' : 'Night'"></span>
 							</button>
 
 							if mode.CurrentUser != nil {
@@ -660,6 +693,102 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 					</div>
 				</template>
 			</div>
+
+			<!-- Global HTMX Button Loading & Error Notification Guard -->
+			<script>
+				(function () {
+					if (window.__afHTMXUXBound) return;
+					window.__afHTMXUXBound = true;
+					let activeRequests = 0;
+
+					function isBackgroundPoll(elt) {
+						if (!elt || !elt.getAttribute) return false;
+						const trig = elt.getAttribute('hx-trigger') || '';
+						return trig.indexOf('every ') !== -1;
+					}
+
+					function resolveActionButton(elt, detail) {
+						if (!elt) return null;
+						if (elt.tagName === 'BUTTON') return elt;
+						if (detail && detail.requestConfig && detail.requestConfig.triggeringEvent) {
+							const submitter = detail.requestConfig.triggeringEvent.submitter;
+							if (submitter && submitter.tagName === 'BUTTON') return submitter;
+						}
+						if (elt.tagName === 'FORM') {
+							return elt.querySelector('button[type="submit"], button:not([type])');
+						}
+						return null;
+					}
+
+					function setBarActive(on) {
+						const bar = document.getElementById('af-global-progress');
+						if (bar) bar.classList.toggle('active', on);
+					}
+
+					function clearButtonState(btn) {
+						if (!btn || !btn.dataset.afLoading) return;
+						delete btn.dataset.afLoading;
+						btn.classList.remove('af-btn-loading');
+						if (btn.dataset.afWasDisabled !== '1') btn.disabled = false;
+						delete btn.dataset.afWasDisabled;
+						const sp = btn.querySelector(':scope > .af-btn-spinner');
+						if (sp) sp.remove();
+					}
+
+					document.body.addEventListener('htmx:beforeRequest', function (evt) {
+						const elt = evt.detail && evt.detail.elt;
+						if (isBackgroundPoll(elt)) return;
+						activeRequests++;
+						setBarActive(true);
+
+						const btn = resolveActionButton(elt, evt.detail);
+						if (btn && !btn.dataset.afLoading) {
+							btn.dataset.afLoading = '1';
+							btn.dataset.afWasDisabled = btn.disabled ? '1' : '0';
+							btn.disabled = true;
+							btn.classList.add('af-btn-loading');
+							if (!btn.querySelector('.htmx-indicator, .af-btn-spinner')) {
+								const sp = document.createElement('span');
+								sp.className = 'af-btn-spinner';
+								sp.setAttribute('aria-hidden', 'true');
+								btn.insertBefore(sp, btn.firstChild);
+							}
+							if (elt) elt._afLoadingBtn = btn;
+						}
+					});
+
+					document.body.addEventListener('htmx:afterRequest', function (evt) {
+						const elt = evt.detail && evt.detail.elt;
+						if (!isBackgroundPoll(elt)) {
+							activeRequests = Math.max(0, activeRequests - 1);
+							if (activeRequests === 0) setBarActive(false);
+						}
+						if (elt && elt._afLoadingBtn) {
+							clearButtonState(elt._afLoadingBtn);
+							delete elt._afLoadingBtn;
+						} else {
+							clearButtonState(resolveActionButton(elt, evt.detail));
+						}
+					});
+
+					document.body.addEventListener('htmx:responseError', function (evt) {
+						const xhr = evt.detail && evt.detail.xhr;
+						const hasToast = xhr && xhr.getResponseHeader && xhr.getResponseHeader('HX-Trigger');
+						if (!hasToast) {
+							const status = xhr ? xhr.status : 0;
+							window.dispatchEvent(new CustomEvent('showToast', {
+								detail: { level: 'error', message: 'Request failed (HTTP ' + status + '). Please try again.' }
+							}));
+						}
+					});
+
+					document.body.addEventListener('htmx:sendError', function () {
+						window.dispatchEvent(new CustomEvent('showToast', {
+							detail: { level: 'error', message: 'Network error — unable to reach server.' }
+						}));
+					});
+				})();
+			</script>
 		</body>
 	</html>
 }

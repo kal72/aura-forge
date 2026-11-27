@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -49,12 +50,14 @@ templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, activeTab string, 
 				}
 			}"
 		>
+			@ProductionWorkflowStepper(4)
+
 			<!-- Header -->
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-white">Production, Inventory &amp; Market Order Tracker</h1>
 					<p class="text-xs text-slate-300/80 mt-0.5">
-						Manage batch lifecycles (<code class="text-sky-300">DRAFT → IN_PRODUCTION → LISTED → SOLD</code>), audit Buy/Sell Ledger &amp; Realized P&amp;L, and protect profit at <strong class="text-amber-200">{ hub.Name }</strong>.
+						{ i18n.L(ctx, "Manage batch lifecycles", "Kelola siklus batch") } (<code class="text-sky-300">DRAFT → IN_PRODUCTION → LISTED → SOLD</code>), { i18n.L(ctx, "audit Buy/Sell Ledger & Realized Profit/Loss, and protect profit at", "audit Buku Besar Buy/Sell & Laba/Rugi terealisasi, dan lindungi profit di") } <strong class="text-amber-200">{ hub.Name }</strong>.
 					</p>
 				</div>
 				if activeTab == "batches" {
@@ -67,10 +70,10 @@ templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, activeTab string, 
 							class="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/45 bg-amber-500/15 px-3.5 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer"
 						>
 							<span id="undercut-spinner" class="htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-amber-300 border-t-transparent"></span>
-							<span>Check Live Undercuts ({ hub.Name })</span>
+							<span>{ i18n.L(ctx, "Check Live Undercuts", "Cek Undercut Live") } ({ hub.Name })</span>
 						</button>
 						<button type="button" @click="showNewBatch = !showNewBatch" class="rounded-lg bg-amber-400 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer">
-							+ Record Batch
+							+ { i18n.L(ctx, "Record Batch", "Catat Batch") }
 						</button>
 					</div>
 				}
@@ -129,32 +132,32 @@ templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, activeTab string, 
 			<!-- 4 KPI Summary Cards -->
 			<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-slate-400">Active Batches</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-slate-400">{ i18n.L(ctx, "Active Batches", "Batch Aktif") }</div>
 					<div class="mt-1 text-2xl font-bold font-mono text-white">{ fmt.Sprintf("%d", summary.ActiveCount) }</div>
-					<div class="mt-0.5 text-[11px] text-slate-400">{ fmt.Sprintf("%d listed • %d sold total", summary.ListedCount, summary.SoldCount) }</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">{ fmt.Sprintf("%d listed • %d %s", summary.ListedCount, summary.SoldCount, i18n.L(ctx, "sold total", "terjual total")) }</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-amber-300/90">Locked Capital</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-amber-300/90">{ i18n.L(ctx, "Locked Capital", "Modal Terkunci") }</div>
 					<div class="mt-1 text-2xl font-bold font-mono text-amber-300">{ FormatISK(summary.LockedCapital) }</div>
-					<div class="mt-0.5 text-[11px] text-slate-400">Tied up in unsold batches</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">{ i18n.L(ctx, "Tied up in unsold batches", "Tertahan di batch belum terjual") }</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-rose-300/90">Undercut Alerts ({ hub.Name })</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-rose-300/90">{ i18n.L(ctx, "Undercut Alerts", "Peringatan Undercut") } ({ hub.Name })</div>
 					<div class={ "mt-1 text-2xl font-bold font-mono " + func() string { if summary.UndercutCount > 0 { return "text-rose-300" }; return "text-emerald-300" }() }>
 						{ fmt.Sprintf("%d", summary.UndercutCount) }
 					</div>
 					<div class="mt-0.5 text-[11px] text-slate-400">
 						if summary.UndercutCount > 0 {
-							<span class="text-rose-200">Check Safe Relist before lowering price</span>
+							<span class="text-rose-200">{ i18n.L(ctx, "Check Safe Relist before lowering price", "Cek Safe Relist sebelum menurunkan harga") }</span>
 						} else {
-							<span>All listed orders competitive</span>
+							<span>{ i18n.L(ctx, "All listed orders competitive", "Semua Sell Order masih kompetitif") }</span>
 						}
 					</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-emerald-300/90">Realized Profit</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-emerald-300/90">{ i18n.L(ctx, "Realized Profit", "Profit Terealisasi") }</div>
 					<div class={ "mt-1 text-2xl font-bold font-mono " + profitColor(summary.RealizedProfit) }>{ FormatISK(summary.RealizedProfit) }</div>
-					<div class="mt-0.5 text-[11px] text-slate-400">Accumulated from SOLD batches</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">{ i18n.L(ctx, "Accumulated from SOLD batches", "Akumulasi dari batch SOLD") }</div>
 				</div>
 			</div>
 
@@ -330,9 +333,9 @@ templ TrackerPage(mode service.ModeInfo, hub domain.TradeHub, activeTab string, 
 															{ string(b.Status) }
 														</span>
 														if entryType == domain.BatchEntryTrade {
-															<span class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%d u flip", b.UnitsOutput) }</span>
+															<span class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%d units flip", b.UnitsOutput) }</span>
 														} else {
-															<span class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%dx run • %d u", b.Runs, b.UnitsOutput) }</span>
+															<span class="font-mono text-[10px] text-slate-400">{ fmt.Sprintf("%dx run • %d units", b.Runs, b.UnitsOutput) }</span>
 														}
 													</div>
 												</div>

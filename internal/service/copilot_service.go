@@ -9,6 +9,7 @@ import (
 
 	"aura-forge/internal/domain"
 	"aura-forge/internal/esi"
+	"aura-forge/internal/i18n"
 )
 
 // SSOAuthenticator abstracts optional OAuth2 login/callback operations.
@@ -65,6 +66,8 @@ type DashboardSummary struct {
 	LayakItemsCount       int                `json:"layak_items_count"`
 	JebakanItemsCount     int                `json:"jebakan_items_count"`
 	ActiveBatchesCount    int                `json:"active_batches_count"`
+	DraftBatchesCount     int                `json:"draft_batches_count"`
+	SlowMoverBatchesCount int                `json:"slow_mover_batches_count"`
 	UndercutBatchesCount  int                `json:"undercut_batches_count"`
 	ExpiringColoniesCount int                `json:"expiring_colonies_count"`
 	ExpiredColoniesCount  int                `json:"expired_colonies_count"`
@@ -297,6 +300,7 @@ func (s *CopilotService) UpdateSettings(ctx context.Context, cfg *domain.UserSet
 			return err
 		}
 	}
+	s.priceSync.updateSchedulePreview(cfg.AutoPriceSyncEnabled, cfg.AutoPriceSyncIntervalMinutes)
 	s.priceSync.notifyConfigChanged()
 	return nil
 }
@@ -362,6 +366,8 @@ func (s *CopilotService) GetDashboard(ctx context.Context) (*DashboardSummary, e
 		if batches, err := s.batches.ListBatches(ctx, nil); err == nil {
 			for _, b := range batches {
 				switch b.Status {
+				case domain.BatchStatusDraft:
+					summary.DraftBatchesCount++
 				case domain.BatchStatusInProduction:
 					summary.LockedCapital += b.ActualProductionCost
 					summary.ActiveBatchesCount++
@@ -371,6 +377,9 @@ func (s *CopilotService) GetDashboard(ctx context.Context) (*DashboardSummary, e
 				case domain.BatchStatusListed, domain.BatchStatusSlowMover:
 					summary.LockedCapital += b.ActualProductionCost
 					summary.ActiveBatchesCount++
+					if b.Status == domain.BatchStatusSlowMover {
+						summary.SlowMoverBatchesCount++
+					}
 					if b.IsUndercut {
 						summary.UndercutBatchesCount++
 					}
@@ -426,12 +435,12 @@ func (s *CopilotService) GetDashboard(ctx context.Context) (*DashboardSummary, e
 	summary.NextMilestoneLabel = nextMs.Label
 	summary.NextMilestonePct = nextMs.ProgressPct
 
-	summary.CopilotActions = buildCopilotActions(summary)
+	summary.CopilotActions = buildCopilotActions(ctx, summary)
 	summary.DailyChecklist = buildDailyChecklist(summary)
 	return summary, nil
 }
 
-func buildCopilotActions(d *DashboardSummary) []CopilotAction {
+func buildCopilotActions(ctx context.Context, d *DashboardSummary) []CopilotAction {
 	hubName := d.ActiveHub.Name
 	if hubName == "" {
 		hubName = "Primary Hub"
@@ -442,68 +451,94 @@ func buildCopilotActions(d *DashboardSummary) []CopilotAction {
 	if d.UndercutBatchesCount > 0 {
 		actions = append(actions, CopilotAction{
 			Priority:    "URGENT",
-			Title:       fmt.Sprintf("%d Listed Order(s) Undercut in %s", d.UndercutBatchesCount, hubName),
-			Detail:      "Competitors beat your sell price. Check Safe Relist Floor before modifying orders so broker fees don't erase your margin.",
-			ActionLabel: "Fix Undercuts →",
+			Title:       fmt.Sprintf(i18n.L(ctx, "%d Listed Order(s) Undercut in %s", "%d Sell Order Terkena Undercut di %s"), d.UndercutBatchesCount, hubName),
+			Detail:      i18n.L(ctx, "Competitors beat your sell price. Check Safe Relist Floor before modifying orders so broker fees don't erase your margin.", "Kompetitor memotong harga jual Anda. Cek batas aman Safe Relist Floor sebelum ubah harga agar Broker Fee tidak menggerus Margin."),
+			ActionLabel: i18n.L(ctx, "Fix Undercuts →", "Perbaiki Undercut →"),
 			ActionURL:   "/tracker?status=LISTED",
 		})
 	}
 
-	// 2. URGENT: Expired or Expiring PI Colonies
+	// 2. URGENT: Slow Mover capital lock-up
+	if d.SlowMoverBatchesCount > 0 {
+		actions = append(actions, CopilotAction{
+			Priority:    "URGENT",
+			Title:       fmt.Sprintf(i18n.L(ctx, "%d Slow-Mover Batch(es) Locking Capital", "%d Batch Lambat Mengunci Modal"), d.SlowMoverBatchesCount),
+			Detail:      i18n.L(ctx, "Stale listings tie up working capital. Review Safe Break-Even Floor and re-price or liquidate to free ISK.", "Stok yang macet mengunci modal kerja. Cek batas Break-Even dan sesuaikan harga agar ISK kembali cair."),
+			ActionLabel: i18n.L(ctx, "Inspect Slow Movers →", "Cek Batch Lambat →"),
+			ActionURL:   "/tracker?status=SLOW_MOVER",
+		})
+	}
+
+	// 3. URGENT: Expired or Expiring PI Colonies
 	if d.ExpiredColoniesCount > 0 || d.ExpiringColoniesCount > 0 {
 		actions = append(actions, CopilotAction{
 			Priority:    "URGENT",
-			Title:       fmt.Sprintf("PI Extractors Need Attention (%d expired, %d expiring)", d.ExpiredColoniesCount, d.ExpiringColoniesCount),
-			Detail:      "Idle extractors stop passive daily ISK generation. Reset your planet timers in 1 click.",
-			ActionLabel: "Open PI Colonies →",
+			Title:       fmt.Sprintf(i18n.L(ctx, "PI Extractors Need Attention (%d expired, %d expiring)", "Extractor PI Perlu Dicek (%d habis, %d segera habis)"), d.ExpiredColoniesCount, d.ExpiringColoniesCount),
+			Detail:      i18n.L(ctx, "Idle extractors stop passive daily ISK generation. Reset your planet timers in 1 click.", "Extractor yang berhenti membuat pasif ISK harian terhenti. Reset timer planet Anda dengan 1 klik."),
+			ActionLabel: i18n.L(ctx, "Open PI Colonies →", "Buka Koloni PI →"),
 			ActionURL:   "/pi",
 		})
 	}
 
-	// 3. ACTION: Idle Manufacturing Slots
+	// 4. ACTION: Unstarted Draft Batches waiting in Tracker
+	if d.DraftBatchesCount > 0 {
+		actions = append(actions, CopilotAction{
+			Priority:    "ACTION",
+			Title:       fmt.Sprintf(i18n.L(ctx, "%d Draft Batch(es) Ready to Start in Tracker", "%d Draft Batch Siap Dijalankan di Tracker"), d.DraftBatchesCount),
+			Detail:      i18n.L(ctx, "You have queued draft batches waiting to begin production or market listing.", "Anda punya antrean draft batch yang menunggu untuk mulai produksi atau dipasang di market."),
+			ActionLabel: i18n.L(ctx, "Start Drafts (Step 4) →", "Mulai Draft (Langkah 4) →"),
+			ActionURL:   "/tracker?status=DRAFT",
+		})
+	}
+
+	// 5. ACTION: Idle Manufacturing Slots (strictly follows Step 1 Catalog -> Step 2 Allocator -> Step 3 Planner)
 	if d.MfgSlotsUsed < d.MfgSlotsTotal {
 		idle := d.MfgSlotsTotal - d.MfgSlotsUsed
-		targetURL := "/planner"
-		btnLabel := "Fill Slots (Planner) →"
-		if d.ActivePlan == nil {
+		var targetURL, btnLabel, detail string
+		switch {
+		case d.TotalCatalogItems == 0:
+			targetURL = "/catalog"
+			btnLabel = i18n.L(ctx, "Step 1: Fill Catalog →", "Langkah 1: Isi Catalog →")
+			detail = fmt.Sprintf(i18n.L(ctx, "Add viable items to your %s Catalog first (or use Scanner), then split capital in Allocator.", "Tambahkan item yang layak ke Catalog %s dulu (atau gunakan Scanner), lalu bagi modal di Allocator."), hubName)
+		case d.ActivePlan == nil:
 			targetURL = "/allocator"
-			btnLabel = "Run Capital Allocator →"
+			btnLabel = i18n.L(ctx, "Step 2: Split Capital →", "Langkah 2: Bagi Modal →")
+			detail = i18n.L(ctx, "Use Smart Capital Allocator to size safe batches from your Catalog and generate your Weekly Plan.", "Gunakan Smart Capital Allocator untuk membagi modal aman dari Catalog dan membuat Weekly Plan.")
+		default:
+			targetURL = "/planner"
+			btnLabel = i18n.L(ctx, "Step 3: Fill Slots (Planner) →", "Langkah 3: Isi Slot (Planner) →")
+			detail = i18n.L(ctx, "Empty industry slots slow down compounding toward 100B+ Total Wealth. Queue your next profitable wave.", "Slot produksi yang kosong memperlambat pertumbuhan menuju 100B+ Total Wealth. Jadwalkan batch berikutnya.")
 		}
 		actions = append(actions, CopilotAction{
 			Priority:    "ACTION",
-			Title:       fmt.Sprintf("%d of %d Manufacturing Slot(s) Sitting Idle", idle, d.MfgSlotsTotal),
-			Detail:      "Empty industry slots slow down compounding toward 100B+ Total Wealth. Queue your next profitable wave.",
+			Title:       fmt.Sprintf(i18n.L(ctx, "%d of %d Manufacturing Slot(s) Sitting Idle", "%d dari %d Slot Produksi Sedang Kosong"), idle, d.MfgSlotsTotal),
+			Detail:      detail,
 			ActionLabel: btnLabel,
 			ActionURL:   targetURL,
 		})
 	}
 
-	// 4. ACTION: Catalog discovery or Live Price Sync
-	if d.TotalCatalogItems == 0 {
-		actions = append(actions, CopilotAction{
-			Priority:    "ACTION",
-			Title:       "Build Your First Profitable Catalog",
-			Detail:      fmt.Sprintf("Scan live %s opportunities or auto-generate beginner-safe items sized to your working capital.", hubName),
-			ActionLabel: "Open Opportunity Scanner →",
-			ActionURL:   "/scanner",
-		})
-	} else {
-		actions = append(actions, CopilotAction{
-			Priority:    "TIP",
-			Title:       fmt.Sprintf("Refresh Live %s Prices & Volumes", hubName),
-			Detail:      fmt.Sprintf("Keep your %d catalog item(s) and Trap Guard signals synced with current Public ESI order books.", d.TotalCatalogItems),
-			ActionLabel: "Sync " + hubName + " Prices",
-			ActionPost:  "/esi/sync-prices",
-		})
+	// 6. TIP: Only prompt Live Price Sync if Catalog exists AND cache is stale (>30m) or never synced
+	if d.TotalCatalogItems > 0 {
+		isStale := d.Mode.PriceSync.LastSyncedAt == nil || time.Since(*d.Mode.PriceSync.LastSyncedAt) > 30*time.Minute
+		if isStale && !d.Mode.PriceSync.IsRunning {
+			actions = append(actions, CopilotAction{
+				Priority:    "TIP",
+				Title:       fmt.Sprintf(i18n.L(ctx, "Refresh Live %s Prices & Volumes", "Segarkan Harga & Volume Live %s"), hubName),
+				Detail:      fmt.Sprintf(i18n.L(ctx, "Cached prices for your %d catalog item(s) are older than 30 minutes. Sync now for fresh spreads.", "Cache harga untuk %d item katalog sudah lebih dari 30 menit. Sinkron sekarang agar harga terbaru."), d.TotalCatalogItems),
+				ActionLabel: i18n.L(ctx, "Sync ", "Sinkron Harga ") + hubName,
+				ActionPost:  "/esi/sync-prices",
+			})
+		}
 	}
 
 	// 5. ACTION: Today's Net Worth Snapshot
 	if !d.CapturedWealthToday {
 		actions = append(actions, CopilotAction{
 			Priority:    "ACTION",
-			Title:       fmt.Sprintf("Log Today's Total Wealth (Next: %s — %.1f%%)", d.NextMilestoneLabel, d.NextMilestonePct),
-			Detail:      "Capture a daily snapshot to plot your equity curve and verify real compounding velocity.",
-			ActionLabel: "Auto-Capture Today",
+			Title:       fmt.Sprintf(i18n.L(ctx, "Log Today's Total Wealth (Next: %s — %.1f%%)", "Catat Total Wealth Hari Ini (Target: %s — %.1f%%)"), d.NextMilestoneLabel, d.NextMilestonePct),
+			Detail:      i18n.L(ctx, "Capture a daily snapshot to plot your equity curve and verify real compounding velocity.", "Ambil snapshot harian untuk memantau grafik pertumbuhan aset dan kecepatan compounding Anda."),
+			ActionLabel: i18n.L(ctx, "Auto-Capture Today", "Catat Otomatis Hari Ini"),
 			ActionPost:  "/wealth/auto-snapshot",
 		})
 	}
@@ -511,9 +546,9 @@ func buildCopilotActions(d *DashboardSummary) []CopilotAction {
 	if len(actions) == 0 {
 		actions = append(actions, CopilotAction{
 			Priority:    "OK",
-			Title:       "All Systems Optimal — Keep Compounding!",
-			Detail:      "All manufacturing slots are busy, no active undercuts detected, and today's Net Worth snapshot is logged.",
-			ActionLabel: "Open Manufacture →",
+			Title:       i18n.L(ctx, "All Systems Optimal — Keep Compounding!", "Semua Sistem Optimal — Teruskan Compounding!"),
+			Detail:      i18n.L(ctx, "All manufacturing slots are busy, no active undercuts detected, and today's Net Worth snapshot is logged.", "Semua slot produksi aktif, tidak ada undercut terdeteksi, dan snapshot Net Worth hari ini sudah tercatat."),
+			ActionLabel: i18n.L(ctx, "Open Manufacture →", "Buka Manufacture →"),
 			ActionURL:   "/manufacture",
 		})
 	}
@@ -949,11 +984,48 @@ func (s *CopilotService) CreatePlanFromAllocation(ctx context.Context, title str
 	plan.Status = domain.PlanStatusActive
 
 	if s.plans != nil {
+		// Prevent duplicate clutter when re-tuning Capital Allocator for the same Week & Title:
+		// update the existing matching plan in-place instead of appending endless copies.
+		if existingPlans, err := s.plans.ListPlans(ctx); err == nil {
+			for _, ep := range existingPlans {
+				if ep.WeekNumber == plan.WeekNumber && strings.EqualFold(strings.TrimSpace(ep.Title), strings.TrimSpace(plan.Title)) {
+					plan.ID = ep.ID
+					break
+				}
+			}
+		}
 		if err := s.plans.SavePlan(ctx, &plan); err != nil {
 			return nil, err
 		}
 	}
 	return &plan, nil
+}
+
+// DeleteWeeklyPlan permanently deletes a saved Weekly Plan by ID.
+func (s *CopilotService) DeleteWeeklyPlan(ctx context.Context, planID int64) error {
+	if s.plans == nil || planID <= 0 {
+		return nil
+	}
+	return s.plans.DeletePlan(ctx, planID)
+}
+
+// ClearAllWeeklyPlans removes all saved Weekly Plans so the user can start fresh.
+func (s *CopilotService) ClearAllWeeklyPlans(ctx context.Context) (int, error) {
+	if s.plans == nil {
+		return 0, nil
+	}
+	plans, err := s.plans.ListPlans(ctx)
+	if err != nil {
+		return 0, err
+	}
+	deleted := 0
+	for _, p := range plans {
+		if err := s.plans.DeletePlan(ctx, p.ID); err != nil {
+			return deleted, err
+		}
+		deleted++
+	}
+	return deleted, nil
 }
 
 // CreateDraftBatchesFromAllocation converts allocation recommendations directly into Draft BatchRecords.
@@ -1562,8 +1634,20 @@ func (s *CopilotService) SyncCharacterSSO(ctx context.Context) (*domain.Characte
 	bps, _ := s.charSync.SyncBlueprints(ctx, tok)
 	assets, _ := s.charSync.SyncAssets(ctx, tok)
 
+	var corpBPs []domain.CharacterBlueprint
+	if corpSync, ok := s.charSync.(domain.CorpBlueprintSyncProvider); ok && corpSync != nil {
+		if cb, cErr := corpSync.SyncCorpBlueprints(ctx, tok); cErr == nil {
+			corpBPs = cb
+		} else {
+			fmt.Printf("[corp-bp-sync] character=%d error=%v\n", tok.CharacterID, cErr)
+		}
+	}
+
 	// Resolve human-readable EVE item names for synced orders, jobs, blueprints, and hangar assets
 	s.resolveCharacterTypeNames(ctx, orders, jobs, bps, assets)
+	if len(corpBPs) > 0 {
+		s.resolveCharacterTypeNames(ctx, nil, nil, corpBPs, nil)
+	}
 
 	if len(orders) > 0 {
 		_ = s.chars.UpsertOrders(ctx, tok.CharacterID, orders)
@@ -1585,6 +1669,11 @@ func (s *CopilotService) SyncCharacterSSO(ctx context.Context) (*domain.Characte
 	}
 	if len(bps) > 0 {
 		_ = s.chars.UpsertBlueprints(ctx, tok.CharacterID, bps)
+	}
+	if len(corpBPs) > 0 {
+		if corpRepo, ok := s.chars.(domain.CorpBlueprintRepository); ok && corpRepo != nil {
+			_ = corpRepo.UpsertCorpBlueprints(ctx, tok.CharacterID, corpBPs)
+		}
 	}
 	if len(assets) > 0 {
 		_ = s.chars.UpsertAssets(ctx, tok.CharacterID, assets)

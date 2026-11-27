@@ -21,6 +21,61 @@ type wikiEntry struct {
 var eveWikiEntries = []wikiEntry{
 	// 1. UI COLORS & BADGES
 	{
+		Category:   "industry",
+		Term:       "My PI Colonies (EVE SSO Auto-Sync)",
+		BadgeText:  "esi-planets.manage_planets.v1",
+		BadgeClass: "border-emerald-400/50 bg-emerald-500/20 text-emerald-200 font-bold",
+		WhereUsed:  "Planetary Industry (PI) → My PI Colonies tab",
+		DescEN:     "Connect your EVE Online character via EVE SSO to automatically sync all PI planets, solar system locations & security status, Command Center level, active P0–P4 factories/extractors, launchpad contents ready to haul, exact extractor expiry timers, and an interactive HTML5 Canvas Surface Map showing exact in-game pin, extractor head, link, and route positions.",
+		DescID:     "Hubungkan karakter EVE Online via EVE SSO untuk sinkronisasi otomatis semua planet PI, lokasi sistem & tingkat keamanan, level Command Center, pabrik/extractor P0–P4 aktif, isi launchpad siap angkut, timer habis extractor, serta Peta Permukaan HTML5 Canvas interaktif yang menampilkan posisi persis pin, kepala extractor, pipa link, dan rute aliran barang seperti di game.",
+		TipEN:      "If you connected EVE SSO before this feature was added, enable esi-planets.manage_planets.v1 in your EVE Developers app and reconnect EVE SSO once in Settings.",
+		TipID:      "Jika Anda sudah pernah login EVE SSO sebelumnya, aktifkan scope esi-planets.manage_planets.v1 di EVE Developers Portal lalu hubungkan ulang EVE SSO sekali di Settings.",
+	},
+	{
+		Category:   "market",
+		Term:       "PRICE SPIKE Badge (Opportunity Scanner)",
+		BadgeText:  "PRICE SPIKE +45%",
+		BadgeClass: "border-amber-400/55 bg-amber-500/20 text-amber-200 font-bold",
+		WhereUsed:  "Opportunity Scanner → Manufacturing ISK/hr",
+		DescEN:     "Warns that the live Lowest Sell price at the selected Trade Hub is at least +35% above the New Eden global average (or an abnormal ≥70% T1 margin). Manufacturing Scanner also enforces EVE's official Job Install Fee (SCI + Facility Tax + 4.0% SCC Surcharge), Buy Broker Fee on Buy-Order materials, Missing Material Price Guard (no 0 ISK fake profits), baseline T2 BPC/Invention cost, and dynamic relist scaling based on active seller count.",
+		DescID:     "Memperingatkan bahwa harga Sell Order terendah di Trade Hub pilihan sedang melonjak minimal +35% di atas rata-rata global New Eden (atau Margin T1 tidak wajar ≥70%). Manufacturing Scanner juga menerapkan rumus resmi Job Install Fee EVE (SCI + Facility Tax + 4.0% SCC Surcharge), Buy Broker Fee untuk material Buy Order, penjaga harga material 0 ISK, estimasi biaya dasar BPC/Invention T2, dan skala relist dinamis berdasarkan jumlah penjual aktif.",
+		TipEN:      "Always click Market to inspect the Order Book and 30-Day Average before buying materials for any PRICE SPIKE item.",
+		TipID:      "Selalu klik Market untuk memeriksa Order Book dan rata-rata 30 Hari sebelum membeli material untuk item berlabel PRICE SPIKE.",
+	},
+	{
+		Category:   "market",
+		Term:       "EVE Show Info Popup (Ships & Modules)",
+		BadgeText:  "ⓘ Show Info",
+		BadgeClass: "border-sky-400/50 bg-sky-500/20 text-sky-200 font-bold",
+		WhereUsed:  "Marketplace → Item Order Book & NPC BPO / LP Store",
+		DescEN:     "Click ⓘ Show Info on any searched ship, module, or drone to open a fixed-height EVE-style floating window with Overview (3D render, quick KPIs, visual slot rack, lore description), Attributes (color-coded Shield/Armor resistance bars + per-attribute icons), and Requirements (5-pip EVE skill level bars).",
+		DescID:     "Klik ⓘ Show Info pada kapal, modul, atau drone mana saja untuk membuka jendela popup bergaya EVE bertinggi tetap dengan tab Overview (render 3D, ringkasan KPI, visual slot, deskripsi), Attributes (bar resistensi Shield/Armor berwarna + ikon tiap atribut), dan Requirements (bar level skill 5-kotak).",
+		TipEN:      "Use Show Info directly inside Marketplace to check Cargo Capacity, Packaged Volume, Slot Layout, and Skill Requirements without leaving the Order Book.",
+		TipID:      "Gunakan Show Info langsung di Marketplace untuk mengecek Cargo Capacity, Packaged Volume, Slot Layout, dan prasyarat Skill tanpa meninggalkan Order Book.",
+	},
+	{
+		Category:   "market",
+		Term:       "NPC BPO & LP Store Finder",
+		BadgeText:  "NPC BPO • LP Store",
+		BadgeClass: "border-sky-400/50 bg-sky-500/20 text-sky-200 font-bold",
+		WhereUsed:  "Marketplace → NPC BPO & LP Store tab",
+		DescEN:     "Instantly checks official NPC BPO Seed Orders (365-day market orders) in your chosen Trade Hub region and 10 major Empire & Pirate LP Stores (with exact NPC station locations) for any blueprint in CCP SDE, plus 1-click Copy for searching player BPC contracts directly in-game.",
+		DescID:     "Langsung mengecek BPO Resmi NPC (order market 365 hari) di region Trade Hub pilihan Anda serta 10 LP Store korporasi utama Empire & Pirate (lengkap dengan lokasi stasiun NPC) untuk blueprint apa pun di SDE CCP, plus tombol 1-klik Salin untuk mencari kontrak BPC pemain langsung di dalam game.",
+		TipEN:      "Always check NPC BPO Seed Orders first for T1 items, and use Copy for In-Game Contracts to compare player BPC contract prices in EVE Online.",
+		TipID:      "Selalu cek BPO Resmi NPC terlebih dahulu untuk item T1, dan gunakan Salin untuk Contracts In-Game guna membandingkan harga kontrak BPC pemain langsung di EVE Online.",
+	},
+	{
+		Category:   "workflow",
+		Term:       "UI Language (EN | ID) & Timezone (UTC+7 | EVE)",
+		BadgeText:  "EN | ID • UTC+7 | EVE",
+		BadgeClass: "border-amber-300/50 bg-amber-400/15 text-amber-200 font-bold",
+		WhereUsed:  "Topbar (every page) & Login",
+		DescEN:     "Switch the interface language between English (EN, default) and Indonesian (ID), and toggle displayed timestamps between UTC+7 (WIB) and EVE Online Server Time (EVE UTC). Sidebar menus and official EVE Online in-game terms stay in English for consistency.",
+		DescID:     "Ganti bahasa antarmuka antara Inggris (EN, default) dan Indonesia (ID), serta pilih tampilan waktu antara UTC+7 (WIB) dan waktu server EVE Online (EVE UTC). Menu sidebar dan istilah resmi in-game EVE Online tetap berbahasa Inggris agar konsisten.",
+		TipEN:      "Your preferences are saved in browser cookies (af_lang and af_tz) and apply automatically across full pages and live HTMX updates.",
+		TipID:      "Preferensi Anda disimpan di cookie browser (af_lang dan af_tz) dan langsung berlaku di seluruh halaman maupun pembaruan HTMX.",
+	},
+	{
 		Category:   "colors",
 		Term:       "Green Price in Lowest Sell (Multi-Hub Table)",
 		BadgeText:  "12,500 ISK",
@@ -354,6 +409,17 @@ var eveWikiEntries = []wikiEntry{
 		TipEN:      "Other trade hubs (Amarr, Dodixie, Rens, Hek) and 15,000+ free-search Marketplace items load on-demand with PostgreSQL caching to stay lightweight and ESI-safe.",
 		TipID:      "Hub lain (Amarr, Dodixie, Rens, Hek) dan 15.000+ item pencarian bebas di Marketplace tetap on-demand dengan cache PostgreSQL agar ringan dan aman dari blocking ESI.",
 	},
+	{
+		Category:   "market",
+		Term:       "Show Info Popup (4 Tabs) & Floating Compare Tray",
+		BadgeText:  "SPECS & COMPARE",
+		BadgeClass: "border-amber-400/45 bg-amber-500/20 text-amber-200 font-bold",
+		WhereUsed:  "Marketplace → Item Order Book & NPC BPO / LP Store",
+		DescEN:     "Click 'ⓘ Show Info' on any ship, module, drone, or rig to open an EVE-style fixed-height popup with 4 tabs: Traits & Info (official CCP SDE Hull Bonuses + Description), Fittings (High/Medium/Low/Rig Slots, Turret/Launcher Hardpoints, CPU, Powergrid, Calibration, Capacitor), Attributes (segmented square Resistance & performance gauges), and Requirements (Level 1–5 skill prerequisites). Click '+ Compare' to queue up to 3 items; a floating 'Compare (N)' pill appears at the bottom-right with a 'Reset' button and opens a side-by-side Compare Popup highlighting the best value in every row.",
+		DescID:     "Klik 'ⓘ Show Info' pada kapal, modul, drone, atau rig mana saja untuk membuka popup bergaya EVE bertinggi tetap dengan 4 tab: Traits & Info (Bonus Hull resmi dari CCP SDE + Deskripsi), Fittings (High/Medium/Low/Rig Slots, Turret/Launcher Hardpoints, CPU, Powergrid, Calibration, Capacitor), Attributes (indikator kotak-kotak terpisah untuk resistensi & performa), dan Requirements (prasyarat skill Level 1–5). Klik '+ Compare' untuk menampung hingga 3 item; tombol mengambang 'Compare (N)' muncul di pojok kanan bawah lengkap dengan tombol 'Reset' dan langsung membuka Compare Popup berdampingan.",
+		TipEN:      "Run 'Import Official CCP SDE' once in Settings after upgrading so every ship displays its official Hull Bonuses inside the Traits & Info tab.",
+		TipID:      "Jalankan 'Import Official CCP SDE' sekali di halaman Settings setelah pembaruan agar seluruh kapal menampilkan Bonus Hull resminya di tab Traits & Info.",
+	},
 
 	// 2B. PLANETARY INDUSTRY (PI)
 	{
@@ -683,12 +749,23 @@ var eveWikiEntries = []wikiEntry{
 	},
 	{
 		Category:   "workflow",
+		Term:       "Daily Copilot Assistant & 4-Step Production Pipeline (Catalog → Allocator → Planner → Tracker)",
+		BadgeText:  "4-STEP FLOW",
+		BadgeClass: "border-emerald-400/50 bg-emerald-500/20 text-emerald-100 font-bold",
+		WhereUsed:  "Dashboard (/), /catalog, /allocator, /planner, /tracker",
+		DescEN:     "Every production cycle follows a clear 4-step pipeline shown at the top of each page: (1) Product Catalog (/catalog) to shortlist viable T1/T2 items, (2) Smart Allocator (/allocator) to split working capital safely across 4 risk buckets (re-saving the same Week & Title updates your active plan in-place instead of duplicating), (3) Weekly Planner (/planner) for slot checks, Day 1–7 schedule, EVE Multibuy, and Delete/Reset All plan controls, and (4) Order Tracker (/tracker) to execute batches & audit Realized P&L. The Dashboard's Daily Copilot Assistant automatically monitors Undercuts, Slow Movers, Expired PI, Draft Batches, Idle Slots, Stale Prices (>30m), and Net Worth Snapshots in strict priority order.",
+		DescID:     "Setiap siklus produksi mengikuti alur 4 langkah yang tampil jelas di bagian atas halaman: (1) Product Catalog (/catalog) untuk memilih item T1/T2 layak, (2) Smart Allocator (/allocator) untuk membagi modal kerja aman ke 4 bucket (menyimpan ulang Week & Title yang sama otomatis memperbarui plan aktif tanpa menumpuk duplikat), (3) Weekly Planner (/planner) untuk cek kapasitas slot, jadwal Day 1–7, EVE Multibuy, serta tombol Delete Plan / Reset All, dan (4) Order Tracker (/tracker) untuk eksekusi batch & audit Realized P&L. Kartu Daily Copilot Assistant di Dashboard otomatis memantau Undercut, Slow Mover, PI Expired, Draft Batch, Slot Kosong, Harga Basi (>30m), dan Snapshot Net Worth sesuai urutan prioritas.",
+		TipEN:      "Click '⚡ Ask Aura Briefing' on the Dashboard Daily Copilot card to get an instant AI summary combining your live slots, capital, T2/Reactions, and top opportunities.",
+		TipID:      "Klik '⚡ Ask Aura Briefing' di kartu Daily Copilot Dashboard untuk mendapatkan ringkasan AI instan berdasarkan slot kosong, modal kerja, T2/Reactions, dan peluang terbaik hari ini.",
+	},
+	{
+		Category:   "workflow",
 		Term:       "Aura AI — Level 4 Agentic Copilot & Cross-Domain Opportunity Radar",
 		BadgeText:  "AURA AI",
 		BadgeClass: "border-amber-400/55 bg-violet-600/35 text-amber-100 font-bold",
 		WhereUsed:  "Topbar → Ask Aura, /marketplace, /manufacture, /wealth, /pilot, /tracker",
-		DescEN:     "Optional OpenAI-compatible AI copilot (configured via AI_BASE_URL, AI_API_KEY, AI_MODEL in .env, with live in-memory model override in /settings). Unlike a generic chatbot, Aura executes 14 deterministic Go tools live — including Opportunity Radar (scanning your OWNED BPO/BPCs with real ME/TE, Manufacturing ISK/hr, Station Trading flips, Inter-Hub Arbitrage, and 24h Market Movers in parallel), NPC BPO & LP Store lookup, Hauling Route/Gank checks, and 30-day Market Volatility audits — so all ISK math stays 100% accurate with zero hallucination.",
-		DescID:     "Kopilot AI opsional (kompatibel OpenAI SDK lewat AI_BASE_URL, AI_API_KEY, AI_MODEL di .env, plus override model langsung di memori lewat /settings). Berbeda dari chatbot biasa, Aura menjalankan 14 tool Go deterministik secara live — termasuk Opportunity Radar (menyapu BPO/BPC MILIK Anda dengan ME/TE asli, Manufacturing ISK/jam, Station Trading, Arbitrage antar-hub, dan Market Movers 24 jam secara paralel), pencarian NPC BPO & LP Store, cek Rute & Risiko Gank, serta audit Volatilitas Market 30 hari — sehingga seluruh angka ISK 100% presisi tanpa halusinasi.",
+		DescEN:     "Optional OpenAI-compatible AI copilot (configured via AI_BASE_URL, AI_API_KEY, AI_MODEL in .env, with live in-memory model override in /settings). Unlike a generic chatbot, Aura executes 16 deterministic Go tools live — including Opportunity Radar (scanning your OWNED BPO/BPCs with real ME/TE, Manufacturing T1/T2 ISK/hr, Gas Reactions, T2 Invention Decryptor Optimizer, Station Trading flips, Inter-Hub Arbitrage, and 24h Market Movers in parallel), NPC BPO & LP Store lookup, Hauling Route/Gank checks, and 30-day Market Volatility audits — so all ISK math stays 100% accurate with zero hallucination.",
+		DescID:     "Kopilot AI opsional (kompatibel OpenAI SDK lewat AI_BASE_URL, AI_API_KEY, AI_MODEL di .env, plus override model langsung di memori lewat /settings). Berbeda dari chatbot biasa, Aura menjalankan 16 tool Go deterministik secara live — termasuk Opportunity Radar (menyapu BPO/BPC MILIK Anda dengan ME/TE asli, Manufacturing T1/T2 ISK/jam, Gas Reactions, Optimizer Decryptor T2 Invention, Station Trading, Arbitrage antar-hub, dan Market Movers 24 jam secara paralel), pencarian NPC BPO & LP Store, cek Rute & Risiko Gank, serta audit Volatilitas Market 30 hari — sehingga seluruh angka ISK 100% presisi tanpa halusinasi.",
 		TipEN:      "Click 'Ask Aura' in the Topbar and choose '🎯 Hunt Best Opportunities Now' or '📋 Build My Weekly Framework (SOP)', or test your API key anytime in /settings → Test AI Connection.",
 		TipID:      "Klik 'Ask Aura' di Topbar lalu pilih '🎯 Hunt Best Opportunities Now' atau '📋 Build My Weekly Framework (SOP)', atau uji koneksi API Anda kapan saja di /settings → Test AI Connection.",
 	},
@@ -756,6 +833,7 @@ templ WikiPage(mode service.ModeInfo) {
 			x-data="{
 				lang: localStorage.getItem('af-wiki-lang') || 'en',
 				showQuickstart: true,
+				showSettingsGuide: true,
 				cat: 'all',
 				q: '',
 				setLang(l) {
@@ -939,7 +1017,7 @@ templ WikiPage(mode service.ModeInfo) {
 									Di <strong>Profit Calculator (Blueprint SDE Mode)</strong>, pilih blueprint, atur Runs/ME/TE &amp; Hub, cek <strong>Make vs. Buy Tree</strong>, lalu klik <strong>Copy EVE Multibuy</strong> dan paste langsung ke jendela Multibuy di game EVE Online.
 								</p>
 							</div>
-							<a href="/calculator?mode=blueprint" class="inline-flex items-center justify-center rounded-lg border border-amber-400/40 bg-amber-500/15 px-3 py-1.5 text-[11px] font-bold text-amber-200 hover:bg-amber-500/25 transition">
+							<a href="/manufacture" class="inline-flex items-center justify-center rounded-lg border border-amber-400/40 bg-amber-500/15 px-3 py-1.5 text-[11px] font-bold text-amber-200 hover:bg-amber-500/25 transition">
 								Open Calculator →
 							</a>
 						</div>
@@ -1134,6 +1212,323 @@ templ WikiPage(mode service.ModeInfo) {
 						<div class="rounded-lg border border-amber-400/25 bg-amber-500/10 px-3.5 py-2.5 text-amber-100">
 							<span x-show="lang === 'en'"><strong>Use Top Opportunities Radar</strong> when asking: <em>"Out of 160 blueprints, which 8 are most profitable and safe to craft right now for my capital?"</em></span>
 							<span x-cloak x-show="lang === 'id'"><strong>Pakai Top Opportunities Radar</strong> untuk menjawab: <em>"Dari 160 blueprint, 8 barang mana yang paling cuan, likuid, dan aman untuk langsung saya produksi hari ini?"</em></span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Complete Settings Form Reference (Top to Bottom — All 5 Cards) -->
+			<div id="settings-guide" class="tactical-panel rounded-2xl border border-sky-400/30 overflow-hidden scroll-mt-6">
+				<div class="flex flex-wrap items-center justify-between gap-3 border-b border-violet-400/20 bg-slate-950/60 px-5 py-3.5">
+					<div>
+						<div class="flex flex-wrap items-center gap-2">
+							<span class="rounded border border-sky-400/45 bg-sky-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-sky-200">SETTINGS GUIDE</span>
+							<h2 x-show="lang === 'en'" class="text-sm font-bold text-white">Complete Settings Form Reference (Top to Bottom)</h2>
+							<h2 x-cloak x-show="lang === 'id'" class="text-sm font-bold text-white">Panduan Lengkap Form Halaman Settings (Dari Atas hingga ke Bawah)</h2>
+						</div>
+						<p x-show="lang === 'en'" class="mt-0.5 text-xs text-slate-300/80">Every form, field, and button on /settings explained — including where to find exact values in EVE Online.</p>
+						<p x-cloak x-show="lang === 'id'" class="mt-0.5 text-xs text-slate-300/80">Penjelasan seluruh form, kolom input, dan tombol di /settings — lengkap dengan cara mengecek nilainya di game EVE Online.</p>
+					</div>
+					<div class="flex items-center gap-2">
+						<a href="/settings" class="rounded-lg border border-amber-400/35 bg-amber-500/15 px-3 py-1.5 text-[11px] font-semibold text-amber-200 hover:bg-amber-500/25 transition">
+							Open Settings →
+						</a>
+						<button
+							type="button"
+							@click="showSettingsGuide = !showSettingsGuide"
+							class="rounded-lg border border-violet-400/35 bg-slate-900/70 px-3 py-1.5 text-xs font-semibold text-violet-100 hover:border-amber-300/50 transition cursor-pointer"
+						>
+							<span x-show="lang === 'en'" x-text="showSettingsGuide ? 'Hide' : 'Show'"></span>
+							<span x-cloak x-show="lang === 'id'" x-text="showSettingsGuide ? 'Sembunyikan' : 'Tampilkan'"></span>
+						</button>
+					</div>
+				</div>
+
+				<div x-show="showSettingsGuide" x-transition class="p-4 space-y-5">
+					<!-- Section 1: Industry & Jita Tax Parameters -->
+					<div class="space-y-2">
+						<div class="flex flex-wrap items-center justify-between gap-2">
+							<h3 class="text-xs font-bold uppercase tracking-wider text-sky-300">1. Industry &amp; Jita Tax Parameters</h3>
+							<span x-show="lang === 'en'" class="text-[11px] text-slate-400">Left Column (Top) — Saved to PostgreSQL</span>
+							<span x-cloak x-show="lang === 'id'" class="text-[11px] text-slate-400">Kolom Kiri (Atas) — Disimpan permanen di PostgreSQL</span>
+						</div>
+						<div class="overflow-x-auto rounded-xl border border-violet-400/15 bg-slate-950/55">
+							<table class="w-full text-left text-xs">
+								<thead class="bg-slate-950/70 font-mono uppercase text-[10px] tracking-wider text-slate-400 border-b border-violet-400/15">
+									<tr>
+										<th class="px-3.5 py-2 w-48"><span x-show="lang === 'en'">Field / Button</span><span x-cloak x-show="lang === 'id'">Field / Tombol</span></th>
+										<th class="px-3.5 py-2"><span x-show="lang === 'en'">Purpose &amp; Impact in aura-forge</span><span x-cloak x-show="lang === 'id'">Fungsi &amp; Dampak di aura-forge</span></th>
+										<th class="px-3.5 py-2"><span x-show="lang === 'en'">Where to Find in EVE Online / Beginner Example</span><span x-cloak x-show="lang === 'id'">Cara Cek di Game EVE Online / Contoh Pemula</span></th>
+									</tr>
+								</thead>
+								<tbody class="divide-y divide-violet-400/10 text-slate-200">
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 font-mono font-semibold text-amber-200">Sync Live SCI (Public ESI)</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">Fetches the official daily Manufacturing System Cost Index for your chosen trade hub system in 1 click.</span>
+											<span x-cloak x-show="lang === 'id'">Mengambil angka resmi System Cost Index (SCI) harian untuk sistem hub yang dipilih dalam 1 klik.</span>
+										</td>
+										<td class="px-3.5 py-2 text-slate-300">
+											<span x-show="lang === 'en'">Select Jita / Perimeter / Amarr / Dodixie / Hek / Rens and click the button — auto-fills SCI below.</span>
+											<span x-cloak x-show="lang === 'id'">Pilih Jita / Perimeter / Amarr / Dodixie / Hek / Rens lalu klik tombol — otomatis mengisi kolom SCI di bawah.</span>
+										</td>
+									</tr>
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 font-mono font-semibold text-white">Manual Starting Capital (ISK)</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">Dedicated business working capital used by Smart Allocator, Scanner batch sizing, and Aura AI.</span>
+											<span x-cloak x-show="lang === 'id'">Modal kerja khusus bisnis yang dipakai Allocator, auto-sizing Scanner, dan Aura AI (terpisah dari uang jajan wallet pribadi).</span>
+										</td>
+										<td class="px-3.5 py-2 text-slate-300">
+											<span x-show="lang === 'en'">Enter full number without commas (e.g. <code class="text-amber-200">100000000</code> for 100M ISK).</span>
+											<span x-cloak x-show="lang === 'id'">Tulis angka penuh tanpa titik/koma (mis. <code class="text-amber-200">100000000</code> untuk 100M ISK).</span>
+										</td>
+									</tr>
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 font-mono font-semibold text-white">Primary Trade Hub</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">Sets your default market hub for Catalog, Trap Guard, Dashboard Radar, and Background Price Updater.</span>
+											<span x-cloak x-show="lang === 'id'">Menentukan trade hub utama untuk Catalog, Trap Guard, Radar Dashboard, dan Background Price Updater.</span>
+										</td>
+										<td class="px-3.5 py-2 text-slate-300">
+											<span x-show="lang === 'en'">Pick the hub where you primarily sell (e.g. <strong>Amarr VIII</strong> or <strong>Jita 4-4</strong>).</span>
+											<span x-cloak x-show="lang === 'id'">Pilih hub tempat Anda utama berjualan (mis. <strong>Amarr VIII</strong> atau <strong>Jita 4-4</strong>).</span>
+										</td>
+									</tr>
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 font-mono font-semibold text-white">Manufacturing Slots</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">Maximum simultaneous manufacturing jobs used by Weekly Planner and Dashboard slot utilization.</span>
+											<span x-cloak x-show="lang === 'id'">Jumlah maksimal job manufaktur paralel untuk perhitungan Weekly Planner &amp; okupansi slot Dashboard.</span>
+										</td>
+										<td class="px-3.5 py-2 text-slate-300">
+											<span x-show="lang === 'en'">In-game: <strong>Industry (Alt+S) → Jobs</strong> → check <code class="text-sky-300">Manufacturing: X / Y</code> (enter <strong>Y</strong>; starter: 1–10).</span>
+											<span x-cloak x-show="lang === 'id'">Di game: <strong>Industry (Alt+S) → Jobs</strong> → lihat <code class="text-sky-300">Manufacturing: X / Y</code> (isi angka <strong>Y</strong>; pemula: 1–10).</span>
+										</td>
+									</tr>
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 font-mono font-semibold text-white">Science / Invention Slots</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">Maximum simultaneous Research, Copy, and T2 Invention jobs tracked in Planner.</span>
+											<span x-cloak x-show="lang === 'id'">Jumlah maksimal job Research, Copy BPC, dan T2 Invention yang dipantau Planner.</span>
+										</td>
+										<td class="px-3.5 py-2 text-slate-300">
+											<span x-show="lang === 'en'">In-game: <strong>Industry (Alt+S) → Jobs</strong> → check <code class="text-sky-300">Science: X / Y</code> (starter: 1–6).</span>
+											<span x-cloak x-show="lang === 'id'">Di game: <strong>Industry (Alt+S) → Jobs</strong> → lihat <code class="text-sky-300">Science: X / Y</code> (pemula: 1–6).</span>
+										</td>
+									</tr>
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 font-mono font-semibold text-white">Broker Fee (%)</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">Upfront listing fee paid whenever you place a non-instant sell or buy order.</span>
+											<span x-cloak x-show="lang === 'id'">Biaya pasang order jual/beli (non-instant) yang langsung dipotong saat listing.</span>
+										</td>
+										<td class="px-3.5 py-2 text-slate-300">
+											<span x-show="lang === 'en'">In-game: Right-click any hangar item → <strong>Sell This Item</strong> → set duration to <strong>3 Months</strong> → read <code class="text-amber-200">Broker's Fee</code> (3.00% base; ~1.50% at Broker Relations V).</span>
+											<span x-cloak x-show="lang === 'id'">Di game: Klik kanan item di Hangar → <strong>Sell This Item</strong> → ubah durasi ke <strong>3 Months</strong> → baca <code class="text-amber-200">Broker's Fee</code> (dasar 3.00%; ~1.50% di Broker Relations V).</span>
+										</td>
+									</tr>
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 font-mono font-semibold text-white">Sales Tax (%)</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">Government tax deducted automatically when your sell order is filled.</span>
+											<span x-cloak x-show="lang === 'id'">Pajak transaksi yang otomatis dipotong saat barang Anda laku terjual.</span>
+										</td>
+										<td class="px-3.5 py-2 text-slate-300">
+											<span x-show="lang === 'en'">In-game: Same <strong>Sell This Item</strong> window → read <code class="text-amber-200">Sales Tax</code> (7.50% at Accounting 0; 4.20% at Lv 4; 3.38% at Lv 5).</span>
+											<span x-cloak x-show="lang === 'id'">Di game: Di jendela <strong>Sell This Item</strong> yang sama → baca <code class="text-amber-200">Sales Tax</code> (7.50% di Accounting 0; 4.20% di Lv 4; 3.38% di Lv 5).</span>
+										</td>
+									</tr>
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 font-mono font-semibold text-white">Relist Fee (%)</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">Fee charged every time you modify an order's price — protects your Safe Break-Even Floor during undercut wars.</span>
+											<span x-cloak x-show="lang === 'id'">Biaya setiap kali mengubah harga order — menjaga Break-Even Floor agar Anda tidak rugi saat perang undercut.</span>
+										</td>
+										<td class="px-3.5 py-2 text-slate-300">
+											<span x-show="lang === 'en'">Formula: <code class="text-sky-300">Broker Fee × 50%</code> (Adv. Broker Relations 0), <code class="text-sky-300">× 32%</code> (Lv 3), or <code class="text-sky-300">× 20%</code> (Lv 5). Typical: 0.50–1.50%.</span>
+											<span x-cloak x-show="lang === 'id'">Rumus: <code class="text-sky-300">Broker Fee × 50%</code> (Adv. Broker Relations 0), <code class="text-sky-300">× 32%</code> (Lv 3), atau <code class="text-sky-300">× 20%</code> (Lv 5). Umumnya 0.50–1.50%.</span>
+										</td>
+									</tr>
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 font-mono font-semibold text-white">System Cost Index (Decimal)</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">Factory congestion tax determining your Job Install Cost when starting production.</span>
+											<span x-cloak x-show="lang === 'id'">"Pajak keramaian pabrik" di solar system yang menentukan biaya Job Install saat klik Start produksi.</span>
+										</td>
+										<td class="px-3.5 py-2 text-slate-300">
+											<span x-show="lang === 'en'">Click <strong>Sync Live SCI</strong> above, or check <strong>Industry → Facilities</strong> and convert % to decimal (e.g. 4.50% → <code class="text-amber-200">0.0450</code>).</span>
+											<span x-cloak x-show="lang === 'id'">Klik <strong>Sync Live SCI</strong> di atas, atau cek <strong>Industry → Facilities</strong> lalu ubah % ke desimal (mis. 4.50% → <code class="text-amber-200">0.0450</code>).</span>
+										</td>
+									</tr>
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 font-mono font-semibold text-white">Facility Tax (%)</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">Station/structure owner tax added on top of SCI when starting an industry job.</span>
+											<span x-cloak x-show="lang === 'id'">Pajak pemilik stasiun/struktur tambahan di atas SCI saat memulai job industri.</span>
+										</td>
+										<td class="px-3.5 py-2 text-slate-300">
+											<span x-show="lang === 'en'">NPC Stations: <code class="text-emerald-300">0.25%</code>. Player Structures (Raitaru/Azbel): check <strong>Industry → Facilities</strong> (usually 0.50–2.00%).</span>
+											<span x-cloak x-show="lang === 'id'">Stasiun NPC: <code class="text-emerald-300">0.25%</code>. Struktur Player (Raitaru/Azbel): cek <strong>Industry → Facilities</strong> (biasanya 0.50–2.00%).</span>
+										</td>
+									</tr>
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 font-mono font-semibold text-white">Freight Cost (ISK / m³)</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">Hauling cost per m³ factored into Calculator and inter-hub logistics estimates.</span>
+											<span x-cloak x-show="lang === 'id'">Biaya angkut per m³ yang dihitung dalam Calculator dan estimasi logistik antar-hub.</span>
+										</td>
+										<td class="px-3.5 py-2 text-slate-300">
+											<span x-show="lang === 'en'">Use <code class="text-emerald-300">0</code> when building &amp; selling locally (or self-hauling). Use <code class="text-amber-200">300–800</code> for High-Sec courier contracts (Red Frog / PushX).</span>
+											<span x-cloak x-show="lang === 'id'">Isi <code class="text-emerald-300">0</code> jika produksi &amp; jual di hub yang sama (atau angkut sendiri). Isi <code class="text-amber-200">300–800</code> jika memakai jasa kurir High-Sec.</span>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+
+					<!-- Section 2: Official EVE Online SDE -->
+					<div class="space-y-2">
+						<div class="flex flex-wrap items-center justify-between gap-2">
+							<h3 class="text-xs font-bold uppercase tracking-wider text-amber-300">2. Official EVE Online SDE (CCP JSONL)</h3>
+							<span x-show="lang === 'en'" class="text-[11px] text-slate-400">Left Column (Bottom) — 0 ESI API Calls</span>
+							<span x-cloak x-show="lang === 'id'" class="text-[11px] text-slate-400">Kolom Kiri (Bawah) — 0 Panggilan ESI</span>
+						</div>
+						<div class="overflow-x-auto rounded-xl border border-violet-400/15 bg-slate-950/55">
+							<table class="w-full text-left text-xs">
+								<tbody class="divide-y divide-violet-400/10 text-slate-200">
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 w-48 font-mono font-semibold text-white">Blueprints / T2 Inventions / SDE Types / CCP Build</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">Displays how many static EVE Online recipes (Manufacturing, Reactions, and T2 Invention links) are stored locally in PostgreSQL.</span>
+											<span x-cloak x-show="lang === 'id'">Menampilkan jumlah resep statis EVE Online (Manufacturing, Reactions, dan relasi T2 Invention) yang sudah tersimpan lokal di PostgreSQL.</span>
+										</td>
+									</tr>
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 font-mono font-semibold text-amber-200">Import / Re-Sync CCP SDE</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">Downloads CCP's official Static Data Export ZIP (~5,000+ blueprints) in the background. Run once during initial setup, and re-run after major EVE Online expansions.</span>
+											<span x-cloak x-show="lang === 'id'">Mengunduh ZIP Static Data Export resmi dari CCP (~5.000+ blueprint) di background. Cukup dijalankan 1× saat setup awal, lalu ulangi setiap ada patch ekspansi besar EVE Online.</span>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+
+					<!-- Section 3: Background Trade Hub Price Updater -->
+					<div class="space-y-2">
+						<div class="flex flex-wrap items-center justify-between gap-2">
+							<h3 class="text-xs font-bold uppercase tracking-wider text-emerald-300">3. Background Trade Hub Price Updater</h3>
+							<span x-show="lang === 'en'" class="text-[11px] text-slate-400">Right Column (Top) — Keeps Market Cache Warm</span>
+							<span x-cloak x-show="lang === 'id'" class="text-[11px] text-slate-400">Kolom Kanan (Atas) — Menjaga Cache Harga Tetap Segar</span>
+						</div>
+						<div class="overflow-x-auto rounded-xl border border-violet-400/15 bg-slate-950/55">
+							<table class="w-full text-left text-xs">
+								<tbody class="divide-y divide-violet-400/10 text-slate-200">
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 w-48 font-mono font-semibold text-white">Enable automatic background sync</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">Automatically refreshes prices in <code class="text-amber-200">esi_cache</code> for your Catalog, 68 PI P1–P4 items, and SDE materials so pages open instantly without waiting for ESI.</span>
+											<span x-cloak x-show="lang === 'id'">Menyegarkan harga di <code class="text-amber-200">esi_cache</code> secara otomatis untuk Catalog, 68 item PI P1–P4, dan bahan SDE agar semua halaman terbuka instan tanpa menunggu ESI.</span>
+										</td>
+									</tr>
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 font-mono font-semibold text-white">Sync Interval (5m – 60m)</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">How often the background worker refreshes prices. Recommended: <strong>15 minutes</strong> (or 30–60 minutes for light ESI usage).</span>
+											<span x-cloak x-show="lang === 'id'">Seberapa sering worker menyegarkan harga. Rekomendasi: <strong>15 menit</strong> (atau 30–60 menit jika ingin trafik ESI sangat hemat).</span>
+										</td>
+									</tr>
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 font-mono font-semibold text-amber-200">Save Updater Schedule / Run Sync Now</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'"><strong>Save Updater Schedule</strong> persists your toggle &amp; interval immediately; <strong>Run Sync Now</strong> triggers an immediate one-off refresh.</span>
+											<span x-cloak x-show="lang === 'id'"><strong>Save Updater Schedule</strong> menyimpan jadwal ke DB secara langsung; <strong>Run Sync Now</strong> memicu pembaruan harga saat itu juga.</span>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+
+					<!-- Section 4: EVE Online SSO OAuth2 -->
+					<div class="space-y-2">
+						<div class="flex flex-wrap items-center justify-between gap-2">
+							<h3 class="text-xs font-bold uppercase tracking-wider text-amber-300">4. EVE Online SSO OAuth2 (Optional)</h3>
+							<span x-show="lang === 'en'" class="text-[11px] text-slate-400">Right Column (Middle) — Plug-and-Play Character Sync</span>
+							<span x-cloak x-show="lang === 'id'" class="text-[11px] text-slate-400">Kolom Kanan (Tengah) — Opsional Sinkronisasi Karakter</span>
+						</div>
+						<div class="overflow-x-auto rounded-xl border border-violet-400/15 bg-slate-950/55">
+							<table class="w-full text-left text-xs">
+								<tbody class="divide-y divide-violet-400/10 text-slate-200">
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 w-48 font-mono font-semibold text-white">Standard Mode vs. EVE SSO</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">100% optional. Without <code class="text-sky-300">ESI_CLIENT_ID</code> &amp; <code class="text-sky-300">ESI_CLIENT_SECRET</code> in <code class="text-amber-200">.env</code>, aura-forge runs fully on Public ESI. When connected, unlocks <code class="text-emerald-300">/pilot</code> auto-sync for Wallet, Active Orders (Undercut Watchdog), Industry Jobs, Owned BPO/BPC ME/TE, and Hangar Stock deduction.</span>
+											<span x-cloak x-show="lang === 'id'">100% opsional. Tanpa <code class="text-sky-300">ESI_CLIENT_ID</code> &amp; <code class="text-sky-300">ESI_CLIENT_SECRET</code> di <code class="text-amber-200">.env</code>, aplikasi berjalan penuh dengan Public ESI. Jika dihubungkan, membuka auto-sync <code class="text-emerald-300">/pilot</code> untuk Wallet, Active Orders (Watchdog Undercut), Industry Jobs, BPO/BPC ME/TE asli, dan potongan stok Hangar.</span>
+										</td>
+									</tr>
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 font-mono font-semibold text-emerald-300">Sync Character Now / Disconnect</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">Manually pulls fresh private ESI character data on demand, or cleanly revokes/removes the stored OAuth2 token.</span>
+											<span x-cloak x-show="lang === 'id'">Menarik data karakter terbaru dari Private ESI secara manual, atau memutus koneksi serta menghapus token OAuth2 tersimpan.</span>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+
+					<!-- Section 5: Aura AI Copilot & Pilot Playbook Memory -->
+					<div class="space-y-2">
+						<div class="flex flex-wrap items-center justify-between gap-2">
+							<h3 class="text-xs font-bold uppercase tracking-wider text-violet-300">5. Aura AI Copilot &amp; Pilot Playbook Memory</h3>
+							<span x-show="lang === 'en'" class="text-[11px] text-slate-400">Right Column (Bottom) — Runtime Model &amp; Strategy Memory</span>
+							<span x-cloak x-show="lang === 'id'" class="text-[11px] text-slate-400">Kolom Kanan (Bawah) — Model Runtime &amp; Memori Strategi</span>
+						</div>
+						<div class="overflow-x-auto rounded-xl border border-violet-400/15 bg-slate-950/55">
+							<table class="w-full text-left text-xs">
+								<tbody class="divide-y divide-violet-400/10 text-slate-200">
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 w-48 font-mono font-semibold text-white">Runtime Model Override (In-Memory)</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">Overrides <code class="text-amber-200">AI_MODEL</code> directly in RAM without editing <code class="text-amber-200">.env</code> or restarting the container (not saved to DB; resets to <code class="text-amber-200">.env</code> on restart). Ideal for switching models quickly when one endpoint is overloaded.</span>
+											<span x-cloak x-show="lang === 'id'">Menimpa <code class="text-amber-200">AI_MODEL</code> langsung di memori RAM tanpa edit <code class="text-amber-200">.env</code> atau restart container (tidak disimpan ke DB; kembali ke <code class="text-amber-200">.env</code> saat restart). Sangat praktis untuk ganti model cepat bila satu model sedang overload/503.</span>
+										</td>
+									</tr>
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 font-mono font-semibold text-emerald-300">Test AI Connection / Open Ask Aura</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">Verifies your API key, base URL, and active model with an inline status result (with automatic retry on transient 503s), or opens the slide-over Copilot drawer.</span>
+											<span x-cloak x-show="lang === 'id'">Menguji API key, Base URL, dan model aktif dengan hasil status langsung di bawah tombol (otomatis retry jika kena 503 sementara), atau membuka panel chat Aura AI.</span>
+										</td>
+									</tr>
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 font-mono font-semibold text-white">Risk Tolerance</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">Guides Aura AI's sizing and item picks: <strong>Conservative</strong> (high-volume safe staples), <strong>Balanced</strong> (recommended mix), or <strong>Aggressive</strong> (higher-margin flips/T2).</span>
+											<span x-cloak x-show="lang === 'id'">Mengarahkan rekomendasi Aura AI: <strong>Conservative</strong> (barang super likuid &amp; aman), <strong>Balanced</strong> (seimbang, disarankan), atau <strong>Aggressive</strong> (margin tinggi / T2 / flip cepat).</span>
+										</td>
+									</tr>
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 font-mono font-semibold text-white">Daily Playtime</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">Tells Aura AI how much time you play per day (e.g. <code class="text-sky-300">1-2 hours/day</code>) so it avoids recommending high-maintenance order babysitting if you play casually.</span>
+											<span x-cloak x-show="lang === 'id'">Memberi tahu Aura AI durasi main harian Anda (mis. <code class="text-sky-300">1-2 hours/day</code>) agar tidak menyarankan strategi yang butuh pantau market terus-menerus jika Anda main santai.</span>
+										</td>
+									</tr>
+									<tr class="hover:bg-white/5">
+										<td class="px-3.5 py-2 font-mono font-semibold text-white">Playstyle Notes</td>
+										<td class="px-3.5 py-2">
+											<span x-show="lang === 'en'">Free-form rules injected into every Aura AI chat (e.g. preferred hub, max cargo ISK limit in T1 hauler, favorite niches like Drones/PI, or weekly SOP). Persisted in PostgreSQL across all sessions.</span>
+											<span x-cloak x-show="lang === 'id'">Catatan aturan bebas yang otomatis disisipkan di setiap chat Aura AI (mis. hub favorit, batas kargo aman hauler T1, fokus Drones/PI, atau SOP mingguan). Tersimpan permanen di PostgreSQL lintas sesi.</span>
+										</td>
+									</tr>
+								</tbody>
+							</table>
 						</div>
 					</div>
 				</div>

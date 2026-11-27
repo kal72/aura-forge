@@ -1,11 +1,28 @@
 package web
 
 import (
+	"context"
 	"fmt"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
+
+func bucketDescriptionCtx(ctx context.Context, bt domain.BucketType, fallback string) string {
+	switch bt {
+	case domain.BucketFastCashflow:
+		return i18n.L(ctx, "High daily volume, low-cost items for steady daily ISK velocity.", "Item bervolume harian tinggi dan biaya rendah untuk perputaran ISK harian yang stabil.")
+	case domain.BucketMidTier:
+		return i18n.L(ctx, "Balanced sales velocity and reliable profit margins.", "Keseimbangan antara kecepatan terjual dan Margin profit yang stabil.")
+	case domain.BucketHighROI:
+		return i18n.L(ctx, "Higher ROI or profit-per-batch items to accelerate capital compounding.", "Item dengan ROI atau profit per batch lebih tinggi untuk mempercepat compounding modal.")
+	case domain.BucketCashBuffer:
+		return i18n.L(ctx, "Reserved 10%–15% safety cushion for Broker Fees, Job Install Costs, and Relists.", "Cadangan keamanan 10%–15% untuk Broker Fee, Job Install Cost, dan biaya Relist.")
+	default:
+		return fallback
+	}
+}
 
 func allocatorHubName(res *domain.AllocationResult) string {
 	if res != nil && res.ActiveHubName != "" {
@@ -57,6 +74,8 @@ func bucketUtilPct(used, budget float64) float64 {
 templ AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *domain.AllocationResult, allocErr string) {
 	@Layout("Smart Capital Allocator", "allocator", mode) {
 		<div class="space-y-6">
+			@ProductionWorkflowStepper(2)
+
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<div class="flex flex-wrap items-center gap-2">
@@ -65,10 +84,10 @@ templ AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *
 							Hub: { allocatorHubName(result) }
 						</span>
 					</div>
-					<p class="text-xs text-slate-400 mt-0.5">Splits available working capital across 4 risk-managed buckets (Fast Cashflow, Mid-Tier, High ROI, and 10%–15% Cash Buffer) while automatically filtering out TRAP items.</p>
+					<p class="text-xs text-slate-400 mt-0.5">{ i18n.L(ctx, "Splits available working capital across 4 risk-managed buckets (Fast Cashflow, Mid-Tier, High ROI, and 10%–15% Cash Buffer) while automatically filtering out TRAP items.", "Membagi modal kerja ke 4 keranjang risiko (Fast Cashflow, Mid-Tier, High ROI, dan 10%–15% Cash Buffer) sambil otomatis menyaring item TRAP.") }</p>
 				</div>
 				<button type="button" hx-post="/esi/sync-prices" hx-swap="none" class="rounded-md border border-amber-400/40 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer">
-					Refresh { allocatorHubName(result) } Prices (Public ESI)
+					{ i18n.L(ctx, "Refresh", "Segarkan Harga") } { allocatorHubName(result) } (Public ESI)
 				</button>
 			</div>
 
@@ -138,29 +157,23 @@ templ AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *
 					</div>
 					<div>
 						<button type="submit" class="w-full rounded-md bg-sky-500 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer">
-							Compute Allocation
+							{ i18n.L(ctx, "Compute Allocation", "Hitung Alokasi") }
 						</button>
 					</div>
 				</form>
 
-				<div class="flex flex-wrap gap-3 border-t border-slate-800 pt-4">
+				<div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-800 pt-4">
+					<p class="text-[11px] text-slate-400">
+						{ i18n.L(ctx, "Saves this 4-bucket allocation to your active Weekly Plan so you can verify slot capacity and copy your consolidated EVE Multibuy list.", "Menyimpan alokasi 4 keranjang ini ke Weekly Plan aktif agar Anda bisa cek kapasitas slot dan salin daftar EVE Multibuy.") }
+					</p>
 					<button
 						type="button"
 						hx-post="/allocator/to-plan"
 						hx-include="#allocator-form"
 						hx-swap="none"
-						class="rounded-md border border-emerald-400/50 bg-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-500/30 transition cursor-pointer"
+						class="rounded-md bg-emerald-500 px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-emerald-400 transition cursor-pointer"
 					>
-						1-Click Send to Weekly Production Planner →
-					</button>
-					<button
-						type="button"
-						hx-post="/allocator/to-batches"
-						hx-include="#allocator-form"
-						hx-swap="none"
-						class="rounded-md border border-amber-400/50 bg-amber-500/20 px-4 py-2 text-xs font-bold text-amber-200 hover:bg-amber-500/30 transition cursor-pointer"
-					>
-						1-Click Create Draft Batches in Tracker
+						{ i18n.L(ctx, "Next: Send to Weekly Planner (Step 3) →", "Lanjut: Kirim ke Weekly Planner (Langkah 3) →") }
 					</button>
 				</div>
 			</div>
@@ -183,19 +196,19 @@ templ AllocatorResultPartial(res *domain.AllocationResult, errMsg string) {
 			<!-- Summary Banner -->
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase text-slate-400">Working Capital ({ res.CapitalSource })</div>
+					<div class="text-[10px] font-mono uppercase text-slate-400">{ i18n.L(ctx, "Working Capital", "Modal Kerja") } ({ res.CapitalSource })</div>
 					<div class="mt-1 text-xl font-bold font-mono text-white">{ FormatISK(res.TotalCapital) }</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase text-slate-400">Capital Allocated</div>
+					<div class="text-[10px] font-mono uppercase text-slate-400">{ i18n.L(ctx, "Capital Allocated", "Modal Dialokasikan") }</div>
 					<div class="mt-1 text-xl font-bold font-mono text-sky-300">{ FormatISK(res.TotalAllocatedISK) }</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase text-slate-400">Operational Cash Buffer</div>
+					<div class="text-[10px] font-mono uppercase text-slate-400">{ i18n.L(ctx, "Operational Cash Buffer", "Cadangan Kas Operasional") }</div>
 					<div class="mt-1 text-xl font-bold font-mono text-amber-300">{ FormatISK(res.CashBufferISK) }</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase text-slate-400">Est. Cycle Profit</div>
+					<div class="text-[10px] font-mono uppercase text-slate-400">{ i18n.L(ctx, "Estimated Cycle Profit", "Estimasi Profit Siklus") }</div>
 					<div class="mt-1 text-xl font-bold font-mono text-emerald-300">+{ FormatISK(res.TotalEstimatedProfit) }</div>
 				</div>
 			</div>
@@ -203,9 +216,9 @@ templ AllocatorResultPartial(res *domain.AllocationResult, errMsg string) {
 			<!-- Visual 4-Bucket Distribution Bar -->
 			<div class="tactical-panel rounded-xl p-4 space-y-2.5">
 				<div class="flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono">
-					<span class="uppercase text-slate-400">Capital Distribution Breakdown</span>
+					<span class="uppercase text-slate-400">{ i18n.L(ctx, "Capital Distribution Breakdown", "Rincian Distribusi Modal") }</span>
 					<span class="text-slate-300">
-						Deployable: <strong class="text-white">{ FormatISK(res.DeployableCapital) }</strong> •
+						{ i18n.L(ctx, "Deployable", "Siap Dipakai") }: <strong class="text-white">{ FormatISK(res.DeployableCapital) }</strong> •
 						Buffer: <strong class="text-amber-300">{ FormatISK(res.CashBufferISK) }</strong>
 					</span>
 				</div>
@@ -235,7 +248,7 @@ templ AllocatorResultPartial(res *domain.AllocationResult, errMsg string) {
 						<div class="flex items-start justify-between gap-2">
 							<div>
 								<h3 class="text-sm font-bold text-white">{ b.Label }</h3>
-								<p class="text-[11px] text-slate-400 mt-0.5">{ b.Description }</p>
+								<p class="text-[11px] text-slate-400 mt-0.5">{ bucketDescriptionCtx(ctx, b.Type, b.Description) }</p>
 							</div>
 							<span class={ "rounded border px-2 py-0.5 font-mono text-xs font-bold " + bucketBadgeClass(b.Type) }>
 								{ fmt.Sprintf("%.0f%%", b.Percent) }
@@ -244,10 +257,10 @@ templ AllocatorResultPartial(res *domain.AllocationResult, errMsg string) {
 
 						<div class="space-y-1.5 border-y border-slate-800/80 py-2.5">
 							<div class="flex flex-wrap gap-4 text-xs font-mono">
-								<span>Budget: <strong class="text-white">{ FormatISK(b.BudgetISK) }</strong></span>
+								<span>{ i18n.L(ctx, "Budget", "Anggaran") }: <strong class="text-white">{ FormatISK(b.BudgetISK) }</strong></span>
 								if b.Type != domain.BucketCashBuffer {
-									<span>Used: <strong class="text-sky-300">{ FormatISK(b.UsedISK) }</strong></span>
-									<span>Est. Profit: <strong class="text-emerald-300">+{ FormatISK(b.EstimatedProfit) }</strong></span>
+									<span>{ i18n.L(ctx, "Used", "Terpakai") }: <strong class="text-sky-300">{ FormatISK(b.UsedISK) }</strong></span>
+									<span>{ i18n.L(ctx, "Estimated Profit", "Estimasi Profit") }: <strong class="text-emerald-300">+{ FormatISK(b.EstimatedProfit) }</strong></span>
 								}
 							</div>
 							if b.Type != domain.BucketCashBuffer {
@@ -262,11 +275,11 @@ templ AllocatorResultPartial(res *domain.AllocationResult, errMsg string) {
 
 						if b.Type == domain.BucketCashBuffer {
 							<div class="rounded-lg border border-amber-500/30 bg-amber-950/20 p-3 text-xs text-amber-200 leading-relaxed">
-								This capital is reserved as an operational safety cushion for Broker Fees, Job Install Costs (SCI), and safe Relist adjustments if undercut at <strong>{ allocatorHubName(res) }</strong>.
+								{ i18n.L(ctx, "This capital is reserved as an operational safety cushion for Broker Fees, Job Install Costs (SCI), and safe Relist adjustments if undercut at", "Modal ini dicadangkan sebagai pengaman operasional untuk Broker Fee, Job Install Cost (SCI), dan penyesuaian Relist aman jika terkena undercut di") } <strong>{ allocatorHubName(res) }</strong>.
 							</div>
 						} else if len(b.Items) == 0 {
 							<div class="text-xs text-slate-500 italic">
-								No eligible VIABLE items in your <a href="/catalog" class="text-sky-300 underline hover:text-sky-200">Catalog</a> fit this bucket's budget yet.
+								{ i18n.L(ctx, "No eligible VIABLE items in your", "Belum ada item LAYAK di") } <a href="/catalog" class="text-sky-300 underline hover:text-sky-200">Catalog</a> { i18n.L(ctx, "fit this bucket's budget yet.", "yang sesuai dengan anggaran keranjang ini.") }
 							</div>
 						} else {
 							<div class="space-y-2">
@@ -285,7 +298,7 @@ templ AllocatorResultPartial(res *domain.AllocationResult, errMsg string) {
 											<div class="min-w-0">
 												<div class="font-semibold text-white truncate">{ it.Name }</div>
 												<div class="text-[10px] font-mono text-slate-400">
-													{ fmt.Sprintf("%dx batch • ROI %s • Vol %s", it.RecommendedRuns, FormatPercent(it.ROIPercent), FormatVolume(it.DailyVolume)) }
+													{ fmt.Sprintf("%dx batch • ROI %s • %s", it.RecommendedRuns, FormatPercent(it.ROIPercent), FormatVolumeCtx(ctx, it.DailyVolume)) }
 												</div>
 											</div>
 										</div>

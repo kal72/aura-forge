@@ -98,6 +98,20 @@ func (p *priceSyncState) notifyConfigChanged() {
 	}
 }
 
+func (p *priceSyncState) updateSchedulePreview(enabled bool, intervalMinutes int) {
+	if p == nil {
+		return
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if !enabled {
+		p.nextSyncAt = nil
+		return
+	}
+	next := time.Now().Add(time.Duration(domain.ClampPriceSyncInterval(intervalMinutes)) * time.Minute)
+	p.nextSyncAt = &next
+}
+
 // GetPriceSyncStatus returns a thread-safe snapshot of the background Trade Hub price updater.
 func (s *CopilotService) GetPriceSyncStatus(ctx context.Context) PriceSyncStatus {
 	enabled := true

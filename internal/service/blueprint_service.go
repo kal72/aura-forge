@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"aura-forge/internal/domain"
 )
@@ -10,6 +11,40 @@ import (
 // SetSDERepository wires the optional EVE SDE blueprint repository into CopilotService.
 func (s *CopilotService) SetSDERepository(sde domain.SDERepository) {
 	s.sde = sde
+}
+
+// ResolveBlueprintID resolves a blueprint_type_id from an explicit blueprint ID,
+// a product_type_id (e.g. from Catalog or Marketplace), or a text query (item/blueprint name).
+func (s *CopilotService) ResolveBlueprintID(ctx context.Context, bpID, productID int32, query string) int32 {
+	if s.sde == nil {
+		return 0
+	}
+	if bpID > 0 {
+		if bp, err := s.sde.GetBlueprintByID(ctx, bpID); err == nil && bp != nil {
+			return bp.BlueprintTypeID
+		}
+		// Fallback in case a caller passed product_type_id in bp_id
+		if bp, err := s.sde.GetBlueprintByProductID(ctx, bpID); err == nil && bp != nil {
+			return bp.BlueprintTypeID
+		}
+	}
+	if productID > 0 {
+		if bp, err := s.sde.GetBlueprintByProductID(ctx, productID); err == nil && bp != nil {
+			return bp.BlueprintTypeID
+		}
+	}
+	q := strings.TrimSpace(query)
+	if q != "" {
+		if list, err := s.sde.SearchBlueprints(ctx, q, "", 20); err == nil && len(list) > 0 {
+			for _, bp := range list {
+				if strings.EqualFold(bp.ProductName, q) || strings.EqualFold(bp.Name, q) {
+					return bp.BlueprintTypeID
+				}
+			}
+			return list[0].BlueprintTypeID
+		}
+	}
+	return 0
 }
 
 // SearchBlueprints lists matching EVE SDE blueprints for Blueprint Calculator Mode.

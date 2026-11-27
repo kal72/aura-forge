@@ -129,6 +129,16 @@ func (tr *TemplRenderer) RenderMarketplaceAppraisal(w http.ResponseWriter, r *ht
 	return MarketplaceAppraisalPartial(res, errMsg).Render(r.Context(), w)
 }
 
+func (tr *TemplRenderer) RenderMarketplaceBPC(w http.ResponseWriter, r *http.Request, res *domain.BPCFinderResult, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return MarketplaceBPCPartial(res, errMsg).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderMarketplaceCompare(w http.ResponseWriter, r *http.Request, res *domain.ItemCompareResult, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return MarketplaceComparePartial(res, errMsg).Render(r.Context(), w)
+}
+
 func (tr *TemplRenderer) RenderScanner(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	return ScannerPage(mode, settings).Render(r.Context(), w)

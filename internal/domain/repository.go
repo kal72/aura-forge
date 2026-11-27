@@ -62,6 +62,12 @@ type CharacterRepository interface {
 	UpsertAssets(ctx context.Context, characterID int64, assets []HangarAsset) error
 }
 
+// CorpBlueprintRepository is an optional extension of CharacterRepository for Corporation Blueprints.
+type CorpBlueprintRepository interface {
+	ListCorpBlueprints(ctx context.Context, characterID int64) ([]CharacterBlueprint, error)
+	UpsertCorpBlueprints(ctx context.Context, characterID int64, bps []CharacterBlueprint) error
+}
+
 // SettingsRepository specifies storage operations for user simulation settings.
 type SettingsRepository interface {
 	GetSettings(ctx context.Context) (*UserSettings, error)
@@ -107,6 +113,16 @@ type UniverseIntelProvider interface {
 	ResolveSolarSystemID(ctx context.Context, name string) (int32, string, error)
 }
 
+// PublicContractProvider is an optional Public ESI extension for scanning live Public Item Exchange BPC/BPO contracts.
+type PublicContractProvider interface {
+	FindPublicBlueprintContracts(ctx context.Context, regionID int32, regionName string, blueprintTypeID int32, productTypeID int32, blueprintName string, productName string) (contracts []PublicBPCContract, scannedContracts int, scannedPages int, totalPages int, err error)
+}
+
+// ItemSpecProvider fetches rich technical Dogma attributes, slot layouts, and resistance profiles from Public ESI.
+type ItemSpecProvider interface {
+	GetItemSpecs(ctx context.Context, typeID int32) (*ItemSpecDetail, error)
+}
+
 // GlobalPriceSnapshotRepository persists daily global EVE market price snapshots for day-over-day mover detection.
 type GlobalPriceSnapshotRepository interface {
 	UpsertDailySnapshot(ctx context.Context, snapshotDate time.Time, prices []GlobalMarketPrice) (int, error)
@@ -150,6 +166,11 @@ type SDETypeNameResolver interface {
 	GetTypeNamesByIDs(ctx context.Context, typeIDs []int32) (map[int32]string, error)
 }
 
+// SDETypeTraitsRepository is an optional extension on SDERepository for reading parsed EVE ship/module Hull Bonuses (Traits).
+type SDETypeTraitsRepository interface {
+	GetTypeTraits(ctx context.Context, typeID int32) (*ItemTraits, error)
+}
+
 // NetWorthRepository specifies storage operations for daily Net Worth tracking snapshots.
 type NetWorthRepository interface {
 	ListSnapshots(ctx context.Context, limit int) ([]NetWorthSnapshot, error)
@@ -165,6 +186,17 @@ type PIRepository interface {
 	DeleteColony(ctx context.Context, id int64) error
 }
 
+// PISyncRepository is an optional extension on PIRepository for replacing SSO-synced colonies.
+type PISyncRepository interface {
+	ReplaceSyncedColonies(ctx context.Context, characterID int64, colonies []PIColony) error
+}
+
+// CharacterPISyncProvider is an optional Private ESI extension for syncing a pilot's live Planetary Industry colonies.
+type CharacterPISyncProvider interface {
+	SyncPIPlanets(ctx context.Context, token *EVEToken) ([]PIColony, error)
+	GetPIPlanetLayout(ctx context.Context, token *EVEToken, planetID int32) (*PIPlanetLayout, error)
+}
+
 // CharacterSyncProvider specifies operations to fetch authenticated character data via ESI OAuth2.
 type CharacterSyncProvider interface {
 	SyncWallet(ctx context.Context, token *EVEToken) (float64, error)
@@ -172,6 +204,12 @@ type CharacterSyncProvider interface {
 	SyncJobs(ctx context.Context, token *EVEToken) ([]CharacterJob, error)
 	SyncBlueprints(ctx context.Context, token *EVEToken) ([]CharacterBlueprint, error)
 	SyncAssets(ctx context.Context, token *EVEToken) ([]HangarAsset, error)
+}
+
+// CorpBlueprintSyncProvider is an optional Private ESI extension for fetching corporation blueprints
+// (requires esi-corporations.read_blueprints.v1 scope and in-game Director role).
+type CorpBlueprintSyncProvider interface {
+	SyncCorpBlueprints(ctx context.Context, token *EVEToken) ([]CharacterBlueprint, error)
 }
 
 // CharacterLedgerSyncProvider is an optional Private ESI extension for wallet transactions,

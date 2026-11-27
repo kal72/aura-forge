@@ -25,6 +25,7 @@ type LoyaltyStoreOffer struct {
 	OfferID         int32                      `json:"offer_id"`
 	CorporationID   int32                      `json:"corporation_id"`
 	CorporationName string                     `json:"corporation_name"`
+	StationHint     string                     `json:"station_hint,omitempty"`
 	TypeID          int32                      `json:"type_id"`
 	TypeName        string                     `json:"type_name,omitempty"`
 	Quantity        int                        `json:"quantity"`

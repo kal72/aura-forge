@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -85,7 +86,7 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 		<div
 			class="space-y-6"
 			x-data={ fmt.Sprintf(`{
-				tab: 'explorer',
+				tab: new URLSearchParams(window.location.search).get('tab') || 'explorer',
 				treeViewMode: 'details',
 				flowDir: 'output-to-raw',
 				tierFilter: 'ALL',
@@ -112,7 +113,8 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 					if (t === 'P4') return 'border-amber-400/50 bg-amber-500/20 text-amber-200';
 					if (t === 'P3') return 'border-violet-400/50 bg-violet-500/25 text-violet-200';
 					if (t === 'P2') return 'border-sky-400/45 bg-sky-500/20 text-sky-200';
-					return 'border-emerald-400/45 bg-emerald-500/20 text-emerald-200';
+					if (t === 'P1') return 'border-emerald-400/45 bg-emerald-500/20 text-emerald-200';
+					return 'border-slate-500/40 bg-slate-700/30 text-slate-200';
 				},
 				addSalesRow(tid) {
 					this.salesRows.push({ uid: this.salesNextUID++, typeId: String(tid || '9832'), qty: 1000, open: false, q: '' });
@@ -159,7 +161,7 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 			<div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
 				<div class="min-w-0">
 					<h1 class="text-2xl font-bold tracking-tight text-white">Planetary Industry (PI) Hub</h1>
-					<p class="text-xs text-slate-300/80 mt-0.5">Browse all 68 P1–P4 PI items, explore the 8-planet resource catalog, inspect recursive recipe trees, scan live hub margins, and track colony timers.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Browse all 68 P1–P4 PI items, explore the 8-planet resource catalog, inspect recursive recipe trees, scan live hub margins, and track colony timers.", "Jelajahi 68 item P1–P4 PI, katalog sumber daya 8 planet, pohon resep rekursif, scan margin hub live, dan pantau timer koloni.") }</p>
 				</div>
 
 				<div class="ml-auto self-end xl:self-auto shrink-0 inline-flex flex-wrap justify-end rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur">
@@ -616,7 +618,7 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 											x-model.number="row.qty"
 											min="1"
 											step="1"
-											placeholder="Qty"
+											placeholder="Quantity"
 											class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white"
 										/>
 									</div>
@@ -655,121 +657,375 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 				</div>
 			</div>
 
-			<!-- TAB 3: MY PI COLONIES & EXTRACTOR TIMERS -->
+			<!-- TAB 3: MY PI COLONIES & EXTRACTOR TIMERS (EVE SSO AUTO-SYNC) -->
 			<div x-cloak x-show="tab === 'colonies'" class="space-y-5">
-				<div class="flex flex-wrap items-center justify-between gap-3">
-					<div>
-						<h2 class="text-sm font-bold uppercase tracking-wider text-emerald-300">Active PI Colonies &amp; Extractor Timers</h2>
-						<p class="text-xs text-slate-300/80 mt-0.5">Never let your extractors sit idle — track expiry countdowns and reset timers in 1 click.</p>
+				if !mode.SSOConnected {
+					<div class="tactical-panel rounded-xl border border-amber-400/35 p-8 text-center space-y-4">
+						<div class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-amber-400/45 bg-amber-500/15 text-amber-200">
+							<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+							</svg>
+						</div>
+						<div class="space-y-1.5 max-w-lg mx-auto">
+							<h2 class="text-base font-bold text-white">
+								{ i18n.L(ctx, "EVE Online SSO Sign-In Required", "Wajib Login EVE Online SSO") }
+							</h2>
+							<p class="text-xs text-slate-300/85 leading-relaxed">
+								{ i18n.L(ctx, "Connect your EVE Online character via EVE SSO to automatically view your PI planets, solar system locations, active P0–P4 production, launchpad contents, and extractor expiry timers.", "Hubungkan karakter EVE Online Anda melalui EVE SSO untuk otomatis melihat daftar planet PI, lokasi sistem, produksi P0–P4 aktif, isi launchpad, dan timer habis extractor.") }
+							</p>
+						</div>
+						<div class="flex flex-wrap items-center justify-center gap-3 pt-1">
+							if mode.SSOEnabled {
+								<a
+									href="/auth/login"
+									hx-boost="false"
+									class="inline-flex items-center gap-2 rounded-lg bg-emerald-400 px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-emerald-300 transition"
+								>
+									<span>{ i18n.L(ctx, "Connect EVE Online SSO →", "Hubungkan EVE Online SSO →") }</span>
+								</a>
+							} else {
+								<a
+									href="/settings"
+									class="inline-flex items-center gap-2 rounded-lg border border-amber-400/45 bg-amber-500/15 px-4 py-2 text-xs font-bold text-amber-200 hover:bg-amber-500/25 transition"
+								>
+									<span>{ i18n.L(ctx, "Configure EVE SSO in Settings →", "Atur EVE SSO di Settings →") }</span>
+								</a>
+							}
+						</div>
 					</div>
-					<button
-						type="button"
-						@click="showAddColony = !showAddColony"
-						class="rounded-lg bg-emerald-400 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-emerald-300 transition cursor-pointer"
-					>
-						+ Add PI Colony
-					</button>
-				</div>
+				} else {
+					<div class="flex flex-wrap items-center justify-between gap-3">
+						<div>
+							<h2 class="text-sm font-bold uppercase tracking-wider text-emerald-300">
+								{ i18n.L(ctx, "Active PI Colonies & Live Production", "Koloni PI Aktif & Produksi Live") } ({ mode.CharacterName })
+							</h2>
+							<p class="text-xs text-slate-300/80 mt-0.5">
+								{ i18n.L(ctx, "Synced directly from EVE Online ESI (planet location, security status, active P0–P4 factories, launchpad contents, and extractor expiry).", "Disinkronkan langsung dari EVE Online ESI (lokasi planet, status keamanan, pabrik P0–P4 aktif, isi launchpad, dan waktu habis extractor).") }
+							</p>
+						</div>
+						<button
+							type="button"
+							hx-post="/pi/sync"
+							hx-swap="none"
+							hx-indicator="#pi-sync-spinner"
+							class="inline-flex items-center gap-2 rounded-lg bg-emerald-400 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-emerald-300 transition cursor-pointer"
+						>
+							<span id="pi-sync-spinner" class="htmx-indicator h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent"></span>
+							<span>{ i18n.L(ctx, "Sync PI Colonies (EVE SSO)", "Sinkron Koloni PI (EVE SSO)") }</span>
+						</button>
+					</div>
 
-				<div x-cloak x-show="showAddColony" x-transition class="tactical-panel rounded-xl p-5 space-y-4">
-					<h3 class="text-xs font-bold uppercase tracking-wider text-amber-300">Add Tracked Planet Colony</h3>
-					<form hx-post="/pi/colonies" hx-swap="none" class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-						<div>
-							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Planet Name</label>
-							<input type="text" name="planet_name" required placeholder="e.g. Perimeter III" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white"/>
-						</div>
-						<div>
-							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Solar System</label>
-							<input type="text" name="solar_system" placeholder="e.g. Perimeter" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white"/>
-						</div>
-						<div>
-							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Planet Type</label>
-							<select name="planet_type" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white">
-								for _, pt := range domain.AllPlanetTypes {
-									<option value={ pt }>{ pt }</option>
-								}
-							</select>
-						</div>
-						<div>
-							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Target PI Product</label>
-							<select name="product_type_id" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white">
-								for _, it := range items {
-									<option value={ fmt.Sprintf("%d", it.TypeID) }>[{ string(it.Tier) }] { it.Name }</option>
-								}
-							</select>
-						</div>
-						<div>
-							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Extractor Cycle (Hours)</label>
-							<input type="number" name="cycle_hours" value="48" min="1" max="336" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white"/>
-						</div>
-						<div>
-							<label class="block text-[10px] font-mono uppercase text-slate-300 mb-1">Est. Daily ISK</label>
-							<input type="number" step="10000" name="est_daily_isk" value="1500000" min="0" class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white"/>
-						</div>
-						<div class="sm:col-span-3 flex justify-end gap-2">
-							<button type="button" @click="showAddColony = false" class="rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-slate-300 cursor-pointer">Cancel</button>
-							<button type="submit" class="rounded-lg bg-emerald-400 px-4 py-1.5 text-xs font-bold text-slate-950 hover:bg-emerald-300 cursor-pointer">Save Colony</button>
-						</div>
-					</form>
-				</div>
-
-				<div class="tactical-panel rounded-xl overflow-hidden">
-					if len(colonies) == 0 {
-						<div class="p-8 text-center text-xs text-slate-300/80">
-							No PI colonies tracked yet. Click <strong>+ Add PI Colony</strong> to monitor your extractor timers.
-						</div>
-					} else {
-						{{ now := time.Now() }}
-						<div class="overflow-x-auto">
-							<table class="w-full text-left text-xs">
-								<thead class="bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15">
-									<tr>
-										<th class="px-4 py-3">Planet / System</th>
-										<th class="px-4 py-3">Type</th>
-										<th class="px-4 py-3">Product</th>
-										<th class="px-4 py-3">Extractor Status</th>
-										<th class="px-4 py-3 text-right">Est. Daily ISK</th>
-										<th class="px-4 py-3 text-right">Actions</th>
-									</tr>
-								</thead>
-								<tbody class="divide-y divide-violet-400/15">
-									for _, c := range colonies {
-										{{ st, rem := c.StatusLabel(now) }}
-										<tr class="hover:bg-white/5">
-											<td class="px-4 py-3">
-												<div class="font-semibold text-white">{ c.PlanetName }</div>
-												<div class="font-mono text-[10px] text-slate-400">{ c.SolarSystem }</div>
-											</td>
-											<td class="px-4 py-3">
-												<span class={ "inline-block rounded border px-2 py-0.5 font-mono text-[10px] " + planetBadgeClass(c.PlanetType) }>{ c.PlanetType }</span>
-											</td>
-											<td class="px-4 py-3">
-												<div class="flex items-center gap-2">
-													if c.ProductTypeID > 0 {
-														<img src={ EVEItemIconURL(c.ProductTypeID, 32) } alt={ c.ProductName } loading="lazy" class="h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain" onerror="this.style.display='none'"/>
-													}
-													<span class="font-medium text-white">{ c.ProductName }</span>
-													<span class={ "rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold " + piTierBadgeClass(c.Tier) }>{ string(c.Tier) }</span>
-												</div>
-											</td>
-											<td class="px-4 py-3 font-mono">
-												<span class={ "inline-block rounded border px-2 py-0.5 text-[10px] font-bold " + colonyStatusClass(st) }>{ st }</span>
-												<span class="ml-1.5 text-[11px] text-slate-300">{ rem }</span>
-											</td>
-											<td class="px-4 py-3 text-right font-mono text-emerald-300">{ FormatISK(c.EstDailyISK) }</td>
-											<td class="px-4 py-3 text-right">
-												<div class="inline-flex gap-1.5">
-													<button type="button" hx-post={ fmt.Sprintf("/pi/colonies/%d/reset?hours=48", c.ID) } hx-swap="none" class="rounded border border-emerald-400/35 bg-emerald-500/15 px-2 py-1 text-[10px] font-semibold text-emerald-200 hover:bg-emerald-500/25 cursor-pointer">+48h</button>
-													<button type="button" hx-post={ fmt.Sprintf("/pi/colonies/%d/reset?hours=72", c.ID) } hx-swap="none" class="rounded border border-sky-400/35 bg-sky-500/15 px-2 py-1 text-[10px] font-semibold text-sky-200 hover:bg-sky-500/25 cursor-pointer">+72h</button>
-													<button type="button" hx-delete={ fmt.Sprintf("/pi/colonies/%d", c.ID) } hx-confirm="Delete this PI colony?" hx-swap="none" class="rounded border border-rose-400/35 bg-rose-500/15 px-2 py-1 text-[10px] font-semibold text-rose-200 hover:bg-rose-500/25 cursor-pointer">Delete</button>
-												</div>
-											</td>
+					<div class="tactical-panel rounded-xl overflow-hidden">
+						if len(colonies) == 0 {
+							<div class="p-8 text-center space-y-2 text-xs text-slate-300/80">
+								<div class="font-semibold text-white">
+									{ i18n.L(ctx, "No PI colonies synced yet.", "Belum ada koloni PI yang tersinkron.") }
+								</div>
+								<p class="text-slate-400 max-w-md mx-auto">
+									{ i18n.L(ctx, "Click Sync PI Colonies (EVE SSO) above to fetch your live planets. If you connected SSO earlier, reconnect once in Settings after enabling esi-planets.manage_planets.v1.", "Klik Sinkron Koloni PI (EVE SSO) di atas untuk mengambil data planet live Anda. Jika sudah pernah login SSO sebelumnya, hubungkan ulang sekali di Settings setelah mengaktifkan scope esi-planets.manage_planets.v1.") }
+								</p>
+							</div>
+						} else {
+							{{ now := time.Now() }}
+							<div class="overflow-x-auto">
+								<table class="w-full text-left text-xs">
+									<thead class="bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15">
+										<tr>
+											<th class="px-4 py-3">{ i18n.L(ctx, "Planet / Location", "Planet / Lokasi") }</th>
+											<th class="px-3 py-3">{ i18n.L(ctx, "Type & Command Center", "Tipe & Command Center") }</th>
+											<th class="px-3 py-3">{ i18n.L(ctx, "Active Production", "Produksi Aktif") }</th>
+											<th class="px-3 py-3">{ i18n.L(ctx, "Launchpad / Storage", "Isi Launchpad / Gudang") }</th>
+											<th class="px-4 py-3 text-right">{ i18n.L(ctx, "Extractor Status", "Status Extractor") }</th>
+											<th class="px-4 py-3 text-right">{ i18n.L(ctx, "Layout", "Peta") }</th>
 										</tr>
-									}
-								</tbody>
-							</table>
+									</thead>
+									<tbody class="divide-y divide-violet-400/15">
+										for _, c := range colonies {
+											{{ st, rem := c.StatusLabel(now) }}
+											<tr class="hover:bg-white/5 align-top">
+												<td class="px-4 py-3">
+													<div class="flex items-center gap-2.5">
+														<img
+															src={ EVEItemIconURL(domain.PlanetTypeIconID(c.PlanetType), 64) }
+															alt={ c.PlanetType }
+															loading="lazy"
+															class="h-8 w-8 shrink-0 rounded-full border border-violet-400/35 bg-slate-950 object-cover"
+															onerror="this.style.display='none'"
+														/>
+														<div>
+															<div class="font-semibold text-white">{ c.PlanetName }</div>
+															<div class="font-mono text-[10.5px] text-slate-400">
+																{ c.SolarSystem }
+																if c.SyncedFromSSO {
+																	<span class={ "ml-1.5 font-bold " + func() string {
+																		if c.SecurityStatus >= 0.5 {
+																			return "text-emerald-300"
+																		}
+																		if c.SecurityStatus > 0.0 {
+																			return "text-amber-300"
+																		}
+																		return "text-rose-300"
+																	}() }>
+																		({ fmt.Sprintf("%.1f", c.SecurityStatus) })
+																	</span>
+																}
+															</div>
+														</div>
+													</div>
+												</td>
+												<td class="px-3 py-3">
+													<span class={ "inline-block rounded border px-2 py-0.5 font-mono text-[10px] " + planetBadgeClass(c.PlanetType) }>{ c.PlanetType }</span>
+													if c.NumPins > 0 || c.UpgradeLevel > 0 {
+														<div class="mt-1 font-mono text-[10px] text-slate-400">
+															{ fmt.Sprintf("CC Lv %d • %d pins", c.UpgradeLevel, c.NumPins) }
+														</div>
+													}
+												</td>
+												<td class="px-3 py-3">
+													<div class="flex items-center gap-2">
+														if c.ProductTypeID > 0 {
+															<img src={ EVEItemIconURL(c.ProductTypeID, 32) } alt={ c.ProductName } loading="lazy" class="h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain" onerror="this.style.display='none'"/>
+														}
+														<span class="font-medium text-white">{ c.ProductName }</span>
+													</div>
+													if c.Note != "" {
+														<div class="mt-1 text-[10.5px] text-slate-400">{ c.Note }</div>
+													}
+												</td>
+												<td class="px-3 py-3 max-w-xs">
+													{{ storedItems := c.ParsedStorageItems() }}
+													if len(storedItems) > 0 {
+														<div class="flex flex-wrap gap-1.5">
+															for _, stItem := range storedItems {
+																<div class="inline-flex items-center gap-1.5 rounded-md border border-sky-400/20 bg-slate-950/60 px-2 py-1 text-[11px]">
+																	if stItem.TypeID > 0 {
+																		<img
+																			src={ EVEItemIconURL(stItem.TypeID, 32) }
+																			alt={ stItem.Name }
+																			loading="lazy"
+																			class="h-4 w-4 shrink-0 rounded-sm object-contain"
+																			onerror="this.style.display='none'"
+																		/>
+																	}
+																	if stItem.Tier != "" {
+																		<span class={ "shrink-0 rounded border px-1 font-mono text-[9px] font-bold " + piTierBadgeClass(stItem.Tier) }>{ string(stItem.Tier) }</span>
+																	}
+																	<span class="text-slate-200 truncate max-w-[140px]">{ stItem.Name }</span>
+																	if stItem.Amount > 0 {
+																		<span class="font-mono font-bold text-sky-300">×{ fmt.Sprintf("%d", stItem.Amount) }</span>
+																	}
+																</div>
+															}
+														</div>
+													} else {
+														<span class="font-mono text-[11px] text-slate-500">—</span>
+													}
+												</td>
+												<td class="px-4 py-3 text-right font-mono whitespace-nowrap">
+													<div>
+														<span class={ "inline-block rounded border px-2 py-0.5 text-[10px] font-bold " + colonyStatusClass(st) }>{ st }</span>
+														<span class="ml-1.5 text-[11px] text-slate-200">{ rem }</span>
+													</div>
+													<div class="mt-1 text-[10px] text-slate-400">
+														{ FormatTimeCtx(ctx, c.ExtractorExpiresAt, "02 Jan 15:04") }
+													</div>
+												</td>
+												<td class="px-4 py-3 text-right whitespace-nowrap">
+													if c.PlanetID > 0 {
+														<button
+															type="button"
+															data-planet-id={ fmt.Sprintf("%d", c.PlanetID) }
+															data-planet-name={ c.PlanetName }
+															data-planet-icon={ fmt.Sprintf("%d", domain.PlanetTypeIconID(c.PlanetType)) }
+															@click="$dispatch('open-pi-colony-map', { id: Number($el.dataset.planetId), name: $el.dataset.planetName, iconId: Number($el.dataset.planetIcon) })"
+															class="rounded-md border border-sky-400/45 bg-sky-500/15 px-2.5 py-1.5 text-[11px] font-bold text-sky-200 hover:bg-sky-500/30 transition cursor-pointer"
+														>
+															{ i18n.L(ctx, "Inspect Map", "Lihat Peta") }
+														</button>
+													} else {
+														<span class="text-[10px] text-slate-500">—</span>
+													}
+												</td>
+											</tr>
+										}
+									</tbody>
+								</table>
+							</div>
+						}
+					</div>
+				}
+
+				<!-- Interactive HTML5 Canvas Planet Colony Map Modal (Full-Screen Mode; hidden by default) -->
+				<div
+					x-data="window.afPIColonyMap ? afPIColonyMap() : { open: false }"
+					@open-pi-colony-map.window="if (openPlanet) openPlanet($event.detail.id, $event.detail.name, $event.detail.iconId)"
+					@keydown.escape.window="if (open && closeModal) closeModal()"
+					@resize.window="if (open && computeProjection) computeProjection()"
+				>
+					<div x-cloak x-show="open" style="display: none;" class="fixed inset-0 z-[100] flex items-stretch justify-stretch p-3 sm:p-5">
+							<div class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm" @click="closeModal()"></div>
+							<div class="relative z-10 w-full h-full flex flex-col rounded-2xl border border-violet-400/35 bg-[#0b0d1a] shadow-2xl overflow-hidden">
+								<!-- Header -->
+								<div class="flex flex-wrap items-center justify-between gap-3 border-b border-violet-400/20 px-5 py-3.5">
+									<div class="flex items-center gap-3">
+										<img
+											:src="'https://images.evetech.net/types/' + (planetIconTypeId || 11) + '/icon?size=64'"
+											:alt="planetName"
+											class="h-9 w-9 shrink-0 rounded-full border border-amber-300/50 bg-slate-950 object-cover"
+											onerror="this.style.display='none'"
+										/>
+										<div>
+											<h3 class="text-sm font-bold uppercase tracking-wider text-amber-300" x-text="'Planet Colony Surface Map — ' + planetName"></h3>
+											<p class="text-[11px] text-slate-400 mt-0.5">
+												{ i18n.L(ctx, "Semantic Zoom: scroll to spread overlapping pins apart while keeping icons crisp. Drag to pan & click any pin to inspect.", "Semantic Zoom: scroll untuk merenggangkan pin yang menumpuk agar terlihat jelas tanpa mengecil. Seret untuk geser & klik pin untuk detail.") }
+											</p>
+										</div>
+									</div>
+									<div class="flex flex-wrap items-center gap-2">
+										<button type="button" @click="showRoutes = !showRoutes" :class="showRoutes ? 'border-sky-400/50 bg-sky-500/20 text-sky-200' : 'border-slate-700 text-slate-400'" class="rounded-md border px-2.5 py-1 text-[11px] font-mono font-bold cursor-pointer">Routes</button>
+										<button type="button" @click="showHeads = !showHeads" :class="showHeads ? 'border-amber-400/50 bg-amber-500/20 text-amber-200' : 'border-slate-700 text-slate-400'" class="rounded-md border px-2.5 py-1 text-[11px] font-mono font-bold cursor-pointer">Heads</button>
+										<button type="button" @click="zoomBy(1.2)" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-xs font-mono text-slate-200 hover:text-white cursor-pointer">+</button>
+										<button type="button" @click="zoomBy(0.83)" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-xs font-mono text-slate-200 hover:text-white cursor-pointer">−</button>
+										<button type="button" @click="resetView()" class="rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1 text-[11px] font-mono text-slate-200 hover:text-white cursor-pointer">Reset</button>
+										<button type="button" @click="closeModal()" class="rounded-md border border-slate-700 px-2.5 py-1 text-xs text-slate-300 hover:text-white cursor-pointer">✕</button>
+									</div>
+								</div>
+
+								<!-- Body: Canvas + Inspector -->
+								<div class="grid grid-cols-1 lg:grid-cols-12 flex-1 min-h-0 overflow-hidden">
+									<div x-ref="piCanvasWrap" class="lg:col-span-9 relative bg-[#090b16] min-h-[380px] overflow-hidden">
+										<div x-show="loading" class="absolute inset-0 z-10 flex items-center justify-center text-xs font-mono text-amber-200">
+											{ i18n.L(ctx, "Loading planet coordinates from EVE ESI...", "Memuat koordinat planet dari EVE ESI...") }
+										</div>
+										<div x-show="!loading && error" class="absolute inset-0 z-10 flex items-center justify-center p-6 text-center text-xs text-rose-300" x-text="error"></div>
+										<canvas
+											x-ref="piCanvas"
+											@wheel="onWheel($event)"
+											@mousedown="onMouseDown($event)"
+											@mousemove="onMouseMove($event)"
+											@mouseup="onMouseUp()"
+											@mouseleave="onMouseUp()"
+											@click="onCanvasClick($event)"
+											class="absolute inset-0 w-full h-full block cursor-grab active:cursor-grabbing"
+										></canvas>
+										<!-- Compact Legend -->
+										<div class="absolute bottom-3 left-3 flex flex-wrap gap-2 rounded-lg border border-violet-400/25 bg-slate-950/85 px-3 py-1.5 font-mono text-[10px] text-slate-300 pointer-events-none">
+											<span class="text-amber-300">◆ EXT</span>
+											<span class="text-emerald-300">■ PAD</span>
+											<span class="text-cyan-300">■ STR</span>
+											<span class="text-violet-300">● P1</span>
+											<span class="text-sky-300">● P2+</span>
+											<span class="text-yellow-300">● CC</span>
+										</div>
+									</div>
+
+									<!-- Right Pin Inspector Panel -->
+									<div class="lg:col-span-3 border-t lg:border-t-0 lg:border-l border-violet-400/20 bg-slate-950/85 p-4 overflow-y-auto space-y-3 text-xs">
+										<template x-if="!selectedPin">
+											<div class="text-slate-400 space-y-2 py-8 text-center">
+												<div class="font-semibold text-slate-200">{ i18n.L(ctx, "Click any pin on the map", "Klik pin mana saja di peta") }</div>
+												<p class="text-[11px]">{ i18n.L(ctx, "Inspect active factory schematics, extractor heads & cycle output, launchpad inventory, and material routes.", "Lihat resep pabrik aktif, jumlah extractor head & output siklus, isi launchpad, dan rute aliran barang.") }</p>
+											</div>
+										</template>
+										<template x-if="selectedPin">
+											<div class="space-y-3">
+												<div class="flex items-center gap-2.5 border-b border-violet-400/20 pb-2.5">
+													<img
+														:src="'https://images.evetech.net/types/' + selectedPin.type_id + '/icon?size=64'"
+														:alt="selectedPin.label"
+														class="h-9 w-9 shrink-0 rounded-lg border border-violet-400/35 bg-slate-950 object-contain"
+														onerror="this.style.display='none'"
+													/>
+													<div class="min-w-0">
+														<div class="text-[10px] font-mono uppercase text-amber-300" x-text="selectedPin.role.replace('_', ' ')"></div>
+														<div class="text-sm font-bold text-white truncate" x-text="selectedPin.label"></div>
+														<div class="text-[10px] font-mono text-slate-400" x-text="'Pin #' + selectedPin.pin_id"></div>
+													</div>
+												</div>
+
+												<template x-if="selectedPin.schematic_name || selectedPin.product_name">
+													<div class="rounded-lg border border-violet-400/25 bg-violet-500/10 p-2.5">
+														<div class="text-[10px] font-mono uppercase text-violet-300">{ i18n.L(ctx, "Active Production", "Produksi Aktif") }</div>
+														<div class="flex items-center gap-2 mt-1">
+															<template x-if="selectedPin.product_type_id > 0">
+																<img
+																	:src="'https://images.evetech.net/types/' + selectedPin.product_type_id + '/icon?size=32'"
+																	:alt="selectedPin.schematic_name || selectedPin.product_name"
+																	class="h-6 w-6 shrink-0 rounded border border-violet-400/30 bg-slate-950 object-contain"
+																	onerror="this.style.display='none'"
+																/>
+															</template>
+															<div class="font-bold text-white truncate" x-text="selectedPin.schematic_name || selectedPin.product_name"></div>
+															<template x-if="selectedPin.product_tier">
+																<span class="shrink-0 rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold" :class="piTierColor(selectedPin.product_tier)" x-text="selectedPin.product_tier"></span>
+															</template>
+														</div>
+														<template x-if="selectedPin.qty_per_cycle > 0">
+															<div class="text-[11px] font-mono text-amber-200 mt-1" x-text="selectedPin.qty_per_cycle + ' units / ' + Math.round((selectedPin.cycle_seconds || 0)/60) + 'm • ' + (selectedPin.heads ? selectedPin.heads.length : 0) + ' heads'"></div>
+														</template>
+													</div>
+												</template>
+
+												<template x-if="selectedPin.contents && selectedPin.contents.length > 0">
+													<div class="space-y-1">
+														<div class="text-[10px] font-mono uppercase text-emerald-300">{ i18n.L(ctx, "Stored Contents", "Isi Tersimpan") }</div>
+														<div class="rounded-lg border border-slate-800 bg-slate-900/70 divide-y divide-slate-800 font-mono text-[11px]">
+															<template x-for="ct in selectedPin.contents" :key="ct.type_id">
+																<div class="flex items-center justify-between gap-2 px-2.5 py-1.5">
+																	<div class="flex items-center gap-2 min-w-0">
+																		<img
+																			:src="'https://images.evetech.net/types/' + ct.type_id + '/icon?size=32'"
+																			:alt="ct.name"
+																			class="h-4 w-4 shrink-0 rounded-sm object-contain"
+																			onerror="this.style.display='none'"
+																		/>
+																		<template x-if="ct.tier">
+																			<span class="shrink-0 rounded border px-1 font-mono text-[9px] font-bold" :class="piTierColor(ct.tier)" x-text="ct.tier"></span>
+																		</template>
+																		<span class="text-slate-200 truncate" x-text="ct.name"></span>
+																	</div>
+																	<span class="text-sky-300 font-bold shrink-0" x-text="Number(ct.amount).toLocaleString()"></span>
+																</div>
+															</template>
+														</div>
+													</div>
+												</template>
+
+												<template x-if="pinRoutes(selectedPin.pin_id).outgoing.length > 0">
+													<div class="space-y-1">
+														<div class="text-[10px] font-mono uppercase text-sky-300">{ i18n.L(ctx, "Outgoing Routes", "Rute Keluar") }</div>
+														<template x-for="rt in pinRoutes(selectedPin.pin_id).outgoing" :key="rt.route_id">
+															<div class="flex items-center justify-between gap-2 rounded border border-slate-800 bg-slate-900/60 px-2.5 py-1 text-[11px] font-mono text-slate-200">
+																<div class="flex items-center gap-1.5 min-w-0">
+																	<img :src="'https://images.evetech.net/types/' + rt.content_type_id + '/icon?size=32'" :alt="rt.content_name" class="h-4 w-4 shrink-0 rounded-sm object-contain" onerror="this.style.display='none'"/>
+																	<span class="truncate" x-text="rt.content_name"></span>
+																</div>
+																<span class="text-sky-300 font-bold shrink-0" x-text="'×' + rt.quantity"></span>
+															</div>
+														</template>
+													</div>
+												</template>
+
+												<template x-if="pinRoutes(selectedPin.pin_id).incoming.length > 0">
+													<div class="space-y-1">
+														<div class="text-[10px] font-mono uppercase text-amber-300">{ i18n.L(ctx, "Incoming Routes", "Rute Masuk") }</div>
+														<template x-for="rt in pinRoutes(selectedPin.pin_id).incoming" :key="rt.route_id">
+															<div class="flex items-center justify-between gap-2 rounded border border-slate-800 bg-slate-900/60 px-2.5 py-1 text-[11px] font-mono text-slate-200">
+																<div class="flex items-center gap-1.5 min-w-0">
+																	<img :src="'https://images.evetech.net/types/' + rt.content_type_id + '/icon?size=32'" :alt="rt.content_name" class="h-4 w-4 shrink-0 rounded-sm object-contain" onerror="this.style.display='none'"/>
+																	<span class="truncate" x-text="rt.content_name"></span>
+																</div>
+																<span class="text-amber-300 font-bold shrink-0" x-text="'×' + rt.quantity"></span>
+															</div>
+														</template>
+													</div>
+												</template>
+											</div>
+										</template>
+									</div>
+								</div>
+							</div>
 						</div>
-					}
 				</div>
 			</div>
 		</div>
@@ -1171,7 +1427,7 @@ templ PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) {
 						<div class="text-[10px] font-mono text-slate-400">Margin: { FormatPercent(tree.NetMarginPercent) }</div>
 					</div>
 					<div class="tactical-panel rounded-xl p-3.5">
-						<div class="text-[10px] font-mono uppercase text-sky-300/80">Est. Monthly (1 Factory)</div>
+						<div class="text-[10px] font-mono uppercase text-sky-300/80">Estimated Monthly (1 Factory)</div>
 						<div class={ "mt-1 text-base font-mono font-bold " + profitColor(tree.EstMonthlyISK) }>{ FormatISK(tree.EstMonthlyISK) }</div>
 						<div class="text-[10px] font-mono text-slate-400">Daily: { FormatISK(tree.EstDailyISK) }</div>
 					</div>
@@ -1228,7 +1484,7 @@ templ PITreePartial(tree *domain.PIRecipeAnalysis, errMsg string) {
 								<thead class="bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15">
 									<tr>
 										<th class="px-4 py-2">Raw P0 Resource</th>
-										<th class="px-4 py-2 text-right">Total Qty / Cycle</th>
+										<th class="px-4 py-2 text-right">Total Quantity / Cycle</th>
 										<th class="px-4 py-2">Found On Planet Types</th>
 									</tr>
 								</thead>
@@ -1281,7 +1537,7 @@ templ PIScanPartial(rows []domain.PIProfitRow, tier string, hub domain.TradeHub,
 							<th class="px-4 py-3 text-right">Input + POCO</th>
 							<th class="px-4 py-3 text-right">Net Profit / Cycle</th>
 							<th class="px-4 py-3 text-right">Margin</th>
-							<th class="px-4 py-3 text-right">Est. Monthly (1 Factory)</th>
+							<th class="px-4 py-3 text-right">Estimated Monthly (1 Factory)</th>
 							<th class="px-4 py-3">Verdict</th>
 							<th class="px-4 py-3 text-right">Tree</th>
 						</tr>
@@ -1391,7 +1647,7 @@ templ PISalesCalcPartial(res *domain.PISalesCalcResult, unmatched []string, errM
 						<thead class="bg-slate-950/50 font-mono uppercase text-[10px] text-slate-400 border-b border-violet-400/15">
 							<tr>
 								<th class="px-4 py-3">PI Item</th>
-								<th class="px-3 py-3 text-right">Qty</th>
+								<th class="px-3 py-3 text-right">Quantity</th>
 								<th class="px-3 py-3 text-right">Unit Price</th>
 								<th class="px-3 py-3 text-right">Gross Revenue</th>
 								if res.Options.CostMode == "buy_inputs" {

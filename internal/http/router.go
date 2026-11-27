@@ -26,6 +26,7 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 	r.Use(middleware.Recoverer)
 	r.Use(SecurityHeadersMiddleware)
 	r.Use(HTMXMiddleware)
+	r.Use(PreferencesMiddleware)
 
 	h := NewHandlers(svc, renderer)
 	ssoAuth := NewAuthHandlers(svc)
@@ -45,6 +46,10 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 
 	// Health check (public)
 	r.Get("/health", h.HandleHealth)
+
+	// UI Language & Timezone Preferences (public so login page can toggle too)
+	r.Post("/lang", h.HandleSetLanguage)
+	r.Post("/timezone", h.HandleSetTimezone)
 
 	// Application Login (public — no self-registration)
 	r.Get("/login", userAuth.HandleLoginPage)
@@ -68,6 +73,9 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 		r.Route("/pilot", func(r chi.Router) {
 			r.Get("/", h.HandlePilotHub)
 			r.With(adminOnly).Post("/sync-capital", h.HandlePilotSyncCapital)
+			r.With(adminOnly).Post("/sync-corp-blueprints", h.HandlePilotSyncCorpBlueprints)
+			r.With(adminOnly).Post("/import-corp-blueprints", h.HandlePilotImportCorpBlueprints)
+			r.With(adminOnly).Post("/clear-corp-blueprints", h.HandlePilotClearCorpBlueprints)
 		})
 
 		// Live EVE Marketplace Browser (Public ESI — read/search for all, add-catalog for admin only)
@@ -76,6 +84,8 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.Get("/search", h.HandleMarketplaceSearch)
 			r.Get("/autocomplete", h.HandleMarketplaceAutocomplete)
 			r.Get("/browse", h.HandleMarketplaceBrowse)
+			r.Get("/bpc", h.HandleMarketplaceBPC)
+			r.Get("/compare", h.HandleMarketplaceCompare)
 			r.Post("/appraise", h.HandleMarketplaceAppraise)
 			r.With(adminOnly).Post("/add-catalog", h.HandleMarketplaceAddCatalog)
 		})
@@ -141,6 +151,8 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.Get("/tree", h.HandlePITree)
 			r.Post("/scan", h.HandlePIScan)
 			r.Post("/sales-calc", h.HandlePISalesCalc)
+			r.Post("/sync", h.HandlePISync)
+			r.Get("/colonies/{planet_id}/layout", h.HandlePIPlanetLayout)
 			r.With(adminOnly).Post("/colonies", h.HandlePIColonySave)
 			r.With(adminOnly).Post("/colonies/{id}/reset", h.HandlePIColonyReset)
 			r.With(adminOnly).Delete("/colonies/{id}", h.HandlePIColonyDelete)
@@ -182,6 +194,8 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.Route("/planner", func(r chi.Router) {
 				r.Get("/", h.HandlePlanner)
 				r.Post("/convert-batches", h.HandlePlannerConvertBatches)
+				r.Delete("/{id}", h.HandlePlannerDelete)
+				r.Post("/clear", h.HandlePlannerClear)
 			})
 
 			// Production, Inventory & Market Order Tracker (+ Buy/Sell Ledger & Realized P&L)

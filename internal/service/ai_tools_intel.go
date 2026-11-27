@@ -670,3 +670,236 @@ func (s *CopilotService) runCheckMarketHistoryAndVolatility(
 		itemName, hub.Name, n, fmtCompactISK(avgPrice7), fmtCompactISK(avgPrice30), trend7vs30Pct, avgVol7, verdict)
 	return res, summary, nil
 }
+
+func (s *CopilotService) runScanGasReactions(
+	ctx context.Context,
+	defaultHub domain.TradeHub,
+	argsRaw string,
+) (any, string, error) {
+	var args struct {
+		Hub            string `json:"hub"`
+		MaterialHub    string `json:"material_hub"`
+		Refinery       string `json:"refinery"`
+		Scope          string `json:"scope"`
+		ProfitableOnly *bool  `json:"profitable_only"`
+	}
+	_ = json.Unmarshal([]byte(argsRaw), &args)
+
+	hubKey := strings.TrimSpace(args.Hub)
+	if hubKey == "" {
+		hubKey = defaultHub.Key
+	}
+	matHubKey := strings.TrimSpace(args.MaterialHub)
+	if matHubKey == "" {
+		matHubKey = hubKey
+	}
+	refineryKey := strings.TrimSpace(args.Refinery)
+	if refineryKey == "" {
+		refineryKey = "athanor_t1"
+	}
+	scope := strings.TrimSpace(args.Scope)
+	if scope == "" {
+		scope = "hybrid"
+	}
+	profOnly := true
+	if args.ProfitableOnly != nil {
+		profOnly = *args.ProfitableOnly
+	}
+
+	rows, err := s.ScanGasReactions(ctx, GasReactionScanRequest{
+		HubKey:              hubKey,
+		MaterialHubKey:      matHubKey,
+		RefineryKey:         refineryKey,
+		Scope:               scope,
+		Runs:                0, // Auto ~24h cycle
+		MaterialPriceSource: "jita_sell",
+		ProfitableOnly:      profOnly,
+	})
+	if err != nil {
+		return nil, "", err
+	}
+	if len(rows) > 10 {
+		rows = rows[:10]
+	}
+
+	type reactionSummary struct {
+		Name           string  `json:"name"`
+		Runs24h        int     `json:"runs_24h"`
+		OutputQty      int     `json:"output_qty"`
+		CapitalISK     float64 `json:"capital_isk"`
+		NetProfit24h   float64 `json:"net_profit_24h"`
+		MarginPct      float64 `json:"margin_pct"`
+		ISKPerHour     float64 `json:"isk_per_hour"`
+		EstISKPerDay   float64 `json:"est_isk_per_day_per_slot"`
+		RecSellPrice   float64 `json:"rec_sell_price"`
+		BreakEvenFloor float64 `json:"break_even_floor"`
+		DailyVolume    float64 `json:"daily_volume"`
+		InputsSummary  string  `json:"inputs_summary"`
+		Verdict        string  `json:"verdict"`
+	}
+
+	items := make([]reactionSummary, 0, len(rows))
+	for _, r := range rows {
+		items = append(items, reactionSummary{
+			Name:           r.ProductName,
+			Runs24h:        r.Runs,
+			OutputQty:      r.OutputQty,
+			CapitalISK:     math.Round(r.InputCost + r.JobFeeISK),
+			NetProfit24h:   math.Round(r.NetProfit),
+			MarginPct:      math.Round(r.NetMarginPercent*10) / 10,
+			ISKPerHour:     math.Round(r.ISKPerHour),
+			EstISKPerDay:   math.Round(r.ISKPerHour * 24),
+			RecSellPrice:   r.RecommendedSell,
+			BreakEvenFloor: r.BreakEvenSell,
+			DailyVolume:    math.Round(r.DailyVolume7d*10) / 10,
+			InputsSummary:  r.InputsSummary,
+			Verdict:        string(r.Verdict),
+		})
+	}
+
+	res := map[string]any{
+		"sell_hub":     domain.LookupTradeHub(hubKey).Name,
+		"material_hub": domain.LookupTradeHub(matHubKey).Name,
+		"refinery":     domain.LookupRefineryProfile(refineryKey).Name,
+		"scope":        scope,
+		"count":        len(items),
+		"reactions":    items,
+	}
+	summary := fmt.Sprintf("Gas Reactions (%s, %s): %d profitable reaction(s)", domain.LookupTradeHub(hubKey).Name, scope, len(items))
+	return res, summary, nil
+}
+
+func (s *CopilotService) runEvaluateT2Invention(
+	ctx context.Context,
+	defaultHub domain.TradeHub,
+	argsRaw string,
+) (any, string, error) {
+	var args struct {
+		PresetKey       string `json:"preset_key"`
+		Hub             string `json:"hub"`
+		EncryptionSkill int    `json:"encryption_skill"`
+		DatacoreSkill   int    `json:"datacore_skill"`
+	}
+	_ = json.Unmarshal([]byte(argsRaw), &args)
+
+	hubKey := strings.TrimSpace(args.Hub)
+	if hubKey == "" {
+		hubKey = defaultHub.Key
+	}
+	encSkill := args.EncryptionSkill
+	if encSkill < 1 || encSkill > 5 {
+		encSkill = 4
+	}
+	dcSkill := args.DatacoreSkill
+	if dcSkill < 1 || dcSkill > 5 {
+		dcSkill = 4
+	}
+
+	presetKey := strings.ToLower(strings.TrimSpace(args.PresetKey))
+	if presetKey != "" && presetKey != "all" {
+		opt, err := s.OptimizeT2InventionLive(ctx, domain.InventionInput{
+			PresetKey:       presetKey,
+			HubKey:          hubKey,
+			EncryptionSkill: encSkill,
+			Datacore1Skill:  dcSkill,
+			Datacore2Skill:  dcSkill,
+		})
+		if err != nil {
+			return nil, "", err
+		}
+		topOpts := opt.Scenarios
+		if len(topOpts) > 3 {
+			topOpts = topOpts[:3]
+		}
+		res := map[string]any{
+			"hub":           opt.HubName,
+			"product":       opt.Preset.ProductName,
+			"preset_key":    opt.Preset.Key,
+			"best_scenario": opt.BestScenario,
+			"top_3_options": topOpts,
+		}
+		summary := fmt.Sprintf("T2 Invention %s (%s): best=%s (%.1f%% chance, net %s/BPC)",
+			opt.Preset.ProductName, opt.HubName, opt.BestScenario.Decryptor.Name, opt.BestScenario.SuccessChancePct, fmtCompactISK(opt.BestScenario.NetProfitPerBPC))
+		return res, summary, nil
+	}
+
+	// Evaluate all 8 canonical T2 presets in parallel (bounded 4 workers) and rank by NetProfitPerBPC.
+	type rankedT2 struct {
+		PresetKey        string  `json:"preset_key"`
+		ProductName      string  `json:"product_name"`
+		Category         string  `json:"category"`
+		BestDecryptor    string  `json:"best_decryptor"`
+		SuccessChancePct float64 `json:"success_chance_pct"`
+		T2RunsPerBPC     int     `json:"t2_runs_per_bpc"`
+		ResultME         int     `json:"result_me"`
+		NetProfitPerBPC  float64 `json:"net_profit_per_bpc"`
+		NetProfitPerUnit float64 `json:"net_profit_per_unit"`
+		MarginPct        float64 `json:"margin_pct"`
+		Verdict          string  `json:"verdict"`
+	}
+
+	results := make([]rankedT2, 0, len(domain.DefaultT2Presets))
+	var (
+		wg  sync.WaitGroup
+		mu  sync.Mutex
+		sem = make(chan struct{}, 4)
+	)
+	for _, p := range domain.DefaultT2Presets {
+		wg.Add(1)
+		go func(preset domain.T2InventionPreset) {
+			defer wg.Done()
+			select {
+			case sem <- struct{}{}:
+				defer func() { <-sem }()
+			case <-ctx.Done():
+				return
+			}
+			opt, err := s.OptimizeT2InventionLive(ctx, domain.InventionInput{
+				PresetKey:       preset.Key,
+				HubKey:          hubKey,
+				EncryptionSkill: encSkill,
+				Datacore1Skill:  dcSkill,
+				Datacore2Skill:  dcSkill,
+			})
+			if err != nil || opt == nil {
+				return
+			}
+			best := opt.BestScenario
+			verdict := "VIABLE"
+			if best.NetProfitPerBPC <= 0 {
+				verdict = "AVOID"
+			} else if best.NetMarginPercent < 10 {
+				verdict = "CAUTION"
+			}
+			mu.Lock()
+			results = append(results, rankedT2{
+				PresetKey:        preset.Key,
+				ProductName:      preset.ProductName,
+				Category:         preset.Category,
+				BestDecryptor:    best.Decryptor.Name,
+				SuccessChancePct: math.Round(best.SuccessChancePct*10) / 10,
+				T2RunsPerBPC:     best.ResultRuns,
+				ResultME:         best.ResultME,
+				NetProfitPerBPC:  math.Round(best.NetProfitPerBPC),
+				NetProfitPerUnit: math.Round(best.NetProfitPerUnit),
+				MarginPct:        math.Round(best.NetMarginPercent*10) / 10,
+				Verdict:          verdict,
+			})
+			mu.Unlock()
+		}(p)
+	}
+	wg.Wait()
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].NetProfitPerBPC > results[j].NetProfitPerBPC
+	})
+
+	res := map[string]any{
+		"hub":               domain.LookupTradeHub(hubKey).Name,
+		"skills_assumed":    fmt.Sprintf("Encryption %d / Datacores %d", encSkill, dcSkill),
+		"evaluated_presets": len(results),
+		"ranked_t2":         results,
+	}
+	summary := fmt.Sprintf("T2 Invention scan (%s): evaluated %d canonical T2 items", domain.LookupTradeHub(hubKey).Name, len(results))
+	return res, summary, nil
+}

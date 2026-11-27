@@ -130,42 +130,54 @@ func (h *Handlers) HandleManufacturePage(w http.ResponseWriter, r *http.Request)
 	if rawBP == "" {
 		rawBP = strings.TrimSpace(r.URL.Query().Get("bp"))
 	}
+	var parsedBPID, parsedProductID int32
 	if rawBP != "" {
-		if bpID, err := strconv.ParseInt(rawBP, 10, 32); err == nil && bpID > 0 {
-			hubKey := strings.TrimSpace(r.URL.Query().Get("hub"))
-			if hubKey == "" && settings != nil {
-				hubKey = settings.ActiveTradeHub().Key
+		if v, err := strconv.ParseInt(rawBP, 10, 32); err == nil && v > 0 {
+			parsedBPID = int32(v)
+		}
+	}
+	if rawProd := strings.TrimSpace(r.URL.Query().Get("product_id")); rawProd != "" {
+		if v, err := strconv.ParseInt(rawProd, 10, 32); err == nil && v > 0 {
+			parsedProductID = int32(v)
+		}
+	}
+	rawQuery := strings.TrimSpace(r.URL.Query().Get("q"))
+	resolvedBPID := h.svc.ResolveBlueprintID(r.Context(), parsedBPID, parsedProductID, rawQuery)
+
+	if resolvedBPID > 0 {
+		hubKey := strings.TrimSpace(r.URL.Query().Get("hub"))
+		if hubKey == "" && settings != nil {
+			hubKey = settings.ActiveTradeHub().Key
+		}
+		me := 10
+		if rawME := strings.TrimSpace(r.URL.Query().Get("me")); rawME != "" {
+			if v, err := strconv.Atoi(rawME); err == nil && v >= 0 && v <= 10 {
+				me = v
 			}
-			me := 10
-			if rawME := strings.TrimSpace(r.URL.Query().Get("me")); rawME != "" {
-				if v, err := strconv.Atoi(rawME); err == nil && v >= 0 && v <= 10 {
-					me = v
-				}
+		}
+		te := 20
+		if rawTE := strings.TrimSpace(r.URL.Query().Get("te")); rawTE != "" {
+			if v, err := strconv.Atoi(rawTE); err == nil && v >= 0 && v <= 20 {
+				te = v
 			}
-			te := 20
-			if rawTE := strings.TrimSpace(r.URL.Query().Get("te")); rawTE != "" {
-				if v, err := strconv.Atoi(rawTE); err == nil && v >= 0 && v <= 20 {
-					te = v
-				}
-			}
-			in := domain.BlueprintCalcInput{
-				BlueprintTypeID:     int32(bpID),
-				Runs:                parseIntDefault(r.URL.Query().Get("runs"), 1),
-				ME:                  me,
-				TE:                  te,
-				HubKey:              hubKey,
-				MaterialPriceSource: "jita_sell",
-				SystemCostIndex:     settings.SystemCostIndex,
-				FacilityTaxPercent:  settings.FacilityTaxPercent,
-				BrokerFeePercent:    settings.BrokerFeePercent,
-				SalesTaxPercent:     settings.SalesTaxPercent,
-				RelistFeePercent:    settings.RelistFeePercent,
-				EstimatedRelists:    1,
-				BatchesPerWeek:      1,
-			}
-			if res, err := h.svc.CalculateBlueprintProfit(r.Context(), in); err == nil {
-				initialRes = res
-			}
+		}
+		in := domain.BlueprintCalcInput{
+			BlueprintTypeID:     resolvedBPID,
+			Runs:                parseIntDefault(r.URL.Query().Get("runs"), 1),
+			ME:                  me,
+			TE:                  te,
+			HubKey:              hubKey,
+			MaterialPriceSource: "jita_sell",
+			SystemCostIndex:     settings.SystemCostIndex,
+			FacilityTaxPercent:  settings.FacilityTaxPercent,
+			BrokerFeePercent:    settings.BrokerFeePercent,
+			SalesTaxPercent:     settings.SalesTaxPercent,
+			RelistFeePercent:    settings.RelistFeePercent,
+			EstimatedRelists:    1,
+			BatchesPerWeek:      1,
+		}
+		if res, err := h.svc.CalculateBlueprintProfit(r.Context(), in); err == nil {
+			initialRes = res
 		}
 	}
 

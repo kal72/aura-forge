@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -73,7 +74,7 @@ templ WealthPage(mode service.ModeInfo, summary *domain.WealthSummary) {
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-white">Net Worth Tracker &amp; 100B+ ISK Roadmap</h1>
-					<p class="text-xs text-slate-300/80 mt-0.5">Track your <strong>Total Wealth (Net Worth)</strong> compounding across all 5 asset pillars (Wallet + Sell Orders + Escrow + Inventory + Active Jobs) toward 100B+ ISK.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Track your Total Wealth (Net Worth) compounding across all 5 asset pillars (Wallet + Sell Orders + Escrow + Inventory + Active Jobs) toward 100B+ ISK.", "Pantau pertumbuhan Total Wealth (Net Worth) di 5 pilar aset (Wallet + Sell Orders + Escrow + Inventory + Active Jobs) menuju 100B+ ISK.") }</p>
 				</div>
 				<div class="flex flex-wrap gap-2">
 					if mode.AI.Enabled {
@@ -82,7 +83,7 @@ templ WealthPage(mode service.ModeInfo, summary *domain.WealthSummary) {
 							@click={ fmt.Sprintf("window.dispatchEvent(new CustomEvent('open-aura-ai', { detail: { prompt: %q } }))", "Audit bisnis saya minggu ini (cek Net Worth, semua batch SOLD/SLOW_MOVER, modal cair vs terkunci, dan rencana konkret menuju 100B+ Total Wealth).") }
 							class="rounded-lg border border-violet-400/50 bg-violet-500/20 px-3.5 py-2 text-xs font-bold text-violet-100 hover:bg-violet-500/35 transition cursor-pointer"
 						>
-							⚡ AI Weekly Audit
+							⚡ { i18n.L(ctx, "AI Weekly Audit", "Audit Mingguan AI") }
 						</button>
 					}
 					<button
@@ -91,14 +92,14 @@ templ WealthPage(mode service.ModeInfo, summary *domain.WealthSummary) {
 						hx-swap="none"
 						class="rounded-lg border border-emerald-400/40 bg-emerald-500/15 px-3.5 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-500/25 transition cursor-pointer"
 					>
-						Auto-Capture Today
+						{ i18n.L(ctx, "Auto-Capture Today", "Catat Otomatis Hari Ini") }
 					</button>
 					<button
 						type="button"
 						@click="showSnapshotForm = !showSnapshotForm"
 						class="rounded-lg bg-amber-400 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer"
 					>
-						+ Record Manual Snapshot
+						+ { i18n.L(ctx, "Record Manual Snapshot", "Catat Snapshot Manual") }
 					</button>
 				</div>
 			</div>
