@@ -102,11 +102,20 @@ templ TacticalPage(data *service.TacticalViewData) {
 							<span class="font-bold text-amber-200" x-text="sim ? formatISK(sim.total_fit_cost_isk) : '...'"></span>
 						</div>
 
-						<!-- Skill Profile Pill -->
+						<!-- Skill Profile Pill (Lv III / Lv IV / Lv V / Live EVE SSO Pilot) -->
 						<div class="flex items-center rounded-lg border border-slate-700/80 bg-slate-900/80 p-0.5 text-[11px] font-mono">
 							<button type="button" @click="setSkillProfile('beginner')" :class="fit.skill_profile === 'beginner' ? 'bg-emerald-500/25 text-emerald-200 border-emerald-400/40' : 'text-slate-400 border-transparent hover:text-white'" class="rounded border px-2 py-0.5 cursor-pointer transition" title="Beginner Pilot (All Level III)">Lv III</button>
 							<button type="button" @click="setSkillProfile('intermediate')" :class="fit.skill_profile === 'intermediate' ? 'bg-sky-500/25 text-sky-200 border-sky-400/40' : 'text-slate-400 border-transparent hover:text-white'" class="rounded border px-2 py-0.5 cursor-pointer transition" title="Intermediate Pilot (All Level IV)">Lv IV</button>
 							<button type="button" @click="setSkillProfile('maxed')" :class="fit.skill_profile === 'maxed' ? 'bg-violet-500/30 text-violet-200 border-violet-400/40' : 'text-slate-400 border-transparent hover:text-white'" class="rounded border px-2 py-0.5 cursor-pointer transition" title="Maxed Pilot (All Level V)">Lv V</button>
+							<button
+								type="button"
+								@click="ssoConnected ? setSkillProfile('pilot_live') : notify('Connect EVE SSO in Aura Forge sidebar to use Live Pilot Skills')"
+								:class="fit.skill_profile === 'pilot_live' ? 'bg-amber-500/30 text-amber-200 border-amber-400/50' : (ssoConnected ? 'text-amber-300/80 border-transparent hover:text-amber-200' : 'text-slate-500 border-transparent')"
+								class="rounded border px-2 py-0.5 cursor-pointer transition"
+								:title="ssoConnected ? ('Use Live EVE SSO Skills: ' + ssoCharName) : 'Connect EVE SSO to simulate with your real character skills'"
+							>
+								Pilot SSO
+							</button>
 						</div>
 
 						<button
@@ -408,6 +417,12 @@ templ TacticalPage(data *service.TacticalViewData) {
 												:src="itemIconURL(slot.module.charge_type_id)"
 												class="absolute -top-1 -left-1 h-3.5 w-3.5 rounded-full border border-amber-300/60 bg-slate-950"
 											/>
+											<!-- Missing Skill Lock Badge -->
+											<span
+												x-show="isSlotLocked(slot.key)"
+												title="Skill prerequisite missing for active pilot profile"
+												class="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full border border-rose-400 bg-rose-600 text-[8px] font-bold text-white"
+											>!</span>
 										</div>
 									</template>
 									<template x-if="!slot.module">
@@ -433,6 +448,33 @@ templ TacticalPage(data *service.TacticalViewData) {
 									<button type="button" @click="setModuleState(selectedSlot.kind, selectedSlot.index, 'overheated')" class="rounded border border-rose-400/40 bg-rose-500/15 px-2 py-0.5 text-[11px] font-semibold text-rose-200 hover:bg-rose-500/30 cursor-pointer">Overheat</button>
 									<button type="button" @click="setModuleState(selectedSlot.kind, selectedSlot.index, 'offline')" class="rounded border border-slate-500/50 bg-slate-700/40 px-2 py-0.5 text-[11px] font-semibold text-slate-300 hover:bg-slate-700 cursor-pointer">Offline</button>
 									<button type="button" @click="removeModule(selectedSlot.kind, selectedSlot.index)" class="rounded border border-rose-500/50 bg-rose-600/25 px-2 py-0.5 text-[11px] font-bold text-rose-200 hover:bg-rose-600/40 cursor-pointer">Remove</button>
+
+									<!-- Interactive Ammo / Charge Picker for Fitted Weapons -->
+									<template x-if="suggestedChargesForModule(getModuleAt(selectedSlot.kind, selectedSlot.index)).length > 0">
+										<div class="mt-1.5 flex w-full flex-wrap items-center gap-1.5 border-t border-slate-700/70 pt-1.5">
+											<span class="text-[10px] font-mono uppercase text-amber-300">Ammo:</span>
+											<template x-for="ch in suggestedChargesForModule(getModuleAt(selectedSlot.kind, selectedSlot.index))" :key="ch.type_id">
+												<button
+													type="button"
+													@click="loadChargeOnSlot(selectedSlot.kind, selectedSlot.index, ch, true)"
+													:class="getModuleAt(selectedSlot.kind, selectedSlot.index).charge_type_id === ch.type_id ? 'border-amber-400 bg-amber-500/25 text-amber-100' : 'border-slate-700 bg-slate-900/80 text-slate-300 hover:border-amber-300/60'"
+													class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10.5px] cursor-pointer transition"
+													:title="'Load ' + ch.name + ' (' + ch.tag + ') into all matching weapons'"
+												>
+													<img :src="itemIconURL(ch.type_id)" class="h-3.5 w-3.5 rounded-sm"/>
+													<span x-text="ch.name"></span>
+												</button>
+											</template>
+											<button
+												type="button"
+												x-show="getModuleAt(selectedSlot.kind, selectedSlot.index).charge_type_id > 0"
+												@click="loadChargeOnSlot(selectedSlot.kind, selectedSlot.index, null, true)"
+												class="rounded-md border border-slate-600 px-1.5 py-0.5 text-[10px] text-slate-300 hover:bg-slate-800 cursor-pointer"
+											>
+												Unload
+											</button>
+										</div>
+									</template>
 								</div>
 							</template>
 						</div>
@@ -757,26 +799,98 @@ templ TacticalPage(data *service.TacticalViewData) {
 						</div>
 					</div>
 
-					<!-- MODE 3: VISUAL DOCTRINES GALLERY -->
-					<div x-show="activeMode === 'doctrines'" class="tactical-panel rounded-2xl p-4">
-						<h2 class="text-sm font-bold text-white mb-3">Starter &amp; Personal Ship Doctrines</h2>
-						<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-							<template x-for="pr in presets" :key="'doc-' + pr.key">
-								<div class="flex items-center gap-3 rounded-2xl border border-violet-400/25 bg-slate-950/65 p-3 hover:border-amber-400/60 transition">
-									<img :src="shipRenderURL(pr.ship_type_id)" class="h-20 w-20 rounded-xl object-cover border border-slate-700 shrink-0"/>
-									<div class="min-w-0 flex-1">
-										<div class="flex items-center gap-1.5">
-											<span class="rounded bg-amber-500/20 px-1.5 py-0.5 text-[9.5px] font-mono font-bold text-amber-200 uppercase" x-text="pr.tag"></span>
-											<span class="text-[10px] font-mono text-slate-400" x-text="pr.hull_class"></span>
-										</div>
-										<div class="mt-1 truncate text-sm font-bold text-white" x-text="pr.name"></div>
-										<p class="mt-0.5 text-[11px] text-slate-300 line-clamp-2" x-text="pr.summary"></p>
-										<button type="button" @click="loadPreset(pr)" class="mt-2 rounded-lg border border-amber-400/50 bg-amber-500/15 px-3 py-1 text-[11px] font-bold text-amber-200 hover:bg-amber-500/30 cursor-pointer transition">
-											Load into Wheel
-										</button>
-									</div>
+					<!-- MODE 4: VISUAL DOCTRINES GALLERY + SIDE-BY-SIDE FIT COMPARE + FLEET BUILDER -->
+					<div x-show="activeMode === 'doctrines'" class="space-y-3">
+						<!-- Side-by-Side Fit Comparison Matrix -->
+						<div class="tactical-panel rounded-2xl p-4">
+							<div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+								<div>
+									<h2 class="text-sm font-bold text-white">Side-by-Side Fit Comparison</h2>
+									<p class="text-[11px] text-slate-300">Compare any two Starter Doctrines or Saved Fittings concurrently.</p>
 								</div>
-							</template>
+								<button
+									type="button"
+									@click="runFitComparison()"
+									:disabled="compareRunning"
+									class="rounded-lg border border-sky-400/50 bg-sky-500/20 px-3 py-1.5 text-xs font-bold text-sky-100 hover:bg-sky-500/30 cursor-pointer transition disabled:opacity-50"
+								>
+									<span x-text="compareRunning ? 'Comparing...' : 'Compare Fits'"></span>
+								</button>
+							</div>
+							<div class="grid grid-cols-1 gap-2 sm:grid-cols-2 mb-3">
+								<select x-model="compareKeyA" class="rounded-xl border border-violet-400/35 bg-slate-950/80 px-3 py-2 text-xs font-semibold text-white focus:outline-none">
+									<template x-for="opt in allDoctrineOptions()" :key="'ca-' + opt.id">
+										<option :value="opt.id" x-text="opt.label"></option>
+									</template>
+								</select>
+								<select x-model="compareKeyB" class="rounded-xl border border-amber-400/35 bg-slate-950/80 px-3 py-2 text-xs font-semibold text-white focus:outline-none">
+									<template x-for="opt in allDoctrineOptions()" :key="'cb-' + opt.id">
+										<option :value="opt.id" x-text="opt.label"></option>
+									</template>
+								</select>
+							</div>
+
+							<div x-show="compareResult" class="overflow-x-auto rounded-xl border border-slate-700/70 bg-slate-950/75">
+								<table class="w-full text-xs font-mono">
+									<thead class="border-b border-slate-700/70 text-[10.5px] uppercase text-slate-400">
+										<tr>
+											<th class="px-3 py-2 text-left">Metric</th>
+											<th class="px-3 py-2 text-right text-violet-200" x-text="compareResult ? compareResult.fit_a.fit.name : ''"></th>
+											<th class="px-3 py-2 text-right text-amber-200" x-text="compareResult ? compareResult.fit_b.fit.name : ''"></th>
+										</tr>
+									</thead>
+									<tbody class="divide-y divide-slate-800/70">
+										<tr>
+											<td class="px-3 py-2 text-slate-300">Effective HP (EHP)</td>
+											<td class="px-3 py-2 text-right" :class="compareResult && compareResult.fit_a.total_ehp >= compareResult.fit_b.total_ehp ? 'text-emerald-300 font-bold' : 'text-slate-200'" x-text="compareResult ? formatNum(compareResult.fit_a.total_ehp) : ''"></td>
+											<td class="px-3 py-2 text-right" :class="compareResult && compareResult.fit_b.total_ehp > compareResult.fit_a.total_ehp ? 'text-emerald-300 font-bold' : 'text-slate-200'" x-text="compareResult ? formatNum(compareResult.fit_b.total_ehp) : ''"></td>
+										</tr>
+										<tr>
+											<td class="px-3 py-2 text-slate-300">Sustained Tank (EHP/s)</td>
+											<td class="px-3 py-2 text-right" :class="compareResult && compareResult.fit_a.sustained_tank_ehps >= compareResult.fit_b.sustained_tank_ehps ? 'text-emerald-300 font-bold' : 'text-slate-200'" x-text="compareResult ? (compareResult.fit_a.sustained_tank_ehps + ' EHP/s') : ''"></td>
+											<td class="px-3 py-2 text-right" :class="compareResult && compareResult.fit_b.sustained_tank_ehps > compareResult.fit_a.sustained_tank_ehps ? 'text-emerald-300 font-bold' : 'text-slate-200'" x-text="compareResult ? (compareResult.fit_b.sustained_tank_ehps + ' EHP/s') : ''"></td>
+										</tr>
+										<tr>
+											<td class="px-3 py-2 text-slate-300">Total Offense (DPS)</td>
+											<td class="px-3 py-2 text-right" :class="compareResult && compareResult.fit_a.offense.total_dps >= compareResult.fit_b.offense.total_dps ? 'text-emerald-300 font-bold' : 'text-slate-200'" x-text="compareResult ? (compareResult.fit_a.offense.total_dps + ' DPS') : ''"></td>
+											<td class="px-3 py-2 text-right" :class="compareResult && compareResult.fit_b.offense.total_dps > compareResult.fit_a.offense.total_dps ? 'text-emerald-300 font-bold' : 'text-slate-200'" x-text="compareResult ? (compareResult.fit_b.offense.total_dps + ' DPS') : ''"></td>
+										</tr>
+										<tr>
+											<td class="px-3 py-2 text-slate-300">Align Time (Lower Wins)</td>
+											<td class="px-3 py-2 text-right" :class="compareResult && compareResult.fit_a.navigation.align_time_seconds <= compareResult.fit_b.navigation.align_time_seconds ? 'text-emerald-300 font-bold' : 'text-slate-200'" x-text="compareResult ? (compareResult.fit_a.navigation.align_time_seconds + ' s') : ''"></td>
+											<td class="px-3 py-2 text-right" :class="compareResult && compareResult.fit_b.navigation.align_time_seconds < compareResult.fit_a.navigation.align_time_seconds ? 'text-emerald-300 font-bold' : 'text-slate-200'" x-text="compareResult ? (compareResult.fit_b.navigation.align_time_seconds + ' s') : ''"></td>
+										</tr>
+										<tr>
+											<td class="px-3 py-2 text-slate-300">Total Fit Cost (Lower Wins)</td>
+											<td class="px-3 py-2 text-right" :class="compareResult && compareResult.fit_a.total_fit_cost_isk <= compareResult.fit_b.total_fit_cost_isk ? 'text-emerald-300 font-bold' : 'text-slate-200'" x-text="compareResult ? formatISK(compareResult.fit_a.total_fit_cost_isk) : ''"></td>
+											<td class="px-3 py-2 text-right" :class="compareResult && compareResult.fit_b.total_fit_cost_isk < compareResult.fit_a.total_fit_cost_isk ? 'text-emerald-300 font-bold' : 'text-slate-200'" x-text="compareResult ? formatISK(compareResult.fit_b.total_fit_cost_isk) : ''"></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+
+						<!-- Starter & Personal Ship Doctrines Gallery -->
+						<div class="tactical-panel rounded-2xl p-4">
+							<h2 class="text-sm font-bold text-white mb-3">Starter Ship Doctrines</h2>
+							<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+								<template x-for="pr in presets" :key="'doc-' + pr.key">
+									<div class="flex items-center gap-3 rounded-2xl border border-violet-400/25 bg-slate-950/65 p-3 hover:border-amber-400/60 transition">
+										<img :src="shipRenderURL(pr.ship_type_id)" class="h-20 w-20 rounded-xl object-cover border border-slate-700 shrink-0"/>
+										<div class="min-w-0 flex-1">
+											<div class="flex items-center gap-1.5">
+												<span class="rounded bg-amber-500/20 px-1.5 py-0.5 text-[9.5px] font-mono font-bold text-amber-200 uppercase" x-text="pr.tag"></span>
+												<span class="text-[10px] font-mono text-slate-400" x-text="pr.hull_class"></span>
+											</div>
+											<div class="mt-1 truncate text-sm font-bold text-white" x-text="pr.name"></div>
+											<p class="mt-0.5 text-[11px] text-slate-300 line-clamp-2" x-text="pr.summary"></p>
+											<button type="button" @click="loadPreset(pr)" class="mt-2 rounded-lg border border-amber-400/50 bg-amber-500/15 px-3 py-1 text-[11px] font-bold text-amber-200 hover:bg-amber-500/30 cursor-pointer transition">
+												Load into Wheel
+											</button>
+										</div>
+									</div>
+								</template>
+							</div>
 						</div>
 					</div>
 
@@ -829,6 +943,21 @@ templ TacticalPage(data *service.TacticalViewData) {
 										class="text-[10.5px] font-mono text-amber-300 hover:underline cursor-pointer"
 										x-text="traitsExpanded ? 'Hide Traits' : 'Hull Traits'"
 									></button>
+								</div>
+							</div>
+
+							<!-- Skill Prerequisite Gap Alert (Live SSO or Selected Skill Profile) -->
+							<div x-show="sim && sim.missing_skills && sim.missing_skills.length > 0 && !traitsExpanded" class="mb-2 rounded-xl border border-rose-400/45 bg-rose-500/15 px-3 py-2 text-[11px]">
+								<div class="flex items-center justify-between gap-2 mb-1">
+									<span class="font-bold text-rose-200" x-text="'Skill Prerequisites Missing (' + (sim && sim.missing_skills ? sim.missing_skills.length : 0) + ')'"></span>
+									<button type="button" @click="runFlyToday()" class="rounded border border-amber-400/50 bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-100 hover:bg-amber-500/30 cursor-pointer">
+										Adapt to Fly Today
+									</button>
+								</div>
+								<div class="flex flex-wrap gap-1 font-mono text-[10px]">
+									<template x-for="(sk, idx) in (sim && sim.missing_skills || []).slice(0, 6)" :key="'sk-' + idx">
+										<span class="rounded bg-slate-950/75 px-1.5 py-0.5 text-rose-100" x-text="sk.skill_name + ' Lv ' + sk.required_level + ' (You: ' + sk.pilot_level + ')'"></span>
+									</template>
 								</div>
 							</div>
 

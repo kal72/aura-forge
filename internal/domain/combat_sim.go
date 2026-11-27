@@ -215,6 +215,10 @@ type FitSimulationResult struct {
 	TargetFaction     PvEFactionPreset   `json:"target_faction"`
 	ReadinessGrade    string             `json:"readiness_grade"` // S | A | B | C | RISK
 	Findings          []ReadinessFinding `json:"findings"`
+	MissingSkills     []MissingSkillGap  `json:"missing_skills,omitempty"`
+	LockedSlotKeys    []string           `json:"locked_slot_keys,omitempty"` // e.g. "high-0", "mid-2"
+	PilotSkillsActive bool               `json:"pilot_skills_active"`
+	PilotTotalSP      int64              `json:"pilot_total_sp,omitempty"`
 	RangeCurve        []RangeCurvePoint  `json:"range_curve"`
 	TotalFitCostISK   float64            `json:"total_fit_cost_isk"`
 	HullCostISK       float64            `json:"hull_cost_isk"`
@@ -741,6 +745,9 @@ func ComputeFitSimulation(
 	hullCost := shipSpec.LiveSellPrice
 	totalFitCost := RoundISK(hullCost + modulesCostISK)
 
+	// Skill prerequisite gap evaluation (works for Preset Lv III/IV/V and can be overridden with live SSO skills)
+	missingSkills, lockedKeys := EvaluateFitSkillGaps(fit, shipSpec, itemSpecs, int(skillLevel), nil)
+
 	return &FitSimulationResult{
 		Fit:               fit,
 		Slots:             shipSpec.Slots,
@@ -784,6 +791,8 @@ func ComputeFitSimulation(
 		TargetFaction:   faction,
 		ReadinessGrade:  grade,
 		Findings:        findings,
+		MissingSkills:   missingSkills,
+		LockedSlotKeys:  lockedKeys,
 		RangeCurve:      rangeCurve,
 		TotalFitCostISK: totalFitCost,
 		HullCostISK:     RoundISK(hullCost),
@@ -792,6 +801,70 @@ func ComputeFitSimulation(
 		EFTExport:       ExportEFT(fit),
 		MultibuyText:    FormatMultibuy(fit),
 	}
+}
+
+// EvaluateFitSkillGaps checks ship hull & every fitted module's required skills against either
+// a live EVE SSO pilot skill map or a uniform preset level (3, 4, or 5).
+func EvaluateFitSkillGaps(
+	fit ShipFit,
+	shipSpec *ItemSpecDetail,
+	itemSpecs map[int32]*ItemSpecDetail,
+	presetLevel int,
+	liveSkills map[int32]int,
+) ([]MissingSkillGap, []string) {
+	levelOf := func(skillID int32) int {
+		if liveSkills != nil {
+			return liveSkills[skillID]
+		}
+		return presetLevel
+	}
+
+	gaps := make([]MissingSkillGap, 0)
+	lockedSet := make(map[string]struct{})
+	lockedKeys := make([]string, 0)
+
+	if shipSpec != nil {
+		for _, req := range shipSpec.RequiredSkills {
+			cur := levelOf(req.SkillTypeID)
+			if cur < req.Level {
+				gaps = append(gaps, MissingSkillGap{
+					ItemName:      shipSpec.Name,
+					SlotIndex:     -1,
+					SkillTypeID:   req.SkillTypeID,
+					SkillName:     req.SkillName,
+					RequiredLevel: req.Level,
+					PilotLevel:    cur,
+				})
+			}
+		}
+	}
+
+	for _, m := range fit.Modules {
+		sp := itemSpecs[m.TypeID]
+		if sp == nil {
+			continue
+		}
+		slotKey := fmt.Sprintf("%s-%d", m.SlotKind, m.SlotIndex)
+		for _, req := range sp.RequiredSkills {
+			cur := levelOf(req.SkillTypeID)
+			if cur < req.Level {
+				gaps = append(gaps, MissingSkillGap{
+					ItemName:      sp.Name,
+					SlotKind:      m.SlotKind,
+					SlotIndex:     m.SlotIndex,
+					SkillTypeID:   req.SkillTypeID,
+					SkillName:     req.SkillName,
+					RequiredLevel: req.Level,
+					PilotLevel:    cur,
+				})
+				if _, seen := lockedSet[slotKey]; !seen {
+					lockedSet[slotKey] = struct{}{}
+					lockedKeys = append(lockedKeys, slotKey)
+				}
+			}
+		}
+	}
+	return gaps, lockedKeys
 }
 
 func firstNegAbs(attrs map[int32]float64, ids ...int32) float64 {

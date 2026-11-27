@@ -84,6 +84,7 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.Post("/api/dscan", h.HandleTacticalDScan)
 			r.Post("/api/combat-log", h.HandleTacticalCombatLog)
 			r.Post("/api/fly-today", h.HandleTacticalFlyToday)
+			r.Post("/api/compare-fits", h.HandleTacticalCompareFits)
 		})
 
 		// Dedicated EVE Online Pilot Hub (accessible via Topbar Account Chip when EVE SSO is connected)

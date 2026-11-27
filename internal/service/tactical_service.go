@@ -459,7 +459,55 @@ func (s *CopilotService) SimulateTacticalFit(ctx context.Context, fit domain.Shi
 		}
 	}
 
-	return domain.ComputeFitSimulation(fit, shipSpec, specs, hub.Name), nil
+	sim := domain.ComputeFitSimulation(fit, shipSpec, specs, hub.Name)
+
+	// Optional Live EVE SSO Pilot Skills overlay (cached in esi_cache)
+	if fit.SkillProfile == domain.SkillProfilePilotLive && s.chars != nil && s.charSync != nil {
+		if skProv, ok := s.charSync.(domain.CharacterSkillsProvider); ok {
+			if tok, tErr := s.chars.GetPrimaryToken(ctx); tErr == nil && tok != nil {
+				if liveSkills, totalSP, sErr := skProv.SyncSkills(ctx, tok); sErr == nil && len(liveSkills) > 0 {
+					gaps, locked := domain.EvaluateFitSkillGaps(fit, shipSpec, specs, 0, liveSkills)
+					sim.MissingSkills = gaps
+					sim.LockedSlotKeys = locked
+					sim.PilotSkillsActive = true
+					sim.PilotTotalSP = totalSP
+				}
+			}
+		}
+	}
+	return sim, nil
+}
+
+// TacticalFitComparison holds concurrent side-by-side simulation results for two ShipFits.
+type TacticalFitComparison struct {
+	FitA *domain.FitSimulationResult `json:"fit_a"`
+	FitB *domain.FitSimulationResult `json:"fit_b"`
+}
+
+// CompareTacticalFits simulates two ship fittings concurrently via sync.WaitGroup for side-by-side comparison.
+func (s *CopilotService) CompareTacticalFits(ctx context.Context, fitA, fitB domain.ShipFit) (*TacticalFitComparison, error) {
+	var (
+		resA, resB *domain.FitSimulationResult
+		errA, errB error
+		wg         sync.WaitGroup
+	)
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		resA, errA = s.SimulateTacticalFit(ctx, fitA)
+	}()
+	go func() {
+		defer wg.Done()
+		resB, errB = s.SimulateTacticalFit(ctx, fitB)
+	}()
+	wg.Wait()
+	if errA != nil {
+		return nil, errA
+	}
+	if errB != nil {
+		return nil, errB
+	}
+	return &TacticalFitComparison{FitA: resA, FitB: resB}, nil
 }
 
 // ImportTacticalEFT parses an EFT clipboard block, resolves all TypeIDs concurrently, and runs simulation.

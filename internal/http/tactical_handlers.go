@@ -202,3 +202,21 @@ func (h *Handlers) HandleEmbeddedDailyStrip(w http.ResponseWriter, r *http.Reque
 	}
 	h.writeJSON(w, http.StatusOK, strip)
 }
+
+// HandleTacticalCompareFits simulates two fittings concurrently for side-by-side comparison.
+func (h *Handlers) HandleTacticalCompareFits(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		FitA domain.ShipFit `json:"fit_a"`
+		FitB domain.ShipFit `json:"fit_b"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid compare payload"})
+		return
+	}
+	res, err := h.svc.CompareTacticalFits(r.Context(), req.FitA, req.FitB)
+	if err != nil {
+		h.writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return
+	}
+	h.writeJSON(w, http.StatusOK, res)
+}

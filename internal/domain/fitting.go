@@ -37,7 +37,24 @@ const (
 	SkillProfileBeginner     SkillProfilePreset = "beginner"     // All Level III
 	SkillProfileIntermediate SkillProfilePreset = "intermediate" // All Level IV
 	SkillProfileMaxed        SkillProfilePreset = "maxed"        // All Level V
+	SkillProfilePilotLive    SkillProfilePreset = "pilot_live"   // Live EVE SSO Pilot Skills
 )
+
+// CharacterSkillsProvider is an optional interface implemented by esi.CharacterSyncClient.
+type CharacterSkillsProvider interface {
+	SyncSkills(ctx context.Context, token *EVEToken) (map[int32]int, int64, error)
+}
+
+// MissingSkillGap describes one prerequisite skill that the active skill profile lacks for a ship or module.
+type MissingSkillGap struct {
+	ItemName      string      `json:"item_name"`
+	SlotKind      FitSlotKind `json:"slot_kind,omitempty"` // empty for hull
+	SlotIndex     int         `json:"slot_index"`
+	SkillTypeID   int32       `json:"skill_type_id"`
+	SkillName     string      `json:"skill_name"`
+	RequiredLevel int         `json:"required_level"`
+	PilotLevel    int         `json:"pilot_level"`
+}
 
 // FitModuleSlot represents one module installed in a specific radial slot on the fitting wheel.
 type FitModuleSlot struct {

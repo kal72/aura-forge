@@ -152,6 +152,15 @@
 				{ key: 'abyssal_t2', label: 'Abyssal T2–T3', iskPerHour: 65000000 },
 			],
 
+			// Batch 5: Live SSO Pilot Skills, Ammo Picker, Side-by-Side Compare & Fleet Builder
+			ssoConnected: !!(bootData && bootData.mode && bootData.mode.sso_connected),
+			ssoCharName: (bootData && bootData.mode && bootData.mode.character_name) || '',
+			compareKeyA: presets.length > 0 ? ('preset:' + presets[0].key) : '',
+			compareKeyB: presets.length > 1 ? ('preset:' + presets[1].key) : '',
+			compareResult: null,
+			compareRunning: false,
+			fleetCounts: {},
+
 			fit: defaultFit,
 			sim: null,
 			simulating: false,
@@ -1142,6 +1151,137 @@
 				svg += `<line x1="${cx}" y1="${padT}" x2="${cx}" y2="${H - padB}" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="3 2"></line>`;
 				svg += `<text x="${cx}" y="${H - 5}" text-anchor="middle" fill="#fbbf24" font-size="8.5" font-family="monospace">${this.radarTargetDistKM} km</text>`;
 				return svg;
+			},
+
+			// =================================================================
+			// Batch 5: Skill-Gap Lock Helpers, Interactive Ammo Picker, & Compare
+			// =================================================================
+			isSlotLocked(slotKey) {
+				if (!this.sim || !this.sim.locked_slot_keys) return false;
+				return this.sim.locked_slot_keys.includes(slotKey);
+			},
+
+			suggestedChargesForModule(mod) {
+				if (!mod || !mod.name) return [];
+				const low = mod.name.toLowerCase();
+				if (low.includes('pulse') || low.includes('beam') || low.includes('laser')) {
+					return [
+						{ type_id: 237, name: 'Multifrequency M', tag: 'Short • High DPS' },
+						{ type_id: 12814, name: 'Scorch M', tag: 'Long • T2 Pulse' },
+						{ type_id: 12818, name: 'Conflagration M', tag: 'Close • Max DPS' },
+						{ type_id: 243, name: 'Radio M', tag: 'Max Range' },
+					];
+				}
+				if (low.includes('missile') || low.includes('launcher')) {
+					return [
+						{ type_id: 209, name: 'Scourge Light Missile', tag: 'Kinetic' },
+						{ type_id: 210, name: 'Inferno Light Missile', tag: 'Thermal' },
+						{ type_id: 211, name: 'Mjolnir Light Missile', tag: 'EM' },
+						{ type_id: 212, name: 'Nova Light Missile', tag: 'Explosive' },
+					];
+				}
+				if (low.includes('blaster') || low.includes('railgun')) {
+					return [
+						{ type_id: 222, name: 'Antimatter Charge M', tag: 'High DPS' },
+						{ type_id: 12789, name: 'Void M', tag: 'Max Close DPS' },
+						{ type_id: 12791, name: 'Null M', tag: 'Extended Range' },
+						{ type_id: 216, name: 'Iron Charge M', tag: 'Long Range' },
+					];
+				}
+				if (low.includes('autocannon') || low.includes('artillery')) {
+					return [
+						{ type_id: 192, name: 'EMP M', tag: 'EM Damage' },
+						{ type_id: 193, name: 'Phased Plasma M', tag: 'Thermal' },
+						{ type_id: 194, name: 'Fusion M', tag: 'Explosive' },
+						{ type_id: 12779, name: 'Barrage M', tag: 'Falloff Range' },
+					];
+				}
+				return [];
+			},
+
+			loadChargeOnSlot(kind, index, charge, applyAllSame) {
+				const targetMod = this.getModuleAt(kind, index);
+				if (!targetMod) return;
+				const applyOne = (m) => {
+					m.charge_type_id = charge ? charge.type_id : 0;
+					m.charge_name = charge ? charge.name : '';
+				};
+				if (applyAllSame) {
+					for (const m of (this.fit.modules || [])) {
+						if (m.slot_kind === kind && m.type_id === targetMod.type_id) {
+							applyOne(m);
+						}
+					}
+					this.notify(charge ? ('Loaded ' + charge.name + ' into all matching weapons') : 'Unloaded matching weapons');
+				} else {
+					applyOne(targetMod);
+					this.notify(charge ? ('Loaded ' + charge.name) : 'Unloaded charge');
+				}
+				this.runSimulate();
+			},
+
+			allDoctrineOptions() {
+				const opts = [];
+				for (const pr of this.presets) {
+					opts.push({ id: 'preset:' + pr.key, label: '[Starter] ' + pr.name, fit: pr.fit });
+				}
+				for (const sf of this.savedFittings) {
+					opts.push({ id: 'saved:' + sf.id, label: '[Saved] ' + sf.name, fit: sf.fit });
+				}
+				return opts;
+			},
+
+			findDoctrineFit(id) {
+				const found = this.allDoctrineOptions().find((o) => o.id === id);
+				return found ? found.fit : null;
+			},
+
+			async runFitComparison() {
+				const fitA = this.findDoctrineFit(this.compareKeyA);
+				const fitB = this.findDoctrineFit(this.compareKeyB);
+				if (!fitA || !fitB) {
+					this.notify('Select two doctrines to compare');
+					return;
+				}
+				this.compareRunning = true;
+				try {
+					const res = await fetch('/tactical/api/compare-fits', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ fit_a: fitA, fit_b: fitB }),
+					});
+					const data = await res.json();
+					if (res.ok) {
+						this.compareResult = data;
+					}
+				} catch (_) {
+					this.notify('Failed to compare fits');
+				} finally {
+					this.compareRunning = false;
+				}
+			},
+
+			adjustFleetCount(key, delta) {
+				const cur = Number(this.fleetCounts[key] || 0);
+				this.fleetCounts[key] = Math.max(0, Math.min(20, cur + delta));
+			},
+
+			fleetSummary() {
+				let totalShips = 0;
+				let totalISK = 0;
+				let totalEHP = 0;
+				let totalDPS = 0;
+				const multibuyLines = [];
+				for (const sf of this.savedFittings) {
+					const n = Number(this.fleetCounts['saved:' + sf.id] || 0);
+					if (n <= 0) continue;
+					totalShips += n;
+					totalISK += (sf.estimated_cost_isk || 0) * n;
+					totalEHP += (sf.ehp || 0) * n;
+					totalDPS += (sf.dps || 0) * n;
+					multibuyLines.push(sf.ship_name + ' x' + n);
+				}
+				return { totalShips, totalISK, totalEHP, totalDPS, multibuy: multibuyLines.join('\n') };
 			},
 		};
 	};
