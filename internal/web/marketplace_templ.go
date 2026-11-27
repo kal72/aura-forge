@@ -426,14 +426,14 @@ func MarketplacePage(mode service.ModeInfo, query string, hubKey string, presets
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</p></div><div class=\"ml-auto self-end xl:self-auto shrink-0 inline-flex flex-wrap justify-end rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur\"><button type=\"button\" @click=\"mpTab = &#39;orderbook&#39;\" :class=\"mpTab === &#39;orderbook&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">Item Order Book</button> <button type=\"button\" @click=\"mpTab = &#39;bpc&#39;\" :class=\"mpTab === &#39;bpc&#39; ? &#39;bg-sky-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">BPC &amp; BPO Contracts</button> <button type=\"button\" @click=\"mpTab = &#39;appraisal&#39;\" :class=\"mpTab === &#39;appraisal&#39; ? &#39;bg-emerald-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">Appraisal</button></div></div><!-- TAB 2: BPC & BPO CONTRACTS FINDER --><div x-cloak x-show=\"mpTab === &#39;bpc&#39;\" class=\"space-y-6\"><div class=\"tactical-panel relative z-30 rounded-xl p-5 space-y-4\"><div><h2 class=\"text-sm font-bold uppercase tracking-wider text-sky-300\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</p></div><div class=\"ml-auto self-end xl:self-auto shrink-0 inline-flex flex-wrap justify-end rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur\"><button type=\"button\" @click=\"mpTab = &#39;orderbook&#39;\" :class=\"mpTab === &#39;orderbook&#39; ? &#39;bg-amber-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">Item Order Book</button> <button type=\"button\" @click=\"mpTab = &#39;bpc&#39;\" :class=\"mpTab === &#39;bpc&#39; ? &#39;bg-sky-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">NPC BPO &amp; LP Store</button> <button type=\"button\" @click=\"mpTab = &#39;appraisal&#39;\" :class=\"mpTab === &#39;appraisal&#39; ? &#39;bg-emerald-400 text-slate-950 shadow-sm&#39; : &#39;text-slate-300 hover:text-white&#39;\" class=\"rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer\">Appraisal</button></div></div><!-- TAB 2: NPC BPO & LP STORE FINDER --><div x-cloak x-show=\"mpTab === &#39;bpc&#39;\" class=\"space-y-6\"><div class=\"tactical-panel relative z-30 rounded-xl p-5 space-y-4\"><div><h2 class=\"text-sm font-bold uppercase tracking-wider text-sky-300\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var5 string
-			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "BPC & BPO Contract Finder (Public ESI + NPC BPO + LP Store)", "Pencari Kontrak BPC & BPO (Public ESI + NPC BPO + LP Store)"))
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "NPC BPO & LP Store Finder", "Pencari BPO Resmi NPC & LP Store"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/marketplace.templ`, Line: 410, Col: 146}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/marketplace.templ`, Line: 410, Col: 85}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -444,9 +444,9 @@ func MarketplacePage(mode service.ModeInfo, query string, hubKey string, presets
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var6 string
-			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Find where to buy BPCs on live Public Item Exchange Contracts, compare ISK per run & ME/TE, and check if an official NPC BPO or LP Store offer is cheaper.", "Cari lokasi dan harga beli BPC di kontrak publik EVE Online, bandingkan ISK per run & ME/TE, serta cek apakah BPO NPC atau LP Store lebih murah."))
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Instantly check official NPC BPO seed stations in your region and 10 major Empire/Pirate LP Stores, plus 1-click copy for checking player BPC contracts in-game.", "Cek instan stasiun BPO resmi NPC di region Anda dan 10 LP Store korporasi utama Empire/Pirate, plus tombol salin 1-klik untuk mengecek kontrak BPC pemain di dalam game."))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/marketplace.templ`, Line: 413, Col: 326}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/marketplace.templ`, Line: 413, Col: 356}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -496,9 +496,9 @@ func MarketplacePage(mode service.ModeInfo, query string, hubKey string, presets
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var10 string
-			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Contract Region / Hub", "Region / Trade Hub Kontrak"))
+			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "NPC BPO Region / Hub", "Region / Trade Hub BPO NPC"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/marketplace.templ`, Line: 474, Col: 76}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/marketplace.templ`, Line: 474, Col: 75}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -568,9 +568,9 @@ func MarketplacePage(mode service.ModeInfo, query string, hubKey string, presets
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var14 string
-			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Find BPC & BPO", "Cari BPC & BPO"))
+			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Find BPO & LP Store", "Cari BPO & LP Store"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/marketplace.templ`, Line: 488, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/marketplace.templ`, Line: 488, Col: 73}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -581,9 +581,9 @@ func MarketplacePage(mode service.ModeInfo, query string, hubKey string, presets
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var15 string
-			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Search Live BPC Contracts, NPC BPOs & LP Stores", "Cari Kontrak BPC Live, BPO NPC & LP Store"))
+			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Search Official NPC BPOs & LP Store Offers", "Cari BPO Resmi NPC & Penawaran LP Store"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/marketplace.templ`, Line: 496, Col: 157}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/marketplace.templ`, Line: 496, Col: 150}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -594,9 +594,9 @@ func MarketplacePage(mode service.ModeInfo, query string, hubKey string, presets
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var16 string
-			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Enter any ship, module, drone, or ammo name above and choose a region (Jita / The Forge has the largest BPC selection; Amarr / Domain scans fastest).", "Masukkan nama kapal, modul, drone, atau amunisi di atas lalu pilih region (Jita / The Forge punya pilihan BPC terbanyak; Amarr / Domain paling cepat dipindai)."))
+			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Enter any ship, module, drone, or ammo name above (e.g. Caracal Navy Issue, Hobgoblin I, Venture) to see official NPC BPO seed stations and LP Store locations instantly.", "Masukkan nama kapal, modul, drone, atau amunisi di atas (mis. Caracal Navy Issue, Hobgoblin I, Venture) untuk melihat stasiun BPO resmi NPC dan lokasi LP Store secara instan."))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/marketplace.templ`, Line: 498, Col: 336}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/marketplace.templ`, Line: 498, Col: 371}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {

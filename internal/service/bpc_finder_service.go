@@ -50,28 +50,7 @@ func (s *CopilotService) FindBPCAndBPOSources(ctx context.Context, query string,
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 
-	// 1. Live Public BPC/BPO Contracts in selected hub region
-	if contractProv, ok := s.market.(domain.PublicContractProvider); ok && contractProv != nil {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			contracts, scanned, scannedPages, totalPages, cErr := contractProv.FindPublicBlueprintContracts(
-				ctx, hub.RegionID, hub.RegionName, bp.BlueprintTypeID, bp.ProductTypeID, bp.Name, bp.ProductName,
-			)
-			mu.Lock()
-			defer mu.Unlock()
-			if cErr != nil {
-				res.Notice = "Public Contracts ESI lookup warning: " + cErr.Error()
-				return
-			}
-			res.BPCContracts = contracts
-			res.ScannedContracts = scanned
-			res.ScannedPages = scannedPages
-			res.TotalPages = totalPages
-		}()
-	}
-
-	// 2. Official NPC BPO Seed Orders & Major LP Store Offers
+	// Fetch Official NPC BPO Seed Orders & Major LP Store Offers concurrently (fast & 100% complete via Public ESI)
 	if intelProv, ok := s.market.(domain.UniverseIntelProvider); ok && intelProv != nil {
 		wg.Add(1)
 		go func() {

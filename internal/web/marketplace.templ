@@ -389,7 +389,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 						:class="mpTab === 'bpc' ? 'bg-sky-400 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'"
 						class="rounded-lg px-3.5 py-1.5 text-xs font-bold tracking-wide transition cursor-pointer"
 					>
-						BPC &amp; BPO Contracts
+						NPC BPO &amp; LP Store
 					</button>
 					<button
 						type="button"
@@ -402,15 +402,15 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 				</div>
 			</div>
 
-			<!-- TAB 2: BPC & BPO CONTRACTS FINDER -->
+			<!-- TAB 2: NPC BPO & LP STORE FINDER -->
 			<div x-cloak x-show="mpTab === 'bpc'" class="space-y-6">
 				<div class="tactical-panel relative z-30 rounded-xl p-5 space-y-4">
 					<div>
 						<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">
-							{ i18n.L(ctx, "BPC & BPO Contract Finder (Public ESI + NPC BPO + LP Store)", "Pencari Kontrak BPC & BPO (Public ESI + NPC BPO + LP Store)") }
+							{ i18n.L(ctx, "NPC BPO & LP Store Finder", "Pencari BPO Resmi NPC & LP Store") }
 						</h2>
 						<p class="text-xs text-slate-300/80 mt-0.5">
-							{ i18n.L(ctx, "Find where to buy BPCs on live Public Item Exchange Contracts, compare ISK per run & ME/TE, and check if an official NPC BPO or LP Store offer is cheaper.", "Cari lokasi dan harga beli BPC di kontrak publik EVE Online, bandingkan ISK per run & ME/TE, serta cek apakah BPO NPC atau LP Store lebih murah.") }
+							{ i18n.L(ctx, "Instantly check official NPC BPO seed stations in your region and 10 major Empire/Pirate LP Stores, plus 1-click copy for checking player BPC contracts in-game.", "Cek instan stasiun BPO resmi NPC di region Anda dan 10 LP Store korporasi utama Empire/Pirate, plus tombol salin 1-klik untuk mengecek kontrak BPC pemain di dalam game.") }
 						</p>
 					</div>
 					<form
@@ -471,7 +471,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 						</div>
 						<div class="sm:col-span-3">
 							<label class="block text-[10px] font-mono uppercase tracking-wider text-slate-300 mb-1">
-								{ i18n.L(ctx, "Contract Region / Hub", "Region / Trade Hub Kontrak") }
+								{ i18n.L(ctx, "NPC BPO Region / Hub", "Region / Trade Hub BPO NPC") }
 							</label>
 							<select name="hub" x-model="bpcHub" @change="if ((bpcQuery || '').trim()) runBPCSearch(bpcQuery, bpcHub)" class="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2.5 text-sm text-white">
 								for _, h := range domain.MajorTradeHubs {
@@ -485,7 +485,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 								class="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-sky-400 px-4 py-2.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-sky-300 transition cursor-pointer"
 							>
 								<span id="mp-bpc-spinner" class="htmx-indicator h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent"></span>
-								<span>{ i18n.L(ctx, "Find BPC & BPO", "Cari BPC & BPO") }</span>
+								<span>{ i18n.L(ctx, "Find BPO & LP Store", "Cari BPO & LP Store") }</span>
 							</button>
 						</div>
 					</form>
@@ -493,9 +493,9 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 
 				<div id="marketplace-bpc-results">
 					<div class="tactical-panel rounded-xl p-10 text-center space-y-2">
-						<div class="text-sm font-bold text-white">{ i18n.L(ctx, "Search Live BPC Contracts, NPC BPOs & LP Stores", "Cari Kontrak BPC Live, BPO NPC & LP Store") }</div>
+						<div class="text-sm font-bold text-white">{ i18n.L(ctx, "Search Official NPC BPOs & LP Store Offers", "Cari BPO Resmi NPC & Penawaran LP Store") }</div>
 						<p class="text-xs text-slate-400 max-w-lg mx-auto">
-							{ i18n.L(ctx, "Enter any ship, module, drone, or ammo name above and choose a region (Jita / The Forge has the largest BPC selection; Amarr / Domain scans fastest).", "Masukkan nama kapal, modul, drone, atau amunisi di atas lalu pilih region (Jita / The Forge punya pilihan BPC terbanyak; Amarr / Domain paling cepat dipindai).") }
+							{ i18n.L(ctx, "Enter any ship, module, drone, or ammo name above (e.g. Caracal Navy Issue, Hobgoblin I, Venture) to see official NPC BPO seed stations and LP Store locations instantly.", "Masukkan nama kapal, modul, drone, atau amunisi di atas (mis. Caracal Navy Issue, Hobgoblin I, Venture) untuk melihat stasiun BPO resmi NPC dan lokasi LP Store secara instan.") }
 						</p>
 					</div>
 				</div>
