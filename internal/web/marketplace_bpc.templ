@@ -200,7 +200,10 @@ templ MarketplaceBPCPartial(res *domain.BPCFinderResult, errMsg string) {
 								<div class="px-5 py-2.5 flex items-center justify-between gap-3">
 									<div class="min-w-0">
 										<div class="font-semibold text-white truncate">{ of.CorporationName }</div>
-										<div class="text-[10px] text-slate-400">{ fmt.Sprintf("%d units • Offer #%d", of.Quantity, of.OfferID) }</div>
+										if of.StationHint != "" {
+											<div class="text-[10.5px] text-sky-200/90 mt-0.5">{ of.StationHint }</div>
+										}
+										<div class="text-[10px] text-slate-400">{ fmt.Sprintf("%d %s • Offer #%d", of.Quantity, i18n.L(ctx, "units", "unit"), of.OfferID) }</div>
 									</div>
 									<div class="text-right font-mono shrink-0">
 										<div class="font-bold text-sky-300">{ fmt.Sprintf("%d LP", of.LPCost) }</div>

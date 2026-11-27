@@ -84,21 +84,22 @@ func (s *CopilotService) FindBPCAndBPOSources(ctx context.Context, query string,
 			}
 		}()
 
-		// Check major faction LP stores (same 10 curated corps as Aura AI)
+		// Check major faction LP stores (same 10 curated corps as Aura AI) with primary NPC LP Store station locations
 		majorLPCorps := []struct {
-			id   int32
-			name string
+			id      int32
+			name    string
+			station string
 		}{
-			{1000035, "Caldari Navy"},
-			{1000084, "Amarr Navy"},
-			{1000120, "Federation Navy"},
-			{1000051, "Republic Fleet"},
-			{1000125, "Sisters of EVE"},
-			{1000127, "Guristas"},
-			{1000135, "Serpentis"},
-			{1000124, "Arch Angels"},
-			{1000134, "Blood Raiders"},
-			{1000161, "Sansha's Nation"},
+			{1000035, "Caldari Navy", "Jita IV - Moon 4 - Caldari Navy Assembly Plant (The Forge, High-Sec 0.9)"},
+			{1000084, "Amarr Navy", "Amarr VIII (Oris) / Amarr Navy stations across Domain (High-Sec)"},
+			{1000120, "Federation Navy", "Dodixie IX - Moon 20 - Federation Navy Assembly Plant (Sinq Laison, High-Sec 0.9)"},
+			{1000051, "Republic Fleet", "Rens / Republic Fleet Assembly Plant stations in Heimatar (High-Sec)"},
+			{1000125, "Sisters of EVE", "Osmon II - Moon 1 - Sisters of EVE Bureau (The Forge, High-Sec 0.7)"},
+			{1000127, "Guristas", "6NJ8-V - Guristas Logistic Support (Venal, Null-Sec)"},
+			{1000135, "Serpentis", "5ZXX-K - Serpentis Corporation Inquest (Fountain, Null-Sec)"},
+			{1000124, "Arch Angels", "G-0Q86 - Archangels Assembly Plant (Curse, Null-Sec)"},
+			{1000134, "Blood Raiders", "1DH-SX - Blood Raiders Testing Facilities (Delve, Null-Sec)"},
+			{1000161, "Sansha's Nation", "37S-KO - True Creations Shipyard (Stain, Null-Sec)"},
 		}
 		wg.Add(1)
 		go func() {
@@ -109,7 +110,7 @@ func (s *CopilotService) FindBPCAndBPOSources(ctx context.Context, query string,
 			var lpMu sync.Mutex
 			for _, corp := range majorLPCorps {
 				lpWg.Add(1)
-				go func(cid int32, cname string) {
+				go func(cid int32, cname, cstation string) {
 					defer lpWg.Done()
 					select {
 					case sem <- struct{}{}:
@@ -123,12 +124,13 @@ func (s *CopilotService) FindBPCAndBPOSources(ctx context.Context, query string,
 					}
 					for _, of := range offers {
 						if of.TypeID == bp.BlueprintTypeID || of.TypeID == bp.ProductTypeID {
+							of.StationHint = cstation
 							lpMu.Lock()
 							lpOffers = append(lpOffers, of)
 							lpMu.Unlock()
 						}
 					}
-				}(corp.id, corp.name)
+				}(corp.id, corp.name, corp.station)
 			}
 			lpWg.Wait()
 			if len(lpOffers) > 0 {

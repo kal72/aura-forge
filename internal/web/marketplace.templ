@@ -159,6 +159,10 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 				mpTab: new URLSearchParams(window.location.search).get('tab') || 'orderbook',
 				bpcQuery: %q,
 				bpcHub: %q,
+				bpcSuggestions: [],
+				showBPCSuggest: false,
+				bpcSuggestTimer: null,
+				browseTarget: 'orderbook',
 				appraisalText: '',
 				queryText: %q,
 				selectedHub: %q,
@@ -202,9 +206,48 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 						} catch (e) {}
 					}, 160);
 				},
-				openBrowseModal() {
+				debounceBPCSuggest() {
+					clearTimeout(this.bpcSuggestTimer);
+					const q = (this.bpcQuery || '').trim();
+					if (q.length < 2) {
+						this.bpcSuggestions = [];
+						this.showBPCSuggest = false;
+						return;
+					}
+					this.bpcSuggestTimer = setTimeout(async () => {
+						try {
+							const r = await fetch('/calculator/blueprints/search?q=' + encodeURIComponent(q) + '&limit=12');
+							if (r.ok) {
+								const d = await r.json();
+								this.bpcSuggestions = d.items || [];
+								this.showBPCSuggest = this.bpcSuggestions.length > 0;
+							}
+						} catch (e) {}
+					}, 160);
+				},
+				runBPCSearch(name, hub) {
+					if (name) this.bpcQuery = name;
+					if (hub) this.bpcHub = hub;
+					this.showBPCSuggest = false;
+					const q = (this.bpcQuery || '').trim();
+					if (!q) return;
+					htmx.ajax('GET', '/marketplace/bpc?q=' + encodeURIComponent(q) + '&hub=' + encodeURIComponent(this.bpcHub), {
+						target: '#marketplace-bpc-results',
+						swap: 'innerHTML',
+						indicator: '#mp-bpc-spinner'
+					});
+				},
+				openBrowseModal(target) {
+					const nextTarget = target || 'orderbook';
+					const changed = this.browseTarget !== nextTarget;
+					this.browseTarget = nextTarget;
 					this.showBrowse = true;
-					if (this.browseItems.length === 0) {
+					if (changed || this.browseItems.length === 0) {
+						this.browseCat = '';
+						this.browseGroup = '';
+						this.browseQuery = '';
+						this.browseCategories = [];
+						this.browseGroups = [];
 						this.loadBrowse(1);
 					}
 				},
@@ -221,6 +264,30 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 					this.browseLoading = true;
 					this.browsePage = page;
 					try {
+						if (this.browseTarget === 'bpc') {
+							const params = new URLSearchParams({
+								q: this.browseQuery,
+								category: this.browseCat,
+								page: String(page),
+								limit: '24'
+							});
+							const r = await fetch('/calculator/blueprints/search?' + params.toString());
+							if (r.ok) {
+								const d = await r.json();
+								this.browseItems = (d.items || []).map(bp => ({
+									type_id: bp.product_type_id || bp.blueprint_type_id,
+									name: bp.name,
+									product_name: bp.product_name,
+									category: bp.category || 'Blueprint',
+									group_name: 'T' + (bp.tech_level || 1) + ' • ' + (bp.product_name || '')
+								}));
+								this.browseTotal = d.total || 0;
+								this.browseTotalPages = d.total_pages || 1;
+								if (d.categories && d.categories.length) this.browseCategories = d.categories;
+								this.browseGroups = [];
+							}
+							return;
+						}
 						const params = new URLSearchParams({
 							q: this.browseQuery,
 							category: this.browseCat,
@@ -265,6 +332,10 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 				pickBrowseItem(item) {
 					if (!item || !item.name) return;
 					this.showBrowse = false;
+					if (this.browseTarget === 'bpc') {
+						this.runBPCSearch(item.name, this.bpcHub);
+						return;
+					}
 					this.runSearch(item.name, this.selectedHub);
 				},
 				runSearch(name, hub) {
@@ -326,7 +397,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 
 			<!-- TAB 2: BPC & BPO CONTRACTS FINDER -->
 			<div x-cloak x-show="mpTab === 'bpc'" class="space-y-6">
-				<div class="tactical-panel rounded-xl p-5 space-y-4">
+				<div class="tactical-panel relative z-30 rounded-xl p-5 space-y-4">
 					<div>
 						<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">
 							{ i18n.L(ctx, "BPC & BPO Contract Finder (Public ESI + NPC BPO + LP Store)", "Pencari Kontrak BPC & BPO (Public ESI + NPC BPO + LP Store)") }
@@ -336,30 +407,66 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 						</p>
 					</div>
 					<form
-						hx-get="/marketplace/bpc"
-						hx-target="#marketplace-bpc-results"
-						hx-swap="innerHTML"
-						hx-indicator="#mp-bpc-spinner"
+						@submit.prevent="runBPCSearch(bpcQuery, bpcHub)"
 						class="grid grid-cols-1 gap-3 sm:grid-cols-12 items-end"
 					>
-						<div class="sm:col-span-6">
+						<div class="sm:col-span-6 relative" @click.outside="showBPCSuggest = false">
 							<label class="block text-[10px] font-mono uppercase tracking-wider text-slate-300 mb-1">
-								{ i18n.L(ctx, "Item or Blueprint Name", "Nama Item atau Blueprint") }
+								{ i18n.L(ctx, "Item or Blueprint Name (Live SDE Autocomplete or Browse)", "Nama Item atau Blueprint (Autocomplete SDE Live atau Browse)") }
 							</label>
-							<input
-								type="text"
-								name="q"
-								x-model="bpcQuery"
-								required
-								placeholder={ i18n.L(ctx, "e.g. Hobgoblin II, Caracal, Venture, Caldari Navy Hookbill...", "mis. Hobgoblin II, Caracal, Venture, Caldari Navy Hookbill...") }
-								class="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:border-sky-400/70 focus:outline-none"
-							/>
+							<div class="flex gap-2">
+								<input
+									type="text"
+									name="q"
+									x-model="bpcQuery"
+									@input="debounceBPCSuggest()"
+									@focus="if (bpcSuggestions.length > 0) showBPCSuggest = true"
+									autocomplete="off"
+									required
+									placeholder={ i18n.L(ctx, "Type e.g. hobgob, caracal, venture, hookbill...", "Ketik mis. hobgob, caracal, venture, hookbill...") }
+									class="flex-1 min-w-0 rounded-lg border border-slate-700 bg-slate-900/90 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:border-sky-400/70 focus:outline-none"
+								/>
+								<button
+									type="button"
+									@click="openBrowseModal('bpc')"
+									class="shrink-0 rounded-lg border border-violet-400/50 bg-violet-500/20 px-3.5 py-2.5 text-xs font-bold text-violet-100 hover:bg-violet-500/35 hover:border-sky-300/60 transition cursor-pointer"
+								>
+									{ i18n.L(ctx, "Browse", "Jelajahi") }
+								</button>
+							</div>
+							<!-- Live SDE Blueprint Autocomplete Dropdown -->
+							<div
+								x-cloak
+								x-show="showBPCSuggest && bpcSuggestions.length > 0"
+								class="absolute left-0 right-0 top-full z-50 mt-1 max-h-72 overflow-y-auto rounded-xl border border-sky-400/40 bg-[#121329]/95 shadow-2xl backdrop-blur"
+							>
+								<template x-for="bp in bpcSuggestions" :key="bp.blueprint_type_id">
+									<button
+										type="button"
+										@click="runBPCSearch(bp.product_name || bp.name, bpcHub)"
+										class="flex w-full items-center gap-2.5 border-b border-violet-400/10 px-3 py-2 text-left hover:bg-sky-500/20 transition cursor-pointer"
+									>
+										<img
+											x-show="bp.product_type_id > 0"
+											:src="'https://images.evetech.net/types/' + bp.product_type_id + '/icon?size=64'"
+											:alt="bp.product_name"
+											class="h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950 object-contain"
+											onerror="this.style.display='none'"
+										/>
+										<div class="min-w-0 flex-1">
+											<div class="truncate text-xs font-semibold text-white" x-text="bp.name"></div>
+											<div class="text-[10px] font-mono text-slate-400" x-text="'T' + (bp.tech_level || 1) + ' • ' + (bp.category || 'Blueprint') + ' • ' + (bp.product_name || '')"></div>
+										</div>
+										<span class="font-mono text-[10px] text-sky-300" x-text="'#' + bp.blueprint_type_id"></span>
+									</button>
+								</template>
+							</div>
 						</div>
 						<div class="sm:col-span-3">
 							<label class="block text-[10px] font-mono uppercase tracking-wider text-slate-300 mb-1">
 								{ i18n.L(ctx, "Contract Region / Hub", "Region / Trade Hub Kontrak") }
 							</label>
-							<select name="hub" x-model="bpcHub" class="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2.5 text-sm text-white">
+							<select name="hub" x-model="bpcHub" @change="if ((bpcQuery || '').trim()) runBPCSearch(bpcQuery, bpcHub)" class="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2.5 text-sm text-white">
 								for _, h := range domain.MajorTradeHubs {
 									<option value={ h.Key } selected?={ hubKey == h.Key }>{ h.Name } ({ h.RegionName })</option>
 								}
