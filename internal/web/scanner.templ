@@ -552,6 +552,18 @@ templ ScannerManufacturingPartial(isAdmin bool, results []domain.ManufacturingOp
 												if r.OwnedBPO {
 													<span class="rounded border border-emerald-400/40 bg-emerald-500/20 px-1.5 py-0.2 font-mono text-[9px] font-bold text-emerald-200">OWNED BPO</span>
 												}
+												if r.IsPriceSpike {
+													<span
+														class="rounded border border-amber-400/55 bg-amber-500/20 px-1.5 py-0.2 font-mono text-[9px] font-bold text-amber-200"
+														title={ i18n.L(ctx, "Live Sell Order price is sharply above global average — verify Marketplace Order Book before buying materials!", "Harga Sell Order live melonjak tajam di atas rata-rata pasar — cek Order Book Marketplace dulu sebelum beli material!") }
+													>
+														if r.PriceSpikePct > 0 {
+															{ fmt.Sprintf("PRICE SPIKE +%.0f%%", r.PriceSpikePct) }
+														} else {
+															PRICE SPIKE
+														}
+													</span>
+												}
 											</div>
 											<div class="font-mono text-[10px] text-slate-400">
 												if r.MaterialHubKey != "" && r.MaterialHubKey != r.HubKey {

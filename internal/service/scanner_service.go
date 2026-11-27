@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 
@@ -167,14 +168,77 @@ func (s *CopilotService) ScanManufacturingOpportunities(
 	})
 }
 
+// popularCategoryBlueprints ensures category-filtered scans evaluate high-liquidity, real-demand T1/T2 items
+// instead of falling into the alphabetical "A–Z first 40" trap (e.g. Abaddon/Absolution/BlastShot).
+var popularCategoryBlueprints = map[string][]string{
+	"Drones": {
+		"Hobgoblin I", "Hobgoblin II", "Warrior I", "Warrior II", "Acolyte I", "Acolyte II",
+		"Hornet I", "Hornet II", "Hammerhead I", "Hammerhead II", "Valkyrie I", "Valkyrie II",
+		"Infiltrator I", "Infiltrator II", "Vespa I", "Vespa II", "Ogre I", "Ogre II",
+		"Berserker I", "Praetor I", "Wasp I", "Salvage Drone I", "Mining Drone I", "Mining Drone II",
+		"Hornet EC-300", "Vespa EC-600", "Light Armor Maintenance Bot I", "Light Shield Maintenance Bot I",
+	},
+	"Ammunition": {
+		"Scourge Light Missile", "Inferno Light Missile", "Mjolnir Light Missile", "Nova Light Missile",
+		"Scourge Heavy Missile", "Inferno Heavy Missile", "Mjolnir Heavy Missile", "Nova Heavy Missile",
+		"Scourge Cruise Missile", "Inferno Cruise Missile", "Scourge Rocket", "Inferno Rocket",
+		"Antimatter Charge S", "Antimatter Charge M", "Antimatter Charge L",
+		"Void S", "Void M", "Null S", "Null M",
+		"EMP S", "EMP M", "Phased Plasma S", "Phased Plasma M", "Fusion S", "Fusion M",
+		"Titanium Sabot S", "Titanium Sabot M", "Hail S", "Barrage S",
+		"Multifrequency S", "Multifrequency M", "Multifrequency L", "Scorch S", "Scorch M",
+		"Core Scanner Probe I", "Sisters Core Scanner Probe", "Nanite Repair Paste",
+	},
+	"Ships": {
+		"Venture", "Heron", "Magnate", "Probe", "Imicus",
+		"Rifter", "Punisher", "Merlin", "Incursus", "Kestrel", "Tristan", "Atron", "Executioner", "Slasher", "Condor",
+		"Catalyst", "Thrasher", "Coercer", "Cormorant", "Algos", "Dragoon", "Corax", "Talwar",
+		"Caracal", "Vexor", "Maller", "Rupture", "Omen", "Thorax", "Moa", "Stabber", "Arbitrator", "Blackbird",
+		"Drake", "Brutix", "Harbinger", "Hurricane", "Ferox", "Myrmidon", "Prophecy", "Cyclone",
+		"Badger", "Nereus", "Bestower", "Wreathe", "Tayra", "Epithal", "Procurer", "Retriever", "Covetor",
+	},
+	"Modules": {
+		"Damage Control I", "Damage Control II",
+		"Small Shield Extender II", "Medium Shield Extender II", "Large Shield Extender II",
+		"Multispectrum Shield Hardener II", "Multispectrum Energized Membrane II",
+		"Warp Scrambler I", "Warp Scrambler II", "Warp Disruptor I", "Warp Disruptor II",
+		"Stasis Webifier I", "Stasis Webifier II",
+		"1MN Afterburner II", "5MN Microwarpdrive II", "10MN Afterburner II", "50MN Microwarpdrive II",
+		"Gyrostabilizer II", "Heat Sink II", "Ballistic Control System II", "Magnetic Field Stabilizer II", "Drone Damage Amplifier II",
+		"Small Armor Repairer II", "Medium Armor Repairer II", "Large Armor Repairer II",
+		"Medium Shield Booster II", "Large Shield Booster II", "Capacitor Power Relay II",
+		"Sensor Booster II", "Tracking Computer II", "Co-Processor II", "Expanded Cargohold II",
+		"Miner I", "Miner II", "Mining Laser Upgrade II", "Salvager I", "Core Probe Launcher I",
+	},
+	"Rigs": {
+		"Small Core Defense Field Extender I", "Medium Core Defense Field Extender I", "Large Core Defense Field Extender I",
+		"Small Trimark Armor Pump I", "Medium Trimark Armor Pump I", "Large Trimark Armor Pump I",
+		"Small Auxiliary Nano Pump I", "Medium Auxiliary Nano Pump I",
+		"Small Thermal Shield Reinforcer I", "Small EM Shield Reinforcer I",
+		"Small Cargohold Optimization I", "Medium Cargohold Optimization I",
+		"Small Hyperspatial Velocity Optimizer I", "Medium Hyperspatial Velocity Optimizer I",
+		"Small Low Friction Nozzle Joints I", "Small Polycarbon Engine Housing I",
+		"Small Gravity Capacitor Upgrade I", "Small Capacitor Control Circuit I", "Medium Capacitor Control Circuit I",
+		"Small Hydraulic Bay Thrusters I", "Small Warhead Calefaction Catalyst I",
+	},
+	"Components": {
+		"Auto-Integrity Preservation Seal", "Life Support Backup Unit", "Core Temperature Regulator",
+		"Construction Blocks", "Nanotransistors", "Hypersynaptic Fibers", "Crystalline Carbonide Armor Plate",
+		"Fermionic Condensates", "Fernite Carbide Composite Armor Plate", "Titanium Diborite Armor Plate",
+		"Tungsten Carbide Armor Plate", "Gravimetric Sensor Cluster", "Ladar Sensor Cluster",
+		"Magnetometric Sensor Cluster", "Radar Sensor Cluster", "Fusion Thruster", "Ion Thruster",
+		"Magpulse Thruster", "Plasma Thruster", "Antimatter Reactor Unit", "Fusion Reactor Unit",
+	},
+}
+
 // selectBlueprintsForScan picks up to maxLimit relevant SDE blueprints without falling into the
-// alphabetical "A–Z first 100" trap after importing the full 5,000+ Official CCP SDE.
+// alphabetical "A–Z first 40" trap after importing the full 5,000+ Official CCP SDE.
 func (s *CopilotService) selectBlueprintsForScan(ctx context.Context, req ManufacturingScanRequest, maxLimit int) ([]domain.SDEBlueprint, error) {
 	q := strings.TrimSpace(req.SearchQuery)
 	cat := strings.TrimSpace(req.Category)
 
-	// Case 1: Specific search keyword or category selected — query the full SDE directly (paged + tech filter)
-	if q != "" || cat != "" {
+	// Case 1: Explicit search keyword — query the full SDE directly (allows searching Faction/Rare BPCs intentionally)
+	if q != "" {
 		if ext, ok := s.sde.(domain.SDEExtendedRepository); ok {
 			pageRes, err := ext.SearchBlueprintsPaged(ctx, q, cat, req.TechLevel, 1, maxLimit)
 			if err == nil && pageRes != nil {
@@ -198,15 +262,21 @@ func (s *CopilotService) selectBlueprintsForScan(ctx context.Context, req Manufa
 		return out, nil
 	}
 
-	// Case 2: Default "All Blueprints" scan — prioritize high-liquidity starter pool + user's own Catalog items
-	// so popular items (Hobgoblin, Rifter, Venture, Scourge, Damage Control, etc.) are always evaluated!
+	// Case 2: General or Category scan (no search query) — prioritize curated high-liquidity blueprints + user's Catalog
+	// and automatically skip unpriced Rare/Faction/Deadspace/Officer BPCs so results stay realistic.
 	selected := make([]domain.SDEBlueprint, 0, maxLimit)
 	seenBP := make(map[int32]struct{}, maxLimit)
 	addBP := func(bp domain.SDEBlueprint) {
 		if len(selected) >= maxLimit {
 			return
 		}
+		if cat != "" && !strings.EqualFold(strings.TrimSpace(bp.Category), cat) {
+			return
+		}
 		if req.TechLevel > 0 && bp.TechLevel != req.TechLevel {
+			return
+		}
+		if domain.DetectRareBPC(domain.MarketItem{Name: bp.ProductName}) {
 			return
 		}
 		if _, exists := seenBP[bp.BlueprintTypeID]; exists {
@@ -230,12 +300,29 @@ func (s *CopilotService) selectBlueprintsForScan(ctx context.Context, req Manufa
 		}
 	}
 
-	// 2b. Curated popular T1/T2 starter blueprints
+	// 2b. Curated popular T1/T2 pool for the chosen category (or all categories when cat == "")
+	if cat != "" {
+		for _, prodName := range popularCategoryBlueprints[cat] {
+			if len(selected) >= maxLimit {
+				break
+			}
+			found, err := s.sde.SearchBlueprints(ctx, prodName, cat, 5)
+			if err != nil {
+				continue
+			}
+			for _, bp := range found {
+				if strings.EqualFold(strings.TrimSpace(bp.ProductName), prodName) {
+					addBP(bp)
+					break
+				}
+			}
+		}
+	}
 	for _, seed := range starterCatalogPool {
 		if len(selected) >= maxLimit {
 			break
 		}
-		found, err := s.sde.SearchBlueprints(ctx, seed.ProductName, "", 5)
+		found, err := s.sde.SearchBlueprints(ctx, seed.ProductName, cat, 5)
 		if err != nil {
 			continue
 		}
@@ -247,15 +334,15 @@ func (s *CopilotService) selectBlueprintsForScan(ctx context.Context, req Manufa
 		}
 	}
 
-	// 2c. Top up remaining slots from SDE (respecting TechLevel)
+	// 2c. Top up remaining slots from SDE (respecting Category & TechLevel, still excluding Rare BPCs)
 	if len(selected) < maxLimit {
 		if ext, ok := s.sde.(domain.SDEExtendedRepository); ok {
-			if pageRes, err := ext.SearchBlueprintsPaged(ctx, "", "", req.TechLevel, 1, maxLimit); err == nil && pageRes != nil {
+			if pageRes, err := ext.SearchBlueprintsPaged(ctx, "", cat, req.TechLevel, 1, maxLimit*2); err == nil && pageRes != nil {
 				for _, bp := range pageRes.Items {
 					addBP(bp)
 				}
 			}
-		} else if extra, err := s.sde.SearchBlueprints(ctx, "", "", maxLimit); err == nil {
+		} else if extra, err := s.sde.SearchBlueprints(ctx, "", cat, maxLimit*2); err == nil {
 			for _, bp := range extra {
 				addBP(bp)
 			}
@@ -363,6 +450,7 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 		sellPrices map[int32]domain.JitaPrice
 		matPrices  map[int32]domain.JitaPrice
 		vols       map[int32]float64
+		globalAvg  map[int32]float64
 		sellErr    error
 		matErr     error
 		wg         sync.WaitGroup
@@ -376,6 +464,23 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 		defer wg.Done()
 		vols = s.fetchHubDailyVolumesBatch(ctx, hub, productIDs)
 	}()
+	if gp, ok := s.market.(domain.GlobalMarketPriceProvider); ok && gp != nil {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if list, gErr := gp.GetGlobalMarketPrices(ctx); gErr == nil && len(list) > 0 {
+				m := make(map[int32]float64, len(list))
+				for _, item := range list {
+					if item.AveragePrice > 0 {
+						m[item.TypeID] = item.AveragePrice
+					} else if item.AdjustedPrice > 0 {
+						m[item.TypeID] = item.AdjustedPrice
+					}
+				}
+				globalAvg = m
+			}
+		}()
+	}
 	if crossHub {
 		wg.Add(1)
 		go func() {
@@ -493,6 +598,18 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 		}
 
 		verdict := domain.ClassifyManufacturingVerdict(calcRes.Profit.NetProfitPerBatch, calcRes.Profit.NetMarginPercent, calcRes.ISKPerHour)
+		isSpike := false
+		spikePct := 0.0
+		if refPrice := globalAvg[bp.ProductTypeID]; refPrice > 0 && calcRes.ProductUnitSellPrice >= refPrice*1.35 {
+			isSpike = true
+			spikePct = ((calcRes.ProductUnitSellPrice - refPrice) / refPrice) * 100.0
+		} else if tech == 1 && calcRes.Profit.NetMarginPercent >= 70.0 {
+			isSpike = true
+		}
+		if isSpike && (verdict == domain.VerdictStrong || verdict == domain.VerdictModerate) {
+			verdict = domain.VerdictWeak
+		}
+
 		fitsCap := availCap <= 0 || calcRes.Profit.TotalDirectCost <= availCap
 		if req.ProfitableOnly && verdict == domain.VerdictAvoid {
 			continue
@@ -538,11 +655,17 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 			ROIPercent:        calcRes.Profit.ROIPercent,
 			ISKPerHour:        calcRes.ISKPerHour,
 			DurationFormatted: calcRes.DurationFormatted,
+			IsPriceSpike:      isSpike,
+			PriceSpikePct:     spikePct,
 			Verdict:           verdict,
 		})
 	}
 
 	domain.SortManufacturingOpportunitiesBy(results, req.SortBy)
+	// Keep verified non-spiked opportunities ranked ahead of price-spiked anomalies
+	sort.SliceStable(results, func(i, j int) bool {
+		return !results[i].IsPriceSpike && results[j].IsPriceSpike
+	})
 	return results, nil
 }
 

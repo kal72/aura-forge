@@ -64,6 +64,8 @@ type ManufacturingOpportunity struct {
 	ROIPercent        float64            `json:"roi_percent"`
 	ISKPerHour        float64            `json:"isk_per_hour"`
 	DurationFormatted string             `json:"duration_formatted"`
+	IsPriceSpike      bool               `json:"is_price_spike,omitempty"`
+	PriceSpikePct     float64            `json:"price_spike_pct,omitempty"`
 	Verdict           OpportunityVerdict `json:"verdict"`
 }
 
