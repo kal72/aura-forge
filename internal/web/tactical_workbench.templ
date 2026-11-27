@@ -361,44 +361,37 @@ templ TacticalPage(data *service.TacticalViewData) {
 								</div>
 							</div>
 
-							<!-- Interactive Radial Slot Sockets (High / Mid / Low / Rig) -->
+							<!-- Interactive Radial Slot Hit-Targets & Upright Icons (Centered inside Curved Trapezoid SVG Wedges) -->
 							<template x-for="slot in radialSlots()" :key="slot.key">
 								<div
 									@click="clickSlot(slot)"
 									@dblclick.stop="cycleModuleState(slot.kind, slot.index)"
+									@mouseenter="hoverSlotKey = slot.key"
+									@mouseleave="if (hoverSlotKey === slot.key) hoverSlotKey = ''"
 									@dragover.prevent="dragOverSlotKey = slot.key"
 									@dragleave="if (dragOverSlotKey === slot.key) dragOverSlotKey = ''"
 									@drop.prevent="onDropOnSlot(slot)"
-									:style="'left: ' + slot.pctX + '%; top: ' + slot.pctY + '%; transform: translate(-50%, -50%);'"
+									:style="'left: ' + slot.pctX + '%; top: ' + slot.pctY + '%; transform: translate(-50%, -50%) scale(' + ((dragOverSlotKey === slot.key || (selectedSlot && selectedSlot.kind === slot.kind && selectedSlot.index === slot.index)) ? 1.1 : 1) + ');'"
 									:class="{
-										'tac-slot-drop': dragOverSlotKey === slot.key,
-										'ring-2 ring-amber-300 scale-110': selectedSlot && selectedSlot.kind === slot.kind && selectedSlot.index === slot.index,
-										'tac-slot-active': slot.module && slot.module.state === 'active',
-										'tac-slot-overheated': slot.module && slot.module.state === 'overheated',
-										'tac-slot-offline': slot.module && slot.module.state === 'offline',
-										'border-slate-600/55 bg-slate-950/75 hover:border-amber-300/70': !slot.module,
-										'border-slate-500/70 bg-slate-900/95': slot.module
+										'z-30': selectedSlot && selectedSlot.kind === slot.kind && selectedSlot.index === slot.index,
+										'tac-slot-offline': slot.module && slot.module.state === 'offline'
 									}"
 									:title="slot.module ? (slot.module.name + (slot.module.charge_name ? ' [' + slot.module.charge_name + ']' : '') + ' — Click for options, Double-click to toggle state') : ('Empty ' + slot.kind.toUpperCase() + ' slot — Click to browse or Drop module')"
-									class="tac-radial-socket absolute z-20 flex items-center justify-center rounded-lg border transition-all duration-150 cursor-pointer"
+									class="tac-radial-socket absolute z-20 flex items-center justify-center transition-transform duration-150 cursor-pointer"
 								>
 									<template x-if="slot.module">
-										<div class="relative h-full w-full p-0.5">
-											<img :src="itemIconURL(slot.module.type_id)" :alt="slot.module.name" class="h-full w-full rounded object-contain"/>
-											<!-- Green Active Corner Pip -->
-											<span x-show="slot.module.state === 'active'" class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border border-slate-950 bg-emerald-400"></span>
-											<!-- Overheat Flame Pip -->
-											<span x-show="slot.module.state === 'overheated'" class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border border-slate-950 bg-rose-500 animate-ping"></span>
+										<div class="relative h-full w-full">
+											<img :src="itemIconURL(slot.module.type_id)" :alt="slot.module.name" class="h-full w-full rounded object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]"/>
 											<!-- Loaded Charge Mini-Icon -->
 											<img
 												x-show="slot.module.charge_type_id > 0"
 												:src="itemIconURL(slot.module.charge_type_id)"
-												class="absolute -top-1.5 -left-1.5 h-4 w-4 rounded-full border border-amber-300/70 bg-slate-950"
+												class="absolute -top-1 -left-1 h-3.5 w-3.5 rounded-full border border-amber-300/60 bg-slate-950"
 											/>
 										</div>
 									</template>
 									<template x-if="!slot.module">
-										<span class="text-[9px] font-mono uppercase text-slate-500" x-text="slot.kind[0]"></span>
+										<span class="text-[8.5px] font-mono font-semibold uppercase text-slate-400/60" x-text="slot.kind[0]"></span>
 									</template>
 								</div>
 							</template>

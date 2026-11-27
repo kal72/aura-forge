@@ -26,18 +26,17 @@ templ TacticalLayout(title string, mode service.ModeInfo) {
 				}
 				[x-cloak] { display: none !important; }
 				.tac-slot-active {
-					box-shadow: 0 0 0 1.5px rgba(74, 222, 128, 0.9), 0 0 14px rgba(34, 197, 94, 0.38);
+					box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.72), 0 0 7px rgba(34, 197, 94, 0.22);
 				}
 				.tac-slot-overheated {
-					box-shadow: 0 0 0 2px rgba(251, 113, 133, 0.95), 0 0 18px rgba(244, 63, 94, 0.55);
+					box-shadow: 0 0 0 1px rgba(251, 113, 133, 0.88), 0 0 9px rgba(244, 63, 94, 0.36);
 				}
 				.tac-slot-offline {
 					opacity: 0.45;
 					filter: grayscale(0.75);
 				}
 				.tac-slot-drop {
-					box-shadow: 0 0 0 2.5px rgba(251, 191, 36, 0.98), 0 0 22px rgba(251, 191, 36, 0.65);
-					transform: translate(-50%, -50%) scale(1.14) !important;
+					box-shadow: 0 0 0 1.5px rgba(251, 191, 36, 0.92), 0 0 12px rgba(251, 191, 36, 0.45);
 				}
 				.tac-wheel-ring {
 					background: radial-gradient(circle, rgba(15, 23, 42, 0.85) 56%, rgba(30, 27, 75, 0.55) 76%, rgba(11, 13, 26, 0.92) 100%);
@@ -49,8 +48,8 @@ templ TacticalLayout(title string, mode service.ModeInfo) {
 					.tac-left-wing { max-height: calc(100vh - 78px); }
 				}
 				.tac-wheel-stage { position: relative; width: 100%; max-width: 540px; aspect-ratio: 1 / 1; }
-				.tac-hologram-core { width: 71%; height: 71%; }
-				.tac-radial-socket { width: 8.6%; height: 8.6%; min-width: 38px; min-height: 38px; }
+				.tac-hologram-core { width: 70%; height: 70%; }
+				.tac-radial-socket { width: 6.4%; height: 6.4%; }
 				.tac-cap-grid { display: grid; grid-template-columns: 104px 1fr; align-items: center; gap: 0.75rem; }
 				.tac-resist-grid { display: grid; grid-template-columns: 56px repeat(4, minmax(0, 1fr)); gap: 0.25rem; }
 				.tac-radar-box { position: relative; width: 100%; height: 420px; }

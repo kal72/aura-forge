@@ -19,6 +19,22 @@
 		return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
 	}
 
+	// Builds an exact curved-trapezoid (annular sector) SVG path between rIn and rOut from startDeg to endDeg.
+	function annularSectorPath(cx, cy, rIn, rOut, startDeg, endDeg) {
+		const p1 = polarPoint(cx, cy, rOut, startDeg);
+		const p2 = polarPoint(cx, cy, rOut, endDeg);
+		const p3 = polarPoint(cx, cy, rIn, endDeg);
+		const p4 = polarPoint(cx, cy, rIn, startDeg);
+		const largeArc = (endDeg - startDeg) > 180 ? 1 : 0;
+		return [
+			`M ${p1.x.toFixed(2)} ${p1.y.toFixed(2)}`,
+			`A ${rOut} ${rOut} 0 ${largeArc} 1 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`,
+			`L ${p3.x.toFixed(2)} ${p3.y.toFixed(2)}`,
+			`A ${rIn} ${rIn} 0 ${largeArc} 0 ${p4.x.toFixed(2)} ${p4.y.toFixed(2)}`,
+			'Z',
+		].join(' ');
+	}
+
 	function buildTickSegments(cx, cy, rInner, rOuter, startDeg, endDeg, count, fillPct) {
 		const segs = [];
 		const clamped = Math.max(0, Math.min(100, Number(fillPct) || 0));
@@ -109,6 +125,7 @@
 			// Drag & drop + Ghost hover state
 			draggingModule: null,
 			dragOverSlotKey: '',
+			hoverSlotKey: '',
 			hoverModule: null,
 
 			// Modals
@@ -278,7 +295,8 @@
 				this.notify('Opened saved fit: ' + rec.name);
 			},
 
-			// Radial Slot Calculations (560x560 coordinate space, center 280,280, ring radius 232)
+			// Radial Slot Calculations (560x560 coordinate space, center 280,280, ring radius 224)
+			// Every socket is tangentially rotated (deg + 90) so slots hug the circular bezel with uniform 9px gaps & zero overlap.
 			slotCounts() {
 				const s = (this.sim && this.sim.slots) || { high_slots: 5, mid_slots: 4, low_slots: 5, rig_slots: 3 };
 				return {
@@ -295,23 +313,28 @@
 
 			radialSlots() {
 				const counts = this.slotCounts();
-				const cx = 280, cy = 280, r = 232;
+				const cx = 280, cy = 280, r = 224;
 				const racks = [
-					{ kind: 'high', count: counts.high, startDeg: -132, stepDeg: 12.2 },
-					{ kind: 'mid',  count: counts.mid,  startDeg: -34,  stepDeg: 12.2 },
-					{ kind: 'low',  count: counts.low,  startDeg: 76,   stepDeg: 12.2 },
-					{ kind: 'rig',  count: counts.rig,  startDeg: 186,  stepDeg: 13.0 },
+					{ kind: 'high', max: 8, count: counts.high, startDeg: -134, stepDeg: 12.5 },
+					{ kind: 'mid',  max: 8, count: counts.mid,  startDeg: -26,  stepDeg: 12.5 },
+					{ kind: 'low',  max: 8, count: counts.low,  startDeg: 80,   stepDeg: 12.5 },
+					{ kind: 'rig',  max: 3, count: counts.rig,  startDeg: 184,  stepDeg: 13.0 },
 				];
 				const out = [];
 				for (const rk of racks) {
+					// Center each ship's actual slots cleanly inside its quadrant arc for balanced, uncluttered visual symmetry
+					const span = Math.max(0, rk.count - 1) * rk.stepDeg;
+					const quadCenter = rk.startDeg + ((rk.max - 1) * rk.stepDeg) / 2;
+					const firstDeg = quadCenter - span / 2;
 					for (let i = 0; i < rk.count; i++) {
-						const deg = rk.startDeg + i * rk.stepDeg;
+						const deg = firstDeg + i * rk.stepDeg;
 						const pt = polarPoint(cx, cy, r, deg);
 						const mod = this.getModuleAt(rk.kind, i);
 						out.push({
 							key: rk.kind + '-' + i,
 							kind: rk.kind,
 							index: i,
+							available: true,
 							x: pt.x,
 							y: pt.y,
 							pctX: (pt.x / 560) * 100,
@@ -327,17 +350,17 @@
 			// Outer Segmented Arc Gauges (Calibration left, CPU right-mid, Powergrid bottom-right)
 			calibrationTicks() {
 				const pct = (this.sim && this.sim.calibration && this.sim.calibration.percent) || 0;
-				return buildTickSegments(280, 280, 260, 274, 174, 232, 28, pct);
+				return buildTickSegments(280, 280, 258, 273, 180, 232, 28, pct);
 			},
 
 			cpuTicks() {
 				const pct = (this.sim && this.sim.cpu && this.sim.cpu.percent) || 0;
-				return buildTickSegments(280, 280, 260, 274, 2, 54, 28, pct);
+				return buildTickSegments(280, 280, 258, 273, 0, 52, 28, pct);
 			},
 
 			powergridTicks() {
 				const pct = (this.sim && this.sim.powergrid && this.sim.powergrid.percent) || 0;
-				return buildTickSegments(280, 280, 260, 274, 58, 110, 28, pct);
+				return buildTickSegments(280, 280, 258, 273, 58, 112, 28, pct);
 			},
 
 			hardpointPips() {
@@ -345,15 +368,15 @@
 				const tUsed = (this.sim && this.sim.turrets_used) || 0;
 				const lUsed = (this.sim && this.sim.launchers_used) || 0;
 				const pips = [];
-				const cx = 280, cy = 280, r = 267;
+				const cx = 280, cy = 280, r = 266;
 				let idx = 0;
 				for (let i = 0; i < Math.min(8, s.turret_slots || 0); i++) {
-					const pt = polarPoint(cx, cy, r, -68 + idx * 4.8);
+					const pt = polarPoint(cx, cy, r, -56 + idx * 4.4);
 					pips.push({ x: pt.x.toFixed(1), y: pt.y.toFixed(1), kind: 'turret', used: i < tUsed });
 					idx++;
 				}
 				for (let i = 0; i < Math.min(8, s.launcher_slots || 0); i++) {
-					const pt = polarPoint(cx, cy, r, -68 + idx * 4.8);
+					const pt = polarPoint(cx, cy, r, -56 + idx * 4.4);
 					pips.push({ x: pt.x.toFixed(1), y: pt.y.toFixed(1), kind: 'launcher', used: i < lUsed });
 					idx++;
 				}
@@ -368,13 +391,60 @@
 				const pgOver  = !!(this.sim && this.sim.powergrid && this.sim.powergrid.overloaded);
 
 				let svg = '';
-				// Dark Orbital Bezel Ring & Quadrant Labels
-				svg += '<circle cx="280" cy="280" r="254" fill="rgba(7, 9, 19, 0.78)" stroke="rgba(148, 163, 184, 0.22)" stroke-width="1.5"></circle>';
-				svg += '<circle cx="280" cy="280" r="204" fill="none" stroke="rgba(251, 191, 36, 0.28)" stroke-width="1.4"></circle>';
-				svg += '<circle cx="280" cy="280" r="232" fill="none" stroke="rgba(148, 163, 184, 0.14)" stroke-width="34"></circle>';
-				svg += '<text x="280" y="20" text-anchor="middle" fill="rgba(226,232,240,0.62)" font-size="9" font-family="monospace" letter-spacing="2">HIGH SLOTS</text>';
-				svg += '<text x="540" y="280" text-anchor="middle" fill="rgba(226,232,240,0.62)" font-size="9" font-family="monospace" letter-spacing="2" transform="rotate(90 540 280)">MEDIUM SLOTS</text>';
-				svg += '<text x="280" y="548" text-anchor="middle" fill="rgba(226,232,240,0.62)" font-size="9" font-family="monospace" letter-spacing="2">LOW SLOTS</text>';
+				// Dark Orbital Bezel Ring & Precision Concentric Track [r=198 .. r=250, center r=224]
+				svg += '<circle cx="280" cy="280" r="251" fill="rgba(7, 9, 19, 0.86)" stroke="rgba(148, 163, 184, 0.24)" stroke-width="1.5"></circle>';
+				svg += '<circle cx="280" cy="280" r="224" fill="none" stroke="rgba(15, 23, 42, 0.72)" stroke-width="46"></circle>';
+				svg += '<circle cx="280" cy="280" r="198" fill="none" stroke="rgba(251, 191, 36, 0.34)" stroke-width="1.4"></circle>';
+				svg += '<circle cx="280" cy="280" r="250" fill="none" stroke="rgba(148, 163, 184, 0.16)" stroke-width="1"></circle>';
+
+				// Subtle Rack Dividers between High / Mid / Low / Rig
+				for (const divDeg of [-36, 70.5, 175.5, 219]) {
+					const p1 = polarPoint(280, 280, 200, divDeg);
+					const p2 = polarPoint(280, 280, 248, divDeg);
+					svg += `<line x1="${p1.x.toFixed(1)}" y1="${p1.y.toFixed(1)}" x2="${p2.x.toFixed(1)}" y2="${p2.y.toFixed(1)}" stroke="rgba(251,191,36,0.22)" stroke-width="1" stroke-dasharray="2 3"></line>`;
+				}
+
+				// Curved Trapezoid (Annular Sector) Slot Cradles hugging r=201..247
+				const halfSpan = 5.45; // 10.9 deg wedge inside 12.5 deg step -> crisp 1.6 deg radial gap
+				for (const slot of this.radialSlots()) {
+					const isSelected = !!(this.selectedSlot && this.selectedSlot.kind === slot.kind && this.selectedSlot.index === slot.index);
+					const isDrop = this.dragOverSlotKey === slot.key;
+					const isHover = this.hoverSlotKey === slot.key;
+					const d = annularSectorPath(280, 280, 202, 246, slot.deg - halfSpan, slot.deg + halfSpan);
+
+					let fill = 'rgba(3, 5, 12, 0.92)';
+					let stroke = 'none';
+					let strokeW = '0';
+
+					if (slot.module) {
+						fill = slot.module.state === 'offline' ? 'rgba(6, 9, 20, 0.65)' : 'rgba(15, 23, 42, 0.92)';
+						if (slot.module.state === 'active') {
+							stroke = 'rgba(74, 222, 128, 0.75)';
+							strokeW = '1';
+						} else if (slot.module.state === 'overheated') {
+							stroke = 'rgba(251, 113, 133, 0.90)';
+							strokeW = '1.2';
+						}
+					} else if (isHover) {
+						fill = 'rgba(20, 28, 48, 0.92)';
+					}
+
+					if (isDrop || isSelected) {
+						stroke = '#fbbf24';
+						strokeW = '1.4';
+						fill = 'rgba(30, 27, 75, 0.88)';
+					}
+
+					svg += `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}" stroke-linejoin="round"></path>`;
+
+					// Subtle outer emerald/rose active accent arc on fitted active/overheated trapezoids
+					if (slot.module && (slot.module.state === 'active' || slot.module.state === 'overheated')) {
+						const pA = polarPoint(280, 280, 247.5, slot.deg - halfSpan + 0.8);
+						const pB = polarPoint(280, 280, 247.5, slot.deg + halfSpan - 0.8);
+						const arcColor = slot.module.state === 'overheated' ? '#fb7185' : '#4ade80';
+						svg += `<path d="M ${pA.x.toFixed(2)} ${pA.y.toFixed(2)} A 247.5 247.5 0 0 1 ${pB.x.toFixed(2)} ${pB.y.toFixed(2)}" fill="none" stroke="${arcColor}" stroke-width="2" stroke-linecap="round"></path>`;
+					}
+				}
 
 				// Calibration Segmented Arc (Left — Silver/White)
 				for (const seg of this.calibrationTicks()) {
