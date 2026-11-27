@@ -596,7 +596,31 @@ func ComputeFitSimulation(
 		}
 	}
 
-	// Apply CPU / PG percentage bonuses
+	// Apply CPU / PG percentage bonuses + Pilot Implants / Boosters
+	hasImplant := func(key string) bool {
+		for _, imp := range fit.Implants {
+			if strings.EqualFold(strings.TrimSpace(imp), key) {
+				return true
+			}
+		}
+		return false
+	}
+	if hasImplant("cpu_3") {
+		cpuBonusPct += 3.0
+	}
+	if hasImplant("pg_3") {
+		pgBonusPct += 3.0
+	}
+	if hasImplant("cap_5") {
+		capCapacity *= 1.05
+	}
+	if hasImplant("blue_pill") {
+		shieldBoostHPs *= 1.20
+	}
+	if hasImplant("exile") {
+		armorRepHPs *= 1.20
+	}
+
 	totalCPU := baseCPU * (1.0 + cpuBonusPct/100.0)
 	totalPG := basePG * (1.0 + pgBonusPct/100.0)
 
@@ -606,9 +630,40 @@ func ComputeFitSimulation(
 		armorRes[i] = applyStackedResistances(armorRes[i], armorResistMods[i])
 	}
 
+	// Apply official Abyssal Deadspace Weather environmental modifiers
+	switch strings.ToLower(strings.TrimSpace(fit.AbyssalWeather)) {
+	case "electrical":
+		// -50% EM Resistance, +50% Capacitor Recharge Speed
+		shieldRes[0] = clampResonance(shieldRes[0] * 1.50)
+		armorRes[0] = clampResonance(armorRes[0] * 1.50)
+		capRechargeMs *= 0.50
+	case "exotic":
+		// -50% Kinetic Resistance
+		shieldRes[2] = clampResonance(shieldRes[2] * 1.50)
+		armorRes[2] = clampResonance(armorRes[2] * 1.50)
+	case "firestorm":
+		// -50% Thermal Resistance, +50% Armor Hit Points
+		shieldRes[1] = clampResonance(shieldRes[1] * 1.50)
+		armorRes[1] = clampResonance(armorRes[1] * 1.50)
+		armorHP *= 1.50
+	case "gamma":
+		// -50% Explosive Resistance, +50% Shield Hit Points
+		shieldRes[3] = clampResonance(shieldRes[3] * 1.50)
+		armorRes[3] = clampResonance(armorRes[3] * 1.50)
+		shieldHP *= 1.50
+	case "dark":
+		// -50% Turret Range, +50% Maximum Velocity
+		bestOptimalKM *= 0.50
+		bestFalloffKM *= 0.50
+		maxVelocity *= 1.50
+	}
+
 	// Apply Stacking Penalty to weapon damage & ROF mods
 	dmgAmp := applyStackedMultipliers(damageMods)
 	rofAmp := applyStackedMultipliers(rofMods)
+	if hasImplant("dmg_3") {
+		dmgAmp *= 1.03
+	}
 	turretDPS *= dmgAmp * rofAmp
 	missileDPS *= dmgAmp * rofAmp
 	alphaVolley *= dmgAmp

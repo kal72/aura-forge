@@ -89,10 +89,12 @@ type ShipFit struct {
 	HullClass    string             `json:"hull_class,omitempty"`
 	FactionTheme string             `json:"faction_theme,omitempty"` // amarr | caldari | gallente | minmatar | triglavian | neutral
 	Tag          string             `json:"tag,omitempty"`           // PvE | PvP | Hauling | Abyssal
-	SkillProfile SkillProfilePreset `json:"skill_profile,omitempty"`
-	TargetPreset string             `json:"target_preset,omitempty"` // guristas | sansha | blood_raiders | serpentis | angel | triglavian | gank
-	Modules      []FitModuleSlot    `json:"modules"`
-	Drones       []FitDroneEntry    `json:"drones"`
+	SkillProfile   SkillProfilePreset `json:"skill_profile,omitempty"`
+	TargetPreset   string             `json:"target_preset,omitempty"`   // guristas | sansha | blood_raiders | serpentis | angel | triglavian
+	AbyssalWeather string             `json:"abyssal_weather,omitempty"` // "" | electrical | exotic | firestorm | gamma | dark
+	Implants       []string           `json:"implants,omitempty"`        // cpu_3 | pg_3 | cap_5 | dmg_3 | blue_pill | exile
+	Modules        []FitModuleSlot    `json:"modules"`
+	Drones         []FitDroneEntry    `json:"drones"`
 }
 
 // TacticalFittingRecord represents a persisted fitting row in PostgreSQL.

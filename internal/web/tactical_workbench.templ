@@ -222,7 +222,9 @@ templ TacticalPage(data *service.TacticalViewData) {
 							<template x-for="mod in moduleResults" :key="mod.type_id">
 								<div
 									draggable="true"
-									@dragstart="onDragStartModule(mod, $event)"
+									@mouseenter="startGhostPreview(mod)"
+									@mouseleave="clearGhostPreview()"
+									@dragstart="clearGhostPreview(); onDragStartModule(mod, $event)"
 									@dragend="draggingModule = null; dragOverSlotKey = ''"
 									class="group flex items-center gap-2.5 rounded-xl border border-slate-700/60 bg-slate-950/55 p-2 hover:border-amber-400/55 hover:bg-slate-900/85 transition cursor-grab active:cursor-grabbing"
 								>
@@ -477,6 +479,20 @@ templ TacticalPage(data *service.TacticalViewData) {
 									</template>
 								</div>
 							</template>
+						</div>
+
+						<!-- Hover Ghost Preview Delta Strip (Shows live EHP/DPS/CPU/PG impact before clicking) -->
+						<div
+							x-show="ghostDeltas()"
+							x-transition
+							class="mt-2 flex w-full flex-wrap items-center justify-center gap-2 rounded-xl border border-sky-400/50 bg-sky-950/65 px-3 py-1.5 text-[11px] font-mono shadow-[0_0_16px_rgba(56,189,248,0.22)]"
+						>
+							<span class="font-bold text-sky-200" x-text="'Ghost Preview: ' + (ghostDeltas() ? ghostDeltas().name : '')"></span>
+							<span class="rounded bg-slate-950/75 px-1.5 py-0.5" :class="ghostDeltas() && ghostDeltas().ehp >= 0 ? 'text-emerald-300' : 'text-rose-300'" x-text="ghostDeltas() ? ((ghostDeltas().ehp >= 0 ? '+' : '') + formatNum(ghostDeltas().ehp) + ' EHP') : ''"></span>
+							<span class="rounded bg-slate-950/75 px-1.5 py-0.5" :class="ghostDeltas() && ghostDeltas().dps >= 0 ? 'text-amber-300' : 'text-rose-300'" x-text="ghostDeltas() ? ((ghostDeltas().dps >= 0 ? '+' : '') + ghostDeltas().dps + ' DPS') : ''"></span>
+							<span class="rounded bg-slate-950/75 px-1.5 py-0.5 text-sky-300" x-text="ghostDeltas() ? ('CPU ' + (ghostDeltas().cpu >= 0 ? '+' : '') + ghostDeltas().cpu + ' tf') : ''"></span>
+							<span class="rounded bg-slate-950/75 px-1.5 py-0.5 text-rose-300" x-text="ghostDeltas() ? ('PG ' + (ghostDeltas().pg >= 0 ? '+' : '') + ghostDeltas().pg + ' MW') : ''"></span>
+							<span x-show="ghostDeltas() && ghostDeltas().overloaded" class="rounded bg-rose-600/80 px-1.5 py-0.5 font-bold text-white">OVERLOAD!</span>
 						</div>
 
 						<!-- Live Resource Margin Strip Directly Below Wheel -->
@@ -1160,6 +1176,34 @@ templ TacticalPage(data *service.TacticalViewData) {
 								<span>Weak to: <strong class="text-emerald-300" x-text="(sim && sim.target_faction.weak_against || []).join(' / ')"></strong></span>
 							</div>
 							<div class="mt-0.5 text-amber-200/90" x-show="sim && sim.target_faction.ewar_warning" x-text="'EWAR: ' + (sim && sim.target_faction.ewar_warning)"></div>
+						</div>
+					</div>
+
+					<!-- 3.5 ABYSSAL WEATHER & PILOT IMPLANTS / BOOSTERS -->
+					<div class="tactical-panel rounded-2xl p-3.5 space-y-2.5">
+						<div>
+							<div class="flex items-center justify-between mb-1.5">
+								<span class="text-[10px] font-mono font-bold uppercase tracking-wider text-violet-300">Abyssal Weather</span>
+								<span class="text-[9.5px] font-mono text-slate-400" x-text="fit.abyssal_weather ? fit.abyssal_weather.toUpperCase() : 'K-SPACE (NONE)'"></span>
+							</div>
+							<div class="grid grid-cols-5 gap-1 text-[10px] font-mono">
+								<button type="button" @click="setAbyssalWeather('electrical')" :class="fit.abyssal_weather === 'electrical' ? 'border-cyan-400 bg-cyan-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="-50% EM Resist, +50% Cap Recharge">Elec</button>
+								<button type="button" @click="setAbyssalWeather('exotic')" :class="fit.abyssal_weather === 'exotic' ? 'border-sky-400 bg-sky-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="-50% Kinetic Resist, +50% Scan Res">Exot</button>
+								<button type="button" @click="setAbyssalWeather('firestorm')" :class="fit.abyssal_weather === 'firestorm' ? 'border-rose-400 bg-rose-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="-50% Thermal Resist, +50% Armor HP">Fire</button>
+								<button type="button" @click="setAbyssalWeather('gamma')" :class="fit.abyssal_weather === 'gamma' ? 'border-amber-400 bg-amber-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="-50% Explosive Resist, +50% Shield HP">Gamm</button>
+								<button type="button" @click="setAbyssalWeather('dark')" :class="fit.abyssal_weather === 'dark' ? 'border-violet-400 bg-violet-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="-50% Turret Range, +50% Velocity">Dark</button>
+							</div>
+						</div>
+						<div>
+							<div class="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-300 mb-1.5">Implants &amp; Boosters</div>
+							<div class="grid grid-cols-3 gap-1 text-[10px] font-mono">
+								<button type="button" @click="toggleImplant('cpu_3')" :class="hasImplant('cpu_3') ? 'border-sky-400 bg-sky-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition">+3% CPU</button>
+								<button type="button" @click="toggleImplant('pg_3')" :class="hasImplant('pg_3') ? 'border-rose-400 bg-rose-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition">+3% PG</button>
+								<button type="button" @click="toggleImplant('cap_5')" :class="hasImplant('cap_5') ? 'border-amber-400 bg-amber-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition">+5% Cap</button>
+								<button type="button" @click="toggleImplant('dmg_3')" :class="hasImplant('dmg_3') ? 'border-violet-400 bg-violet-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition">+3% DPS</button>
+								<button type="button" @click="toggleImplant('blue_pill')" :class="hasImplant('blue_pill') ? 'border-cyan-400 bg-cyan-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="+20% Shield Boost">Blue Pill</button>
+								<button type="button" @click="toggleImplant('exile')" :class="hasImplant('exile') ? 'border-emerald-400 bg-emerald-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="+20% Armor Repair">Exile</button>
+							</div>
 						</div>
 					</div>
 

@@ -173,6 +173,10 @@
 			dragOverSlotKey: '',
 			hoverSlotKey: '',
 			hoverModule: null,
+			ghostSim: null,
+			ghostSlotKey: '',
+			ghostTimer: null,
+			ghostSeq: 0,
 
 			// Modals
 			eftModalOpen: false,
@@ -459,6 +463,7 @@
 					const isSelected = !!(this.selectedSlot && this.selectedSlot.kind === slot.kind && this.selectedSlot.index === slot.index);
 					const isDrop = this.dragOverSlotKey === slot.key;
 					const isHover = this.hoverSlotKey === slot.key;
+					const isGhost = this.ghostSlotKey === slot.key;
 					const d = annularSectorPath(280, 280, 202, 246, slot.deg - halfSpan, slot.deg + halfSpan);
 
 					let fill = 'rgba(3, 5, 12, 0.92)';
@@ -478,6 +483,11 @@
 						fill = 'rgba(20, 28, 48, 0.92)';
 					}
 
+					if (isGhost) {
+						stroke = '#38bdf8';
+						strokeW = '1.4';
+						fill = 'rgba(14, 165, 233, 0.25)';
+					}
 					if (isDrop || isSelected) {
 						stroke = '#fbbf24';
 						strokeW = '1.4';
@@ -500,14 +510,28 @@
 					const stroke = seg.active ? (calOver ? '#f43f5e' : '#e2e8f0') : 'rgba(148,163,184,0.20)';
 					svg += `<line x1="${seg.x1}" y1="${seg.y1}" x2="${seg.x2}" y2="${seg.y2}" stroke="${stroke}" stroke-width="2.6" stroke-linecap="round"></line>`;
 				}
-				// CPU Segmented Arc (Right-Mid — Ice Blue #38bdf8)
-				for (const seg of this.cpuTicks()) {
-					const stroke = seg.active ? (cpuOver ? '#f43f5e' : '#38bdf8') : 'rgba(56,189,248,0.18)';
+				// CPU Segmented Arc (Right-Mid — Ice Blue #38bdf8, plus Amber Ghost Preview ticks!)
+				const cpuGhostPct = (this.ghostSim && this.ghostSim.cpu && this.ghostSim.cpu.percent) || 0;
+				const cpuBaseTicks = this.cpuTicks();
+				const cpuGhostTicks = buildTickSegments(280, 280, 258, 273, 0, 52, 28, cpuGhostPct);
+				for (let i = 0; i < cpuBaseTicks.length; i++) {
+					const seg = cpuBaseTicks[i];
+					const gActive = this.ghostSim && cpuGhostTicks[i] && cpuGhostTicks[i].active;
+					let stroke = 'rgba(56,189,248,0.18)';
+					if (seg.active) stroke = cpuOver ? '#f43f5e' : '#38bdf8';
+					else if (gActive) stroke = (this.ghostSim.cpu.overloaded ? '#f43f5e' : '#fbbf24');
 					svg += `<line x1="${seg.x1}" y1="${seg.y1}" x2="${seg.x2}" y2="${seg.y2}" stroke="${stroke}" stroke-width="2.8" stroke-linecap="round"></line>`;
 				}
-				// Powergrid Segmented Arc (Bottom-Right — Crimson Coral #fb7185)
-				for (const seg of this.powergridTicks()) {
-					const stroke = seg.active ? (pgOver ? '#ff2a55' : '#fb7185') : 'rgba(244,63,94,0.20)';
+				// Powergrid Segmented Arc (Bottom-Right — Crimson Coral #fb7185, plus Amber Ghost Preview ticks!)
+				const pgGhostPct = (this.ghostSim && this.ghostSim.powergrid && this.ghostSim.powergrid.percent) || 0;
+				const pgBaseTicks = this.powergridTicks();
+				const pgGhostTicks = buildTickSegments(280, 280, 258, 273, 58, 112, 28, pgGhostPct);
+				for (let i = 0; i < pgBaseTicks.length; i++) {
+					const seg = pgBaseTicks[i];
+					const gActive = this.ghostSim && pgGhostTicks[i] && pgGhostTicks[i].active;
+					let stroke = 'rgba(244,63,94,0.20)';
+					if (seg.active) stroke = pgOver ? '#ff2a55' : '#fb7185';
+					else if (gActive) stroke = (this.ghostSim.powergrid.overloaded ? '#ff2a55' : '#fbbf24');
 					svg += `<line x1="${seg.x1}" y1="${seg.y1}" x2="${seg.x2}" y2="${seg.y2}" stroke="${stroke}" stroke-width="2.8" stroke-linecap="round"></line>`;
 				}
 				// Hardpoint Pips (Top-Right Collar)
@@ -1282,6 +1306,88 @@
 					multibuyLines.push(sf.ship_name + ' x' + n);
 				}
 				return { totalShips, totalISK, totalEHP, totalDPS, multibuy: multibuyLines.join('\n') };
+			},
+
+			// =================================================================
+			// Batch 6: Hover Ghost Preview & Abyssal Weather / Implants Modifiers
+			// =================================================================
+			startGhostPreview(mod) {
+				if (!mod || !mod.type_id || this.activeSlotFilter === 'drone') return;
+				this.hoverModule = mod;
+				if (this.ghostTimer) clearTimeout(this.ghostTimer);
+				const seq = ++this.ghostSeq;
+				this.ghostTimer = setTimeout(async () => {
+					const kind = (this.selectedSlot && this.selectedSlot.kind) || this.activeSlotFilter || 'high';
+					const maxCount = this.slotCounts()[kind] || 0;
+					if (maxCount <= 0) return;
+					let idx = (this.selectedSlot && this.selectedSlot.kind === kind) ? this.selectedSlot.index : -1;
+					if (idx < 0) {
+						for (let i = 0; i < maxCount; i++) {
+							if (!this.getModuleAt(kind, i)) { idx = i; break; }
+						}
+					}
+					if (idx < 0) idx = maxCount - 1;
+
+					const cloned = JSON.parse(JSON.stringify(this.fit));
+					cloned.modules = (cloned.modules || []).filter((m) => !(m.slot_kind === kind && m.slot_index === idx));
+					cloned.modules.push({
+						slot_kind: kind,
+						slot_index: idx,
+						type_id: mod.type_id,
+						name: mod.name,
+						state: kind === 'rig' ? 'passive' : 'active',
+					});
+					try {
+						const res = await fetch('/tactical/api/simulate', {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify(cloned),
+						});
+						const data = await res.json();
+						if (res.ok && seq === this.ghostSeq) {
+							this.ghostSim = data;
+							this.ghostSlotKey = kind + '-' + idx;
+						}
+					} catch (_) {}
+				}, 180);
+			},
+
+			clearGhostPreview() {
+				this.ghostSeq++;
+				if (this.ghostTimer) clearTimeout(this.ghostTimer);
+				this.hoverModule = null;
+				this.ghostSim = null;
+				this.ghostSlotKey = '';
+			},
+
+			ghostDeltas() {
+				if (!this.ghostSim || !this.sim) return null;
+				return {
+					name: (this.hoverModule && this.hoverModule.name) || 'Module Preview',
+					ehp: Math.round(this.ghostSim.total_ehp - this.sim.total_ehp),
+					dps: Math.round((this.ghostSim.offense.total_dps - this.sim.offense.total_dps) * 10) / 10,
+					cpu: Math.round((this.ghostSim.cpu.used - this.sim.cpu.used) * 10) / 10,
+					pg: Math.round((this.ghostSim.powergrid.used - this.sim.powergrid.used) * 10) / 10,
+					overloaded: !!(this.ghostSim.cpu.overloaded || this.ghostSim.powergrid.overloaded || this.ghostSim.calibration.overloaded),
+				};
+			},
+
+			setAbyssalWeather(w) {
+				this.fit.abyssal_weather = (this.fit.abyssal_weather === w) ? '' : w;
+				this.runSimulate();
+			},
+
+			toggleImplant(key) {
+				const list = Array.isArray(this.fit.implants) ? [...this.fit.implants] : [];
+				const idx = list.indexOf(key);
+				if (idx >= 0) list.splice(idx, 1);
+				else list.push(key);
+				this.fit.implants = list;
+				this.runSimulate();
+			},
+
+			hasImplant(key) {
+				return Array.isArray(this.fit.implants) && this.fit.implants.includes(key);
 			},
 		};
 	};
