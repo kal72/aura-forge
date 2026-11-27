@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -126,6 +127,7 @@ type PIExtractorHead struct {
 type PIPinContent struct {
 	TypeID int32  `json:"type_id"`
 	Name   string `json:"name"`
+	Tier   PITier `json:"tier,omitempty"`
 	Amount int64  `json:"amount"`
 }
 
@@ -138,7 +140,9 @@ type PIPlanetPin struct {
 	Latitude      float64           `json:"latitude"`
 	Longitude     float64           `json:"longitude"`
 	SchematicName string            `json:"schematic_name,omitempty"`
+	ProductTypeID int32             `json:"product_type_id,omitempty"`
 	ProductName   string            `json:"product_name,omitempty"`
+	ProductTier   PITier            `json:"product_tier,omitempty"`
 	ExpiryTime    string            `json:"expiry_time,omitempty"`
 	HeadRadius    float64           `json:"head_radius,omitempty"`
 	QtyPerCycle   int               `json:"qty_per_cycle,omitempty"`
@@ -161,6 +165,7 @@ type PIPlanetRoute struct {
 	DestinationPinID int64   `json:"destination_pin_id"`
 	ContentTypeID    int32   `json:"content_type_id"`
 	ContentName      string  `json:"content_name"`
+	ContentTier      PITier  `json:"content_tier,omitempty"`
 	Quantity         float64 `json:"quantity"`
 }
 
@@ -168,9 +173,130 @@ type PIPlanetRoute struct {
 type PIPlanetLayout struct {
 	PlanetID   int32           `json:"planet_id"`
 	PlanetName string          `json:"planet_name"`
+	PlanetType string          `json:"planet_type,omitempty"`
+	PlanetIcon int32           `json:"planet_icon_type_id,omitempty"`
 	Pins       []PIPlanetPin   `json:"pins"`
 	Links      []PIPlanetLink  `json:"links"`
 	Routes     []PIPlanetRoute `json:"routes"`
+}
+
+// FindPICommodityByID looks up any P0–P4 PI commodity in the built-in catalog by EVE TypeID.
+func FindPICommodityByID(typeID int32) (PICommodity, bool) {
+	c, ok := piCatalogByID[typeID]
+	return c, ok
+}
+
+// FindPICommodityByName looks up any P0–P4 PI commodity in the built-in catalog by case-insensitive name.
+func FindPICommodityByName(name string) (PICommodity, bool) {
+	target := strings.ToLower(strings.TrimSpace(name))
+	if target == "" {
+		return PICommodity{}, false
+	}
+	for _, c := range piCatalogList {
+		if strings.ToLower(c.Name) == target {
+			return c, true
+		}
+	}
+	return PICommodity{}, false
+}
+
+// ParsedStorageItems parses StorageSummary (e.g. "Mechanical Parts ×1200 • Base Metals ×5000")
+// into structured items with resolved official EVE TypeIDs so UI tables can render commodity icons.
+func (c PIColony) ParsedStorageItems() []PIPinContent {
+	raw := strings.TrimSpace(c.StorageSummary)
+	if raw == "" {
+		return nil
+	}
+	parts := strings.Split(raw, "•")
+	out := make([]PIPinContent, 0, len(parts))
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		name := part
+		var amount int64
+		if idx := strings.LastIndex(part, "×"); idx > 0 {
+			name = strings.TrimSpace(part[:idx])
+			qtyStr := strings.ReplaceAll(strings.TrimSpace(part[idx+len("×"):]), ",", "")
+			if n, err := strconv.ParseInt(qtyStr, 10, 64); err == nil {
+				amount = n
+			}
+		}
+		var typeID int32
+		var tier PITier
+		if comm, ok := FindPICommodityByName(name); ok {
+			typeID = comm.TypeID
+			name = comm.Name
+			tier = comm.Tier
+		} else if strings.HasPrefix(name, "Item #") {
+			if idNum, err := strconv.ParseInt(strings.TrimPrefix(name, "Item #"), 10, 32); err == nil {
+				typeID = int32(idNum)
+				if comm, ok := FindPICommodityByID(typeID); ok {
+					name = comm.Name
+					tier = comm.Tier
+				}
+			}
+		}
+		out = append(out, PIPinContent{
+			TypeID: typeID,
+			Name:   name,
+			Tier:   tier,
+			Amount: amount,
+		})
+	}
+	return out
+}
+
+// ParsedFactoryItems parses synced factory lists from Note ("Factories: A, B, C")
+// into structured PICommodity entries with official TypeID and Tier for icon & tier badge rendering.
+func (c PIColony) ParsedFactoryItems() []PICommodity {
+	raw := strings.TrimSpace(c.Note)
+	if !strings.HasPrefix(raw, "Factories:") {
+		return nil
+	}
+	rest := strings.TrimSpace(strings.TrimPrefix(raw, "Factories:"))
+	if rest == "" {
+		return nil
+	}
+	parts := strings.Split(rest, ",")
+	out := make([]PICommodity, 0, len(parts))
+	for _, p := range parts {
+		name := strings.TrimSpace(p)
+		if name == "" {
+			continue
+		}
+		if comm, ok := FindPICommodityByName(name); ok {
+			out = append(out, comm)
+		} else {
+			out = append(out, PICommodity{Name: name})
+		}
+	}
+	return out
+}
+
+// PlanetTypeIconID returns the official EVE Online TypeID for a planet type's icon/render.
+func PlanetTypeIconID(planetType string) int32 {
+	switch strings.ToLower(strings.TrimSpace(planetType)) {
+	case "temperate":
+		return 11
+	case "ice":
+		return 12
+	case "gas":
+		return 13
+	case "oceanic":
+		return 2014
+	case "lava":
+		return 2015
+	case "barren":
+		return 2016
+	case "storm":
+		return 2017
+	case "plasma":
+		return 2063
+	default:
+		return 11
+	}
 }
 
 // StatusLabel returns ACTIVE, EXPIRING, or EXPIRED along with a human-readable time remaining label.

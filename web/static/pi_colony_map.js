@@ -1,16 +1,15 @@
 // aura-forge Interactive HTML5 Canvas Planet Colony Map Visualizer
-// Renders EVE Online PI pins (Command Center, Extractor + Heads, Launchpad, Storage, Factories),
-// links, and animated material routes using exact spherical (latitude/longitude) coordinates from ESI.
+// Features Semantic Zoom (nodes spread apart when zooming while shapes & labels stay crisp constant size).
 (function () {
 	const ROLE_STYLE = {
-		command_center:   { color: '#fbbf24', fill: 'rgba(251,191,36,0.22)',  short: 'CC',  label: 'Command Center',     r: 16 },
-		extractor:        { color: '#f59e0b', fill: 'rgba(245,158,11,0.22)',  short: 'EXT', label: 'Extractor Control',  r: 15 },
-		launchpad:        { color: '#34d399', fill: 'rgba(52,211,153,0.22)',  short: 'PAD', label: 'Launchpad',          r: 15 },
-		storage:          { color: '#22d3ee', fill: 'rgba(34,211,238,0.20)',  short: 'STR', label: 'Storage Facility',   r: 13 },
-		basic_factory:    { color: '#a78bfa', fill: 'rgba(167,139,250,0.22)', short: 'P1',  label: 'Basic Factory',      r: 13 },
-		advanced_factory: { color: '#38bdf8', fill: 'rgba(56,189,248,0.22)',  short: 'P2+', label: 'Advanced Factory',   r: 13 },
-		hightech_factory: { color: '#e879f9', fill: 'rgba(232,121,249,0.24)', short: 'P4',  label: 'High-Tech Factory',  r: 14 },
-		facility:         { color: '#94a3b8', fill: 'rgba(148,163,184,0.18)', short: 'PIN', label: 'Facility',           r: 12 },
+		command_center:   { color: '#fbbf24', fill: 'rgba(251,191,36,0.24)',  short: 'CC',  r: 17 },
+		extractor:        { color: '#f59e0b', fill: 'rgba(245,158,11,0.24)',  short: 'EXT', r: 17 },
+		launchpad:        { color: '#34d399', fill: 'rgba(52,211,153,0.24)',  short: 'PAD', r: 16 },
+		storage:          { color: '#22d3ee', fill: 'rgba(34,211,238,0.22)',  short: 'STR', r: 15 },
+		basic_factory:    { color: '#a78bfa', fill: 'rgba(167,139,250,0.24)', short: 'P1',  r: 15 },
+		advanced_factory: { color: '#38bdf8', fill: 'rgba(56,189,248,0.24)',  short: 'P2+', r: 15 },
+		hightech_factory: { color: '#e879f9', fill: 'rgba(232,121,249,0.26)', short: 'P4',  r: 16 },
+		facility:         { color: '#94a3b8', fill: 'rgba(148,163,184,0.20)', short: 'PIN', r: 14 },
 	};
 
 	window.afPIColonyMap = function () {
@@ -19,6 +18,7 @@
 			loading: false,
 			error: '',
 			planetName: '',
+			planetIconTypeId: 11,
 			layout: null,
 			selectedPin: null,
 			showRoutes: true,
@@ -30,16 +30,38 @@
 			dragStartX: 0,
 			dragStartY: 0,
 			animFrame: null,
+			resizeObserver: null,
 			phase: 0,
 			projected: [],
 			pinById: {},
 			scaleRad: 1,
+			viewW: 800,
+			viewH: 540,
 
-			async openPlanet(planetId, planetName) {
+			attachResizeObserver() {
+				const wrap = this.$refs.piCanvasWrap || (this.$refs.piCanvas && this.$refs.piCanvas.parentElement);
+				if (!wrap || typeof ResizeObserver === 'undefined') return;
+				if (this.resizeObserver) {
+					this.resizeObserver.disconnect();
+				}
+				this.resizeObserver = new ResizeObserver(() => {
+					if (!this.open || !this.layout) return;
+					const rect = wrap.getBoundingClientRect();
+					const w = Math.floor(rect.width);
+					const h = Math.floor(rect.height);
+					if (w > 0 && h > 0 && (w !== this.viewW || h !== this.viewH)) {
+						this.computeProjection();
+					}
+				});
+				this.resizeObserver.observe(wrap);
+			},
+
+			async openPlanet(planetId, planetName, planetIconId) {
 				this.open = true;
 				this.loading = true;
 				this.error = '';
 				this.planetName = planetName || ('Planet #' + planetId);
+				this.planetIconTypeId = planetIconId || 11;
 				this.layout = null;
 				this.selectedPin = null;
 				this.zoom = 1;
@@ -55,9 +77,13 @@
 					}
 					this.layout = data;
 					if (data.planet_name) this.planetName = data.planet_name;
+					if (data.planet_icon_type_id) this.planetIconTypeId = data.planet_icon_type_id;
 					this.$nextTick(() => {
-						this.computeProjection();
-						this.startAnim();
+						requestAnimationFrame(() => {
+							this.attachResizeObserver();
+							this.computeProjection();
+							this.startAnim();
+						});
 					});
 				} catch (e) {
 					this.error = 'Network error loading planet layout';
@@ -69,6 +95,10 @@
 			closeModal() {
 				this.open = false;
 				this.stopAnim();
+				if (this.resizeObserver) {
+					this.resizeObserver.disconnect();
+					this.resizeObserver = null;
+				}
 			},
 
 			resetView() {
@@ -78,7 +108,7 @@
 			},
 
 			zoomBy(factor) {
-				this.zoom = Math.max(0.4, Math.min(5.0, this.zoom * factor));
+				this.zoom = Math.max(0.4, Math.min(18.0, this.zoom * factor));
 			},
 
 			stopAnim() {
@@ -99,6 +129,14 @@
 				this.animFrame = requestAnimationFrame(tick);
 			},
 
+			// Semantic zoom projection: expands distance between pins while keeping icons constant size
+			toScreen(wx, wy) {
+				return {
+					x: this.viewW / 2 + (wx - this.viewW / 2) * this.zoom + this.panX,
+					y: this.viewH / 2 + (wy - this.viewH / 2) * this.zoom + this.panY,
+				};
+			},
+
 			computeProjection() {
 				const canvas = this.$refs.piCanvas;
 				if (!canvas || !this.layout || !this.layout.pins || this.layout.pins.length === 0) {
@@ -106,14 +144,19 @@
 					this.pinById = {};
 					return;
 				}
-				const rect = canvas.getBoundingClientRect();
-				const w = Math.max(480, Math.floor(rect.width || 720));
-				const h = Math.max(380, Math.floor(rect.height || 460));
+				const wrap = this.$refs.piCanvasWrap || canvas.parentElement;
+				const rect = (wrap || canvas).getBoundingClientRect();
+				const w = Math.floor(rect.width);
+				const h = Math.floor(rect.height);
+				if (w < 40 || h < 40) return;
+				this.viewW = w;
+				this.viewH = h;
 				const dpr = window.devicePixelRatio || 1;
-				canvas.width = w * dpr;
-				canvas.height = h * dpr;
+				canvas.style.width = w + 'px';
+				canvas.style.height = h + 'px';
+				canvas.width = Math.round(w * dpr);
+				canvas.height = Math.round(h * dpr);
 
-				// Collect all coordinates (pins + extractor heads) for accurate centering & scale
 				const pts = [];
 				for (const p of this.layout.pins) {
 					pts.push({ lat: p.latitude, lon: p.longitude });
@@ -122,7 +165,6 @@
 					}
 				}
 
-				// Circular mean for longitude (handles antimeridian wrap cleanly)
 				let sinLon = 0, cosLon = 0, sumLat = 0;
 				for (const pt of pts) {
 					sinLon += Math.sin(pt.lon);
@@ -141,25 +183,24 @@
 				};
 
 				let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-				const rawPts = pts.map(pt => {
+				for (const pt of pts) {
 					const x = normDeltaLon(pt.lon) * cosLat;
 					const y = -(pt.lat - centerLat);
 					if (x < minX) minX = x;
 					if (x > maxX) maxX = x;
 					if (y < minY) minY = y;
 					if (y > maxY) maxY = y;
-					return { x, y };
-				});
+				}
 
 				const spanX = Math.max(0.005, maxX - minX);
 				const spanY = Math.max(0.005, maxY - minY);
-				const pad = 72;
+				const pad = 80;
 				const scale = Math.min((w - pad * 2) / spanX, (h - pad * 2) / spanY);
 				const midX = (minX + maxX) / 2;
 				const midY = (minY + maxY) / 2;
 				this.scaleRad = scale;
 
-				const toCanvas = (lat, lon) => ({
+				const toWorld = (lat, lon) => ({
 					x: w / 2 + (normDeltaLon(lon) * cosLat - midX) * scale,
 					y: h / 2 + (-(lat - centerLat) - midY) * scale,
 				});
@@ -167,10 +208,10 @@
 				this.projected = [];
 				this.pinById = {};
 				for (const p of this.layout.pins) {
-					const pos = toCanvas(p.latitude, p.longitude);
+					const pos = toWorld(p.latitude, p.longitude);
 					const heads = (p.heads || []).map(hd => ({
 						...hd,
-						...toCanvas(hd.latitude, hd.longitude),
+						...toWorld(hd.latitude, hd.longitude),
 					}));
 					const item = { ...p, x: pos.x, y: pos.y, pHeads: heads };
 					this.projected.push(item);
@@ -180,7 +221,7 @@
 
 			onWheel(e) {
 				e.preventDefault();
-				const factor = e.deltaY < 0 ? 1.12 : 0.89;
+				const factor = e.deltaY < 0 ? 1.18 : 0.85;
 				this.zoomBy(factor);
 			},
 
@@ -206,17 +247,13 @@
 				const rect = canvas.getBoundingClientRect();
 				const cx = e.clientX - rect.left;
 				const cy = e.clientY - rect.top;
-				const w = rect.width;
-				const h = rect.height;
 
-				// Invert transform
-				const wx = (cx - w / 2 - this.panX) / this.zoom + w / 2;
-				const wy = (cy - h / 2 - this.panY) / this.zoom + h / 2;
-
+				// Hit test directly in screen space (matches Semantic Zoom constant node radii!)
 				let best = null;
-				let bestDist = 24 / Math.sqrt(this.zoom);
+				let bestDist = 26;
 				for (const p of this.projected) {
-					const d = Math.hypot(p.x - wx, p.y - wy);
+					const sp = this.toScreen(p.x, p.y);
+					const d = Math.hypot(sp.x - cx, sp.y - cy);
 					if (d < bestDist) {
 						bestDist = d;
 						best = p;
@@ -242,8 +279,8 @@
 				if (!canvas) return;
 				const ctx = canvas.getContext('2d');
 				const dpr = window.devicePixelRatio || 1;
-				const w = canvas.width / dpr;
-				const h = canvas.height / dpr;
+				const w = this.viewW;
+				const h = this.viewH;
 
 				ctx.save();
 				ctx.scale(dpr, dpr);
@@ -266,36 +303,33 @@
 					ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke();
 				}
 
-				// Apply pan & zoom around center
-				ctx.translate(w / 2 + this.panX, h / 2 + this.panY);
-				ctx.scale(this.zoom, this.zoom);
-				ctx.translate(-w / 2, -h / 2);
-
-				// 1. Draw Extractor Head circles & tethers
+				// 1. Draw Extractor Head circles & tethers (Semantic Zoom positions)
 				if (this.showHeads) {
 					for (const p of this.projected) {
 						if (!p.pHeads || !p.pHeads.length) continue;
-						const headR = Math.max(6, Math.min(28, (p.head_radius || 0.015) * this.scaleRad));
+						const sp = this.toScreen(p.x, p.y);
+						const headR = Math.max(7, Math.min(36, (p.head_radius || 0.015) * this.scaleRad * Math.sqrt(this.zoom)));
 						for (const hd of p.pHeads) {
+							const sh = this.toScreen(hd.x, hd.y);
 							ctx.strokeStyle = 'rgba(245, 158, 11, 0.35)';
 							ctx.lineWidth = 1;
 							ctx.setLineDash([3, 3]);
 							ctx.beginPath();
-							ctx.moveTo(p.x, p.y);
-							ctx.lineTo(hd.x, hd.y);
+							ctx.moveTo(sp.x, sp.y);
+							ctx.lineTo(sh.x, sh.y);
 							ctx.stroke();
 							ctx.setLineDash([]);
 
 							ctx.fillStyle = 'rgba(245, 158, 11, 0.14)';
 							ctx.strokeStyle = 'rgba(251, 191, 36, 0.55)';
 							ctx.beginPath();
-							ctx.arc(hd.x, hd.y, headR, 0, Math.PI * 2);
+							ctx.arc(sh.x, sh.y, headR, 0, Math.PI * 2);
 							ctx.fill();
 							ctx.stroke();
 
 							ctx.fillStyle = '#fde68a';
 							ctx.beginPath();
-							ctx.arc(hd.x, hd.y, 2.5, 0, Math.PI * 2);
+							ctx.arc(sh.x, sh.y, 2.8, 0, Math.PI * 2);
 							ctx.fill();
 						}
 					}
@@ -307,11 +341,13 @@
 						const a = this.pinById[String(l.source_pin_id)];
 						const b = this.pinById[String(l.destination_pin_id)];
 						if (!a || !b) continue;
-						ctx.strokeStyle = 'rgba(148, 163, 184, 0.38)';
-						ctx.lineWidth = 1.5 + Math.min(3, (l.link_level || 0) * 0.4);
+						const sa = this.toScreen(a.x, a.y);
+						const sb = this.toScreen(b.x, b.y);
+						ctx.strokeStyle = 'rgba(148, 163, 184, 0.40)';
+						ctx.lineWidth = 1.6 + Math.min(2.5, (l.link_level || 0) * 0.35);
 						ctx.beginPath();
-						ctx.moveTo(a.x, a.y);
-						ctx.lineTo(b.x, b.y);
+						ctx.moveTo(sa.x, sa.y);
+						ctx.lineTo(sb.x, sb.y);
 						ctx.stroke();
 					}
 				}
@@ -322,28 +358,30 @@
 						const a = this.pinById[String(r.source_pin_id)];
 						const b = this.pinById[String(r.destination_pin_id)];
 						if (!a || !b) continue;
+						const sa = this.toScreen(a.x, a.y);
+						const sb = this.toScreen(b.x, b.y);
 						ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
 						ctx.lineWidth = 1.6;
 						ctx.setLineDash([5, 5]);
 						ctx.beginPath();
-						ctx.moveTo(a.x, a.y);
-						ctx.lineTo(b.x, b.y);
+						ctx.moveTo(sa.x, sa.y);
+						ctx.lineTo(sb.x, sb.y);
 						ctx.stroke();
 						ctx.setLineDash([]);
 
-						// Moving pulse particle along route
-						const px = a.x + (b.x - a.x) * this.phase;
-						const py = a.y + (b.y - a.y) * this.phase;
+						const px = sa.x + (sb.x - sa.x) * this.phase;
+						const py = sa.y + (sb.y - sa.y) * this.phase;
 						ctx.fillStyle = '#38bdf8';
 						ctx.beginPath();
-						ctx.arc(px, py, 2.8, 0, Math.PI * 2);
+						ctx.arc(px, py, 3, 0, Math.PI * 2);
 						ctx.fill();
 					}
 				}
 
-				// 4. Draw Pin Nodes
+				// 4. Draw Crisp Constant-Size Pin Nodes (clean vector shapes + high-contrast text)
 				for (const p of this.projected) {
 					const st = ROLE_STYLE[p.role] || ROLE_STYLE.facility;
+					const sp = this.toScreen(p.x, p.y);
 					const isSelected = this.selectedPin && this.selectedPin.pin_id === p.pin_id;
 					const r = st.r;
 
@@ -351,53 +389,62 @@
 						ctx.strokeStyle = '#ffffff';
 						ctx.lineWidth = 2.5;
 						ctx.beginPath();
-						ctx.arc(p.x, p.y, r + 5, 0, Math.PI * 2);
+						ctx.arc(sp.x, sp.y, r + 5, 0, Math.PI * 2);
 						ctx.stroke();
 					}
 
+					// Solid dark backdrop + role-tinted fill + bright border
+					ctx.beginPath();
+					if (p.role === 'extractor') {
+						ctx.moveTo(sp.x, sp.y - r - 2);
+						ctx.lineTo(sp.x + r + 2, sp.y);
+						ctx.lineTo(sp.x, sp.y + r + 2);
+						ctx.lineTo(sp.x - r - 2, sp.y);
+						ctx.closePath();
+					} else if (p.role === 'launchpad' || p.role === 'storage') {
+						ctx.roundRect(sp.x - r, sp.y - r, r * 2, r * 2, 5);
+					} else {
+						ctx.arc(sp.x, sp.y, r, 0, Math.PI * 2);
+					}
+					ctx.fillStyle = '#0c0f22';
+					ctx.fill();
 					ctx.fillStyle = st.fill;
+					ctx.fill();
 					ctx.strokeStyle = st.color;
 					ctx.lineWidth = 2;
+					ctx.stroke();
 
-					if (p.role === 'extractor') {
-						// Diamond
-						ctx.beginPath();
-						ctx.moveTo(p.x, p.y - r);
-						ctx.lineTo(p.x + r, p.y);
-						ctx.lineTo(p.x, p.y + r);
-						ctx.lineTo(p.x - r, p.y);
-						ctx.closePath();
-						ctx.fill();
-						ctx.stroke();
-					} else if (p.role === 'launchpad' || p.role === 'storage') {
-						// Square
-						ctx.beginPath();
-						ctx.rect(p.x - r * 0.85, p.y - r * 0.85, r * 1.7, r * 1.7);
-						ctx.fill();
-						ctx.stroke();
-					} else {
-						// Circle
-						ctx.beginPath();
-						ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-						ctx.fill();
-						ctx.stroke();
-					}
-
-					// Short badge text inside pin
+					// Crisp centered short role code inside pin
 					ctx.fillStyle = '#f8fafc';
-					ctx.font = 'bold 9px ui-monospace, SFMono-Regular, monospace';
+					ctx.font = 'bold 9.5px ui-monospace, SFMono-Regular, monospace';
 					ctx.textAlign = 'center';
 					ctx.textBaseline = 'middle';
-					ctx.fillText(st.short, p.x, p.y);
+					ctx.fillText(st.short, sp.x, sp.y);
 
-					// Sub-label (Schematic or Extracted Product)
+					// Crisp constant-size label below pin
 					const caption = p.schematic_name || p.product_name || '';
 					if (caption) {
-						ctx.fillStyle = 'rgba(226, 232, 240, 0.88)';
-						ctx.font = '10px system-ui, -apple-system, sans-serif';
-						ctx.fillText(caption.length > 18 ? caption.slice(0, 17) + '…' : caption, p.x, p.y + r + 11);
+						ctx.fillStyle = 'rgba(226, 232, 240, 0.92)';
+						ctx.font = '600 10.5px system-ui, -apple-system, sans-serif';
+						ctx.textAlign = 'center';
+						ctx.textBaseline = 'top';
+						ctx.fillText(caption.length > 20 ? caption.slice(0, 19) + '…' : caption, sp.x, sp.y + r + 5);
 					}
 				}
+
+				// Zoom indicator badge in top-right of canvas
+				ctx.fillStyle = 'rgba(15, 17, 38, 0.82)';
+				ctx.strokeStyle = 'rgba(139, 92, 246, 0.35)';
+				ctx.lineWidth = 1;
+				ctx.beginPath();
+				ctx.roundRect(w - 118, 12, 106, 24, 6);
+				ctx.fill();
+				ctx.stroke();
+				ctx.fillStyle = '#cbd5e1';
+				ctx.font = 'bold 10.5px ui-monospace, SFMono-Regular, monospace';
+				ctx.textAlign = 'center';
+				ctx.textBaseline = 'middle';
+				ctx.fillText('ZOOM ' + this.zoom.toFixed(1) + '×', w - 65, 24);
 
 				ctx.restore();
 			}

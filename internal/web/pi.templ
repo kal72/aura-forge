@@ -113,7 +113,8 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 					if (t === 'P4') return 'border-amber-400/50 bg-amber-500/20 text-amber-200';
 					if (t === 'P3') return 'border-violet-400/50 bg-violet-500/25 text-violet-200';
 					if (t === 'P2') return 'border-sky-400/45 bg-sky-500/20 text-sky-200';
-					return 'border-emerald-400/45 bg-emerald-500/20 text-emerald-200';
+					if (t === 'P1') return 'border-emerald-400/45 bg-emerald-500/20 text-emerald-200';
+					return 'border-slate-500/40 bg-slate-700/30 text-slate-200';
 				},
 				addSalesRow(tid) {
 					this.salesRows.push({ uid: this.salesNextUID++, typeId: String(tid || '9832'), qty: 1000, open: false, q: '' });
@@ -743,22 +744,33 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 											{{ st, rem := c.StatusLabel(now) }}
 											<tr class="hover:bg-white/5 align-top">
 												<td class="px-4 py-3">
-													<div class="font-semibold text-white">{ c.PlanetName }</div>
-													<div class="font-mono text-[10.5px] text-slate-400">
-														{ c.SolarSystem }
-														if c.SyncedFromSSO {
-															<span class={ "ml-1.5 font-bold " + func() string {
-																if c.SecurityStatus >= 0.5 {
-																	return "text-emerald-300"
+													<div class="flex items-center gap-2.5">
+														<img
+															src={ EVEItemIconURL(domain.PlanetTypeIconID(c.PlanetType), 64) }
+															alt={ c.PlanetType }
+															loading="lazy"
+															class="h-8 w-8 shrink-0 rounded-full border border-violet-400/35 bg-slate-950 object-cover"
+															onerror="this.style.display='none'"
+														/>
+														<div>
+															<div class="font-semibold text-white">{ c.PlanetName }</div>
+															<div class="font-mono text-[10.5px] text-slate-400">
+																{ c.SolarSystem }
+																if c.SyncedFromSSO {
+																	<span class={ "ml-1.5 font-bold " + func() string {
+																		if c.SecurityStatus >= 0.5 {
+																			return "text-emerald-300"
+																		}
+																		if c.SecurityStatus > 0.0 {
+																			return "text-amber-300"
+																		}
+																		return "text-rose-300"
+																	}() }>
+																		({ fmt.Sprintf("%.1f", c.SecurityStatus) })
+																	</span>
 																}
-																if c.SecurityStatus > 0.0 {
-																	return "text-amber-300"
-																}
-																return "text-rose-300"
-															}() }>
-																({ fmt.Sprintf("%.1f", c.SecurityStatus) })
-															</span>
-														}
+															</div>
+														</div>
 													</div>
 												</td>
 												<td class="px-3 py-3">
@@ -775,19 +787,38 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 															<img src={ EVEItemIconURL(c.ProductTypeID, 32) } alt={ c.ProductName } loading="lazy" class="h-6 w-6 shrink-0 rounded border border-violet-400/25 bg-slate-950/80 object-contain" onerror="this.style.display='none'"/>
 														}
 														<span class="font-medium text-white">{ c.ProductName }</span>
-														if c.Tier != "" {
-															<span class={ "rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold " + piTierBadgeClass(c.Tier) }>{ string(c.Tier) }</span>
-														}
 													</div>
 													if c.Note != "" {
 														<div class="mt-1 text-[10.5px] text-slate-400">{ c.Note }</div>
 													}
 												</td>
-												<td class="px-3 py-3 font-mono text-[11px] text-sky-200/90 max-w-xs">
-													if c.StorageSummary != "" {
-														{ c.StorageSummary }
+												<td class="px-3 py-3 max-w-xs">
+													{{ storedItems := c.ParsedStorageItems() }}
+													if len(storedItems) > 0 {
+														<div class="flex flex-wrap gap-1.5">
+															for _, stItem := range storedItems {
+																<div class="inline-flex items-center gap-1.5 rounded-md border border-sky-400/20 bg-slate-950/60 px-2 py-1 text-[11px]">
+																	if stItem.TypeID > 0 {
+																		<img
+																			src={ EVEItemIconURL(stItem.TypeID, 32) }
+																			alt={ stItem.Name }
+																			loading="lazy"
+																			class="h-4 w-4 shrink-0 rounded-sm object-contain"
+																			onerror="this.style.display='none'"
+																		/>
+																	}
+																	if stItem.Tier != "" {
+																		<span class={ "shrink-0 rounded border px-1 font-mono text-[9px] font-bold " + piTierBadgeClass(stItem.Tier) }>{ string(stItem.Tier) }</span>
+																	}
+																	<span class="text-slate-200 truncate max-w-[140px]">{ stItem.Name }</span>
+																	if stItem.Amount > 0 {
+																		<span class="font-mono font-bold text-sky-300">×{ fmt.Sprintf("%d", stItem.Amount) }</span>
+																	}
+																</div>
+															}
+														</div>
 													} else {
-														<span class="text-slate-500">—</span>
+														<span class="font-mono text-[11px] text-slate-500">—</span>
 													}
 												</td>
 												<td class="px-4 py-3 text-right font-mono whitespace-nowrap">
@@ -805,7 +836,8 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 															type="button"
 															data-planet-id={ fmt.Sprintf("%d", c.PlanetID) }
 															data-planet-name={ c.PlanetName }
-															@click="$dispatch('open-pi-colony-map', { id: Number($el.dataset.planetId), name: $el.dataset.planetName })"
+															data-planet-icon={ fmt.Sprintf("%d", domain.PlanetTypeIconID(c.PlanetType)) }
+															@click="$dispatch('open-pi-colony-map', { id: Number($el.dataset.planetId), name: $el.dataset.planetName, iconId: Number($el.dataset.planetIcon) })"
 															class="rounded-md border border-sky-400/45 bg-sky-500/15 px-2.5 py-1.5 text-[11px] font-bold text-sky-200 hover:bg-sky-500/30 transition cursor-pointer"
 														>
 															{ i18n.L(ctx, "Inspect Map", "Lihat Peta") }
@@ -826,20 +858,28 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 				<!-- Interactive HTML5 Canvas Planet Colony Map Modal (Full-Screen Mode; hidden by default) -->
 				<div
 					x-data="window.afPIColonyMap ? afPIColonyMap() : { open: false }"
-					@open-pi-colony-map.window="if (openPlanet) openPlanet($event.detail.id, $event.detail.name)"
+					@open-pi-colony-map.window="if (openPlanet) openPlanet($event.detail.id, $event.detail.name, $event.detail.iconId)"
 					@keydown.escape.window="if (open && closeModal) closeModal()"
 					@resize.window="if (open && computeProjection) computeProjection()"
 				>
-					<div x-cloak x-show="open" style="display: none;" class="fixed inset-0 z-[100] flex items-stretch justify-stretch p-0">
-							<div class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm" @click="closeModal()"></div>
-							<div class="relative z-10 w-full h-full flex flex-col border-0 bg-[#0b0d1a] shadow-2xl overflow-hidden">
+					<div x-cloak x-show="open" style="display: none;" class="fixed inset-0 z-[100] flex items-stretch justify-stretch p-3 sm:p-5">
+							<div class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm" @click="closeModal()"></div>
+							<div class="relative z-10 w-full h-full flex flex-col rounded-2xl border border-violet-400/35 bg-[#0b0d1a] shadow-2xl overflow-hidden">
 								<!-- Header -->
 								<div class="flex flex-wrap items-center justify-between gap-3 border-b border-violet-400/20 px-5 py-3.5">
-									<div>
-										<h3 class="text-sm font-bold uppercase tracking-wider text-amber-300" x-text="'Planet Colony Surface Map — ' + planetName"></h3>
-										<p class="text-[11px] text-slate-400 mt-0.5">
-											{ i18n.L(ctx, "Exact in-game latitude/longitude coordinates from EVE ESI. Scroll to zoom, drag to pan, and click any pin to inspect.", "Koordinat persis latitude/longitude dari game EVE ESI. Scroll untuk zoom, seret untuk geser, dan klik pin apa saja untuk detail.") }
-										</p>
+									<div class="flex items-center gap-3">
+										<img
+											:src="'https://images.evetech.net/types/' + (planetIconTypeId || 11) + '/icon?size=64'"
+											:alt="planetName"
+											class="h-9 w-9 shrink-0 rounded-full border border-amber-300/50 bg-slate-950 object-cover"
+											onerror="this.style.display='none'"
+										/>
+										<div>
+											<h3 class="text-sm font-bold uppercase tracking-wider text-amber-300" x-text="'Planet Colony Surface Map — ' + planetName"></h3>
+											<p class="text-[11px] text-slate-400 mt-0.5">
+												{ i18n.L(ctx, "Semantic Zoom: scroll to spread overlapping pins apart while keeping icons crisp. Drag to pan & click any pin to inspect.", "Semantic Zoom: scroll untuk merenggangkan pin yang menumpuk agar terlihat jelas tanpa mengecil. Seret untuk geser & klik pin untuk detail.") }
+											</p>
+										</div>
 									</div>
 									<div class="flex flex-wrap items-center gap-2">
 										<button type="button" @click="showRoutes = !showRoutes" :class="showRoutes ? 'border-sky-400/50 bg-sky-500/20 text-sky-200' : 'border-slate-700 text-slate-400'" class="rounded-md border px-2.5 py-1 text-[11px] font-mono font-bold cursor-pointer">Routes</button>
@@ -851,13 +891,13 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 									</div>
 								</div>
 
-								<!-- Body: Full-Screen Canvas + Inspector -->
+								<!-- Body: Canvas + Inspector -->
 								<div class="grid grid-cols-1 lg:grid-cols-12 flex-1 min-h-0 overflow-hidden">
-									<div class="lg:col-span-9 relative bg-[#090b16] h-full min-h-[380px]">
-										<div x-show="loading" class="absolute inset-0 flex items-center justify-center text-xs font-mono text-amber-200">
+									<div x-ref="piCanvasWrap" class="lg:col-span-9 relative bg-[#090b16] min-h-[380px] overflow-hidden">
+										<div x-show="loading" class="absolute inset-0 z-10 flex items-center justify-center text-xs font-mono text-amber-200">
 											{ i18n.L(ctx, "Loading planet coordinates from EVE ESI...", "Memuat koordinat planet dari EVE ESI...") }
 										</div>
-										<div x-show="!loading && error" class="absolute inset-0 flex items-center justify-center p-6 text-center text-xs text-rose-300" x-text="error"></div>
+										<div x-show="!loading && error" class="absolute inset-0 z-10 flex items-center justify-center p-6 text-center text-xs text-rose-300" x-text="error"></div>
 										<canvas
 											x-ref="piCanvas"
 											@wheel="onWheel($event)"
@@ -866,7 +906,7 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 											@mouseup="onMouseUp()"
 											@mouseleave="onMouseUp()"
 											@click="onCanvasClick($event)"
-											class="w-full h-full block cursor-grab active:cursor-grabbing"
+											class="absolute inset-0 w-full h-full block cursor-grab active:cursor-grabbing"
 										></canvas>
 										<!-- Compact Legend -->
 										<div class="absolute bottom-3 left-3 flex flex-wrap gap-2 rounded-lg border border-violet-400/25 bg-slate-950/85 px-3 py-1.5 font-mono text-[10px] text-slate-300 pointer-events-none">
@@ -889,16 +929,37 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 										</template>
 										<template x-if="selectedPin">
 											<div class="space-y-3">
-												<div class="border-b border-violet-400/20 pb-2">
-													<div class="text-[10px] font-mono uppercase text-amber-300" x-text="selectedPin.role.replace('_', ' ')"></div>
-													<div class="text-sm font-bold text-white mt-0.5" x-text="selectedPin.label"></div>
-													<div class="text-[10px] font-mono text-slate-400" x-text="'Pin #' + selectedPin.pin_id"></div>
+												<div class="flex items-center gap-2.5 border-b border-violet-400/20 pb-2.5">
+													<img
+														:src="'https://images.evetech.net/types/' + selectedPin.type_id + '/icon?size=64'"
+														:alt="selectedPin.label"
+														class="h-9 w-9 shrink-0 rounded-lg border border-violet-400/35 bg-slate-950 object-contain"
+														onerror="this.style.display='none'"
+													/>
+													<div class="min-w-0">
+														<div class="text-[10px] font-mono uppercase text-amber-300" x-text="selectedPin.role.replace('_', ' ')"></div>
+														<div class="text-sm font-bold text-white truncate" x-text="selectedPin.label"></div>
+														<div class="text-[10px] font-mono text-slate-400" x-text="'Pin #' + selectedPin.pin_id"></div>
+													</div>
 												</div>
 
 												<template x-if="selectedPin.schematic_name || selectedPin.product_name">
 													<div class="rounded-lg border border-violet-400/25 bg-violet-500/10 p-2.5">
 														<div class="text-[10px] font-mono uppercase text-violet-300">{ i18n.L(ctx, "Active Production", "Produksi Aktif") }</div>
-														<div class="font-bold text-white mt-0.5" x-text="selectedPin.schematic_name || selectedPin.product_name"></div>
+														<div class="flex items-center gap-2 mt-1">
+															<template x-if="selectedPin.product_type_id > 0">
+																<img
+																	:src="'https://images.evetech.net/types/' + selectedPin.product_type_id + '/icon?size=32'"
+																	:alt="selectedPin.schematic_name || selectedPin.product_name"
+																	class="h-6 w-6 shrink-0 rounded border border-violet-400/30 bg-slate-950 object-contain"
+																	onerror="this.style.display='none'"
+																/>
+															</template>
+															<div class="font-bold text-white truncate" x-text="selectedPin.schematic_name || selectedPin.product_name"></div>
+															<template x-if="selectedPin.product_tier">
+																<span class="shrink-0 rounded border px-1.5 py-0.5 font-mono text-[9px] font-bold" :class="piTierColor(selectedPin.product_tier)" x-text="selectedPin.product_tier"></span>
+															</template>
+														</div>
 														<template x-if="selectedPin.qty_per_cycle > 0">
 															<div class="text-[11px] font-mono text-amber-200 mt-1" x-text="selectedPin.qty_per_cycle + ' units / ' + Math.round((selectedPin.cycle_seconds || 0)/60) + 'm • ' + (selectedPin.heads ? selectedPin.heads.length : 0) + ' heads'"></div>
 														</template>
@@ -910,9 +971,20 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 														<div class="text-[10px] font-mono uppercase text-emerald-300">{ i18n.L(ctx, "Stored Contents", "Isi Tersimpan") }</div>
 														<div class="rounded-lg border border-slate-800 bg-slate-900/70 divide-y divide-slate-800 font-mono text-[11px]">
 															<template x-for="ct in selectedPin.contents" :key="ct.type_id">
-																<div class="flex justify-between px-2.5 py-1.5">
-																	<span class="text-slate-200 truncate" x-text="ct.name"></span>
-																	<span class="text-sky-300 font-bold" x-text="Number(ct.amount).toLocaleString()"></span>
+																<div class="flex items-center justify-between gap-2 px-2.5 py-1.5">
+																	<div class="flex items-center gap-2 min-w-0">
+																		<img
+																			:src="'https://images.evetech.net/types/' + ct.type_id + '/icon?size=32'"
+																			:alt="ct.name"
+																			class="h-4 w-4 shrink-0 rounded-sm object-contain"
+																			onerror="this.style.display='none'"
+																		/>
+																		<template x-if="ct.tier">
+																			<span class="shrink-0 rounded border px-1 font-mono text-[9px] font-bold" :class="piTierColor(ct.tier)" x-text="ct.tier"></span>
+																		</template>
+																		<span class="text-slate-200 truncate" x-text="ct.name"></span>
+																	</div>
+																	<span class="text-sky-300 font-bold shrink-0" x-text="Number(ct.amount).toLocaleString()"></span>
 																</div>
 															</template>
 														</div>
@@ -923,7 +995,13 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 													<div class="space-y-1">
 														<div class="text-[10px] font-mono uppercase text-sky-300">{ i18n.L(ctx, "Outgoing Routes", "Rute Keluar") }</div>
 														<template x-for="rt in pinRoutes(selectedPin.pin_id).outgoing" :key="rt.route_id">
-															<div class="rounded border border-slate-800 bg-slate-900/60 px-2.5 py-1 text-[11px] font-mono text-slate-200" x-text="rt.content_name + ' ×' + rt.quantity"></div>
+															<div class="flex items-center justify-between gap-2 rounded border border-slate-800 bg-slate-900/60 px-2.5 py-1 text-[11px] font-mono text-slate-200">
+																<div class="flex items-center gap-1.5 min-w-0">
+																	<img :src="'https://images.evetech.net/types/' + rt.content_type_id + '/icon?size=32'" :alt="rt.content_name" class="h-4 w-4 shrink-0 rounded-sm object-contain" onerror="this.style.display='none'"/>
+																	<span class="truncate" x-text="rt.content_name"></span>
+																</div>
+																<span class="text-sky-300 font-bold shrink-0" x-text="'×' + rt.quantity"></span>
+															</div>
 														</template>
 													</div>
 												</template>
@@ -932,7 +1010,13 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 													<div class="space-y-1">
 														<div class="text-[10px] font-mono uppercase text-amber-300">{ i18n.L(ctx, "Incoming Routes", "Rute Masuk") }</div>
 														<template x-for="rt in pinRoutes(selectedPin.pin_id).incoming" :key="rt.route_id">
-															<div class="rounded border border-slate-800 bg-slate-900/60 px-2.5 py-1 text-[11px] font-mono text-slate-200" x-text="rt.content_name + ' ×' + rt.quantity"></div>
+															<div class="flex items-center justify-between gap-2 rounded border border-slate-800 bg-slate-900/60 px-2.5 py-1 text-[11px] font-mono text-slate-200">
+																<div class="flex items-center gap-1.5 min-w-0">
+																	<img :src="'https://images.evetech.net/types/' + rt.content_type_id + '/icon?size=32'" :alt="rt.content_name" class="h-4 w-4 shrink-0 rounded-sm object-contain" onerror="this.style.display='none'"/>
+																	<span class="truncate" x-text="rt.content_name"></span>
+																</div>
+																<span class="text-amber-300 font-bold shrink-0" x-text="'×' + rt.quantity"></span>
+															</div>
 														</template>
 													</div>
 												</template>

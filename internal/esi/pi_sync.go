@@ -60,7 +60,8 @@ type esiPlanetDetail struct {
 }
 
 type esiPlanetMeta struct {
-	Name string `json:"name"`
+	Name   string `json:"name"`
+	TypeID int32  `json:"type_id"`
 }
 
 type esiSchematicMeta struct {
@@ -93,12 +94,10 @@ func (c *CharacterSyncClient) SyncPIPlanets(ctx context.Context, token *domain.E
 		return []domain.PIColony{}, nil
 	}
 
-	// Lookup helper from domain PI catalog (typeID & name -> PICommodity)
+	// Lookup helper from domain PI catalog (name -> PICommodity for factory schematic resolution)
 	allPI := domain.ListProduciblePICommodities("ALL", "")
-	piByID := make(map[int32]domain.PICommodity, len(allPI))
 	piByName := make(map[string]domain.PICommodity, len(allPI))
 	for _, it := range allPI {
-		piByID[it.TypeID] = it
 		piByName[strings.ToLower(it.Name)] = it
 	}
 
@@ -164,7 +163,7 @@ func (c *CharacterSyncClient) SyncPIPlanets(ctx context.Context, token *domain.E
 								}
 							}
 							if primaryProdID == 0 && pin.ExtractorDetails.ProductTypeID > 0 {
-								if it, ok := piByID[pin.ExtractorDetails.ProductTypeID]; ok {
+								if it, ok := domain.FindPICommodityByID(pin.ExtractorDetails.ProductTypeID); ok {
 									primaryProdID = it.TypeID
 									primaryName = it.Name
 									primaryTier = it.Tier
@@ -214,23 +213,33 @@ func (c *CharacterSyncClient) SyncPIPlanets(ctx context.Context, token *domain.E
 				}
 			}
 
-			// Format top 3 stored items for quick hauling overview
+			// Format stored items sorted by highest PI Tier first (P4 -> P3 -> P2 -> P1 -> P0), then quantity descending,
+			// so finished products (e.g. P2 Enriched Uranium) are never hidden behind large P0/P1 raw input piles.
 			type storedKV struct {
 				name   string
+				tier   domain.PITier
 				amount int64
 			}
 			storedList := make([]storedKV, 0, len(storageTotals))
 			for tid, amt := range storageTotals {
 				name := fmt.Sprintf("Item #%d", tid)
-				if it, ok := piByID[tid]; ok {
+				var tier domain.PITier
+				if it, ok := domain.FindPICommodityByID(tid); ok {
 					name = it.Name
+					tier = it.Tier
 				}
-				storedList = append(storedList, storedKV{name: name, amount: amt})
+				storedList = append(storedList, storedKV{name: name, tier: tier, amount: amt})
 			}
-			sort.Slice(storedList, func(i, j int) bool { return storedList[i].amount > storedList[j].amount })
-			if len(storedList) > 3 {
-				storedList = storedList[:3]
-			}
+			sort.Slice(storedList, func(i, j int) bool {
+				ri, rj := tierRank(storedList[i].tier), tierRank(storedList[j].tier)
+				if ri != rj {
+					return ri > rj
+				}
+				if storedList[i].amount != storedList[j].amount {
+					return storedList[i].amount > storedList[j].amount
+				}
+				return storedList[i].name < storedList[j].name
+			})
 			storageParts := make([]string, 0, len(storedList))
 			for _, kv := range storedList {
 				storageParts = append(storageParts, fmt.Sprintf("%s ×%d", kv.name, kv.amount))
@@ -343,17 +352,25 @@ func (c *CharacterSyncClient) GetPIPlanetLayout(ctx context.Context, token *doma
 	}
 
 	planetName := fmt.Sprintf("Planet #%d", planetID)
+	var planetIconTypeID int32 = 11
 	if b, pErr := c.esiClient.DoGet(ctx, fmt.Sprintf("/universe/planets/%d/?datasource=tranquility", planetID), "", true); pErr == nil {
 		var pm esiPlanetMeta
-		if json.Unmarshal(b, &pm) == nil && pm.Name != "" {
-			planetName = pm.Name
+		if json.Unmarshal(b, &pm) == nil {
+			if pm.Name != "" {
+				planetName = pm.Name
+			}
+			if pm.TypeID > 0 {
+				planetIconTypeID = pm.TypeID
+			}
 		}
 	}
 
 	allPI := domain.ListProduciblePICommodities("ALL", "")
 	piByID := make(map[int32]string, len(allPI))
+	piIDByName := make(map[string]int32, len(allPI))
 	for _, it := range allPI {
 		piByID[it.TypeID] = it.Name
+		piIDByName[strings.ToLower(it.Name)] = it.TypeID
 	}
 
 	// Cache pin type names and schematic names (all cached in esi_cache)
@@ -361,6 +378,9 @@ func (c *CharacterSyncClient) GetPIPlanetLayout(ctx context.Context, token *doma
 	resolveTypeName := func(tid int32) string {
 		if tid <= 0 {
 			return ""
+		}
+		if comm, ok := domain.FindPICommodityByID(tid); ok {
+			return comm.Name
 		}
 		if n, ok := piByID[tid]; ok {
 			return n
@@ -412,12 +432,26 @@ func (c *CharacterSyncClient) GetPIPlanetLayout(ctx context.Context, token *doma
 			SchematicName: schName,
 			ExpiryTime:    p.ExpiryTime,
 		}
+		if schName != "" {
+			if comm, ok := domain.FindPICommodityByName(schName); ok {
+				pin.ProductTypeID = comm.TypeID
+				pin.ProductName = comm.Name
+				pin.ProductTier = comm.Tier
+			} else if prodID, ok := piIDByName[strings.ToLower(schName)]; ok {
+				pin.ProductTypeID = prodID
+				pin.ProductName = schName
+			}
+		}
 		if p.ExtractorDetails != nil {
 			pin.HeadRadius = p.ExtractorDetails.HeadRadius
 			pin.QtyPerCycle = p.ExtractorDetails.QtyPerCycle
 			pin.CycleSeconds = p.ExtractorDetails.CycleTime
 			if p.ExtractorDetails.ProductTypeID > 0 {
+				pin.ProductTypeID = p.ExtractorDetails.ProductTypeID
 				pin.ProductName = resolveTypeName(p.ExtractorDetails.ProductTypeID)
+				if comm, ok := domain.FindPICommodityByID(p.ExtractorDetails.ProductTypeID); ok {
+					pin.ProductTier = comm.Tier
+				}
 			}
 			for _, h := range p.ExtractorDetails.Heads {
 				pin.Heads = append(pin.Heads, domain.PIExtractorHead{
@@ -429,9 +463,14 @@ func (c *CharacterSyncClient) GetPIPlanetLayout(ctx context.Context, token *doma
 		}
 		for _, ct := range p.Contents {
 			if ct.TypeID > 0 && ct.Amount > 0 {
+				var ctTier domain.PITier
+				if comm, ok := domain.FindPICommodityByID(ct.TypeID); ok {
+					ctTier = comm.Tier
+				}
 				pin.Contents = append(pin.Contents, domain.PIPinContent{
 					TypeID: ct.TypeID,
 					Name:   resolveTypeName(ct.TypeID),
+					Tier:   ctTier,
 					Amount: ct.Amount,
 				})
 			}
@@ -450,12 +489,17 @@ func (c *CharacterSyncClient) GetPIPlanetLayout(ctx context.Context, token *doma
 
 	routes := make([]domain.PIPlanetRoute, 0, len(detail.Routes))
 	for _, rt := range detail.Routes {
+		var rtTier domain.PITier
+		if comm, ok := domain.FindPICommodityByID(rt.ContentTypeID); ok {
+			rtTier = comm.Tier
+		}
 		routes = append(routes, domain.PIPlanetRoute{
 			RouteID:          rt.RouteID,
 			SourcePinID:      rt.SourcePinID,
 			DestinationPinID: rt.DestinationPinID,
 			ContentTypeID:    rt.ContentTypeID,
 			ContentName:      resolveTypeName(rt.ContentTypeID),
+			ContentTier:      rtTier,
 			Quantity:         rt.Quantity,
 		})
 	}
@@ -463,6 +507,7 @@ func (c *CharacterSyncClient) GetPIPlanetLayout(ctx context.Context, token *doma
 	return &domain.PIPlanetLayout{
 		PlanetID:   planetID,
 		PlanetName: planetName,
+		PlanetIcon: planetIconTypeID,
 		Pins:       pins,
 		Links:      links,
 		Routes:     routes,

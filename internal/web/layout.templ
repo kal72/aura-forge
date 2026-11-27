@@ -487,34 +487,6 @@ templ Layout(title string, activeNav string, mode service.ModeInfo) {
 								</form>
 							</div>
 
-							<!-- Timezone Switcher (UTC+7 | EVE UTC) -->
-							<div class="hidden md:inline-flex items-center rounded-lg border border-violet-400/35 bg-violet-950/50 p-0.5 text-[10.5px] font-mono font-bold" title={ i18n.L(ctx, "Switch Display Timezone (UTC+7 WIB / EVE Online UTC)", "Ganti Zona Waktu Tampilan (UTC+7 WIB / EVE Online UTC)") }>
-								<form method="POST" action="/timezone" hx-boost="false" class="inline">
-									<input type="hidden" name="tz" value="wib"/>
-									<button
-										type="submit"
-										class={ "rounded-md px-2 py-1 transition cursor-pointer " + func() string {
-											if !i18n.IsUTC(ctx) {
-												return "bg-sky-400/25 text-sky-200 border border-sky-300/50"
-											}
-											return "text-slate-300 hover:text-white"
-										}() }
-									>UTC+7</button>
-								</form>
-								<form method="POST" action="/timezone" hx-boost="false" class="inline">
-									<input type="hidden" name="tz" value="utc"/>
-									<button
-										type="submit"
-										class={ "rounded-md px-2 py-1 transition cursor-pointer " + func() string {
-											if i18n.IsUTC(ctx) {
-												return "bg-sky-400/25 text-sky-200 border border-sky-300/50"
-											}
-											return "text-slate-300 hover:text-white"
-										}() }
-									>EVE</button>
-								</form>
-							</div>
-
 							<!-- Day / Night Card Theme Toggle -->
 							<button
 								type="button"

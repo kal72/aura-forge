@@ -119,8 +119,46 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 					@SDEStatusPartial(sdeStatus)
 				</div>
 
-				<!-- Right Column: Background Jita Price Updater + Optional EVE SSO -->
+				<!-- Right Column: Display Timezone + Background Jita Price Updater + Optional EVE SSO -->
 				<div class="lg:col-span-5 space-y-6">
+					<!-- Display Timezone Preference Card -->
+					<div class="tactical-panel rounded-xl p-5 space-y-3">
+						<div class="flex items-center justify-between gap-3">
+							<div>
+								<h2 class="text-sm font-bold uppercase tracking-wider text-sky-300">{ i18n.L(ctx, "Display Timezone", "Zona Waktu Tampilan") }</h2>
+								<p class="text-xs text-slate-300/80 mt-0.5">
+									{ i18n.L(ctx, "Choose how timestamps (PI extractor timers, order dates, price sync) are displayed across the app.", "Pilih zona waktu tampilan untuk seluruh jadwal (timer extractor PI, tanggal order, sinkron harga).") }
+								</p>
+							</div>
+						</div>
+						<div class="inline-flex items-center rounded-lg border border-violet-400/35 bg-slate-950/70 p-1 text-xs font-mono font-bold">
+							<form method="POST" action="/timezone" hx-boost="false" class="inline">
+								<input type="hidden" name="tz" value="wib"/>
+								<button
+									type="submit"
+									class={ "rounded-md px-3 py-1.5 transition cursor-pointer " + func() string {
+										if !i18n.IsUTC(ctx) {
+											return "bg-sky-400/25 text-sky-200 border border-sky-300/50"
+										}
+										return "text-slate-300 hover:text-white"
+									}() }
+								>UTC+7 (WIB)</button>
+							</form>
+							<form method="POST" action="/timezone" hx-boost="false" class="inline">
+								<input type="hidden" name="tz" value="utc"/>
+								<button
+									type="submit"
+									class={ "rounded-md px-3 py-1.5 transition cursor-pointer " + func() string {
+										if i18n.IsUTC(ctx) {
+											return "bg-sky-400/25 text-sky-200 border border-sky-300/50"
+										}
+										return "text-slate-300 hover:text-white"
+									}() }
+								>EVE Time (UTC)</button>
+							</form>
+						</div>
+					</div>
+
 					<!-- Background Trade Hub Price Updater Card -->
 					<div class="tactical-panel rounded-xl p-5 space-y-4">
 						<div class="flex items-center justify-between gap-2">
