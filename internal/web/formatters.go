@@ -54,11 +54,11 @@ func FormatISKExact(val float64) string {
 func FormatVolume(val float64) string {
 	switch {
 	case val >= 1_000_000:
-		return fmt.Sprintf("%.2fM/hari", val/1_000_000)
+		return fmt.Sprintf("%.2fM/day", val/1_000_000)
 	case val >= 1_000:
-		return fmt.Sprintf("%.1fK/hari", val/1_000)
+		return fmt.Sprintf("%.1fK/day", val/1_000)
 	default:
-		return fmt.Sprintf("%.0f/hari", val)
+		return fmt.Sprintf("%.0f/day", val)
 	}
 }
 

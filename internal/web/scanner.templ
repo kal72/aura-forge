@@ -850,7 +850,7 @@ templ ScannerStockoutsPartial(results []domain.StockoutOpportunity, errMsg strin
 									}
 									<div class="text-[10px] text-slate-400">{ fmt.Sprintf("%d buy orders", r.BuyOrdersCount) }</div>
 								</td>
-								<td class="px-3 py-3 text-right text-sky-200 whitespace-nowrap">{ FormatVolume(r.DailyVolume7d) }/d</td>
+								<td class="px-3 py-3 text-right text-sky-200 whitespace-nowrap">{ FormatVolume(r.DailyVolume7d) }</td>
 								<td class="px-3 py-3 text-right whitespace-nowrap">
 									if r.RecommendedSell > 0 {
 										<div class="text-amber-200 font-semibold" title="Recommended 4-sig-fig EVE list price (1 tick under hub sell, or Jita +18% when stocked out)">
@@ -933,7 +933,7 @@ templ ScannerReactionsPartial(results []domain.ReactionOpportunity, errMsg strin
 										</div>
 									</div>
 								</td>
-								<td class="px-3 py-3 text-right font-mono text-sky-200 whitespace-nowrap">{ FormatVolume(r.DailyVolume7d) }/d</td>
+								<td class="px-3 py-3 text-right font-mono text-sky-200 whitespace-nowrap">{ FormatVolume(r.DailyVolume7d) }</td>
 								<td class="px-3 py-3 text-right font-mono whitespace-nowrap">
 									<div class="text-slate-200">{ FormatISK(r.InputCost + r.JobFeeISK) }</div>
 									<div class="text-[9.5px] text-slate-400">Job { FormatISK(r.JobFeeISK) }</div>

@@ -497,6 +497,10 @@ func (s *CopilotService) ScanManufacturingOpportunitiesV2(ctx context.Context, r
 		if req.ProfitableOnly && verdict == domain.VerdictAvoid {
 			continue
 		}
+		// Exclude dead/0-volume items when browsing profitable opportunities (still visible on explicit search).
+		if req.ProfitableOnly && strings.TrimSpace(req.SearchQuery) == "" && dailyVol < 1 {
+			continue
+		}
 		if req.FitsCapitalOnly && !fitsCap {
 			continue
 		}
@@ -1009,6 +1013,9 @@ func (s *CopilotService) ScanGasReactions(ctx context.Context, req GasReactionSc
 			continue
 		}
 		if req.ProfitableOnly && opp.Verdict == domain.VerdictAvoid {
+			continue
+		}
+		if req.ProfitableOnly && strings.TrimSpace(req.SearchQuery) == "" && opp.DailyVolume7d < 1 {
 			continue
 		}
 		results = append(results, opp)

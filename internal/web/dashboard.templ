@@ -748,7 +748,7 @@ templ DashboardRadarPartial(snap service.RadarSnapshot) {
 										</div>
 									</div>
 								</td>
-								<td class="px-2.5 py-2 text-right font-mono text-sky-200 whitespace-nowrap">{ FormatVolume(r.DailyVolume7d) }/d</td>
+								<td class="px-2.5 py-2 text-right font-mono text-sky-200 whitespace-nowrap">{ FormatVolume(r.DailyVolume7d) }</td>
 								<td class="px-2.5 py-2 text-right font-mono whitespace-nowrap">
 									<div class="text-amber-200 font-semibold">{ FormatISK(r.RecommendedSell) }</div>
 									if r.BreakEvenSell > 0 {

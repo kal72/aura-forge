@@ -465,8 +465,8 @@ func rankRadarOpportunities(all []domain.ManufacturingOpportunity, limit int) []
 		if r.NetProfit <= 0 || r.Verdict == domain.VerdictAvoid {
 			continue
 		}
-		// Skip dead markets (< 5 units/day) unless volume is unknown (0) on fresh cache
-		if r.DailyVolume7d > 0 && r.DailyVolume7d < 5 {
+		// Strictly skip dead/illiquid markets (< 5 units/day, including 0/day).
+		if r.DailyVolume7d < 5 {
 			continue
 		}
 		candidates = append(candidates, r)

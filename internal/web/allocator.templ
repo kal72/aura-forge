@@ -145,24 +145,18 @@ templ AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *
 					</div>
 				</form>
 
-				<div class="flex flex-wrap gap-3 border-t border-slate-800 pt-4">
+				<div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-800 pt-4">
+					<p class="text-[11px] text-slate-400">
+						Saves this 4-bucket allocation to your active Weekly Plan so you can verify slot capacity and copy your consolidated EVE Multibuy list.
+					</p>
 					<button
 						type="button"
 						hx-post="/allocator/to-plan"
 						hx-include="#allocator-form"
 						hx-swap="none"
-						class="rounded-md border border-emerald-400/50 bg-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-500/30 transition cursor-pointer"
+						class="rounded-md bg-emerald-500 px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-emerald-400 transition cursor-pointer"
 					>
-						1-Click Send to Weekly Production Planner →
-					</button>
-					<button
-						type="button"
-						hx-post="/allocator/to-batches"
-						hx-include="#allocator-form"
-						hx-swap="none"
-						class="rounded-md border border-amber-400/50 bg-amber-500/20 px-4 py-2 text-xs font-bold text-amber-200 hover:bg-amber-500/30 transition cursor-pointer"
-					>
-						1-Click Create Draft Batches in Tracker
+						Next: Send to Weekly Planner (Step 3) →
 					</button>
 				</div>
 			</div>

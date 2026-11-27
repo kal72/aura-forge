@@ -157,7 +157,7 @@ func AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *d
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"><div class=\"flex flex-wrap items-center justify-between gap-2\"><div class=\"flex flex-wrap items-center gap-2 text-[11px]\"><span class=\"font-mono uppercase text-slate-400\">Presets:</span> <button type=\"button\" @click=\"applyPreset(35, 30, 20, 15)\" class=\"rounded border border-slate-700 bg-slate-900/80 px-2.5 py-1 font-mono text-slate-200 hover:border-sky-400/60 hover:text-sky-200 transition cursor-pointer\">Beginner Safe (35/30/20/15)</button> <button type=\"button\" @click=\"applyPreset(50, 25, 10, 15)\" class=\"rounded border border-slate-700 bg-slate-900/80 px-2.5 py-1 font-mono text-slate-200 hover:border-emerald-400/60 hover:text-emerald-200 transition cursor-pointer\">Fast Turnover (50/25/10/15)</button> <button type=\"button\" @click=\"applyPreset(25, 30, 30, 15)\" class=\"rounded border border-slate-700 bg-slate-900/80 px-2.5 py-1 font-mono text-slate-200 hover:border-violet-400/60 hover:text-violet-200 transition cursor-pointer\">Growth Focus (25/30/30/15)</button></div><span class=\"rounded-full border px-2.5 py-0.5 font-mono text-[11px] font-bold\" :class=\"total === 100 &amp;&amp; Number(buf) &gt;= 10 ? &#39;border-emerald-500/40 bg-emerald-500/15 text-emerald-300&#39; : &#39;border-rose-500/40 bg-rose-500/15 text-rose-300&#39;\">Total: <span x-text=\"total\"></span>%</span></div><form id=\"allocator-form\" hx-post=\"/allocator/run\" hx-target=\"#allocator-result\" hx-swap=\"innerHTML\" class=\"grid grid-cols-1 gap-4 sm:grid-cols-5 items-end\"><div><label class=\"block text-[11px] font-mono uppercase text-emerald-300/90\">Fast Cashflow (%)</label> <input type=\"number\" step=\"1\" name=\"fast_cashflow_pct\" x-model.number=\"fast\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-sky-300/90\">Mid-Tier (%)</label> <input type=\"number\" step=\"1\" name=\"mid_tier_pct\" x-model.number=\"mid\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-violet-300/90\">High ROI (%)</label> <input type=\"number\" step=\"1\" name=\"high_roi_pct\" x-model.number=\"high\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-amber-300/90\">Cash Buffer (Min 10%)</label> <input type=\"number\" step=\"1\" name=\"cash_buffer_pct\" x-model.number=\"buf\" min=\"10\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><button type=\"submit\" class=\"w-full rounded-md bg-sky-500 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer\">Compute Allocation</button></div></form><div class=\"flex flex-wrap gap-3 border-t border-slate-800 pt-4\"><button type=\"button\" hx-post=\"/allocator/to-plan\" hx-include=\"#allocator-form\" hx-swap=\"none\" class=\"rounded-md border border-emerald-400/50 bg-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-500/30 transition cursor-pointer\">1-Click Send to Weekly Production Planner →</button> <button type=\"button\" hx-post=\"/allocator/to-batches\" hx-include=\"#allocator-form\" hx-swap=\"none\" class=\"rounded-md border border-amber-400/50 bg-amber-500/20 px-4 py-2 text-xs font-bold text-amber-200 hover:bg-amber-500/30 transition cursor-pointer\">1-Click Create Draft Batches in Tracker</button></div></div><!-- Allocation Results --><div id=\"allocator-result\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"><div class=\"flex flex-wrap items-center justify-between gap-2\"><div class=\"flex flex-wrap items-center gap-2 text-[11px]\"><span class=\"font-mono uppercase text-slate-400\">Presets:</span> <button type=\"button\" @click=\"applyPreset(35, 30, 20, 15)\" class=\"rounded border border-slate-700 bg-slate-900/80 px-2.5 py-1 font-mono text-slate-200 hover:border-sky-400/60 hover:text-sky-200 transition cursor-pointer\">Beginner Safe (35/30/20/15)</button> <button type=\"button\" @click=\"applyPreset(50, 25, 10, 15)\" class=\"rounded border border-slate-700 bg-slate-900/80 px-2.5 py-1 font-mono text-slate-200 hover:border-emerald-400/60 hover:text-emerald-200 transition cursor-pointer\">Fast Turnover (50/25/10/15)</button> <button type=\"button\" @click=\"applyPreset(25, 30, 30, 15)\" class=\"rounded border border-slate-700 bg-slate-900/80 px-2.5 py-1 font-mono text-slate-200 hover:border-violet-400/60 hover:text-violet-200 transition cursor-pointer\">Growth Focus (25/30/30/15)</button></div><span class=\"rounded-full border px-2.5 py-0.5 font-mono text-[11px] font-bold\" :class=\"total === 100 &amp;&amp; Number(buf) &gt;= 10 ? &#39;border-emerald-500/40 bg-emerald-500/15 text-emerald-300&#39; : &#39;border-rose-500/40 bg-rose-500/15 text-rose-300&#39;\">Total: <span x-text=\"total\"></span>%</span></div><form id=\"allocator-form\" hx-post=\"/allocator/run\" hx-target=\"#allocator-result\" hx-swap=\"innerHTML\" class=\"grid grid-cols-1 gap-4 sm:grid-cols-5 items-end\"><div><label class=\"block text-[11px] font-mono uppercase text-emerald-300/90\">Fast Cashflow (%)</label> <input type=\"number\" step=\"1\" name=\"fast_cashflow_pct\" x-model.number=\"fast\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-sky-300/90\">Mid-Tier (%)</label> <input type=\"number\" step=\"1\" name=\"mid_tier_pct\" x-model.number=\"mid\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-violet-300/90\">High ROI (%)</label> <input type=\"number\" step=\"1\" name=\"high_roi_pct\" x-model.number=\"high\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-amber-300/90\">Cash Buffer (Min 10%)</label> <input type=\"number\" step=\"1\" name=\"cash_buffer_pct\" x-model.number=\"buf\" min=\"10\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><button type=\"submit\" class=\"w-full rounded-md bg-sky-500 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer\">Compute Allocation</button></div></form><div class=\"flex flex-wrap items-center justify-between gap-3 border-t border-slate-800 pt-4\"><p class=\"text-[11px] text-slate-400\">Saves this 4-bucket allocation to your active Weekly Plan so you can verify slot capacity and copy your consolidated EVE Multibuy list.</p><button type=\"button\" hx-post=\"/allocator/to-plan\" hx-include=\"#allocator-form\" hx-swap=\"none\" class=\"rounded-md bg-emerald-500 px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-emerald-400 transition cursor-pointer\">Next: Send to Weekly Planner (Step 3) →</button></div></div><!-- Allocation Results --><div id=\"allocator-result\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -208,7 +208,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 181, Col: 58}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 175, Col: 58}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -226,7 +226,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(res.CapitalSource)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 188, Col: 101}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 182, Col: 101}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -239,7 +239,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.TotalCapital))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 189, Col: 91}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 183, Col: 91}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -252,7 +252,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.TotalAllocatedISK))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 193, Col: 98}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 187, Col: 98}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -265,7 +265,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.CashBufferISK))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 197, Col: 96}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 191, Col: 96}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -278,7 +278,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.TotalEstimatedProfit))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 201, Col: 106}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 195, Col: 106}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -291,7 +291,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.DeployableCapital))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 210, Col: 79}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 204, Col: 79}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -304,7 +304,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.CashBufferISK))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 211, Col: 75}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 205, Col: 75}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -340,7 +340,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				var templ_7745c5c3_Var17 string
 				templ_7745c5c3_Var17, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(fmt.Sprintf("width: %.2f%%;", b.Percent))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 218, Col: 55}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 212, Col: 55}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 				if templ_7745c5c3_Err != nil {
@@ -353,7 +353,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				var templ_7745c5c3_Var18 string
 				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%s: %.0f%% (%s)", b.Label, b.Percent, FormatISK(b.BudgetISK)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 219, Col: 89}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 213, Col: 89}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 				if templ_7745c5c3_Err != nil {
@@ -398,7 +398,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				var templ_7745c5c3_Var21 string
 				templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(b.Label)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 227, Col: 22}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 221, Col: 22}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 				if templ_7745c5c3_Err != nil {
@@ -411,7 +411,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				var templ_7745c5c3_Var22 string
 				templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.0f%%", b.Percent))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 227, Col: 60}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 221, Col: 60}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 				if templ_7745c5c3_Err != nil {
@@ -434,7 +434,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				var templ_7745c5c3_Var23 string
 				templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(b.Label)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 239, Col: 58}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 233, Col: 58}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 				if templ_7745c5c3_Err != nil {
@@ -447,7 +447,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				var templ_7745c5c3_Var24 string
 				templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(b.Description)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 240, Col: 68}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 234, Col: 68}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 				if templ_7745c5c3_Err != nil {
@@ -482,7 +482,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				var templ_7745c5c3_Var27 string
 				templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.0f%%", b.Percent))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 243, Col: 42}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 237, Col: 42}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 				if templ_7745c5c3_Err != nil {
@@ -495,7 +495,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				var templ_7745c5c3_Var28 string
 				templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(b.BudgetISK))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 249, Col: 73}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 243, Col: 73}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 				if templ_7745c5c3_Err != nil {
@@ -513,7 +513,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 					var templ_7745c5c3_Var29 string
 					templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(b.UsedISK))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 251, Col: 72}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 245, Col: 72}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 					if templ_7745c5c3_Err != nil {
@@ -526,7 +526,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 					var templ_7745c5c3_Var30 string
 					templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(b.EstimatedProfit))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 252, Col: 92}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 246, Col: 92}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 					if templ_7745c5c3_Err != nil {
@@ -571,7 +571,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 					var templ_7745c5c3_Var33 string
 					templ_7745c5c3_Var33, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(fmt.Sprintf("width: %.1f%%;", bucketUtilPct(b.UsedISK, b.BudgetISK)))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 259, Col: 86}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 253, Col: 86}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 					if templ_7745c5c3_Err != nil {
@@ -594,7 +594,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 					var templ_7745c5c3_Var34 string
 					templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(allocatorHubName(res))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 267, Col: 182}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 261, Col: 182}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 					if templ_7745c5c3_Err != nil {
@@ -627,7 +627,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 							var templ_7745c5c3_Var35 string
 							templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("https://images.evetech.net/types/%d/icon?size=32", it.TypeID))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 280, Col: 93}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 274, Col: 93}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 							if templ_7745c5c3_Err != nil {
@@ -640,7 +640,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 							var templ_7745c5c3_Var36 string
 							templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(it.Name)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 281, Col: 26}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 275, Col: 26}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 							if templ_7745c5c3_Err != nil {
@@ -658,7 +658,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 						var templ_7745c5c3_Var37 string
 						templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(it.Name)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 288, Col: 68}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 282, Col: 68}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 						if templ_7745c5c3_Err != nil {
@@ -671,7 +671,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 						var templ_7745c5c3_Var38 string
 						templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%dx batch • ROI %s • Vol %s", it.RecommendedRuns, FormatPercent(it.ROIPercent), FormatVolume(it.DailyVolume)))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 290, Col: 141}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 284, Col: 141}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 						if templ_7745c5c3_Err != nil {
@@ -684,7 +684,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 						var templ_7745c5c3_Var39 string
 						templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(it.TotalCost))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 295, Col: 64}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 289, Col: 64}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 						if templ_7745c5c3_Err != nil {
@@ -697,7 +697,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 						var templ_7745c5c3_Var40 string
 						templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(it.EstimatedProfit))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 296, Col: 85}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 290, Col: 85}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 						if templ_7745c5c3_Err != nil {
