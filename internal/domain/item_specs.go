@@ -41,7 +41,34 @@ type RequiredSkill struct {
 	Level       int    `json:"level"`
 }
 
-// ItemSpecDetail holds rich technical attributes, visual defense/slot profiles, and live market price for one EVE item.
+// TraitBonus represents a single EVE Online ship or module hull bonus line from CCP SDE traits.
+type TraitBonus struct {
+	Prefix string `json:"prefix,omitempty"` // e.g. "5%", "10%", "50%", "+2"
+	Text   string `json:"text"`             // cleaned plain-text bonus description
+}
+
+// TraitSkillGroup groups per-skill-level hull bonuses under their corresponding EVE skill name.
+type TraitSkillGroup struct {
+	SkillTypeID int32        `json:"skill_type_id"`
+	SkillName   string       `json:"skill_name"`
+	Bonuses     []TraitBonus `json:"bonuses"`
+}
+
+// ItemTraits holds official CCP SDE hull bonuses grouped by skill bonuses, role bonuses, and miscellaneous bonuses.
+type ItemTraits struct {
+	SkillBonuses []TraitSkillGroup `json:"skill_bonuses,omitempty"`
+	RoleBonuses  []TraitBonus      `json:"role_bonuses,omitempty"`
+	MiscBonuses  []TraitBonus      `json:"misc_bonuses,omitempty"`
+}
+
+func (t *ItemTraits) HasAny() bool {
+	if t == nil {
+		return false
+	}
+	return len(t.SkillBonuses) > 0 || len(t.RoleBonuses) > 0 || len(t.MiscBonuses) > 0
+}
+
+// ItemSpecDetail holds rich technical attributes, visual defense/slot profiles, traits, and live market price for one EVE item.
 type ItemSpecDetail struct {
 	TypeID          int32             `json:"type_id"`
 	Name            string            `json:"name"`
@@ -60,6 +87,7 @@ type ItemSpecDetail struct {
 	ShieldResists   ResistanceProfile `json:"shield_resists"`
 	ArmorResists    ResistanceProfile `json:"armor_resists"`
 	RequiredSkills  []RequiredSkill   `json:"required_skills,omitempty"`
+	Traits          *ItemTraits       `json:"traits,omitempty"`
 	Attributes      map[int32]float64 `json:"attributes"`
 }
 
@@ -111,26 +139,26 @@ var compareMetricDefs = []dogmaMetricDef{
 	// Fitting & Power
 	{AttrID: 48, SectionID: "fitting", Label: "CPU Output", Unit: "tf", Decimals: 0},
 	{AttrID: 11, SectionID: "fitting", Label: "Powergrid Output", Unit: "MW", Decimals: 0},
-	{AttrID: 1132, SectionID: "fitting", Label: "Calibration", Unit: "pts", Decimals: 0},
+	{AttrID: 1132, SectionID: "fitting", Label: "Calibration Points", Unit: "", Decimals: 0},
 	{AttrID: 482, SectionID: "fitting", Label: "Capacitor Capacity", Unit: "GJ", Decimals: 0},
-	{AttrID: 55, SectionID: "fitting", Label: "Cap Recharge Time", Unit: "s", Scale: 0.001, Decimals: 1, LowerIsBetter: true},
+	{AttrID: 55, SectionID: "fitting", Label: "Capacitor Recharge Time", Unit: "s", Scale: 0.001, Decimals: 1, LowerIsBetter: true},
 	{AttrID: 50, SectionID: "fitting", Label: "CPU Usage", Unit: "tf", Decimals: 1, LowerIsBetter: true},
 	{AttrID: 30, SectionID: "fitting", Label: "Powergrid Usage", Unit: "MW", Decimals: 1, LowerIsBetter: true},
 	{AttrID: 6, SectionID: "fitting", Label: "Activation Cost", Unit: "GJ", Decimals: 1, LowerIsBetter: true},
 	{AttrID: 73, SectionID: "fitting", Label: "Cycle Duration", Unit: "s", Scale: 0.001, Decimals: 2, LowerIsBetter: true},
 
 	// Defense & Tank
-	{AttrID: 263, SectionID: "defense", Label: "Shield HP", Unit: "HP", Decimals: 0},
-	{AttrID: 265, SectionID: "defense", Label: "Armor HP", Unit: "HP", Decimals: 0},
-	{AttrID: 9, SectionID: "defense", Label: "Structure HP", Unit: "HP", Decimals: 0},
+	{AttrID: 263, SectionID: "defense", Label: "Shield Hit Points", Unit: "HP", Decimals: 0},
+	{AttrID: 265, SectionID: "defense", Label: "Armor Hit Points", Unit: "HP", Decimals: 0},
+	{AttrID: 9, SectionID: "defense", Label: "Structure Hit Points", Unit: "HP", Decimals: 0},
 	{AttrID: 552, SectionID: "defense", Label: "Signature Radius", Unit: "m", Decimals: 0, LowerIsBetter: true},
 	{AttrID: 68, SectionID: "defense", Label: "Shield Boost Amount", Unit: "HP", Decimals: 0},
 	{AttrID: 84, SectionID: "defense", Label: "Armor Repair Amount", Unit: "HP", Decimals: 0},
 	{AttrID: 72, SectionID: "defense", Label: "Shield Capacity Bonus", Unit: "HP", Decimals: 0},
-	{AttrID: 1159, SectionID: "defense", Label: "Armor HP Bonus", Unit: "HP", Decimals: 0},
+	{AttrID: 1159, SectionID: "defense", Label: "Armor Hit Points Bonus", Unit: "HP", Decimals: 0},
 
 	// Navigation & Cargo
-	{AttrID: 37, SectionID: "navigation", Label: "Max Velocity", Unit: "m/s", Decimals: 0},
+	{AttrID: 37, SectionID: "navigation", Label: "Maximum Velocity", Unit: "m/s", Decimals: 0},
 	{AttrID: 600, SectionID: "navigation", Label: "Warp Speed", Unit: "AU/s", Decimals: 2},
 	{AttrID: 70, SectionID: "navigation", Label: "Inertia Modifier", Unit: "×", Decimals: 3, LowerIsBetter: true},
 	{FieldKey: "capacity", SectionID: "navigation", Label: "Cargo Capacity", Unit: "m³", Decimals: 0},
@@ -139,8 +167,8 @@ var compareMetricDefs = []dogmaMetricDef{
 	{AttrID: 1271, SectionID: "navigation", Label: "Drone Bandwidth", Unit: "Mbit/s", Decimals: 0},
 
 	// Targeting & Offense / Module Effects
-	{AttrID: 76, SectionID: "offense", Label: "Max Targeting Range", Unit: "km", Scale: 0.001, Decimals: 1},
-	{AttrID: 192, SectionID: "offense", Label: "Max Locked Targets", Unit: "", Decimals: 0},
+	{AttrID: 76, SectionID: "offense", Label: "Maximum Targeting Range", Unit: "km", Scale: 0.001, Decimals: 1},
+	{AttrID: 192, SectionID: "offense", Label: "Maximum Locked Targets", Unit: "", Decimals: 0},
 	{AttrID: 564, SectionID: "offense", Label: "Scan Resolution", Unit: "mm", Decimals: 0},
 	{AttrID: 54, SectionID: "offense", Label: "Optimal Range", Unit: "km", Scale: 0.001, Decimals: 1},
 	{AttrID: 158, SectionID: "offense", Label: "Accuracy Falloff", Unit: "km", Scale: 0.001, Decimals: 1},

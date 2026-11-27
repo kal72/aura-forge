@@ -54,6 +54,7 @@ type SDEType struct {
 	Category    string  `json:"category"`
 	VolumeM3    float64 `json:"volume_m3"`
 	PortionSize int     `json:"portion_size"`
+	TraitsJSON  string  `json:"traits_json,omitempty"`
 }
 
 // SDEBlueprint represents a manufacturing blueprint definition from EVE SDE.

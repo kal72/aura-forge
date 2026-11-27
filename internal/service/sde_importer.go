@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -291,6 +292,50 @@ type ccpGroupRow struct {
 	Name       localizedString `json:"name"`
 }
 
+type ccpTraitBonusRow struct {
+	Bonus      *float64        `json:"bonus"`
+	BonusText  localizedString `json:"bonusText"`
+	Importance int             `json:"importance"`
+	UnitID     int             `json:"unitID"`
+}
+
+type ccpTraitSkillEntry struct {
+	Key   int32              `json:"_key"`
+	Value []ccpTraitBonusRow `json:"_value"`
+}
+
+// ccpTraitSkillList decodes CCP SDE traits.types whether encoded as JSONL [{"_key": 3334, "_value": [...]}]
+// or as a JSON object {"3334": [...]}.
+type ccpTraitSkillList []ccpTraitSkillEntry
+
+func (l *ccpTraitSkillList) UnmarshalJSON(data []byte) error {
+	var arr []ccpTraitSkillEntry
+	if err := json.Unmarshal(data, &arr); err == nil {
+		*l = arr
+		return nil
+	}
+	var m map[string][]ccpTraitBonusRow
+	if err := json.Unmarshal(data, &m); err == nil {
+		out := make([]ccpTraitSkillEntry, 0, len(m))
+		for k, v := range m {
+			var id int32
+			if _, err := fmt.Sscanf(k, "%d", &id); err == nil && id > 0 {
+				out = append(out, ccpTraitSkillEntry{Key: id, Value: v})
+			}
+		}
+		*l = out
+		return nil
+	}
+	return nil
+}
+
+type ccpTraitsRow struct {
+	Key         int32              `json:"_key"`
+	RoleBonuses []ccpTraitBonusRow `json:"roleBonuses"`
+	Types       ccpTraitSkillList  `json:"types"`
+	MiscBonuses []ccpTraitBonusRow `json:"miscBonuses"`
+}
+
 type ccpTypeRow struct {
 	Key           int32           `json:"_key"`
 	GroupID       int32           `json:"groupID"`
@@ -300,6 +345,7 @@ type ccpTypeRow struct {
 	PortionSize   int             `json:"portionSize"`
 	MetaGroupID   int             `json:"metaGroupID"`
 	Published     bool            `json:"published"`
+	Traits        *ccpTraitsRow   `json:"traits"`
 }
 
 type ccpBlueprintMaterial struct {
@@ -414,6 +460,17 @@ func ParseCCPSDEZipFull(zipPath string) (
 		}
 	}); err != nil {
 		return nil, nil, nil, 0, nil, nil, err
+	}
+
+	// 3B. Type Bonuses / Ship Hull Traits (optional companion table typeBonus.jsonl in CCP JSONL SDE)
+	typeBonuses := make(map[int32]ccpTraitsRow, 2000)
+	for _, bonusFile := range []string{"typebonus.jsonl", "typebonuses.jsonl"} {
+		_ = readLines(bonusFile, func(line []byte) {
+			var row ccpTraitsRow
+			if json.Unmarshal(line, &row) == nil && row.Key > 0 {
+				typeBonuses[row.Key] = row
+			}
+		})
 	}
 
 	// 4. Blueprints (required) — manufacturing, reactions, and T1 -> T2 invention pathways
@@ -623,6 +680,12 @@ func ParseCCPSDEZipFull(zipPath string) (
 		if portion <= 0 {
 			portion = 1
 		}
+		rawTraits := t.Traits
+		if tb, ok := typeBonuses[t.Key]; ok {
+			tbCopy := tb
+			rawTraits = &tbCopy
+		}
+		traitsJSON := buildTraitsJSON(rawTraits, typeInfo)
 		types = append(types, domain.SDEType{
 			TypeID:      t.Key,
 			Name:        string(t.Name),
@@ -630,10 +693,108 @@ func ParseCCPSDEZipFull(zipPath string) (
 			Category:    cat,
 			VolumeM3:    t.Volume,
 			PortionSize: portion,
+			TraitsJSON:  traitsJSON,
 		})
 	}
 
 	return types, blueprints, materials, totalMatLines, inventions, invMaterials, nil
+}
+
+func formatTraitBonusPrefix(bonus *float64, unitID int) string {
+	if bonus == nil {
+		return ""
+	}
+	v := *bonus
+	var numStr string
+	if v == float64(int64(v)) {
+		numStr = fmt.Sprintf("%d", int64(v))
+	} else {
+		numStr = strings.TrimRight(strings.TrimRight(fmt.Sprintf("%.2f", v), "0"), ".")
+	}
+	switch unitID {
+	case 105: // Percentage
+		return numStr + "%"
+	case 139: // Absolute bonus (+)
+		if v > 0 {
+			return "+" + numStr
+		}
+		return numStr
+	case 104: // Multiplier
+		return numStr + "×"
+	case 1: // Meters
+		return numStr + " m"
+	case 9: // Cubic meters
+		return numStr + " m³"
+	case 101: // Milliseconds
+		return numStr + " ms"
+	case 3: // Seconds
+		return numStr + " s"
+	default:
+		return numStr
+	}
+}
+
+func convertCCPTraitList(rows []ccpTraitBonusRow) []domain.TraitBonus {
+	if len(rows) == 0 {
+		return nil
+	}
+	sorted := make([]ccpTraitBonusRow, len(rows))
+	copy(sorted, rows)
+	sort.SliceStable(sorted, func(i, j int) bool {
+		return sorted[i].Importance < sorted[j].Importance
+	})
+	out := make([]domain.TraitBonus, 0, len(sorted))
+	for _, r := range sorted {
+		txt := domain.StripEVEHTML(string(r.BonusText))
+		if txt == "" {
+			continue
+		}
+		out = append(out, domain.TraitBonus{
+			Prefix: formatTraitBonusPrefix(r.Bonus, r.UnitID),
+			Text:   txt,
+		})
+	}
+	return out
+}
+
+func buildTraitsJSON(raw *ccpTraitsRow, typeInfo map[int32]ccpTypeRow) string {
+	if raw == nil {
+		return ""
+	}
+	tr := domain.ItemTraits{
+		RoleBonuses: convertCCPTraitList(raw.RoleBonuses),
+		MiscBonuses: convertCCPTraitList(raw.MiscBonuses),
+	}
+	if len(raw.Types) > 0 {
+		groups := make([]domain.TraitSkillGroup, 0, len(raw.Types))
+		for _, entry := range raw.Types {
+			bonuses := convertCCPTraitList(entry.Value)
+			if len(bonuses) == 0 {
+				continue
+			}
+			skillName := fmt.Sprintf("Skill #%d", entry.Key)
+			if st, ok := typeInfo[entry.Key]; ok && strings.TrimSpace(string(st.Name)) != "" {
+				skillName = strings.TrimSpace(string(st.Name))
+			}
+			groups = append(groups, domain.TraitSkillGroup{
+				SkillTypeID: entry.Key,
+				SkillName:   skillName,
+				Bonuses:     bonuses,
+			})
+		}
+		sort.Slice(groups, func(i, j int) bool {
+			return groups[i].SkillName < groups[j].SkillName
+		})
+		tr.SkillBonuses = groups
+	}
+	if !tr.HasAny() {
+		return ""
+	}
+	b, err := json.Marshal(tr)
+	if err != nil {
+		return ""
+	}
+	return string(b)
 }
 
 func normalizeMarketTypeCategory(rawCat, groupName string) string {

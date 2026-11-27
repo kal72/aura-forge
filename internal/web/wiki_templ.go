@@ -417,6 +417,17 @@ var eveWikiEntries = []wikiEntry{
 		TipEN:      "Other trade hubs (Amarr, Dodixie, Rens, Hek) and 15,000+ free-search Marketplace items load on-demand with PostgreSQL caching to stay lightweight and ESI-safe.",
 		TipID:      "Hub lain (Amarr, Dodixie, Rens, Hek) dan 15.000+ item pencarian bebas di Marketplace tetap on-demand dengan cache PostgreSQL agar ringan dan aman dari blocking ESI.",
 	},
+	{
+		Category:   "market",
+		Term:       "Show Info Popup (4 Tabs) & Floating Compare Tray",
+		BadgeText:  "SPECS & COMPARE",
+		BadgeClass: "border-amber-400/45 bg-amber-500/20 text-amber-200 font-bold",
+		WhereUsed:  "Marketplace → Item Order Book & NPC BPO / LP Store",
+		DescEN:     "Click 'ⓘ Show Info' on any ship, module, drone, or rig to open an EVE-style fixed-height popup with 4 tabs: Traits & Info (official CCP SDE Hull Bonuses + Description), Fittings (High/Medium/Low/Rig Slots, Turret/Launcher Hardpoints, CPU, Powergrid, Calibration, Capacitor), Attributes (segmented square Resistance & performance gauges), and Requirements (Level 1–5 skill prerequisites). Click '+ Compare' to queue up to 3 items; a floating 'Compare (N)' pill appears at the bottom-right with a 'Reset' button and opens a side-by-side Compare Popup highlighting the best value in every row.",
+		DescID:     "Klik 'ⓘ Show Info' pada kapal, modul, drone, atau rig mana saja untuk membuka popup bergaya EVE bertinggi tetap dengan 4 tab: Traits & Info (Bonus Hull resmi dari CCP SDE + Deskripsi), Fittings (High/Medium/Low/Rig Slots, Turret/Launcher Hardpoints, CPU, Powergrid, Calibration, Capacitor), Attributes (indikator kotak-kotak terpisah untuk resistensi & performa), dan Requirements (prasyarat skill Level 1–5). Klik '+ Compare' untuk menampung hingga 3 item; tombol mengambang 'Compare (N)' muncul di pojok kanan bawah lengkap dengan tombol 'Reset' dan langsung membuka Compare Popup berdampingan.",
+		TipEN:      "Run 'Import Official CCP SDE' once in Settings after upgrading so every ship displays its official Hull Bonuses inside the Traits & Info tab.",
+		TipID:      "Jalankan 'Import Official CCP SDE' sekali di halaman Settings setelah pembaruan agar seluruh kapal menampilkan Bonus Hull resminya di tab Traits & Info.",
+	},
 
 	// 2B. PLANETARY INDUSTRY (PI)
 	{
@@ -914,7 +925,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(searchBlob)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1569, Col: 30}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1580, Col: 30}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -927,7 +938,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs("matches('" + item.Category + "', $el.dataset.search)")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1570, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1581, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -940,7 +951,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(item.Term)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1575, Col: 73}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1586, Col: 73}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -975,7 +986,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(item.BadgeText)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1577, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1588, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
@@ -988,7 +999,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(item.WhereUsed)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1581, Col: 24}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1592, Col: 24}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
@@ -1001,7 +1012,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1584, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1595, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -1014,7 +1025,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(item.DescID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1587, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1598, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -1027,7 +1038,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipEN)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1593, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1604, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
@@ -1040,7 +1051,7 @@ func WikiPage(mode service.ModeInfo) templ.Component {
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(item.TipID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1594, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/wiki.templ`, Line: 1605, Col: 56}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {

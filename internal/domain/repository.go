@@ -166,6 +166,11 @@ type SDETypeNameResolver interface {
 	GetTypeNamesByIDs(ctx context.Context, typeIDs []int32) (map[int32]string, error)
 }
 
+// SDETypeTraitsRepository is an optional extension on SDERepository for reading parsed EVE ship/module Hull Bonuses (Traits).
+type SDETypeTraitsRepository interface {
+	GetTypeTraits(ctx context.Context, typeID int32) (*ItemTraits, error)
+}
+
 // NetWorthRepository specifies storage operations for daily Net Worth tracking snapshots.
 type NetWorthRepository interface {
 	ListSnapshots(ctx context.Context, limit int) ([]NetWorthSnapshot, error)

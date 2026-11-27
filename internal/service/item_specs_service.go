@@ -101,6 +101,11 @@ func (s *CopilotService) CompareItems(ctx context.Context, queries []string, hub
 				if bp, bErr := s.sde.GetBlueprintByProductID(ctx, id); bErr == nil && bp != nil {
 					sp.BlueprintTypeID = bp.BlueprintTypeID
 				}
+				if trRepo, ok := s.sde.(domain.SDETypeTraitsRepository); ok {
+					if tr, tErr := trRepo.GetTypeTraits(ctx, id); tErr == nil && tr != nil && tr.HasAny() {
+						sp.Traits = tr
+					}
+				}
 			}
 			specs[idx] = sp
 		}(i, tid)
