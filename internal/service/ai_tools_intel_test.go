@@ -185,6 +185,18 @@ func TestAuraAI_NewIntelTools(t *testing.T) {
 			toolArgs:     `{"item":"Hobgoblin I","hub":"amarr","days":30}`,
 			expectSubstr: []string{"SPIKE_WARNING", "avg_price_30d"},
 		},
+		{
+			name:         "scan_gas_reactions",
+			toolName:     "scan_gas_reactions",
+			toolArgs:     `{"hub":"amarr","scope":"hybrid","profitable_only":false}`,
+			expectSubstr: []string{"Amarr VIII", "reactions"},
+		},
+		{
+			name:         "evaluate_t2_invention",
+			toolName:     "evaluate_t2_invention",
+			toolArgs:     `{"preset_key":"all","hub":"amarr"}`,
+			expectSubstr: []string{"ranked_t2", "Hobgoblin II"},
+		},
 	}
 
 	for _, tc := range tests {

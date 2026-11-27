@@ -182,6 +182,8 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.Route("/planner", func(r chi.Router) {
 				r.Get("/", h.HandlePlanner)
 				r.Post("/convert-batches", h.HandlePlannerConvertBatches)
+				r.Delete("/{id}", h.HandlePlannerDelete)
+				r.Post("/clear", h.HandlePlannerClear)
 			})
 
 			// Production, Inventory & Market Order Tracker (+ Buy/Sell Ledger & Realized P&L)

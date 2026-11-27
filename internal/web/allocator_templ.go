@@ -95,33 +95,41 @@ func AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *d
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\"><div class=\"flex flex-wrap items-center justify-between gap-4\"><div><div class=\"flex flex-wrap items-center gap-2\"><h1 class=\"text-2xl font-bold tracking-tight text-white\">Smart Capital Allocator (4-Bucket Strategy)</h1><span class=\"rounded-full border border-sky-400/40 bg-sky-500/15 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-sky-200\">Hub: ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"space-y-6\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = ProductionWorkflowStepper(2).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"flex flex-wrap items-center justify-between gap-4\"><div><div class=\"flex flex-wrap items-center gap-2\"><h1 class=\"text-2xl font-bold tracking-tight text-white\">Smart Capital Allocator (4-Bucket Strategy)</h1><span class=\"rounded-full border border-sky-400/40 bg-sky-500/15 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-sky-200\">Hub: ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(allocatorHubName(result))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 65, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 67, Col: 38}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</span></div><p class=\"text-xs text-slate-400 mt-0.5\">Splits available working capital across 4 risk-managed buckets (Fast Cashflow, Mid-Tier, High ROI, and 10%–15% Cash Buffer) while automatically filtering out TRAP items.</p></div><button type=\"button\" hx-post=\"/esi/sync-prices\" hx-swap=\"none\" class=\"rounded-md border border-amber-400/40 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer\">Refresh ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</span></div><p class=\"text-xs text-slate-400 mt-0.5\">Splits available working capital across 4 risk-managed buckets (Fast Cashflow, Mid-Tier, High ROI, and 10%–15% Cash Buffer) while automatically filtering out TRAP items.</p></div><button type=\"button\" hx-post=\"/esi/sync-prices\" hx-swap=\"none\" class=\"rounded-md border border-amber-400/40 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer\">Refresh ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(allocatorHubName(result))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 71, Col: 39}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 73, Col: 39}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " Prices (Public ESI)</button></div><!-- Allocation Percentage Controls + Strategy Presets --><div class=\"tactical-panel rounded-xl p-5 space-y-4\" x-data=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " Prices (Public ESI)</button></div><!-- Allocation Percentage Controls + Strategy Presets --><div class=\"tactical-panel rounded-xl p-5 space-y-4\" x-data=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -143,13 +151,13 @@ func AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *d
 					}
 				}`, cfg.FastCashflowPct, cfg.MidTierPct, cfg.HighROIPct, cfg.CashBufferPct))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 93, Col: 79}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 95, Col: 79}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\"><div class=\"flex flex-wrap items-center justify-between gap-2\"><div class=\"flex flex-wrap items-center gap-2 text-[11px]\"><span class=\"font-mono uppercase text-slate-400\">Presets:</span> <button type=\"button\" @click=\"applyPreset(35, 30, 20, 15)\" class=\"rounded border border-slate-700 bg-slate-900/80 px-2.5 py-1 font-mono text-slate-200 hover:border-sky-400/60 hover:text-sky-200 transition cursor-pointer\">Beginner Safe (35/30/20/15)</button> <button type=\"button\" @click=\"applyPreset(50, 25, 10, 15)\" class=\"rounded border border-slate-700 bg-slate-900/80 px-2.5 py-1 font-mono text-slate-200 hover:border-emerald-400/60 hover:text-emerald-200 transition cursor-pointer\">Fast Turnover (50/25/10/15)</button> <button type=\"button\" @click=\"applyPreset(25, 30, 30, 15)\" class=\"rounded border border-slate-700 bg-slate-900/80 px-2.5 py-1 font-mono text-slate-200 hover:border-violet-400/60 hover:text-violet-200 transition cursor-pointer\">Growth Focus (25/30/30/15)</button></div><span class=\"rounded-full border px-2.5 py-0.5 font-mono text-[11px] font-bold\" :class=\"total === 100 &amp;&amp; Number(buf) &gt;= 10 ? &#39;border-emerald-500/40 bg-emerald-500/15 text-emerald-300&#39; : &#39;border-rose-500/40 bg-rose-500/15 text-rose-300&#39;\">Total: <span x-text=\"total\"></span>%</span></div><form id=\"allocator-form\" hx-post=\"/allocator/run\" hx-target=\"#allocator-result\" hx-swap=\"innerHTML\" class=\"grid grid-cols-1 gap-4 sm:grid-cols-5 items-end\"><div><label class=\"block text-[11px] font-mono uppercase text-emerald-300/90\">Fast Cashflow (%)</label> <input type=\"number\" step=\"1\" name=\"fast_cashflow_pct\" x-model.number=\"fast\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-sky-300/90\">Mid-Tier (%)</label> <input type=\"number\" step=\"1\" name=\"mid_tier_pct\" x-model.number=\"mid\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-violet-300/90\">High ROI (%)</label> <input type=\"number\" step=\"1\" name=\"high_roi_pct\" x-model.number=\"high\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-amber-300/90\">Cash Buffer (Min 10%)</label> <input type=\"number\" step=\"1\" name=\"cash_buffer_pct\" x-model.number=\"buf\" min=\"10\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><button type=\"submit\" class=\"w-full rounded-md bg-sky-500 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer\">Compute Allocation</button></div></form><div class=\"flex flex-wrap gap-3 border-t border-slate-800 pt-4\"><button type=\"button\" hx-post=\"/allocator/to-plan\" hx-include=\"#allocator-form\" hx-swap=\"none\" class=\"rounded-md border border-emerald-400/50 bg-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-500/30 transition cursor-pointer\">1-Click Send to Weekly Production Planner →</button> <button type=\"button\" hx-post=\"/allocator/to-batches\" hx-include=\"#allocator-form\" hx-swap=\"none\" class=\"rounded-md border border-amber-400/50 bg-amber-500/20 px-4 py-2 text-xs font-bold text-amber-200 hover:bg-amber-500/30 transition cursor-pointer\">1-Click Create Draft Batches in Tracker</button></div></div><!-- Allocation Results --><div id=\"allocator-result\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"><div class=\"flex flex-wrap items-center justify-between gap-2\"><div class=\"flex flex-wrap items-center gap-2 text-[11px]\"><span class=\"font-mono uppercase text-slate-400\">Presets:</span> <button type=\"button\" @click=\"applyPreset(35, 30, 20, 15)\" class=\"rounded border border-slate-700 bg-slate-900/80 px-2.5 py-1 font-mono text-slate-200 hover:border-sky-400/60 hover:text-sky-200 transition cursor-pointer\">Beginner Safe (35/30/20/15)</button> <button type=\"button\" @click=\"applyPreset(50, 25, 10, 15)\" class=\"rounded border border-slate-700 bg-slate-900/80 px-2.5 py-1 font-mono text-slate-200 hover:border-emerald-400/60 hover:text-emerald-200 transition cursor-pointer\">Fast Turnover (50/25/10/15)</button> <button type=\"button\" @click=\"applyPreset(25, 30, 30, 15)\" class=\"rounded border border-slate-700 bg-slate-900/80 px-2.5 py-1 font-mono text-slate-200 hover:border-violet-400/60 hover:text-violet-200 transition cursor-pointer\">Growth Focus (25/30/30/15)</button></div><span class=\"rounded-full border px-2.5 py-0.5 font-mono text-[11px] font-bold\" :class=\"total === 100 &amp;&amp; Number(buf) &gt;= 10 ? &#39;border-emerald-500/40 bg-emerald-500/15 text-emerald-300&#39; : &#39;border-rose-500/40 bg-rose-500/15 text-rose-300&#39;\">Total: <span x-text=\"total\"></span>%</span></div><form id=\"allocator-form\" hx-post=\"/allocator/run\" hx-target=\"#allocator-result\" hx-swap=\"innerHTML\" class=\"grid grid-cols-1 gap-4 sm:grid-cols-5 items-end\"><div><label class=\"block text-[11px] font-mono uppercase text-emerald-300/90\">Fast Cashflow (%)</label> <input type=\"number\" step=\"1\" name=\"fast_cashflow_pct\" x-model.number=\"fast\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-sky-300/90\">Mid-Tier (%)</label> <input type=\"number\" step=\"1\" name=\"mid_tier_pct\" x-model.number=\"mid\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-violet-300/90\">High ROI (%)</label> <input type=\"number\" step=\"1\" name=\"high_roi_pct\" x-model.number=\"high\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><label class=\"block text-[11px] font-mono uppercase text-amber-300/90\">Cash Buffer (Min 10%)</label> <input type=\"number\" step=\"1\" name=\"cash_buffer_pct\" x-model.number=\"buf\" min=\"10\" class=\"mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white\"></div><div><button type=\"submit\" class=\"w-full rounded-md bg-sky-500 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer\">Compute Allocation</button></div></form><div class=\"flex flex-wrap gap-3 border-t border-slate-800 pt-4\"><button type=\"button\" hx-post=\"/allocator/to-plan\" hx-include=\"#allocator-form\" hx-swap=\"none\" class=\"rounded-md border border-emerald-400/50 bg-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-500/30 transition cursor-pointer\">1-Click Send to Weekly Production Planner →</button> <button type=\"button\" hx-post=\"/allocator/to-batches\" hx-include=\"#allocator-form\" hx-swap=\"none\" class=\"rounded-md border border-amber-400/50 bg-amber-500/20 px-4 py-2 text-xs font-bold text-amber-200 hover:bg-amber-500/30 transition cursor-pointer\">1-Click Create Draft Batches in Tracker</button></div></div><!-- Allocation Results --><div id=\"allocator-result\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -157,7 +165,7 @@ func AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *d
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -193,116 +201,116 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 		}
 		ctx = templ.ClearChildren(ctx)
 		if errMsg != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"rounded-xl border border-rose-500/40 bg-rose-950/40 p-4 text-xs text-rose-200\"><strong>Allocation Validation Failed:</strong> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"rounded-xl border border-rose-500/40 bg-rose-950/40 p-4 text-xs text-rose-200\"><strong>Allocation Validation Failed:</strong> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(errMsg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 179, Col: 58}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 181, Col: 58}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else if res != nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"space-y-5\"><!-- Summary Banner --><div class=\"grid grid-cols-1 gap-4 sm:grid-cols-4\"><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[10px] font-mono uppercase text-slate-400\">Working Capital (")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div class=\"space-y-5\"><!-- Summary Banner --><div class=\"grid grid-cols-1 gap-4 sm:grid-cols-4\"><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[10px] font-mono uppercase text-slate-400\">Working Capital (")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(res.CapitalSource)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 186, Col: 101}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 188, Col: 101}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, ")</div><div class=\"mt-1 text-xl font-bold font-mono text-white\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, ")</div><div class=\"mt-1 text-xl font-bold font-mono text-white\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.TotalCapital))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 187, Col: 91}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 189, Col: 91}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[10px] font-mono uppercase text-slate-400\">Capital Allocated</div><div class=\"mt-1 text-xl font-bold font-mono text-sky-300\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[10px] font-mono uppercase text-slate-400\">Capital Allocated</div><div class=\"mt-1 text-xl font-bold font-mono text-sky-300\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.TotalAllocatedISK))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 191, Col: 98}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 193, Col: 98}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[10px] font-mono uppercase text-slate-400\">Operational Cash Buffer</div><div class=\"mt-1 text-xl font-bold font-mono text-amber-300\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[10px] font-mono uppercase text-slate-400\">Operational Cash Buffer</div><div class=\"mt-1 text-xl font-bold font-mono text-amber-300\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.CashBufferISK))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 195, Col: 96}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 197, Col: 96}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[10px] font-mono uppercase text-slate-400\">Est. Cycle Profit</div><div class=\"mt-1 text-xl font-bold font-mono text-emerald-300\">+")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</div></div><div class=\"tactical-panel rounded-xl p-4\"><div class=\"text-[10px] font-mono uppercase text-slate-400\">Est. Cycle Profit</div><div class=\"mt-1 text-xl font-bold font-mono text-emerald-300\">+")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.TotalEstimatedProfit))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 199, Col: 106}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 201, Col: 106}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</div></div></div><!-- Visual 4-Bucket Distribution Bar --><div class=\"tactical-panel rounded-xl p-4 space-y-2.5\"><div class=\"flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono\"><span class=\"uppercase text-slate-400\">Capital Distribution Breakdown</span> <span class=\"text-slate-300\">Deployable: <strong class=\"text-white\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div></div></div><!-- Visual 4-Bucket Distribution Bar --><div class=\"tactical-panel rounded-xl p-4 space-y-2.5\"><div class=\"flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono\"><span class=\"uppercase text-slate-400\">Capital Distribution Breakdown</span> <span class=\"text-slate-300\">Deployable: <strong class=\"text-white\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.DeployableCapital))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 208, Col: 79}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 210, Col: 79}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</strong> • Buffer: <strong class=\"text-amber-300\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</strong> • Buffer: <strong class=\"text-amber-300\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(res.CashBufferISK))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 209, Col: 75}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 211, Col: 75}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</strong></span></div><div class=\"flex h-3 w-full overflow-hidden rounded-full bg-slate-900 border border-slate-800\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</strong></span></div><div class=\"flex h-3 w-full overflow-hidden rounded-full bg-slate-900 border border-slate-800\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -312,7 +320,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<div class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -325,43 +333,43 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" style=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" style=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var17 string
 				templ_7745c5c3_Var17, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(fmt.Sprintf("width: %.2f%%;", b.Percent))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 216, Col: 55}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 218, Col: 55}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" title=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" title=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var18 string
 				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%s: %.0f%% (%s)", b.Label, b.Percent, FormatISK(b.BudgetISK)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 217, Col: 89}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 219, Col: 89}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\"></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\"></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</div><div class=\"flex flex-wrap gap-4 text-[10px] font-mono text-slate-400\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</div><div class=\"flex flex-wrap gap-4 text-[10px] font-mono text-slate-400\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, b := range res.Buckets {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<span class=\"inline-flex items-center gap-1.5\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<span class=\"inline-flex items-center gap-1.5\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -370,7 +378,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<span class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<span class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -383,69 +391,69 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\"></span> <span>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\"></span> <span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var21 string
 				templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(b.Label)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 225, Col: 22}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 227, Col: 22}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, " (")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, " (")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var22 string
 				templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.0f%%", b.Percent))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 225, Col: 60}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 227, Col: 60}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, ")</span></span>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, ")</span></span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</div></div><!-- 4 Buckets Grid --><div class=\"grid grid-cols-1 gap-4 lg:grid-cols-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</div></div><!-- 4 Buckets Grid --><div class=\"grid grid-cols-1 gap-4 lg:grid-cols-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, b := range res.Buckets {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<div class=\"tactical-panel rounded-xl p-5 space-y-3\"><div class=\"flex items-start justify-between gap-2\"><div><h3 class=\"text-sm font-bold text-white\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<div class=\"tactical-panel rounded-xl p-5 space-y-3\"><div class=\"flex items-start justify-between gap-2\"><div><h3 class=\"text-sm font-bold text-white\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var23 string
 				templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(b.Label)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 237, Col: 58}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 239, Col: 58}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</h3><p class=\"text-[11px] text-slate-400 mt-0.5\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</h3><p class=\"text-[11px] text-slate-400 mt-0.5\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var24 string
 				templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(b.Description)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 238, Col: 68}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 240, Col: 68}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</p></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</p></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -454,7 +462,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<span class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<span class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -467,74 +475,74 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var27 string
 				templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.0f%%", b.Percent))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 241, Col: 42}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 243, Col: 42}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</span></div><div class=\"space-y-1.5 border-y border-slate-800/80 py-2.5\"><div class=\"flex flex-wrap gap-4 text-xs font-mono\"><span>Budget: <strong class=\"text-white\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</span></div><div class=\"space-y-1.5 border-y border-slate-800/80 py-2.5\"><div class=\"flex flex-wrap gap-4 text-xs font-mono\"><span>Budget: <strong class=\"text-white\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var28 string
 				templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(b.BudgetISK))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 247, Col: 73}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 249, Col: 73}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</strong></span> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</strong></span> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if b.Type != domain.BucketCashBuffer {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<span>Used: <strong class=\"text-sky-300\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<span>Used: <strong class=\"text-sky-300\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var29 string
 					templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(b.UsedISK))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 249, Col: 72}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 251, Col: 72}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</strong></span> <span>Est. Profit: <strong class=\"text-emerald-300\">+")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</strong></span> <span>Est. Profit: <strong class=\"text-emerald-300\">+")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var30 string
 					templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(b.EstimatedProfit))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 250, Col: 92}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 252, Col: 92}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</strong></span>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</strong></span>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if b.Type != domain.BucketCashBuffer {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<div class=\"h-1.5 w-full overflow-hidden rounded-full bg-slate-900\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<div class=\"h-1.5 w-full overflow-hidden rounded-full bg-slate-900\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -543,7 +551,7 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<div class=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<div class=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -556,161 +564,161 @@ func AllocatorResultPartial(res *domain.AllocationResult, errMsg string) templ.C
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "\" style=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "\" style=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var33 string
 					templ_7745c5c3_Var33, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(fmt.Sprintf("width: %.1f%%;", bucketUtilPct(b.UsedISK, b.BudgetISK)))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 257, Col: 86}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 259, Col: 86}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "\"></div></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "\"></div></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if b.Type == domain.BucketCashBuffer {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<div class=\"rounded-lg border border-amber-500/30 bg-amber-950/20 p-3 text-xs text-amber-200 leading-relaxed\">This capital is reserved as an operational safety cushion for Broker Fees, Job Install Costs (SCI), and safe Relist adjustments if undercut at <strong>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<div class=\"rounded-lg border border-amber-500/30 bg-amber-950/20 p-3 text-xs text-amber-200 leading-relaxed\">This capital is reserved as an operational safety cushion for Broker Fees, Job Install Costs (SCI), and safe Relist adjustments if undercut at <strong>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var34 string
 					templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(allocatorHubName(res))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 265, Col: 182}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 267, Col: 182}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "</strong>.</div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</strong>.</div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				} else if len(b.Items) == 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<div class=\"text-xs text-slate-500 italic\">No eligible VIABLE items in your <a href=\"/catalog\" class=\"text-sky-300 underline hover:text-sky-200\">Catalog</a> fit this bucket's budget yet.</div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<div class=\"text-xs text-slate-500 italic\">No eligible VIABLE items in your <a href=\"/catalog\" class=\"text-sky-300 underline hover:text-sky-200\">Catalog</a> fit this bucket's budget yet.</div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<div class=\"space-y-2\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "<div class=\"space-y-2\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					for _, it := range b.Items {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "<div class=\"flex items-center justify-between gap-3 rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs\"><div class=\"flex items-center gap-2.5 min-w-0\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<div class=\"flex items-center justify-between gap-3 rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs\"><div class=\"flex items-center gap-2.5 min-w-0\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						if it.TypeID > 0 {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<img src=\"")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<img src=\"")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 							var templ_7745c5c3_Var35 string
 							templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("https://images.evetech.net/types/%d/icon?size=32", it.TypeID))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 278, Col: 93}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 280, Col: 93}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "\" alt=\"")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "\" alt=\"")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 							var templ_7745c5c3_Var36 string
 							templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(it.Name)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 279, Col: 26}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 281, Col: 26}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "\" class=\"h-7 w-7 rounded border border-slate-700/80 bg-slate-950 object-contain shrink-0\" loading=\"lazy\" onerror=\"this.style.display=&#39;none&#39;\">")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "\" class=\"h-7 w-7 rounded border border-slate-700/80 bg-slate-950 object-contain shrink-0\" loading=\"lazy\" onerror=\"this.style.display=&#39;none&#39;\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "<div class=\"min-w-0\"><div class=\"font-semibold text-white truncate\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "<div class=\"min-w-0\"><div class=\"font-semibold text-white truncate\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var37 string
 						templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(it.Name)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 286, Col: 68}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 288, Col: 68}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "</div><div class=\"text-[10px] font-mono text-slate-400\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</div><div class=\"text-[10px] font-mono text-slate-400\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var38 string
 						templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%dx batch • ROI %s • Vol %s", it.RecommendedRuns, FormatPercent(it.ROIPercent), FormatVolume(it.DailyVolume)))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 288, Col: 141}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 290, Col: 141}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</div></div></div><div class=\"text-right font-mono shrink-0\"><div class=\"text-slate-200\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "</div></div></div><div class=\"text-right font-mono shrink-0\"><div class=\"text-slate-200\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var39 string
 						templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(it.TotalCost))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 293, Col: 64}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 295, Col: 64}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "</div><div class=\"text-[11px] text-emerald-300\">+")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "</div><div class=\"text-[11px] text-emerald-300\">+")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var40 string
 						templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(it.EstimatedProfit))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 294, Col: 85}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/allocator.templ`, Line: 296, Col: 85}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "</div></div></div>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</div></div></div>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "</div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "</div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "</div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

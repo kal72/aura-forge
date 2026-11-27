@@ -337,9 +337,20 @@ templ DashboardPage(data *service.DashboardSummary) {
 								<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Daily Copilot Assistant</h2>
 								<p class="text-[11px] text-slate-400 mt-0.5">Prioritized next actions for <strong class="text-sky-200">{ dashboardHubName(data.ActiveHub) }</strong> — click to execute.</p>
 							</div>
-							<span class="rounded-full border border-amber-400/40 bg-amber-500/15 px-2.5 py-0.5 font-mono text-[10px] font-bold text-amber-200">
-								{ fmt.Sprintf("%d BRIEFING", len(data.CopilotActions)) }
-							</span>
+							<div class="flex items-center gap-2">
+								if data.Mode.AI.Enabled {
+									<button
+										type="button"
+										@click="window.dispatchEvent(new CustomEvent('open-aura-ai', { detail: { prompt: 'Give me my prioritized daily pilot briefing for today based on my live capital, idle slots, catalog, and best opportunities.' } }))"
+										class="rounded-md border border-violet-400/50 bg-violet-500/20 px-2.5 py-1 text-[10px] font-bold text-violet-100 hover:bg-violet-500/35 transition cursor-pointer"
+									>
+										⚡ Ask Aura Briefing
+									</button>
+								}
+								<span class="rounded-full border border-amber-400/40 bg-amber-500/15 px-2.5 py-0.5 font-mono text-[10px] font-bold text-amber-200">
+									{ fmt.Sprintf("%d BRIEFING", len(data.CopilotActions)) }
+								</span>
+							</div>
 						</div>
 
 						<div class="space-y-2.5">
@@ -420,7 +431,7 @@ templ DashboardPage(data *service.DashboardSummary) {
 				>
 					<div class="flex items-center justify-between">
 						<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Quick Profit Calculator</h2>
-						<a href="/calculator" class="text-xs text-sky-300 hover:underline">Full Dual-Mode →</a>
+						<a href="/manufacture" class="text-xs text-sky-300 hover:underline">Manufacture &amp; Profit →</a>
 					</div>
 
 					<form

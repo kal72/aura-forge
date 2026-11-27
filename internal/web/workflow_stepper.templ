@@ -1,0 +1,88 @@
+package web
+
+func stepperCardClass(step, activeStep int) string {
+	switch {
+	case step == activeStep:
+		return "border-amber-400/60 bg-amber-500/15 text-white shadow-sm"
+	case step < activeStep:
+		return "border-emerald-400/35 bg-emerald-500/10 text-emerald-100 hover:border-emerald-400/60"
+	default:
+		return "border-slate-700/70 bg-slate-900/50 text-slate-300 hover:border-violet-400/45 hover:text-white"
+	}
+}
+
+func stepperBadgeClass(step, activeStep int) string {
+	switch {
+	case step == activeStep:
+		return "bg-amber-400 text-slate-950"
+	case step < activeStep:
+		return "bg-emerald-400/25 text-emerald-200 border border-emerald-400/50"
+	default:
+		return "bg-slate-800 text-slate-300 border border-slate-600"
+	}
+}
+
+// ProductionWorkflowStepper renders the clickable 4-step industry planning pipeline:
+// 1. Product Catalog -> 2. Smart Allocator -> 3. Weekly Planner -> 4. Order Tracker.
+templ ProductionWorkflowStepper(activeStep int) {
+	<div class="tactical-panel rounded-xl px-3.5 py-2.5">
+		<div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+			<span class="font-mono text-[10px] font-bold uppercase tracking-widest text-amber-300/90">
+				Production Planning Workflow (Step 1 → Step 4)
+			</span>
+			<span class="text-[10px] text-slate-400">
+				Follow left-to-right: pick items → split capital → schedule slots → track batches
+			</span>
+		</div>
+		<div class="grid grid-cols-2 gap-2 lg:grid-cols-4">
+			<a href="/catalog" class={ "flex items-center gap-2.5 rounded-lg border px-3 py-2 transition " + stepperCardClass(1, activeStep) }>
+				<span class={ "flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-mono text-[10px] font-extrabold " + stepperBadgeClass(1, activeStep) }>
+					if activeStep > 1 {
+						✓
+					} else {
+						1
+					}
+				</span>
+				<div class="min-w-0">
+					<div class="text-xs font-bold truncate">Product Catalog</div>
+					<div class="text-[10px] text-slate-400 truncate">Pick viable T1/T2 items</div>
+				</div>
+			</a>
+			<a href="/allocator" class={ "flex items-center gap-2.5 rounded-lg border px-3 py-2 transition " + stepperCardClass(2, activeStep) }>
+				<span class={ "flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-mono text-[10px] font-extrabold " + stepperBadgeClass(2, activeStep) }>
+					if activeStep > 2 {
+						✓
+					} else {
+						2
+					}
+				</span>
+				<div class="min-w-0">
+					<div class="text-xs font-bold truncate">Smart Allocator</div>
+					<div class="text-[10px] text-slate-400 truncate">Split capital into 4 buckets</div>
+				</div>
+			</a>
+			<a href="/planner" class={ "flex items-center gap-2.5 rounded-lg border px-3 py-2 transition " + stepperCardClass(3, activeStep) }>
+				<span class={ "flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-mono text-[10px] font-extrabold " + stepperBadgeClass(3, activeStep) }>
+					if activeStep > 3 {
+						✓
+					} else {
+						3
+					}
+				</span>
+				<div class="min-w-0">
+					<div class="text-xs font-bold truncate">Weekly Planner</div>
+					<div class="text-[10px] text-slate-400 truncate">Slots, Day 1–7 &amp; Multibuy</div>
+				</div>
+			</a>
+			<a href="/tracker" class={ "flex items-center gap-2.5 rounded-lg border px-3 py-2 transition " + stepperCardClass(4, activeStep) }>
+				<span class={ "flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-mono text-[10px] font-extrabold " + stepperBadgeClass(4, activeStep) }>
+					4
+				</span>
+				<div class="min-w-0">
+					<div class="text-xs font-bold truncate">Order Tracker</div>
+					<div class="text-[10px] text-slate-400 truncate">Execute batches &amp; P&amp;L</div>
+				</div>
+			</a>
+		</div>
+	</div>
+}

@@ -130,6 +130,8 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 			@open-catalog-edit.window="openEdit($event.detail)"
 			@keydown.escape.window="showEdit = false; showSDEModal = false"
 		>
+			@ProductionWorkflowStepper(1)
+
 			<!-- Header & Focused Actions -->
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
@@ -154,6 +156,9 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 					<button type="button" hx-post="/esi/sync-prices" hx-swap="none" class="rounded-lg border border-amber-400/45 bg-amber-500/15 px-3.5 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer">
 						Sync { hub.Name } + SDE BOM
 					</button>
+					<a href="/allocator" class="rounded-lg border border-sky-400/45 bg-sky-500/15 px-3.5 py-2 text-xs font-bold text-sky-200 hover:bg-sky-500/25 transition">
+						Next: Capital Allocator →
+					</a>
 				</div>
 			</div>
 

@@ -713,6 +713,52 @@ func (h *Handlers) HandleAllocatorToPlan(w http.ResponseWriter, r *http.Request)
 	http.Redirect(w, r, fmt.Sprintf("/planner?plan_id=%d", plan.ID), http.StatusSeeOther)
 }
 
+// HandlePlannerDelete removes a single saved Weekly Plan by ID.
+func (h *Handlers) HandlePlannerDelete(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	if err != nil || id <= 0 {
+		http.Error(w, "Invalid plan ID", http.StatusBadRequest)
+		return
+	}
+	if err := h.svc.DeleteWeeklyPlan(r.Context(), id); err != nil {
+		if IsHTMX(r) {
+			TriggerToast(w, "error", "Failed to delete plan: "+err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if IsHTMX(r) {
+		TriggerToast(w, "success", "Weekly Plan deleted.")
+		w.Header().Set("HX-Redirect", "/planner")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	http.Redirect(w, r, "/planner", http.StatusSeeOther)
+}
+
+// HandlePlannerClear removes all saved Weekly Plans so the user can reset cleanly.
+func (h *Handlers) HandlePlannerClear(w http.ResponseWriter, r *http.Request) {
+	count, err := h.svc.ClearAllWeeklyPlans(r.Context())
+	if err != nil {
+		if IsHTMX(r) {
+			TriggerToast(w, "error", "Failed to reset plans: "+err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if IsHTMX(r) {
+		TriggerToast(w, "success", fmt.Sprintf("Reset complete — cleared %d saved Weekly Plan(s).", count))
+		w.Header().Set("HX-Redirect", "/planner")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	http.Redirect(w, r, "/planner", http.StatusSeeOther)
+}
+
 // HandleAllocatorToBatches converts allocation directly into Draft Batches in Tracker.
 func (h *Handlers) HandleAllocatorToBatches(w http.ResponseWriter, r *http.Request) {
 	_ = r.ParseForm()

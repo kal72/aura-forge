@@ -9,6 +9,8 @@ import (
 templ PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) {
 	@Layout("Weekly Production & Slot Planner", "planner", mode) {
 		<div class="space-y-6">
+			@ProductionWorkflowStepper(3)
+
 			<!-- Header & Plan Switcher -->
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
@@ -21,10 +23,11 @@ templ PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) {
 					<p class="text-xs text-slate-400 mt-0.5">Slot capacity validation, Day 1–7 execution blueprint, real CCP SDE consolidated shopping list + EVE Multibuy, and Week 1–4 compounding projection.</p>
 				</div>
 				<div class="flex flex-wrap items-center gap-2">
-					if len(data.AllPlans) > 1 {
+					if len(data.AllPlans) > 0 {
 						<form method="GET" action="/planner" class="flex items-center gap-1.5">
 							<select
 								name="plan_id"
+								autocomplete="off"
 								onchange="this.form.submit()"
 								class="rounded-md border border-slate-700 bg-slate-900/90 px-2.5 py-2 text-xs text-slate-200 focus:border-sky-500 focus:outline-none"
 							>
@@ -43,10 +46,30 @@ templ PlannerPage(mode service.ModeInfo, data *service.PlannerViewData) {
 								Execute to Tracker (Draft Batches) →
 							</button>
 						</form>
+						<button
+							type="button"
+							hx-delete={ fmt.Sprintf("/planner/%d", data.ActivePlan.ID) }
+							hx-swap="none"
+							hx-confirm="Delete this saved Weekly Plan?"
+							class="rounded-md border border-rose-500/45 bg-rose-500/15 px-3 py-2 text-xs font-semibold text-rose-200 hover:bg-rose-500/25 transition cursor-pointer"
+						>
+							Delete Plan
+						</button>
 					} else {
 						<a href="/allocator" class="rounded-md bg-sky-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-sky-400 transition">
 							Create Plan from Smart Allocator →
 						</a>
+					}
+					if len(data.AllPlans) > 1 {
+						<button
+							type="button"
+							hx-post="/planner/clear"
+							hx-swap="none"
+							hx-confirm="Reset and permanently delete ALL saved Weekly Plans?"
+							class="rounded-md border border-rose-500/35 bg-slate-900/80 px-3 py-2 text-xs font-semibold text-rose-300 hover:bg-rose-500/20 transition cursor-pointer"
+						>
+							Reset All ({ fmt.Sprintf("%d", len(data.AllPlans)) })
+						</button>
 					}
 				</div>
 			</div>

@@ -293,7 +293,7 @@ func buildAuraSystemPrompt(
 	b.WriteString("4. OPPORTUNITY HUNTING: When the user asks for opportunities, what to build/trade, or how to grow ISK, ALWAYS call `find_best_opportunities` (and `get_pilot_blueprints_and_hangar` for Admins) to cross-check their OWN BPO/BPCs, Manufacturing ISK/hr, Station Trading flips, Inter-Hub Arbitrage, and 24h Market Movers before recommending.\n")
 	b.WriteString("5. WORKFLOW & FRAMEWORK DESIGN: When asked to design a daily/weekly business framework or SOP, combine their real capital, owned BPOs, hangar stock, and Realized P&L (`get_trade_ledger`) into a concrete phased routine, AND attach a `save_playbook` Action Card so they can save the framework in 1 click.\n")
 	b.WriteString("6. HUMAN-IN-THE-LOOP ACTIONS: When you recommend a concrete next step (adding a viable item to Catalog, recording a Draft Batch/Trade Flip, saving a Playbook framework, or opening Manufacture/Marketplace), call `propose_action_card` so the user gets a 1-click button.\n")
-	b.WriteString("7. SPECIALIZED LIVE INTEL: Always call `find_blueprint_sources` when asked where to buy an NPC BPO or Faction LP Store BPC; call `check_route_and_hauling_risk` when asked about hauling routes, jump counts, or gank danger; call `check_market_history_and_volatility` when evaluating price spikes, manipulation risk, or 7d/30d trends.\n")
+	b.WriteString("7. SPECIALIZED LIVE INTEL: Always call `find_blueprint_sources` when asked where to buy an NPC BPO or Faction LP Store BPC; call `check_route_and_hauling_risk` when asked about hauling routes, jump counts, or gank danger; call `check_market_history_and_volatility` when evaluating price spikes, manipulation risk, or 7d/30d trends; call `scan_gas_reactions`, `evaluate_t2_invention`, and `scan_opportunities` (with `tech_level: 2` for T2 manufacturing) when asked for Gas Reactions, T2 Invention/Manufacturing lists, or a monthly Omega/500 PLEX/5B ISK scaling plan.\n")
 	b.WriteString("8. CONCISE & STRUCTURED: Use crisp Markdown bullets/bold numbers, clear verdicts (SAFE / CAUTION / AVOID), and concrete next actions.\n\n")
 
 	b.WriteString(fmt.Sprintf("CURRENT CONTEXT:\n- Active Trade Hub: %s (%s, key=%s)\n- Active Page: %s\n- User Role: %s\n",
@@ -366,8 +366,8 @@ func buildAuraToolDefinitions(isAdmin bool) []domain.AIToolDefinition {
 			"Inspect live EVE Online Marketplace data for one item at a Trade Hub: lowest sell, highest buy, 5-hub price comparison, 7d/30d price trend & spike signal, daily volume, Net Flip Margin, top sell walls, and SDE Craft-vs-Buy comparison.",
 			`{"type":"object","properties":{"item":{"type":"string","description":"Exact or partial EVE item name (e.g. Hobgoblin I, Caracal, Coolant, Damage Control II)"},"hub":{"type":"string","description":"Optional hub key: jita, amarr, dodixie, rens, hek (defaults to pilot's Primary Trade Hub)"}},"required":["item"]}`),
 		def("scan_opportunities",
-			"Run the live Opportunity Scanner to find profitable EVE items at a Trade Hub.",
-			`{"type":"object","properties":{"mode":{"type":"string","enum":["manufacturing","station_trading","arbitrage"],"description":"Scanner mode"},"hub":{"type":"string","description":"Source/primary hub key: jita, amarr, dodixie, rens, hek"},"dest_hub":{"type":"string","description":"Destination hub key for arbitrage mode (e.g. amarr)"},"capital_isk":{"type":"number","description":"Available capital in ISK to size batches/trips"}},"required":["mode"]}`),
+			"Run the live Opportunity Scanner to find profitable EVE items at a Trade Hub (supports T1/T2 manufacturing filter and Cross-Hub material sourcing).",
+			`{"type":"object","properties":{"mode":{"type":"string","enum":["manufacturing","station_trading","arbitrage"],"description":"Scanner mode"},"hub":{"type":"string","description":"Sell/primary hub key: jita, amarr, dodixie, rens, hek"},"material_hub":{"type":"string","description":"Optional Material Hub key for Cross-Hub Manufacturing (e.g. jita while selling in amarr)"},"dest_hub":{"type":"string","description":"Destination hub key for arbitrage mode (e.g. amarr)"},"tech_level":{"type":"integer","enum":[0,1,2],"description":"For manufacturing mode: 0=All, 1=T1 only, 2=T2 only"},"capital_isk":{"type":"number","description":"Available capital in ISK to size batches/trips"}},"required":["mode"]}`),
 		def("inspect_manufacture_tree",
 			"Inspect a CCP SDE Blueprint recipe tree with live Trade Hub material costs, MAKE vs BUY optimal savings, total job install cost, output sell value, and cargo volume m3.",
 			`{"type":"object","properties":{"blueprint":{"type":"string","description":"Product or blueprint name (e.g. Caracal, Hobgoblin II, Rifter)"},"hub":{"type":"string","description":"Trade hub key: jita, amarr, dodixie, rens, hek"},"runs":{"type":"integer","description":"Number of runs (default 1)"},"me":{"type":"integer","description":"Material Efficiency 0..10 (default 10 for T1, 2 for T2)"}},"required":["blueprint"]}`),
@@ -386,6 +386,12 @@ func buildAuraToolDefinitions(isAdmin bool) []domain.AIToolDefinition {
 		def("check_market_history_and_volatility",
 			"Analyze 7-day vs 30-day regional market history, daily volume consistency, price volatility %, and detect temporary price spikes / market manipulation traps for an EVE item.",
 			`{"type":"object","properties":{"item":{"type":"string","description":"Exact EVE item name (e.g. Hobgoblin I, Caracal, Pyerite)"},"hub":{"type":"string","description":"Trade hub key: jita, amarr, dodixie, rens, hek"},"days":{"type":"integer","description":"History window in days (default 30, max 60)"}},"required":["item"]}`),
+		def("scan_gas_reactions",
+			"Scan profitable EVE Online Gas Reactions (8 Hybrid Polymers or all CCP SDE Reactions) with live Trade Hub gas/mineral/output prices, 24h auto-sized runs, Net Profit, ISK/hour, ISK/day/slot, Rec. Sell, and Break-Even Floor.",
+			`{"type":"object","properties":{"hub":{"type":"string","description":"Sell hub key: jita, amarr, dodixie, rens, hek"},"material_hub":{"type":"string","description":"Optional Material hub key for Cross-Hub reactions (e.g. jita)"},"refinery":{"type":"string","enum":["athanor_t1","athanor_t2","tatara_t1","tatara_t2"],"description":"Refinery rig profile (default athanor_t1)"},"scope":{"type":"string","enum":["hybrid","all_sde"],"description":"hybrid = 8 Fullerite Hybrid Polymers (default); all_sde = all SDE reactions"},"profitable_only":{"type":"boolean","description":"Filter profitable reactions only (default true)"}}}`),
+		def("evaluate_t2_invention",
+			"Rank live T2 Invention profitability across all 8 canonical T2 presets (or inspect one preset in detail across all 8 Decryptors), computing success probability, best Decryptor, T2 BPC runs/ME, and Net Profit per BPC.",
+			`{"type":"object","properties":{"preset_key":{"type":"string","description":"Optional preset key: all (default), hobgoblin_ii, hammerhead_ii, warrior_ii, damage_control_ii, lse_ii, warp_scrambler_ii, bcs_ii, gyrostabilizer_ii"},"hub":{"type":"string","description":"Trade hub key: jita, amarr, dodixie, rens, hek"},"encryption_skill":{"type":"integer","description":"Encryption Methods skill 1..5 (default 4)"},"datacore_skill":{"type":"integer","description":"Science Datacore skill 1..5 (default 4)"}}}`),
 		def("propose_action_card",
 			"Attach a Human-in-the-Loop 1-click Action Card under your reply so the user can approve and execute a concrete action (open a page, save a Pilot Playbook framework, or for Admins: add an item to Catalog or create a Draft Batch/Trade Flip).",
 			`{"type":"object","properties":{"kind":{"type":"string","enum":["open_link","add_catalog","create_batch","save_playbook"]},"entry_type":{"type":"string","enum":["MANUFACTURING","TRADE"],"description":"For create_batch: MANUFACTURING for production runs or TRADE for station trading / arbitrage flips"},"title":{"type":"string"},"description":{"type":"string"},"button_label":{"type":"string"},"item_name":{"type":"string"},"type_id":{"type":"integer"},"category":{"type":"string"},"runs":{"type":"integer"},"output_qty":{"type":"integer"},"unit_sell_price":{"type":"number"},"material_cost":{"type":"number","description":"Total build cost (MFG) or total buy cost (TRADE)"},"daily_volume":{"type":"number"},"playstyle_notes":{"type":"string","description":"For save_playbook: concise operational framework/SOP text to save into Pilot Playbook Memory"},"risk_tolerance":{"type":"string","enum":["CONSERVATIVE","BALANCED","AGGRESSIVE"]},"daily_playtime":{"type":"string","description":"e.g. 30-60 mins/day"},"url":{"type":"string","description":"For open_link kind, relative app path like /manufacture, /marketplace?q=Caracal&hub=amarr, /scanner, /tracker, /pilot, /pi"}},"required":["kind","title","button_label"]}`),
@@ -879,10 +885,12 @@ func (s *CopilotService) executeAuraTool(
 
 	case "scan_opportunities":
 		var args struct {
-			Mode       string  `json:"mode"`
-			Hub        string  `json:"hub"`
-			DestHub    string  `json:"dest_hub"`
-			CapitalISK float64 `json:"capital_isk"`
+			Mode        string  `json:"mode"`
+			Hub         string  `json:"hub"`
+			MaterialHub string  `json:"material_hub"`
+			DestHub     string  `json:"dest_hub"`
+			TechLevel   int     `json:"tech_level"`
+			CapitalISK  float64 `json:"capital_isk"`
 		}
 		_ = json.Unmarshal([]byte(argsRaw), &args)
 		hubKey := strings.TrimSpace(args.Hub)
@@ -929,11 +937,17 @@ func (s *CopilotService) executeAuraTool(
 			return toJSON(rows), trace, nil
 
 		default: // manufacturing
+			matHubKey := strings.TrimSpace(args.MaterialHub)
+			if matHubKey == "" {
+				matHubKey = hubKey
+			}
 			rows, err := s.ScanManufacturingOpportunitiesV2(ctx, ManufacturingScanRequest{
 				HubKey:              hubKey,
-				Runs:                10,
-				ME:                  10,
-				TE:                  20,
+				MaterialHubKey:      matHubKey,
+				TechLevel:           args.TechLevel,
+				Runs:                0,  // Smart auto-sized runs (24h slot / capital / vol)
+				ME:                  -1, // Auto ME/TE (T1 10/20, T2 2/4, or Owned BPO)
+				TE:                  -1,
 				StructureKey:        "npc_station",
 				MaterialPriceSource: "jita_sell",
 				ProfitableOnly:      true,
@@ -1225,6 +1239,24 @@ func (s *CopilotService) executeAuraTool(
 
 	case "check_market_history_and_volatility":
 		res, summary, err := s.runCheckMarketHistoryAndVolatility(ctx, defaultHub, argsRaw)
+		if err != nil {
+			trace.Error = err.Error()
+			return toJSON(map[string]string{"error": err.Error()}), trace, nil
+		}
+		trace.Summary = summary
+		return toJSON(res), trace, nil
+
+	case "scan_gas_reactions":
+		res, summary, err := s.runScanGasReactions(ctx, defaultHub, argsRaw)
+		if err != nil {
+			trace.Error = err.Error()
+			return toJSON(map[string]string{"error": err.Error()}), trace, nil
+		}
+		trace.Summary = summary
+		return toJSON(res), trace, nil
+
+	case "evaluate_t2_invention":
+		res, summary, err := s.runEvaluateT2Invention(ctx, defaultHub, argsRaw)
 		if err != nil {
 			trace.Error = err.Error()
 			return toJSON(map[string]string{"error": err.Error()}), trace, nil

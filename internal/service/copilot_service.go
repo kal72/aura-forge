@@ -65,6 +65,8 @@ type DashboardSummary struct {
 	LayakItemsCount       int                `json:"layak_items_count"`
 	JebakanItemsCount     int                `json:"jebakan_items_count"`
 	ActiveBatchesCount    int                `json:"active_batches_count"`
+	DraftBatchesCount     int                `json:"draft_batches_count"`
+	SlowMoverBatchesCount int                `json:"slow_mover_batches_count"`
 	UndercutBatchesCount  int                `json:"undercut_batches_count"`
 	ExpiringColoniesCount int                `json:"expiring_colonies_count"`
 	ExpiredColoniesCount  int                `json:"expired_colonies_count"`
@@ -363,6 +365,8 @@ func (s *CopilotService) GetDashboard(ctx context.Context) (*DashboardSummary, e
 		if batches, err := s.batches.ListBatches(ctx, nil); err == nil {
 			for _, b := range batches {
 				switch b.Status {
+				case domain.BatchStatusDraft:
+					summary.DraftBatchesCount++
 				case domain.BatchStatusInProduction:
 					summary.LockedCapital += b.ActualProductionCost
 					summary.ActiveBatchesCount++
@@ -372,6 +376,9 @@ func (s *CopilotService) GetDashboard(ctx context.Context) (*DashboardSummary, e
 				case domain.BatchStatusListed, domain.BatchStatusSlowMover:
 					summary.LockedCapital += b.ActualProductionCost
 					summary.ActiveBatchesCount++
+					if b.Status == domain.BatchStatusSlowMover {
+						summary.SlowMoverBatchesCount++
+					}
 					if b.IsUndercut {
 						summary.UndercutBatchesCount++
 					}
@@ -450,7 +457,18 @@ func buildCopilotActions(d *DashboardSummary) []CopilotAction {
 		})
 	}
 
-	// 2. URGENT: Expired or Expiring PI Colonies
+	// 2. URGENT: Slow Mover capital lock-up
+	if d.SlowMoverBatchesCount > 0 {
+		actions = append(actions, CopilotAction{
+			Priority:    "URGENT",
+			Title:       fmt.Sprintf("%d Slow-Mover Batch(es) Locking Capital", d.SlowMoverBatchesCount),
+			Detail:      "Stale listings tie up working capital. Review Safe Break-Even Floor and re-price or liquidate to free ISK.",
+			ActionLabel: "Inspect Slow Movers →",
+			ActionURL:   "/tracker?status=SLOW_MOVER",
+		})
+	}
+
+	// 3. URGENT: Expired or Expiring PI Colonies
 	if d.ExpiredColoniesCount > 0 || d.ExpiringColoniesCount > 0 {
 		actions = append(actions, CopilotAction{
 			Priority:    "URGENT",
@@ -461,41 +479,56 @@ func buildCopilotActions(d *DashboardSummary) []CopilotAction {
 		})
 	}
 
-	// 3. ACTION: Idle Manufacturing Slots
+	// 4. ACTION: Unstarted Draft Batches waiting in Tracker
+	if d.DraftBatchesCount > 0 {
+		actions = append(actions, CopilotAction{
+			Priority:    "ACTION",
+			Title:       fmt.Sprintf("%d Draft Batch(es) Ready to Start in Tracker", d.DraftBatchesCount),
+			Detail:      "You have queued draft batches waiting to begin production or market listing.",
+			ActionLabel: "Start Drafts (Step 4) →",
+			ActionURL:   "/tracker?status=DRAFT",
+		})
+	}
+
+	// 5. ACTION: Idle Manufacturing Slots (strictly follows Step 1 Catalog -> Step 2 Allocator -> Step 3 Planner)
 	if d.MfgSlotsUsed < d.MfgSlotsTotal {
 		idle := d.MfgSlotsTotal - d.MfgSlotsUsed
-		targetURL := "/planner"
-		btnLabel := "Fill Slots (Planner) →"
-		if d.ActivePlan == nil {
+		var targetURL, btnLabel, detail string
+		switch {
+		case d.TotalCatalogItems == 0:
+			targetURL = "/catalog"
+			btnLabel = "Step 1: Fill Catalog →"
+			detail = fmt.Sprintf("Add viable items to your %s Catalog first (or use Scanner), then split capital in Allocator.", hubName)
+		case d.ActivePlan == nil:
 			targetURL = "/allocator"
-			btnLabel = "Run Capital Allocator →"
+			btnLabel = "Step 2: Split Capital →"
+			detail = "Use Smart Capital Allocator to size safe batches from your Catalog and generate your Weekly Plan."
+		default:
+			targetURL = "/planner"
+			btnLabel = "Step 3: Fill Slots (Planner) →"
+			detail = "Empty industry slots slow down compounding toward 100B+ Total Wealth. Queue your next profitable wave."
 		}
 		actions = append(actions, CopilotAction{
 			Priority:    "ACTION",
 			Title:       fmt.Sprintf("%d of %d Manufacturing Slot(s) Sitting Idle", idle, d.MfgSlotsTotal),
-			Detail:      "Empty industry slots slow down compounding toward 100B+ Total Wealth. Queue your next profitable wave.",
+			Detail:      detail,
 			ActionLabel: btnLabel,
 			ActionURL:   targetURL,
 		})
 	}
 
-	// 4. ACTION: Catalog discovery or Live Price Sync
-	if d.TotalCatalogItems == 0 {
-		actions = append(actions, CopilotAction{
-			Priority:    "ACTION",
-			Title:       "Build Your First Profitable Catalog",
-			Detail:      fmt.Sprintf("Scan live %s opportunities or auto-generate beginner-safe items sized to your working capital.", hubName),
-			ActionLabel: "Open Opportunity Scanner →",
-			ActionURL:   "/scanner",
-		})
-	} else {
-		actions = append(actions, CopilotAction{
-			Priority:    "TIP",
-			Title:       fmt.Sprintf("Refresh Live %s Prices & Volumes", hubName),
-			Detail:      fmt.Sprintf("Keep your %d catalog item(s) and Trap Guard signals synced with current Public ESI order books.", d.TotalCatalogItems),
-			ActionLabel: "Sync " + hubName + " Prices",
-			ActionPost:  "/esi/sync-prices",
-		})
+	// 6. TIP: Only prompt Live Price Sync if Catalog exists AND cache is stale (>30m) or never synced
+	if d.TotalCatalogItems > 0 {
+		isStale := d.Mode.PriceSync.LastSyncedAt == nil || time.Since(*d.Mode.PriceSync.LastSyncedAt) > 30*time.Minute
+		if isStale && !d.Mode.PriceSync.IsRunning {
+			actions = append(actions, CopilotAction{
+				Priority:    "TIP",
+				Title:       fmt.Sprintf("Refresh Live %s Prices & Volumes", hubName),
+				Detail:      fmt.Sprintf("Cached prices for your %d catalog item(s) are older than 30 minutes. Sync now for fresh spreads.", d.TotalCatalogItems),
+				ActionLabel: "Sync " + hubName + " Prices",
+				ActionPost:  "/esi/sync-prices",
+			})
+		}
 	}
 
 	// 5. ACTION: Today's Net Worth Snapshot
@@ -950,11 +983,48 @@ func (s *CopilotService) CreatePlanFromAllocation(ctx context.Context, title str
 	plan.Status = domain.PlanStatusActive
 
 	if s.plans != nil {
+		// Prevent duplicate clutter when re-tuning Capital Allocator for the same Week & Title:
+		// update the existing matching plan in-place instead of appending endless copies.
+		if existingPlans, err := s.plans.ListPlans(ctx); err == nil {
+			for _, ep := range existingPlans {
+				if ep.WeekNumber == plan.WeekNumber && strings.EqualFold(strings.TrimSpace(ep.Title), strings.TrimSpace(plan.Title)) {
+					plan.ID = ep.ID
+					break
+				}
+			}
+		}
 		if err := s.plans.SavePlan(ctx, &plan); err != nil {
 			return nil, err
 		}
 	}
 	return &plan, nil
+}
+
+// DeleteWeeklyPlan permanently deletes a saved Weekly Plan by ID.
+func (s *CopilotService) DeleteWeeklyPlan(ctx context.Context, planID int64) error {
+	if s.plans == nil || planID <= 0 {
+		return nil
+	}
+	return s.plans.DeletePlan(ctx, planID)
+}
+
+// ClearAllWeeklyPlans removes all saved Weekly Plans so the user can start fresh.
+func (s *CopilotService) ClearAllWeeklyPlans(ctx context.Context) (int, error) {
+	if s.plans == nil {
+		return 0, nil
+	}
+	plans, err := s.plans.ListPlans(ctx)
+	if err != nil {
+		return 0, err
+	}
+	deleted := 0
+	for _, p := range plans {
+		if err := s.plans.DeletePlan(ctx, p.ID); err != nil {
+			return deleted, err
+		}
+		deleted++
+	}
+	return deleted, nil
 }
 
 // CreateDraftBatchesFromAllocation converts allocation recommendations directly into Draft BatchRecords.

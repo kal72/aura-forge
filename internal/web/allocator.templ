@@ -57,6 +57,8 @@ func bucketUtilPct(used, budget float64) float64 {
 templ AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *domain.AllocationResult, allocErr string) {
 	@Layout("Smart Capital Allocator", "allocator", mode) {
 		<div class="space-y-6">
+			@ProductionWorkflowStepper(2)
+
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<div class="flex flex-wrap items-center gap-2">
