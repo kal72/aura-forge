@@ -162,6 +162,25 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 				bpcSuggestions: [],
 				showBPCSuggest: false,
 				bpcSuggestTimer: null,
+				showInfoOpen: false,
+				infoLoading: false,
+				infoHtml: '',
+				async openShowInfoModal(name) {
+					const q = (name || '').trim();
+					if (!q) return;
+					this.showInfoOpen = true;
+					this.infoLoading = true;
+					this.infoHtml = '';
+					try {
+						const params = new URLSearchParams({ q1: q, hub: this.selectedHub || 'jita' });
+						const r = await fetch('/marketplace/compare?' + params.toString());
+						this.infoHtml = await r.text();
+					} catch (e) {
+						this.infoHtml = '<div class="rounded-xl border border-rose-500/40 bg-rose-950/40 p-4 text-xs text-rose-200">Network error loading Show Info.</div>';
+					} finally {
+						this.infoLoading = false;
+					}
+				},
 				browseTarget: 'orderbook',
 				appraisalText: '',
 				queryText: %q,
@@ -364,9 +383,10 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 					});
 				}
 			}`, mode.IsAdmin(), mode.AI.Enabled, query, hubKey, query, hubKey) }
-			@keydown.escape.window="showBrowse = false"
+			@keydown.escape.window="showBrowse = false; showInfoOpen = false"
 			@mp-switch-hub.window="runSearch($event.detail.name, $event.detail.hub)"
 			@mp-copy-price.window="copyPrice($event.detail.val, $event.detail.label)"
+			@mp-show-info.window="openShowInfoModal($event.detail.name)"
 		>
 			<!-- Header & Right-Aligned Tab Switcher -->
 			<div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
@@ -399,6 +419,36 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 					>
 						Appraisal
 					</button>
+				</div>
+			</div>
+
+			<!-- FLOATING EVE ONLINE "SHOW INFO" POPUP MODAL (Fixed 82vh height) -->
+			<div x-cloak x-show="showInfoOpen" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6">
+				<div class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm" @click="showInfoOpen = false"></div>
+				<div class="relative z-10 w-full max-w-4xl h-[82vh] flex flex-col rounded-2xl border border-violet-400/45 bg-[#0b0d1a] shadow-2xl overflow-hidden">
+					<!-- EVE Show Info Window Bar -->
+					<div class="flex items-center justify-between gap-2 border-b border-violet-400/25 bg-slate-950/90 px-5 py-3 shrink-0">
+						<div class="flex items-center gap-2">
+							<span class="inline-flex h-6 w-6 items-center justify-center rounded-full border border-sky-400/50 bg-sky-500/15 font-mono text-xs font-bold text-sky-300">i</span>
+							<span class="text-xs font-bold uppercase tracking-wider text-white">Show Info</span>
+							<span x-show="infoLoading" class="h-3.5 w-3.5 animate-spin rounded-full border-2 border-amber-300 border-t-transparent"></span>
+						</div>
+						<button
+							type="button"
+							@click="showInfoOpen = false"
+							class="rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer"
+						>
+							✕
+						</button>
+					</div>
+
+					<!-- Scrollable Fixed-Height Popup Body -->
+					<div class="flex-1 min-h-0 overflow-y-auto p-5">
+						<div x-show="infoLoading" class="h-full flex items-center justify-center text-xs font-mono text-amber-200">
+							Loading EVE Show Info...
+						</div>
+						<div x-show="!infoLoading" x-html="infoHtml"></div>
+					</div>
 				</div>
 			</div>
 
@@ -834,6 +884,15 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 					<div>
 						<div class="flex flex-wrap items-center gap-2">
 							<h2 class="text-xl font-bold text-white">{ snap.TypeName }</h2>
+							<button
+								type="button"
+								data-item-name={ snap.TypeName }
+								@click="window.dispatchEvent(new CustomEvent('mp-show-info', { detail: { name: $el.dataset.itemName } }))"
+								title="Open EVE Online Show Info & Compare Popup"
+								class="inline-flex items-center gap-1 rounded-md border border-sky-400/50 bg-sky-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-sky-200 hover:bg-sky-500/30 transition cursor-pointer"
+							>
+								<span>ⓘ Show Info</span>
+							</button>
 							<span class="rounded border border-violet-400/35 bg-violet-500/20 px-2 py-0.5 font-mono text-[10px] text-violet-200">
 								TypeID #{ fmt.Sprintf("%d", snap.TypeID) }
 							</span>

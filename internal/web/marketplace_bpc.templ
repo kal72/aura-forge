@@ -42,6 +42,14 @@ templ MarketplaceBPCPartial(res *domain.BPCFinderResult, errMsg string) {
 				<div class="flex flex-wrap items-center gap-2">
 					<button
 						type="button"
+						data-item-name={ res.Blueprint.ProductName }
+						@click="window.dispatchEvent(new CustomEvent('mp-show-info', { detail: { name: $el.dataset.itemName } }))"
+						class="rounded-lg border border-sky-400/45 bg-sky-500/15 px-3 py-1.5 text-xs font-bold text-sky-200 hover:bg-sky-500/25 transition cursor-pointer"
+					>
+						ⓘ Show Info
+					</button>
+					<button
+						type="button"
 						data-bp-name={ res.Blueprint.Name }
 						@click="navigator.clipboard.writeText($el.dataset.bpName).then(() => window.dispatchEvent(new CustomEvent('showToast', { detail: { level: 'success', message: 'Copied: ' + $el.dataset.bpName } })))"
 						class="rounded-lg border border-amber-400/45 bg-amber-500/15 px-3 py-1.5 text-xs font-bold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer"

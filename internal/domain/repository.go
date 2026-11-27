@@ -118,6 +118,11 @@ type PublicContractProvider interface {
 	FindPublicBlueprintContracts(ctx context.Context, regionID int32, regionName string, blueprintTypeID int32, productTypeID int32, blueprintName string, productName string) (contracts []PublicBPCContract, scannedContracts int, scannedPages int, totalPages int, err error)
 }
 
+// ItemSpecProvider fetches rich technical Dogma attributes, slot layouts, and resistance profiles from Public ESI.
+type ItemSpecProvider interface {
+	GetItemSpecs(ctx context.Context, typeID int32) (*ItemSpecDetail, error)
+}
+
 // GlobalPriceSnapshotRepository persists daily global EVE market price snapshots for day-over-day mover detection.
 type GlobalPriceSnapshotRepository interface {
 	UpsertDailySnapshot(ctx context.Context, snapshotDate time.Time, prices []GlobalMarketPrice) (int, error)

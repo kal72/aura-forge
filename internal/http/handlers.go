@@ -40,6 +40,7 @@ type Renderer interface {
 	RenderMarketplaceResults(w http.ResponseWriter, r *http.Request, snap *domain.MarketplaceSnapshot, errMsg string) error
 	RenderMarketplaceAppraisal(w http.ResponseWriter, r *http.Request, res *domain.AppraisalResult, errMsg string) error
 	RenderMarketplaceBPC(w http.ResponseWriter, r *http.Request, res *domain.BPCFinderResult, errMsg string) error
+	RenderMarketplaceCompare(w http.ResponseWriter, r *http.Request, res *domain.ItemCompareResult, errMsg string) error
 	RenderScanner(w http.ResponseWriter, r *http.Request, mode service.ModeInfo, settings domain.UserSettings) error
 	RenderScannerManufacturing(w http.ResponseWriter, r *http.Request, isAdmin bool, results []domain.ManufacturingOpportunity, errMsg string) error
 	RenderScannerStationTrading(w http.ResponseWriter, r *http.Request, results []domain.StationTradeOpportunity, errMsg string) error
