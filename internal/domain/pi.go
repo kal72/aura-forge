@@ -115,6 +115,64 @@ type PIColony struct {
 	UpdatedAt          time.Time `json:"updated_at"`
 }
 
+// PIExtractorHead represents one extractor head coordinate on a planet surface.
+type PIExtractorHead struct {
+	HeadID    int     `json:"head_id"`
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
+
+// PIPinContent represents one stored commodity inside a Launchpad, Storage, or Factory pin.
+type PIPinContent struct {
+	TypeID int32  `json:"type_id"`
+	Name   string `json:"name"`
+	Amount int64  `json:"amount"`
+}
+
+// PIPlanetPin represents one structure placed on a planet surface with its exact EVE coordinates.
+type PIPlanetPin struct {
+	PinID         int64             `json:"pin_id"`
+	TypeID        int32             `json:"type_id"`
+	Role          string            `json:"role"` // "command_center" | "extractor" | "launchpad" | "storage" | "basic_factory" | "advanced_factory" | "hightech_factory" | "facility"
+	Label         string            `json:"label"`
+	Latitude      float64           `json:"latitude"`
+	Longitude     float64           `json:"longitude"`
+	SchematicName string            `json:"schematic_name,omitempty"`
+	ProductName   string            `json:"product_name,omitempty"`
+	ExpiryTime    string            `json:"expiry_time,omitempty"`
+	HeadRadius    float64           `json:"head_radius,omitempty"`
+	QtyPerCycle   int               `json:"qty_per_cycle,omitempty"`
+	CycleSeconds  int               `json:"cycle_seconds,omitempty"`
+	Heads         []PIExtractorHead `json:"heads,omitempty"`
+	Contents      []PIPinContent    `json:"contents,omitempty"`
+}
+
+// PIPlanetLink represents a physical link pipe connecting two pins on a planet.
+type PIPlanetLink struct {
+	SourcePinID      int64 `json:"source_pin_id"`
+	DestinationPinID int64 `json:"destination_pin_id"`
+	LinkLevel        int   `json:"link_level"`
+}
+
+// PIPlanetRoute represents an active material flow route between two pins.
+type PIPlanetRoute struct {
+	RouteID          int64   `json:"route_id"`
+	SourcePinID      int64   `json:"source_pin_id"`
+	DestinationPinID int64   `json:"destination_pin_id"`
+	ContentTypeID    int32   `json:"content_type_id"`
+	ContentName      string  `json:"content_name"`
+	Quantity         float64 `json:"quantity"`
+}
+
+// PIPlanetLayout holds the complete 2D surface geometry of a player's PI colony for interactive canvas rendering.
+type PIPlanetLayout struct {
+	PlanetID   int32           `json:"planet_id"`
+	PlanetName string          `json:"planet_name"`
+	Pins       []PIPlanetPin   `json:"pins"`
+	Links      []PIPlanetLink  `json:"links"`
+	Routes     []PIPlanetRoute `json:"routes"`
+}
+
 // StatusLabel returns ACTIVE, EXPIRING, or EXPIRED along with a human-readable time remaining label.
 func (c PIColony) StatusLabel(now time.Time) (status string, remaining string) {
 	diff := c.ExtractorExpiresAt.Sub(now)

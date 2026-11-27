@@ -178,6 +178,7 @@ type PISyncRepository interface {
 // CharacterPISyncProvider is an optional Private ESI extension for syncing a pilot's live Planetary Industry colonies.
 type CharacterPISyncProvider interface {
 	SyncPIPlanets(ctx context.Context, token *EVEToken) ([]PIColony, error)
+	GetPIPlanetLayout(ctx context.Context, token *EVEToken, planetID int32) (*PIPlanetLayout, error)
 }
 
 // CharacterSyncProvider specifies operations to fetch authenticated character data via ESI OAuth2.

@@ -23,20 +23,40 @@ type esiCharacterPlanet struct {
 
 type esiPlanetDetail struct {
 	Pins []struct {
-		PinID            int64  `json:"pin_id"`
-		TypeID           int32  `json:"type_id"`
-		SchematicID      int32  `json:"schematic_id"`
-		ExpiryTime       string `json:"expiry_time"`
+		PinID            int64   `json:"pin_id"`
+		TypeID           int32   `json:"type_id"`
+		SchematicID      int32   `json:"schematic_id"`
+		Latitude         float64 `json:"latitude"`
+		Longitude        float64 `json:"longitude"`
+		ExpiryTime       string  `json:"expiry_time"`
 		ExtractorDetails *struct {
-			ProductTypeID int32 `json:"product_type_id"`
-			CycleTime     int   `json:"cycle_time"`
-			QtyPerCycle   int   `json:"qty_per_cycle"`
+			ProductTypeID int32   `json:"product_type_id"`
+			CycleTime     int     `json:"cycle_time"`
+			QtyPerCycle   int     `json:"qty_per_cycle"`
+			HeadRadius    float64 `json:"head_radius"`
+			Heads         []struct {
+				HeadID    int     `json:"head_id"`
+				Latitude  float64 `json:"latitude"`
+				Longitude float64 `json:"longitude"`
+			} `json:"heads"`
 		} `json:"extractor_details"`
 		Contents []struct {
 			TypeID int32 `json:"type_id"`
 			Amount int64 `json:"amount"`
 		} `json:"contents"`
 	} `json:"pins"`
+	Links []struct {
+		SourcePinID      int64 `json:"source_pin_id"`
+		DestinationPinID int64 `json:"destination_pin_id"`
+		LinkLevel        int   `json:"link_level"`
+	} `json:"links"`
+	Routes []struct {
+		RouteID          int64   `json:"route_id"`
+		SourcePinID      int64   `json:"source_pin_id"`
+		DestinationPinID int64   `json:"destination_pin_id"`
+		ContentTypeID    int32   `json:"content_type_id"`
+		Quantity         float64 `json:"quantity"`
+	} `json:"routes"`
 }
 
 type esiPlanetMeta struct {
@@ -274,4 +294,177 @@ func tierRank(t domain.PITier) int {
 	default:
 		return 0
 	}
+}
+
+type esiTypeNameResp struct {
+	Name string `json:"name"`
+}
+
+func classifyPIPinRole(typeName string, hasExtractor bool, schematicID int32) string {
+	lower := strings.ToLower(typeName)
+	switch {
+	case hasExtractor || strings.Contains(lower, "extractor"):
+		return "extractor"
+	case strings.Contains(lower, "command center"):
+		return "command_center"
+	case strings.Contains(lower, "launchpad"):
+		return "launchpad"
+	case strings.Contains(lower, "storage"):
+		return "storage"
+	case strings.Contains(lower, "high-tech"):
+		return "hightech_factory"
+	case strings.Contains(lower, "advanced"):
+		return "advanced_factory"
+	case strings.Contains(lower, "basic") || schematicID > 0:
+		return "basic_factory"
+	default:
+		return "facility"
+	}
+}
+
+// GetPIPlanetLayout fetches the complete pin coordinates, extractor heads, links, and routes for one PI planet.
+func (c *CharacterSyncClient) GetPIPlanetLayout(ctx context.Context, token *domain.EVEToken, planetID int32) (*domain.PIPlanetLayout, error) {
+	if token == nil || token.CharacterID <= 0 || planetID <= 0 {
+		return nil, fmt.Errorf("invalid character or planet_id")
+	}
+	validTok, err := c.requireValidToken(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+
+	detailPath := fmt.Sprintf("/characters/%d/planets/%d/?datasource=tranquility", validTok.CharacterID, planetID)
+	body, err := c.esiClient.DoGet(ctx, detailPath, validTok.AccessToken, false)
+	if err != nil {
+		return nil, fmt.Errorf("fetching planet #%d layout: %w", planetID, err)
+	}
+	var detail esiPlanetDetail
+	if err := json.Unmarshal(body, &detail); err != nil {
+		return nil, fmt.Errorf("decoding planet #%d layout: %w", planetID, err)
+	}
+
+	planetName := fmt.Sprintf("Planet #%d", planetID)
+	if b, pErr := c.esiClient.DoGet(ctx, fmt.Sprintf("/universe/planets/%d/?datasource=tranquility", planetID), "", true); pErr == nil {
+		var pm esiPlanetMeta
+		if json.Unmarshal(b, &pm) == nil && pm.Name != "" {
+			planetName = pm.Name
+		}
+	}
+
+	allPI := domain.ListProduciblePICommodities("ALL", "")
+	piByID := make(map[int32]string, len(allPI))
+	for _, it := range allPI {
+		piByID[it.TypeID] = it.Name
+	}
+
+	// Cache pin type names and schematic names (all cached in esi_cache)
+	typeNameCache := make(map[int32]string)
+	resolveTypeName := func(tid int32) string {
+		if tid <= 0 {
+			return ""
+		}
+		if n, ok := piByID[tid]; ok {
+			return n
+		}
+		if n, ok := typeNameCache[tid]; ok {
+			return n
+		}
+		if b, tErr := c.esiClient.DoGet(ctx, fmt.Sprintf("/universe/types/%d/?datasource=tranquility", tid), "", true); tErr == nil {
+			var tr esiTypeNameResp
+			if json.Unmarshal(b, &tr) == nil && tr.Name != "" {
+				typeNameCache[tid] = tr.Name
+				return tr.Name
+			}
+		}
+		return fmt.Sprintf("Type #%d", tid)
+	}
+
+	schematicCache := make(map[int32]string)
+	resolveSchematic := func(sid int32) string {
+		if sid <= 0 {
+			return ""
+		}
+		if n, ok := schematicCache[sid]; ok {
+			return n
+		}
+		if b, sErr := c.esiClient.DoGet(ctx, fmt.Sprintf("/universe/schematics/%d/?datasource=tranquility", sid), "", true); sErr == nil {
+			var sm esiSchematicMeta
+			if json.Unmarshal(b, &sm) == nil && sm.SchematicName != "" {
+				schematicCache[sid] = sm.SchematicName
+				return sm.SchematicName
+			}
+		}
+		return fmt.Sprintf("Schematic #%d", sid)
+	}
+
+	pins := make([]domain.PIPlanetPin, 0, len(detail.Pins))
+	for _, p := range detail.Pins {
+		tName := resolveTypeName(p.TypeID)
+		role := classifyPIPinRole(tName, p.ExtractorDetails != nil, p.SchematicID)
+		schName := resolveSchematic(p.SchematicID)
+
+		pin := domain.PIPlanetPin{
+			PinID:         p.PinID,
+			TypeID:        p.TypeID,
+			Role:          role,
+			Label:         tName,
+			Latitude:      p.Latitude,
+			Longitude:     p.Longitude,
+			SchematicName: schName,
+			ExpiryTime:    p.ExpiryTime,
+		}
+		if p.ExtractorDetails != nil {
+			pin.HeadRadius = p.ExtractorDetails.HeadRadius
+			pin.QtyPerCycle = p.ExtractorDetails.QtyPerCycle
+			pin.CycleSeconds = p.ExtractorDetails.CycleTime
+			if p.ExtractorDetails.ProductTypeID > 0 {
+				pin.ProductName = resolveTypeName(p.ExtractorDetails.ProductTypeID)
+			}
+			for _, h := range p.ExtractorDetails.Heads {
+				pin.Heads = append(pin.Heads, domain.PIExtractorHead{
+					HeadID:    h.HeadID,
+					Latitude:  h.Latitude,
+					Longitude: h.Longitude,
+				})
+			}
+		}
+		for _, ct := range p.Contents {
+			if ct.TypeID > 0 && ct.Amount > 0 {
+				pin.Contents = append(pin.Contents, domain.PIPinContent{
+					TypeID: ct.TypeID,
+					Name:   resolveTypeName(ct.TypeID),
+					Amount: ct.Amount,
+				})
+			}
+		}
+		pins = append(pins, pin)
+	}
+
+	links := make([]domain.PIPlanetLink, 0, len(detail.Links))
+	for _, l := range detail.Links {
+		links = append(links, domain.PIPlanetLink{
+			SourcePinID:      l.SourcePinID,
+			DestinationPinID: l.DestinationPinID,
+			LinkLevel:        l.LinkLevel,
+		})
+	}
+
+	routes := make([]domain.PIPlanetRoute, 0, len(detail.Routes))
+	for _, rt := range detail.Routes {
+		routes = append(routes, domain.PIPlanetRoute{
+			RouteID:          rt.RouteID,
+			SourcePinID:      rt.SourcePinID,
+			DestinationPinID: rt.DestinationPinID,
+			ContentTypeID:    rt.ContentTypeID,
+			ContentName:      resolveTypeName(rt.ContentTypeID),
+			Quantity:         rt.Quantity,
+		})
+	}
+
+	return &domain.PIPlanetLayout{
+		PlanetID:   planetID,
+		PlanetName: planetName,
+		Pins:       pins,
+		Links:      links,
+		Routes:     routes,
+	}, nil
 }

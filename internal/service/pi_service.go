@@ -323,3 +323,19 @@ func (s *CopilotService) SyncPIColoniesFromSSO(ctx context.Context) (int, error)
 	}
 	return len(colonies), nil
 }
+
+// GetPIPlanetLayout returns the live 2D surface geometry (pins, extractor heads, links, routes) for one synced planet.
+func (s *CopilotService) GetPIPlanetLayout(ctx context.Context, planetID int32) (*domain.PIPlanetLayout, error) {
+	if s.chars == nil {
+		return nil, fmt.Errorf("EVE SSO is not connected")
+	}
+	piSync, ok := s.charSync.(domain.CharacterPISyncProvider)
+	if !ok || piSync == nil {
+		return nil, fmt.Errorf("EVE ESI PI sync provider is not configured")
+	}
+	tok, err := s.chars.GetPrimaryToken(ctx)
+	if err != nil || tok == nil || tok.CharacterID <= 0 {
+		return nil, fmt.Errorf("please connect your EVE Online character via SSO first")
+	}
+	return piSync.GetPIPlanetLayout(ctx, tok, planetID)
+}

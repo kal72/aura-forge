@@ -98,11 +98,27 @@ func (h *Handlers) HandlePISync(w http.ResponseWriter, r *http.Request) {
 	}
 	if IsHTMX(r) {
 		TriggerToast(w, "success", "Synced "+strconv.Itoa(count)+" live PI planet colonies from EVE Online SSO.")
-		w.Header().Set("HX-Refresh", "true")
+		w.Header().Set("HX-Redirect", "/pi?tab=colonies")
 		w.WriteHeader(http.StatusOK)
 		return
 	}
 	http.Redirect(w, r, "/pi?tab=colonies", http.StatusFound)
+}
+
+// HandlePIPlanetLayout returns JSON pin coordinates, extractor heads, links, and routes for the HTML5 canvas visualizer.
+func (h *Handlers) HandlePIPlanetLayout(w http.ResponseWriter, r *http.Request) {
+	rawID := strings.TrimSpace(chi.URLParam(r, "planet_id"))
+	pid, err := strconv.ParseInt(rawID, 10, 32)
+	if err != nil || pid <= 0 {
+		h.writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid planet_id"})
+		return
+	}
+	layout, err := h.svc.GetPIPlanetLayout(r.Context(), int32(pid))
+	if err != nil {
+		h.writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return
+	}
+	h.writeJSON(w, http.StatusOK, layout)
 }
 
 // HandlePISalesCalc simulates multi-item PI sales profit for custom unit quantities (from row builder or EVE Hangar paste).
