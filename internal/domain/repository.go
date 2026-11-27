@@ -62,6 +62,12 @@ type CharacterRepository interface {
 	UpsertAssets(ctx context.Context, characterID int64, assets []HangarAsset) error
 }
 
+// CorpBlueprintRepository is an optional extension of CharacterRepository for Corporation Blueprints.
+type CorpBlueprintRepository interface {
+	ListCorpBlueprints(ctx context.Context, characterID int64) ([]CharacterBlueprint, error)
+	UpsertCorpBlueprints(ctx context.Context, characterID int64, bps []CharacterBlueprint) error
+}
+
 // SettingsRepository specifies storage operations for user simulation settings.
 type SettingsRepository interface {
 	GetSettings(ctx context.Context) (*UserSettings, error)
@@ -188,6 +194,12 @@ type CharacterSyncProvider interface {
 	SyncJobs(ctx context.Context, token *EVEToken) ([]CharacterJob, error)
 	SyncBlueprints(ctx context.Context, token *EVEToken) ([]CharacterBlueprint, error)
 	SyncAssets(ctx context.Context, token *EVEToken) ([]HangarAsset, error)
+}
+
+// CorpBlueprintSyncProvider is an optional Private ESI extension for fetching corporation blueprints
+// (requires esi-corporations.read_blueprints.v1 scope and in-game Director role).
+type CorpBlueprintSyncProvider interface {
+	SyncCorpBlueprints(ctx context.Context, token *EVEToken) ([]CharacterBlueprint, error)
 }
 
 // CharacterLedgerSyncProvider is an optional Private ESI extension for wallet transactions,

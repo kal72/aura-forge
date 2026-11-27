@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"aura-forge/internal/domain"
@@ -174,13 +175,18 @@ func (c *CharacterSyncClient) SyncJobs(ctx context.Context, token *domain.EVETok
 }
 
 type esiCharBlueprint struct {
-	ItemID             int64 `json:"item_id"`
-	TypeID             int32 `json:"type_id"`
-	LocationID         int64 `json:"location_id"`
-	Quantity           int   `json:"quantity"`
-	MaterialEfficiency int   `json:"material_efficiency"`
-	TimeEfficiency     int   `json:"time_efficiency"`
-	Runs               int   `json:"runs"`
+	ItemID             int64  `json:"item_id"`
+	TypeID             int32  `json:"type_id"`
+	LocationID         int64  `json:"location_id"`
+	LocationFlag       string `json:"location_flag"`
+	Quantity           int    `json:"quantity"`
+	MaterialEfficiency int    `json:"material_efficiency"`
+	TimeEfficiency     int    `json:"time_efficiency"`
+	Runs               int    `json:"runs"`
+}
+
+type esiCharPublicInfo struct {
+	CorporationID int64 `json:"corporation_id"`
 }
 
 // SyncBlueprints fetches blueprints owned by the character.
@@ -210,14 +216,79 @@ func (c *CharacterSyncClient) SyncBlueprints(ctx context.Context, token *domain.
 			TypeID:             r.TypeID,
 			TypeName:           fmt.Sprintf("Blueprint #%d", r.TypeID),
 			LocationID:         r.LocationID,
+			LocationFlag:       r.LocationFlag,
 			Quantity:           r.Quantity,
 			MaterialEfficiency: r.MaterialEfficiency,
 			TimeEfficiency:     r.TimeEfficiency,
 			Runs:               r.Runs,
 			IsCopy:             r.Runs > 0 || r.Quantity == -2,
+			IsCorp:             false,
 			UpdatedAt:          now,
 		})
 	}
+	return bps, nil
+}
+
+// SyncCorpBlueprints fetches blueprints owned by the character's corporation
+// (requires esi-corporations.read_blueprints.v1 scope and in-game Director role).
+func (c *CharacterSyncClient) SyncCorpBlueprints(ctx context.Context, token *domain.EVEToken) ([]domain.CharacterBlueprint, error) {
+	validTok, err := c.requireValidToken(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+
+	// Resolve character's corporation_id via cached public ESI
+	charBody, err := c.esiClient.DoGet(ctx, fmt.Sprintf("/characters/%d/?datasource=tranquility", validTok.CharacterID), "", true)
+	if err != nil {
+		return nil, fmt.Errorf("resolving character corporation_id: %w", err)
+	}
+	var pub esiCharPublicInfo
+	if err := json.Unmarshal(charBody, &pub); err != nil || pub.CorporationID <= 0 {
+		return nil, fmt.Errorf("character has no valid corporation_id")
+	}
+
+	const maxCorpBPPages = 10
+	now := time.Now()
+	bps := make([]domain.CharacterBlueprint, 0, 64)
+	totalPages := 1
+
+	for page := 1; page <= totalPages && page <= maxCorpBPPages; page++ {
+		path := fmt.Sprintf("/corporations/%d/blueprints/?datasource=tranquility&page=%d", pub.CorporationID, page)
+		body, headers, err := c.esiClient.DoGetWithHeaders(ctx, path, validTok.AccessToken, false)
+		if err != nil {
+			if page == 1 {
+				return nil, fmt.Errorf("syncing corporation blueprints: %w", err)
+			}
+			break
+		}
+		if page == 1 && headers != nil {
+			if xp, pErr := strconv.Atoi(headers.Get("X-Pages")); pErr == nil && xp > 1 {
+				totalPages = xp
+			}
+		}
+		var raw []esiCharBlueprint
+		if err := json.Unmarshal(body, &raw); err != nil {
+			return nil, fmt.Errorf("decoding corporation blueprints page %d: %w", page, err)
+		}
+		for _, r := range raw {
+			bps = append(bps, domain.CharacterBlueprint{
+				ItemID:             r.ItemID,
+				CharacterID:        validTok.CharacterID,
+				TypeID:             r.TypeID,
+				TypeName:           fmt.Sprintf("Blueprint #%d", r.TypeID),
+				LocationID:         r.LocationID,
+				LocationFlag:       r.LocationFlag,
+				Quantity:           r.Quantity,
+				MaterialEfficiency: r.MaterialEfficiency,
+				TimeEfficiency:     r.TimeEfficiency,
+				Runs:               r.Runs,
+				IsCopy:             r.Runs > 0 || r.Quantity == -2,
+				IsCorp:             true,
+				UpdatedAt:          now,
+			})
+		}
+	}
+
 	return bps, nil
 }
 
@@ -491,6 +562,10 @@ func (n *NoOpCharacterSyncProvider) SyncJobs(ctx context.Context, token *domain.
 }
 
 func (n *NoOpCharacterSyncProvider) SyncBlueprints(ctx context.Context, token *domain.EVEToken) ([]domain.CharacterBlueprint, error) {
+	return nil, ErrSSODisabled
+}
+
+func (n *NoOpCharacterSyncProvider) SyncCorpBlueprints(ctx context.Context, token *domain.EVEToken) ([]domain.CharacterBlueprint, error) {
 	return nil, ErrSSODisabled
 }
 

@@ -69,6 +69,31 @@ func pilotPageURL(tab, q, filter string, page int) string {
 	return "/pilot?" + v.Encode()
 }
 
+func formatCorpHangarFlag(flag string) string {
+	switch flag {
+	case "CorpSAG1":
+		return "Corp Hangar 1"
+	case "CorpSAG2":
+		return "Corp Hangar 2"
+	case "CorpSAG3":
+		return "Corp Hangar 3"
+	case "CorpSAG4":
+		return "Corp Hangar 4"
+	case "CorpSAG5":
+		return "Corp Hangar 5"
+	case "CorpSAG6":
+		return "Corp Hangar 6"
+	case "CorpSAG7":
+		return "Corp Hangar 7"
+	case "CorpDeliveries":
+		return "Corp Deliveries"
+	case "":
+		return "Corp Hangar"
+	default:
+		return flag
+	}
+}
+
 func eveBlueprintIconURL(typeID int32, isCopy bool) string {
 	if isCopy {
 		return fmt.Sprintf("https://images.evetech.net/types/%d/bpc?size=64", typeID)
@@ -288,6 +313,7 @@ templ PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) {
 					@pilotHubTabLink(view.ActiveTab, "jobs", "Active Industry Jobs", view.TotalJobs, "text-amber-300")
 					@pilotHubTabLink(view.ActiveTab, "orders", "Open Market Orders", view.TotalOrders, "text-sky-300")
 					@pilotHubTabLink(view.ActiveTab, "blueprints", "My Blueprints (BPO/BPC)", view.TotalBlueprints, "text-violet-300")
+					@pilotHubTabLink(view.ActiveTab, "corp_blueprints", "Corp Blueprints (BPO/BPC)", view.TotalCorpBlueprints, "text-cyan-300")
 					@pilotHubTabLink(view.ActiveTab, "assets", "Hangar Stock", view.TotalHangarItems, "text-emerald-300")
 				</div>
 
@@ -329,7 +355,7 @@ templ PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) {
 									{ fmt.Sprintf("%d UNDERCUT", view.UndercutCount) }
 								</span>
 							}
-						} else if view.ActiveTab == "blueprints" {
+						} else if view.ActiveTab == "blueprints" || view.ActiveTab == "corp_blueprints" {
 							<select name="filter" class="rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-xs text-slate-200">
 								<option value="" selected?={ view.TypeFilter == "" }>All Blueprints (BPO &amp; BPC)</option>
 								<option value="BPO" selected?={ view.TypeFilter == "BPO" }>Originals (BPO) Only</option>
@@ -583,7 +609,210 @@ templ PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) {
 					</div>
 				}
 
-				<!-- Tab 4: Hangar Stock -->
+				<!-- Tab 4: Corporation Blueprints (BPO/BPC) -->
+				if view.ActiveTab == "corp_blueprints" {
+					<div class="space-y-4" x-data={ fmt.Sprintf("{ showCorpPaste: %t }", len(view.CorpBlueprints) == 0) }>
+						<!-- Action Toolbar -->
+						<div class="flex flex-wrap items-center justify-between gap-2">
+							<div class="flex flex-wrap items-center gap-2">
+								if mode.IsAdmin() {
+									<button
+										type="button"
+										@click="showCorpPaste = !showCorpPaste"
+										class="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/50 bg-amber-500/20 px-3.5 py-2 text-xs font-bold text-amber-100 hover:bg-amber-500/30 transition cursor-pointer"
+									>
+										<span x-text="showCorpPaste ? '− Close Paste Panel' : '+ Paste from In-Game (Ctrl+C)'"></span>
+									</button>
+									<button
+										type="button"
+										hx-post="/pilot/sync-corp-blueprints"
+										hx-swap="none"
+										hx-indicator="#corp-bp-sync-spin"
+										title="Requires EVE Director role in-game"
+										class="inline-flex items-center gap-2 rounded-lg border border-cyan-400/40 bg-cyan-500/15 px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-cyan-500/25 transition cursor-pointer"
+									>
+										<span id="corp-bp-sync-spin" class="htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-cyan-300 border-t-transparent"></span>
+										<span>Sync ESI (Director)</span>
+									</button>
+								}
+							</div>
+							if mode.IsAdmin() && view.TotalCorpBlueprints > 0 {
+								<button
+									type="button"
+									hx-post="/pilot/clear-corp-blueprints"
+									hx-swap="none"
+									hx-confirm="Clear all saved corporation blueprints?"
+									class="rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-500/20 transition cursor-pointer"
+								>
+									Clear All
+								</button>
+							}
+						</div>
+
+						<!-- Collapsible In-Game Paste Importer -->
+						if mode.IsAdmin() {
+							<div x-cloak x-show="showCorpPaste" class="tactical-panel rounded-xl p-5 space-y-3 border border-amber-400/30">
+								<div>
+									<h3 class="text-xs font-bold uppercase tracking-wider text-amber-300">
+										{ i18n.L(ctx, "Paste Corporation Blueprints from EVE Online (Ctrl+C)", "Tempel Blueprint Corporation dari EVE Online (Ctrl+C)") }
+									</h3>
+									<p class="text-xs text-slate-300/85 mt-1">
+										{ i18n.L(ctx, "In-game: open your Corp Hangar or Industry → Blueprints tab, select rows (Ctrl+A → Ctrl+C), and paste below. Works for regular corp members without Director role.", "Di dalam game: buka Corp Hangar atau tab Industry → Blueprints, pilih daftar blueprint (Ctrl+A → Ctrl+C), lalu tempel di bawah. Bisa dipakai member biasa tanpa role Director.") }
+									</p>
+								</div>
+								<form hx-post="/pilot/import-corp-blueprints" hx-swap="none" class="space-y-3">
+									<textarea
+										name="raw_blueprints"
+										rows="5"
+										required
+										placeholder="Hobgoblin I Blueprint&#10;Damage Control II Blueprint	1	Module Blueprint	Copy	ME: 2	TE: 4	10 runs&#10;Caracal Blueprint ME10 TE20"
+										class="w-full rounded-lg border border-slate-700 bg-slate-950/90 p-3 font-mono text-xs text-white placeholder-slate-500 focus:border-amber-400/60 focus:outline-none"
+									></textarea>
+									<div class="grid grid-cols-1 gap-3 sm:grid-cols-4">
+										<div class="sm:col-span-2">
+											<label class="block text-[10px] font-mono uppercase text-slate-400">Hangar Division Label</label>
+											<input
+												type="text"
+												name="hangar_label"
+												value="Corp Hangar 1"
+												class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white"
+											/>
+										</div>
+										<div>
+											<label class="block text-[10px] font-mono uppercase text-slate-400">Default ME (0–10)</label>
+											<input
+												type="number"
+												name="default_me"
+												value="10"
+												min="0"
+												max="10"
+												class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-mono text-white"
+											/>
+										</div>
+										<div>
+											<label class="block text-[10px] font-mono uppercase text-slate-400">Default TE (0–20)</label>
+											<input
+												type="number"
+												name="default_te"
+												value="20"
+												min="0"
+												max="20"
+												class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-mono text-white"
+											/>
+										</div>
+									</div>
+									<div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+										<label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+											<input type="checkbox" name="replace_existing" value="1" class="rounded border-slate-700 bg-slate-900"/>
+											<span>{ i18n.L(ctx, "Replace existing corp blueprint list (unchecked = merge/add)", "Ganti seluruh daftar lama (tidak dicentang = gabung/tambah)") }</span>
+										</label>
+										<button
+											type="submit"
+											class="rounded-lg bg-amber-400 px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer"
+										>
+											Import Corp Blueprints
+										</button>
+									</div>
+								</form>
+							</div>
+						}
+
+						<div class="tactical-panel rounded-xl overflow-hidden">
+							if len(view.CorpBlueprints) == 0 {
+								<div class="p-8 text-center space-y-2 max-w-xl mx-auto">
+									<div class="text-sm font-semibold text-slate-200">
+										{ i18n.L(ctx, "No corporation blueprints saved yet.", "Belum ada blueprint corporation yang tersimpan.") }
+									</div>
+									<div class="text-xs text-slate-400 leading-relaxed">
+										{ i18n.L(ctx, "Paste your corp hangar blueprint list above (works for any corp member), or click Sync ESI (Director) if your character has the Director role.", "Tempel daftar blueprint corp hangar di atas (bisa untuk semua member), atau klik Sync ESI (Director) jika karakter Anda memiliki role Director.") }
+									</div>
+								</div>
+							} else {
+								<div class="overflow-x-auto">
+									<table class="w-full text-left text-xs">
+										<thead class="border-b border-violet-400/20 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400">
+											<tr>
+												<th class="px-4 py-3">Corporation Blueprint</th>
+												<th class="px-3 py-3 text-center">Type &amp; Hangar</th>
+												<th class="px-3 py-3 text-right">Material Efficiency / Time Efficiency</th>
+												<th class="px-3 py-3 text-right">Runs</th>
+												<th class="px-4 py-3 text-right">Action</th>
+											</tr>
+										</thead>
+										<tbody class="divide-y divide-slate-800/80">
+											for _, bp := range view.CorpBlueprints {
+												<tr class="hover:bg-violet-500/5 transition">
+													<td class="px-4 py-2.5">
+														<div class="flex items-center gap-3">
+															if bp.TypeID > 0 {
+																<img
+																	src={ eveBlueprintIconURL(bp.TypeID, bp.IsCopy) }
+																	data-fallback={ EVEItemIconURL(bp.TypeID, 64) }
+																	alt={ bp.TypeName }
+																	loading="lazy"
+																	class="h-9 w-9 shrink-0 rounded-lg border border-cyan-400/35 bg-slate-900 p-0.5 object-contain"
+																	onerror="if(this.dataset.fallback && this.src!==this.dataset.fallback){this.src=this.dataset.fallback}else{this.style.display='none'}"
+																/>
+															}
+															<span class="font-semibold text-white text-sm">{ bp.TypeName }</span>
+														</div>
+													</td>
+													<td class="px-3 py-2.5 text-center">
+														<div class="flex flex-wrap items-center justify-center gap-1.5">
+															if bp.IsCopy {
+																<span class="rounded border border-violet-400/40 bg-violet-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-violet-200">BPC</span>
+															} else {
+																<span class="rounded border border-sky-400/40 bg-sky-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-sky-200">BPO</span>
+															}
+															<span class="rounded border border-cyan-400/30 bg-cyan-500/10 px-2 py-0.5 font-mono text-[10px] text-cyan-200">
+																{ formatCorpHangarFlag(bp.LocationFlag) }
+															</span>
+														</div>
+													</td>
+													<td class="px-3 py-2.5 text-right font-mono">
+														<div class="text-xs font-semibold text-emerald-300">
+															Material Efficiency (ME): { fmt.Sprintf("%d%%", bp.MaterialEfficiency) }
+														</div>
+														<div class="text-[11px] text-sky-300/90 mt-0.5">
+															Time Efficiency (TE): { fmt.Sprintf("%d%%", bp.TimeEfficiency) }
+														</div>
+													</td>
+													<td class="px-3 py-2.5 text-right font-mono text-slate-300">
+														if bp.IsCopy {
+															{ fmt.Sprintf("%d runs", bp.Runs) }
+														} else {
+															<span class="text-sky-300">Unlimited</span>
+														}
+													</td>
+													<td class="px-4 py-2.5 text-right">
+														if bp.TypeID > 0 {
+															<a
+																href={ templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&me=%d&te=%d&hub=%s", bp.TypeID, bp.MaterialEfficiency, bp.TimeEfficiency, view.ActiveHub.Key)) }
+																class="rounded border border-amber-400/45 bg-amber-500/15 px-2.5 py-1 text-[10px] font-bold text-amber-200 hover:bg-amber-500/30 transition"
+															>
+																Manufacture →
+															</a>
+														} else {
+															<a
+																href={ templ.SafeURL(fmt.Sprintf("/manufacture?q=%s&me=%d&te=%d&hub=%s", url.QueryEscape(bp.TypeName), bp.MaterialEfficiency, bp.TimeEfficiency, view.ActiveHub.Key)) }
+																class="rounded border border-amber-400/45 bg-amber-500/15 px-2.5 py-1 text-[10px] font-bold text-amber-200 hover:bg-amber-500/30 transition"
+															>
+																Manufacture →
+															</a>
+														}
+													</td>
+												</tr>
+											}
+										</tbody>
+									</table>
+								</div>
+								@pilotPaginationBar(view)
+							}
+						</div>
+					</div>
+				}
+
+				<!-- Tab 5: Hangar Stock -->
 				if view.ActiveTab == "assets" {
 					<div class="tactical-panel rounded-xl overflow-hidden">
 						if len(view.HangarItems) == 0 {

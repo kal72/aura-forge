@@ -77,6 +77,31 @@ func pilotPageURL(tab, q, filter string, page int) string {
 	return "/pilot?" + v.Encode()
 }
 
+func formatCorpHangarFlag(flag string) string {
+	switch flag {
+	case "CorpSAG1":
+		return "Corp Hangar 1"
+	case "CorpSAG2":
+		return "Corp Hangar 2"
+	case "CorpSAG3":
+		return "Corp Hangar 3"
+	case "CorpSAG4":
+		return "Corp Hangar 4"
+	case "CorpSAG5":
+		return "Corp Hangar 5"
+	case "CorpSAG6":
+		return "Corp Hangar 6"
+	case "CorpSAG7":
+		return "Corp Hangar 7"
+	case "CorpDeliveries":
+		return "Corp Deliveries"
+	case "":
+		return "Corp Hangar"
+	default:
+		return flag
+	}
+}
+
 func eveBlueprintIconURL(typeID int32, isCopy bool) string {
 	if isCopy {
 		return fmt.Sprintf("https://images.evetech.net/types/%d/bpc?size=64", typeID)
@@ -154,7 +179,7 @@ func pilotHubTabLink(activeTab, tabKey, label string, count int, countColor stri
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs("/pilot?tab=" + tabKey)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 105, Col: 33}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 130, Col: 33}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -180,7 +205,7 @@ func pilotHubTabLink(activeTab, tabKey, label string, count int, countColor stri
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 117, Col: 15}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 142, Col: 15}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -215,7 +240,7 @@ func pilotHubTabLink(activeTab, tabKey, label string, count int, countColor stri
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", count))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 118, Col: 120}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 143, Col: 120}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -258,7 +283,7 @@ func pilotPaginationBar(view *service.PilotHubViewData) templ.Component {
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Showing", "Menampilkan"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 126, Col: 43}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 151, Col: 43}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -271,7 +296,7 @@ func pilotPaginationBar(view *service.PilotHubViewData) templ.Component {
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d–%d", view.StartIdx, view.EndIdx))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 126, Col: 129}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 151, Col: 129}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -284,7 +309,7 @@ func pilotPaginationBar(view *service.PilotHubViewData) templ.Component {
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "of", "dari"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 126, Col: 168}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 151, Col: 168}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -297,7 +322,7 @@ func pilotPaginationBar(view *service.PilotHubViewData) templ.Component {
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", view.TotalFiltered))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 126, Col: 241}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 151, Col: 241}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -329,7 +354,7 @@ func pilotPaginationBar(view *service.PilotHubViewData) templ.Component {
 					var templ_7745c5c3_Var16 string
 					templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(pilotPageURL(view.ActiveTab, view.SearchQuery, view.TypeFilter, view.Page-1))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 133, Col: 92}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 158, Col: 92}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 					if templ_7745c5c3_Err != nil {
@@ -352,7 +377,7 @@ func pilotPaginationBar(view *service.PilotHubViewData) templ.Component {
 				var templ_7745c5c3_Var17 string
 				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Page %d / %d", view.Page, view.TotalPages))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 145, Col: 96}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 170, Col: 96}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 				if templ_7745c5c3_Err != nil {
@@ -379,7 +404,7 @@ func pilotPaginationBar(view *service.PilotHubViewData) templ.Component {
 					var templ_7745c5c3_Var19 string
 					templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(pilotPageURL(view.ActiveTab, view.SearchQuery, view.TypeFilter, view.Page+1))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 149, Col: 92}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 174, Col: 92}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 					if templ_7745c5c3_Err != nil {
@@ -474,7 +499,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 				var templ_7745c5c3_Var22 string
 				templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("https://images.evetech.net/characters/%d/portrait?size=128", view.Profile.CharacterID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 192, Col: 113}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 217, Col: 113}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 				if templ_7745c5c3_Err != nil {
@@ -487,7 +512,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 				var templ_7745c5c3_Var23 string
 				templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(view.Profile.CharacterName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 193, Col: 40}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 218, Col: 40}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 				if templ_7745c5c3_Err != nil {
@@ -500,7 +525,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 				var templ_7745c5c3_Var24 string
 				templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(view.Profile.CharacterName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 200, Col: 93}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 225, Col: 93}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 				if templ_7745c5c3_Err != nil {
@@ -513,7 +538,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 				var templ_7745c5c3_Var25 string
 				templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", view.Profile.CharacterID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 204, Col: 67}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 229, Col: 67}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 				if templ_7745c5c3_Err != nil {
@@ -531,7 +556,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 					var templ_7745c5c3_Var26 string
 					templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(view.Profile.UpdatedAt.UTC().Format("2006-01-02 15:04 UTC"))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 206, Col: 93}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 231, Col: 93}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 					if templ_7745c5c3_Err != nil {
@@ -554,7 +579,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 					var templ_7745c5c3_Var27 string
 					templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Inspect my owned Blueprints, Hangar Stock, Active Jobs, and run the full Opportunity Radar at %s. Tell me which of my owned BPO/BPCs or market flips I should execute right now, and attach 1-click Action Cards.", view.ActiveHub.Name))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 216, Col: 267}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 241, Col: 267}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 					if templ_7745c5c3_Err != nil {
@@ -567,7 +592,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 					var templ_7745c5c3_Var28 string
 					templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("EVE Pilot Hub (%s): Wallet %s, Available Capital %s, MFG Slots %d/%d, Ready Jobs %d, Owned Blueprints %d, Hangar Distinct Items %d, Open Orders %d.", view.Profile.CharacterName, FormatISK(view.Profile.WalletBalance), FormatISK(view.AvailableCapital), view.Profile.UsedManufacturingSlots, view.Profile.TotalManufacturingSlots, view.ReadyJobsCount, view.TotalBlueprints, view.TotalHangarItems, view.TotalOrders))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 217, Col: 441}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 242, Col: 441}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 					if templ_7745c5c3_Err != nil {
@@ -595,7 +620,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 				var templ_7745c5c3_Var29 string
 				templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(view.Profile.WalletBalance))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 258, Col: 109}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 283, Col: 109}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 				if templ_7745c5c3_Err != nil {
@@ -608,7 +633,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 				var templ_7745c5c3_Var30 string
 				templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(view.AvailableCapital))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 263, Col: 102}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 288, Col: 102}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 				if templ_7745c5c3_Err != nil {
@@ -621,7 +646,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 				var templ_7745c5c3_Var31 string
 				templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(view.CapitalSource)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 264, Col: 73}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 289, Col: 73}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 				if templ_7745c5c3_Err != nil {
@@ -634,7 +659,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 				var templ_7745c5c3_Var32 string
 				templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d/%d", view.Profile.UsedManufacturingSlots, view.Profile.TotalManufacturingSlots))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 269, Col: 104}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 294, Col: 104}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 				if templ_7745c5c3_Err != nil {
@@ -647,7 +672,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 				var templ_7745c5c3_Var33 string
 				templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d/%d SCI • %d ready to deliver", view.Profile.UsedScienceSlots, view.Profile.TotalScienceSlots, view.ReadyJobsCount))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 273, Col: 141}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 298, Col: 141}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 				if templ_7745c5c3_Err != nil {
@@ -660,7 +685,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 				var templ_7745c5c3_Var34 string
 				templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(view.TotalSellISK + view.TotalBuyISK))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 278, Col: 115}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 303, Col: 115}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 				if templ_7745c5c3_Err != nil {
@@ -673,7 +698,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 				var templ_7745c5c3_Var35 string
 				templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(view.TotalSellISK))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 280, Col: 42}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 305, Col: 42}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 				if templ_7745c5c3_Err != nil {
@@ -686,7 +711,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 				var templ_7745c5c3_Var36 string
 				templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(view.TotalBuyISK))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 280, Col: 82}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 305, Col: 82}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 				if templ_7745c5c3_Err != nil {
@@ -708,6 +733,10 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
+				templ_7745c5c3_Err = pilotHubTabLink(view.ActiveTab, "corp_blueprints", "Corp Blueprints (BPO/BPC)", view.TotalCorpBlueprints, "text-cyan-300").Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 				templ_7745c5c3_Err = pilotHubTabLink(view.ActiveTab, "assets", "Hangar Stock", view.TotalHangarItems, "text-emerald-300").Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -719,7 +748,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 				var templ_7745c5c3_Var37 string
 				templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(view.ActiveTab)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 305, Col: 59}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 331, Col: 59}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 				if templ_7745c5c3_Err != nil {
@@ -732,7 +761,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 				var templ_7745c5c3_Var38 string
 				templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(view.SearchQuery)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 310, Col: 31}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 336, Col: 31}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 				if templ_7745c5c3_Err != nil {
@@ -830,7 +859,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 						var templ_7745c5c3_Var39 string
 						templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d UNDERCUT", view.UndercutCount))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 329, Col: 57}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 355, Col: 57}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 						if templ_7745c5c3_Err != nil {
@@ -841,7 +870,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 							return templ_7745c5c3_Err
 						}
 					}
-				} else if view.ActiveTab == "blueprints" {
+				} else if view.ActiveTab == "blueprints" || view.ActiveTab == "corp_blueprints" {
 					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "<select name=\"filter\" class=\"rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-xs text-slate-200\"><option value=\"\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
@@ -898,7 +927,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 					var templ_7745c5c3_Var41 string
 					templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs("/pilot?tab=" + view.ActiveTab)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 345, Col: 47}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 371, Col: 47}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
 					if templ_7745c5c3_Err != nil {
@@ -921,7 +950,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 					var templ_7745c5c3_Var42 string
 					templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d matched", view.TotalFiltered))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 358, Col: 54}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 384, Col: 54}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 					if templ_7745c5c3_Err != nil {
@@ -966,7 +995,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 								var templ_7745c5c3_Var43 string
 								templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(j.TypeID, 64))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 379, Col: 51}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 405, Col: 51}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 								if templ_7745c5c3_Err != nil {
@@ -979,7 +1008,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 								var templ_7745c5c3_Var44 string
 								templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(j.TypeName)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 379, Col: 70}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 405, Col: 70}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 								if templ_7745c5c3_Err != nil {
@@ -1019,7 +1048,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 							var templ_7745c5c3_Var47 string
 							templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.JoinStringErrs(actTxt)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 383, Col: 110}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 409, Col: 110}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var47))
 							if templ_7745c5c3_Err != nil {
@@ -1032,7 +1061,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 							var templ_7745c5c3_Var48 string
 							templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(j.TypeName)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 384, Col: 81}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 410, Col: 81}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 							if templ_7745c5c3_Err != nil {
@@ -1045,7 +1074,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 							var templ_7745c5c3_Var49 string
 							templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", j.Runs))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 385, Col: 90}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 411, Col: 90}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var49))
 							if templ_7745c5c3_Err != nil {
@@ -1068,7 +1097,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 								var templ_7745c5c3_Var50 string
 								templ_7745c5c3_Var50, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(fmt.Sprintf("width: %d%%", pct))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 392, Col: 100}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 418, Col: 100}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var50))
 								if templ_7745c5c3_Err != nil {
@@ -1086,7 +1115,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 							var templ_7745c5c3_Var51 string
 							templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d%%", pct))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 395, Col: 90}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 421, Col: 90}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var51))
 							if templ_7745c5c3_Err != nil {
@@ -1109,7 +1138,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 								var templ_7745c5c3_Var52 string
 								templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.JoinStringErrs(remLabel)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 403, Col: 60}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 429, Col: 60}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var52))
 								if templ_7745c5c3_Err != nil {
@@ -1122,7 +1151,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 								var templ_7745c5c3_Var53 string
 								templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.JoinStringErrs(j.EndDate.UTC().Format("Jan 02 15:04 UTC"))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 404, Col: 101}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 430, Col: 101}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var53))
 								if templ_7745c5c3_Err != nil {
@@ -1185,7 +1214,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 								var templ_7745c5c3_Var54 string
 								templ_7745c5c3_Var54, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(o.TypeID, 32))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 443, Col: 54}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 469, Col: 54}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var54))
 								if templ_7745c5c3_Err != nil {
@@ -1198,7 +1227,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 								var templ_7745c5c3_Var55 string
 								templ_7745c5c3_Var55, templ_7745c5c3_Err = templ.JoinStringErrs(o.TypeName)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 443, Col: 73}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 469, Col: 73}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var55))
 								if templ_7745c5c3_Err != nil {
@@ -1231,7 +1260,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 							var templ_7745c5c3_Var56 string
 							templ_7745c5c3_Var56, templ_7745c5c3_Err = templ.JoinStringErrs(o.TypeName)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 452, Col: 67}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 478, Col: 67}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var56))
 							if templ_7745c5c3_Err != nil {
@@ -1244,7 +1273,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 							var templ_7745c5c3_Var57 string
 							templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.JoinStringErrs(o.IssuedAt.UTC().Format("2006-01-02 15:04"))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 454, Col: 117}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 480, Col: 117}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var57))
 							if templ_7745c5c3_Err != nil {
@@ -1257,7 +1286,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 							var templ_7745c5c3_Var58 string
 							templ_7745c5c3_Var58, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d / %d", o.VolumeRemain, o.VolumeTotal))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 458, Col: 145}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 484, Col: 145}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var58))
 							if templ_7745c5c3_Err != nil {
@@ -1270,7 +1299,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 							var templ_7745c5c3_Var59 string
 							templ_7745c5c3_Var59, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(o.Price))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 459, Col: 108}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 485, Col: 108}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var59))
 							if templ_7745c5c3_Err != nil {
@@ -1288,7 +1317,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 								var templ_7745c5c3_Var60 string
 								templ_7745c5c3_Var60, templ_7745c5c3_Err = templ.JoinStringErrs(FormatPercent(w.GapPercent))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 464, Col: 55}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 490, Col: 55}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var60))
 								if templ_7745c5c3_Err != nil {
@@ -1301,7 +1330,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 								var templ_7745c5c3_Var61 string
 								templ_7745c5c3_Var61, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(w.MarketBestPrice))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 468, Col: 80}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 494, Col: 80}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var61))
 								if templ_7745c5c3_Err != nil {
@@ -1319,7 +1348,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 									var templ_7745c5c3_Var62 string
 									templ_7745c5c3_Var62, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(w.RecommendedPrice))
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 472, Col: 52}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 498, Col: 52}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var62))
 									if templ_7745c5c3_Err != nil {
@@ -1332,7 +1361,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 									var templ_7745c5c3_Var63 string
 									templ_7745c5c3_Var63, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", w.RecommendedPrice))
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 475, Col: 68}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 501, Col: 68}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var63))
 									if templ_7745c5c3_Err != nil {
@@ -1361,7 +1390,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 							var templ_7745c5c3_Var64 string
 							templ_7745c5c3_Var64, templ_7745c5c3_Err = templ.JoinStringErrs(FormatISK(o.Price * float64(o.VolumeRemain)))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 489, Col: 142}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 515, Col: 142}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var64))
 							if templ_7745c5c3_Err != nil {
@@ -1427,7 +1456,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 								var templ_7745c5c3_Var66 string
 								templ_7745c5c3_Var66, templ_7745c5c3_Err = templ.JoinStringErrs(eveBlueprintIconURL(bp.TypeID, bp.IsCopy))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 535, Col: 63}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 561, Col: 63}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var66))
 								if templ_7745c5c3_Err != nil {
@@ -1440,7 +1469,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 								var templ_7745c5c3_Var67 string
 								templ_7745c5c3_Var67, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(bp.TypeID, 64))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 536, Col: 61}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 562, Col: 61}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var67))
 								if templ_7745c5c3_Err != nil {
@@ -1453,7 +1482,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 								var templ_7745c5c3_Var68 string
 								templ_7745c5c3_Var68, templ_7745c5c3_Err = templ.JoinStringErrs(bp.TypeName)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 537, Col: 33}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 563, Col: 33}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var68))
 								if templ_7745c5c3_Err != nil {
@@ -1471,7 +1500,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 							var templ_7745c5c3_Var69 string
 							templ_7745c5c3_Var69, templ_7745c5c3_Err = templ.JoinStringErrs(bp.TypeName)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 543, Col: 74}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 569, Col: 74}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var69))
 							if templ_7745c5c3_Err != nil {
@@ -1499,7 +1528,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 							var templ_7745c5c3_Var70 string
 							templ_7745c5c3_Var70, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d%%", bp.MaterialEfficiency))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 555, Col: 84}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 581, Col: 84}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var70))
 							if templ_7745c5c3_Err != nil {
@@ -1512,7 +1541,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 							var templ_7745c5c3_Var71 string
 							templ_7745c5c3_Var71, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d%%", bp.TimeEfficiency))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 558, Col: 76}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 584, Col: 76}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var71))
 							if templ_7745c5c3_Err != nil {
@@ -1526,7 +1555,7 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 								var templ_7745c5c3_Var72 string
 								templ_7745c5c3_Var72, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d runs", bp.Runs))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 563, Col: 47}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 589, Col: 47}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var72))
 								if templ_7745c5c3_Err != nil {
@@ -1566,107 +1595,309 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 165, "<!-- Tab 4: Hangar Stock -->")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 165, "<!-- Tab 4: Corporation Blueprints (BPO/BPC) -->")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				if view.ActiveTab == "assets" {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 166, "<div class=\"tactical-panel rounded-xl overflow-hidden\">")
+				if view.ActiveTab == "corp_blueprints" {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 166, "<div class=\"space-y-4\" x-data=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					if len(view.HangarItems) == 0 {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 167, "<div class=\"p-10 text-center space-y-2\"><div class=\"text-sm font-semibold text-slate-200\">No hangar items match this filter.</div><div class=\"text-xs text-slate-400\">Click <strong>Sync Now (Private ESI)</strong> to import hangar materials (automatically deducted from your Weekly Planner shopping list).</div></div>")
+					var templ_7745c5c3_Var74 string
+					templ_7745c5c3_Var74, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("{ showCorpPaste: %t }", len(view.CorpBlueprints) == 0))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 614, Col: 104}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var74))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 167, "\"><!-- Action Toolbar --><div class=\"flex flex-wrap items-center justify-between gap-2\"><div class=\"flex flex-wrap items-center gap-2\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					if mode.IsAdmin() {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 168, "<button type=\"button\" @click=\"showCorpPaste = !showCorpPaste\" class=\"inline-flex items-center gap-1.5 rounded-lg border border-amber-400/50 bg-amber-500/20 px-3.5 py-2 text-xs font-bold text-amber-100 hover:bg-amber-500/30 transition cursor-pointer\"><span x-text=\"showCorpPaste ? &#39;− Close Paste Panel&#39; : &#39;+ Paste from In-Game (Ctrl+C)&#39;\"></span></button> <button type=\"button\" hx-post=\"/pilot/sync-corp-blueprints\" hx-swap=\"none\" hx-indicator=\"#corp-bp-sync-spin\" title=\"Requires EVE Director role in-game\" class=\"inline-flex items-center gap-2 rounded-lg border border-cyan-400/40 bg-cyan-500/15 px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-cyan-500/25 transition cursor-pointer\"><span id=\"corp-bp-sync-spin\" class=\"htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-cyan-300 border-t-transparent\"></span> <span>Sync ESI (Director)</span></button>")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 169, "</div>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					if mode.IsAdmin() && view.TotalCorpBlueprints > 0 {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 170, "<button type=\"button\" hx-post=\"/pilot/clear-corp-blueprints\" hx-swap=\"none\" hx-confirm=\"Clear all saved corporation blueprints?\" class=\"rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-500/20 transition cursor-pointer\">Clear All</button>")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 171, "</div><!-- Collapsible In-Game Paste Importer -->")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					if mode.IsAdmin() {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 172, "<div x-cloak x-show=\"showCorpPaste\" class=\"tactical-panel rounded-xl p-5 space-y-3 border border-amber-400/30\"><div><h3 class=\"text-xs font-bold uppercase tracking-wider text-amber-300\">")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var75 string
+						templ_7745c5c3_Var75, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Paste Corporation Blueprints from EVE Online (Ctrl+C)", "Tempel Blueprint Corporation dari EVE Online (Ctrl+C)"))
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 657, Col: 137}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var75))
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 173, "</h3><p class=\"text-xs text-slate-300/85 mt-1\">")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var76 string
+						templ_7745c5c3_Var76, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "In-game: open your Corp Hangar or Industry → Blueprints tab, select rows (Ctrl+A → Ctrl+C), and paste below. Works for regular corp members without Director role.", "Di dalam game: buka Corp Hangar atau tab Industry → Blueprints, pilih daftar blueprint (Ctrl+A → Ctrl+C), lalu tempel di bawah. Bisa dipakai member biasa tanpa role Director."))
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 660, Col: 375}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var76))
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 174, "</p></div><form hx-post=\"/pilot/import-corp-blueprints\" hx-swap=\"none\" class=\"space-y-3\"><textarea name=\"raw_blueprints\" rows=\"5\" required placeholder=\"Hobgoblin I Blueprint\nDamage Control II Blueprint\t1\tModule Blueprint\tCopy\tME: 2\tTE: 4\t10 runs\nCaracal Blueprint ME10 TE20\" class=\"w-full rounded-lg border border-slate-700 bg-slate-950/90 p-3 font-mono text-xs text-white placeholder-slate-500 focus:border-amber-400/60 focus:outline-none\"></textarea><div class=\"grid grid-cols-1 gap-3 sm:grid-cols-4\"><div class=\"sm:col-span-2\"><label class=\"block text-[10px] font-mono uppercase text-slate-400\">Hangar Division Label</label> <input type=\"text\" name=\"hangar_label\" value=\"Corp Hangar 1\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-400\">Default ME (0–10)</label> <input type=\"number\" name=\"default_me\" value=\"10\" min=\"0\" max=\"10\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-mono text-white\"></div><div><label class=\"block text-[10px] font-mono uppercase text-slate-400\">Default TE (0–20)</label> <input type=\"number\" name=\"default_te\" value=\"20\" min=\"0\" max=\"20\" class=\"mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-mono text-white\"></div></div><div class=\"flex flex-wrap items-center justify-between gap-3 pt-1\"><label class=\"inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer\"><input type=\"checkbox\" name=\"replace_existing\" value=\"1\" class=\"rounded border-slate-700 bg-slate-900\"> <span>")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var77 string
+						templ_7745c5c3_Var77, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Replace existing corp blueprint list (unchecked = merge/add)", "Ganti seluruh daftar lama (tidak dicentang = gabung/tambah)"))
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 707, Col: 157}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var77))
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 175, "</span></label> <button type=\"submit\" class=\"rounded-lg bg-amber-400 px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer\">Import Corp Blueprints</button></div></form></div>")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 176, "<div class=\"tactical-panel rounded-xl overflow-hidden\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					if len(view.CorpBlueprints) == 0 {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 177, "<div class=\"p-8 text-center space-y-2 max-w-xl mx-auto\"><div class=\"text-sm font-semibold text-slate-200\">")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var78 string
+						templ_7745c5c3_Var78, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "No corporation blueprints saved yet.", "Belum ada blueprint corporation yang tersimpan."))
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 724, Col: 114}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var78))
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 178, "</div><div class=\"text-xs text-slate-400 leading-relaxed\">")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var79 string
+						templ_7745c5c3_Var79, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.L(ctx, "Paste your corp hangar blueprint list above (works for any corp member), or click Sync ESI (Director) if your character has the Director role.", "Tempel daftar blueprint corp hangar di atas (bisa untuk semua member), atau klik Sync ESI (Director) jika karakter Anda memiliki role Director."))
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 727, Col: 316}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var79))
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 179, "</div></div>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					} else {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 168, "<div class=\"grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 180, "<div class=\"overflow-x-auto\"><table class=\"w-full text-left text-xs\"><thead class=\"border-b border-violet-400/20 bg-slate-900/90 font-mono uppercase text-[10px] tracking-wider text-slate-400\"><tr><th class=\"px-4 py-3\">Corporation Blueprint</th><th class=\"px-3 py-3 text-center\">Type &amp; Hangar</th><th class=\"px-3 py-3 text-right\">Material Efficiency / Time Efficiency</th><th class=\"px-3 py-3 text-right\">Runs</th><th class=\"px-4 py-3 text-right\">Action</th></tr></thead> <tbody class=\"divide-y divide-slate-800/80\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						for _, item := range view.HangarItems {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 169, "<div class=\"rounded-xl border border-slate-800 bg-slate-950/60 p-3 flex items-center gap-3.5 hover:border-violet-400/35 transition\">")
+						for _, bp := range view.CorpBlueprints {
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 181, "<tr class=\"hover:bg-violet-500/5 transition\"><td class=\"px-4 py-2.5\"><div class=\"flex items-center gap-3\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							if item.TypeID > 0 {
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 170, "<img src=\"")
+							if bp.TypeID > 0 {
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 182, "<img src=\"")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								var templ_7745c5c3_Var74 string
-								templ_7745c5c3_Var74, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(item.TypeID, 64))
+								var templ_7745c5c3_Var80 string
+								templ_7745c5c3_Var80, templ_7745c5c3_Err = templ.JoinStringErrs(eveBlueprintIconURL(bp.TypeID, bp.IsCopy))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 600, Col: 49}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 749, Col: 64}
 								}
-								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var74))
-								if templ_7745c5c3_Err != nil {
-									return templ_7745c5c3_Err
-								}
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 171, "\" alt=\"")
+								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var80))
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								var templ_7745c5c3_Var75 string
-								templ_7745c5c3_Var75, templ_7745c5c3_Err = templ.JoinStringErrs(item.TypeName)
-								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 601, Col: 31}
-								}
-								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var75))
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 183, "\" data-fallback=\"")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 172, "\" loading=\"lazy\" class=\"h-11 w-11 shrink-0 rounded-lg border border-slate-700/90 bg-slate-900 p-1 object-contain\" onerror=\"this.style.display=&#39;none&#39;\">")
+								var templ_7745c5c3_Var81 string
+								templ_7745c5c3_Var81, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(bp.TypeID, 64))
+								if templ_7745c5c3_Err != nil {
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 750, Col: 62}
+								}
+								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var81))
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 184, "\" alt=\"")
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+								var templ_7745c5c3_Var82 string
+								templ_7745c5c3_Var82, templ_7745c5c3_Err = templ.JoinStringErrs(bp.TypeName)
+								if templ_7745c5c3_Err != nil {
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 751, Col: 34}
+								}
+								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var82))
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 185, "\" loading=\"lazy\" class=\"h-9 w-9 shrink-0 rounded-lg border border-cyan-400/35 bg-slate-900 p-0.5 object-contain\" onerror=\"if(this.dataset.fallback &amp;&amp; this.src!==this.dataset.fallback){this.src=this.dataset.fallback}else{this.style.display=&#39;none&#39;}\"> ")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 173, "<div class=\"min-w-0 flex-1\"><div class=\"text-xs font-semibold text-white truncate\" title=\"")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 186, "<span class=\"font-semibold text-white text-sm\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							var templ_7745c5c3_Var76 string
-							templ_7745c5c3_Var76, templ_7745c5c3_Err = templ.JoinStringErrs(item.TypeName)
+							var templ_7745c5c3_Var83 string
+							templ_7745c5c3_Var83, templ_7745c5c3_Err = templ.JoinStringErrs(bp.TypeName)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 608, Col: 87}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 757, Col: 75}
 							}
-							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var76))
-							if templ_7745c5c3_Err != nil {
-								return templ_7745c5c3_Err
-							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 174, "\">")
+							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var83))
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							var templ_7745c5c3_Var77 string
-							templ_7745c5c3_Var77, templ_7745c5c3_Err = templ.JoinStringErrs(item.TypeName)
-							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 608, Col: 105}
-							}
-							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var77))
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 187, "</span></div></td><td class=\"px-3 py-2.5 text-center\"><div class=\"flex flex-wrap items-center justify-center gap-1.5\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 175, "</div><div class=\"mt-1 font-mono text-xs font-bold text-emerald-300\">")
+							if bp.IsCopy {
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 188, "<span class=\"rounded border border-violet-400/40 bg-violet-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-violet-200\">BPC</span> ")
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+							} else {
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 189, "<span class=\"rounded border border-sky-400/40 bg-sky-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-sky-200\">BPO</span> ")
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+							}
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 190, "<span class=\"rounded border border-cyan-400/30 bg-cyan-500/10 px-2 py-0.5 font-mono text-[10px] text-cyan-200\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							var templ_7745c5c3_Var78 string
-							templ_7745c5c3_Var78, templ_7745c5c3_Err = templ.JoinStringErrs(formatUnitsLabel(item.TotalQty))
+							var templ_7745c5c3_Var84 string
+							templ_7745c5c3_Var84, templ_7745c5c3_Err = templ.JoinStringErrs(formatCorpHangarFlag(bp.LocationFlag))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 609, Col: 107}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 768, Col: 55}
 							}
-							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var78))
+							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var84))
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 176, "</div></div></div>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 191, "</span></div></td><td class=\"px-3 py-2.5 text-right font-mono\"><div class=\"text-xs font-semibold text-emerald-300\">Material Efficiency (ME): ")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							var templ_7745c5c3_Var85 string
+							templ_7745c5c3_Var85, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d%%", bp.MaterialEfficiency))
+							if templ_7745c5c3_Err != nil {
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 774, Col: 85}
+							}
+							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var85))
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 192, "</div><div class=\"text-[11px] text-sky-300/90 mt-0.5\">Time Efficiency (TE): ")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							var templ_7745c5c3_Var86 string
+							templ_7745c5c3_Var86, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d%%", bp.TimeEfficiency))
+							if templ_7745c5c3_Err != nil {
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 777, Col: 77}
+							}
+							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var86))
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 193, "</div></td><td class=\"px-3 py-2.5 text-right font-mono text-slate-300\">")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							if bp.IsCopy {
+								var templ_7745c5c3_Var87 string
+								templ_7745c5c3_Var87, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d runs", bp.Runs))
+								if templ_7745c5c3_Err != nil {
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 782, Col: 48}
+								}
+								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var87))
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+							} else {
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 194, "<span class=\"text-sky-300\">Unlimited</span>")
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+							}
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 195, "</td><td class=\"px-4 py-2.5 text-right\">")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							if bp.TypeID > 0 {
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 196, "<a href=\"")
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+								var templ_7745c5c3_Var88 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/manufacture?bp_id=%d&me=%d&te=%d&hub=%s", bp.TypeID, bp.MaterialEfficiency, bp.TimeEfficiency, view.ActiveHub.Key))
+								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var88)))
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 197, "\" class=\"rounded border border-amber-400/45 bg-amber-500/15 px-2.5 py-1 text-[10px] font-bold text-amber-200 hover:bg-amber-500/30 transition\">Manufacture →</a>")
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+							} else {
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 198, "<a href=\"")
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+								var templ_7745c5c3_Var89 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/manufacture?q=%s&me=%d&te=%d&hub=%s", url.QueryEscape(bp.TypeName), bp.MaterialEfficiency, bp.TimeEfficiency, view.ActiveHub.Key))
+								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var89)))
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 199, "\" class=\"rounded border border-amber-400/45 bg-amber-500/15 px-2.5 py-1 text-[10px] font-bold text-amber-200 hover:bg-amber-500/30 transition\">Manufacture →</a>")
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+							}
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 200, "</td></tr>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 177, "</div>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 201, "</tbody></table></div>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1675,17 +1906,131 @@ func PilotHubPage(mode service.ModeInfo, view *service.PilotHubViewData) templ.C
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 178, "</div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 202, "</div></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 179, "</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 203, "<!-- Tab 5: Hangar Stock -->")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if view.ActiveTab == "assets" {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 204, "<div class=\"tactical-panel rounded-xl overflow-hidden\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					if len(view.HangarItems) == 0 {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 205, "<div class=\"p-10 text-center space-y-2\"><div class=\"text-sm font-semibold text-slate-200\">No hangar items match this filter.</div><div class=\"text-xs text-slate-400\">Click <strong>Sync Now (Private ESI)</strong> to import hangar materials (automatically deducted from your Weekly Planner shopping list).</div></div>")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					} else {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 206, "<div class=\"grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3\">")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						for _, item := range view.HangarItems {
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 207, "<div class=\"rounded-xl border border-slate-800 bg-slate-950/60 p-3 flex items-center gap-3.5 hover:border-violet-400/35 transition\">")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							if item.TypeID > 0 {
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 208, "<img src=\"")
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+								var templ_7745c5c3_Var90 string
+								templ_7745c5c3_Var90, templ_7745c5c3_Err = templ.JoinStringErrs(EVEItemIconURL(item.TypeID, 64))
+								if templ_7745c5c3_Err != nil {
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 829, Col: 49}
+								}
+								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var90))
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 209, "\" alt=\"")
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+								var templ_7745c5c3_Var91 string
+								templ_7745c5c3_Var91, templ_7745c5c3_Err = templ.JoinStringErrs(item.TypeName)
+								if templ_7745c5c3_Err != nil {
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 830, Col: 31}
+								}
+								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var91))
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 210, "\" loading=\"lazy\" class=\"h-11 w-11 shrink-0 rounded-lg border border-slate-700/90 bg-slate-900 p-1 object-contain\" onerror=\"this.style.display=&#39;none&#39;\">")
+								if templ_7745c5c3_Err != nil {
+									return templ_7745c5c3_Err
+								}
+							}
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 211, "<div class=\"min-w-0 flex-1\"><div class=\"text-xs font-semibold text-white truncate\" title=\"")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							var templ_7745c5c3_Var92 string
+							templ_7745c5c3_Var92, templ_7745c5c3_Err = templ.JoinStringErrs(item.TypeName)
+							if templ_7745c5c3_Err != nil {
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 837, Col: 87}
+							}
+							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var92))
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 212, "\">")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							var templ_7745c5c3_Var93 string
+							templ_7745c5c3_Var93, templ_7745c5c3_Err = templ.JoinStringErrs(item.TypeName)
+							if templ_7745c5c3_Err != nil {
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 837, Col: 105}
+							}
+							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var93))
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 213, "</div><div class=\"mt-1 font-mono text-xs font-bold text-emerald-300\">")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							var templ_7745c5c3_Var94 string
+							templ_7745c5c3_Var94, templ_7745c5c3_Err = templ.JoinStringErrs(formatUnitsLabel(item.TotalQty))
+							if templ_7745c5c3_Err != nil {
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pilot.templ`, Line: 838, Col: 107}
+							}
+							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var94))
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 214, "</div></div></div>")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 215, "</div>")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = pilotPaginationBar(view).Render(ctx, templ_7745c5c3_Buffer)
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 216, "</div>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 217, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 180, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 218, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

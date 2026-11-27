@@ -73,6 +73,9 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 		r.Route("/pilot", func(r chi.Router) {
 			r.Get("/", h.HandlePilotHub)
 			r.With(adminOnly).Post("/sync-capital", h.HandlePilotSyncCapital)
+			r.With(adminOnly).Post("/sync-corp-blueprints", h.HandlePilotSyncCorpBlueprints)
+			r.With(adminOnly).Post("/import-corp-blueprints", h.HandlePilotImportCorpBlueprints)
+			r.With(adminOnly).Post("/clear-corp-blueprints", h.HandlePilotClearCorpBlueprints)
 		})
 
 		// Live EVE Marketplace Browser (Public ESI — read/search for all, add-catalog for admin only)

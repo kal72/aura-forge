@@ -1634,8 +1634,20 @@ func (s *CopilotService) SyncCharacterSSO(ctx context.Context) (*domain.Characte
 	bps, _ := s.charSync.SyncBlueprints(ctx, tok)
 	assets, _ := s.charSync.SyncAssets(ctx, tok)
 
+	var corpBPs []domain.CharacterBlueprint
+	if corpSync, ok := s.charSync.(domain.CorpBlueprintSyncProvider); ok && corpSync != nil {
+		if cb, cErr := corpSync.SyncCorpBlueprints(ctx, tok); cErr == nil {
+			corpBPs = cb
+		} else {
+			fmt.Printf("[corp-bp-sync] character=%d error=%v\n", tok.CharacterID, cErr)
+		}
+	}
+
 	// Resolve human-readable EVE item names for synced orders, jobs, blueprints, and hangar assets
 	s.resolveCharacterTypeNames(ctx, orders, jobs, bps, assets)
+	if len(corpBPs) > 0 {
+		s.resolveCharacterTypeNames(ctx, nil, nil, corpBPs, nil)
+	}
 
 	if len(orders) > 0 {
 		_ = s.chars.UpsertOrders(ctx, tok.CharacterID, orders)
@@ -1657,6 +1669,11 @@ func (s *CopilotService) SyncCharacterSSO(ctx context.Context) (*domain.Characte
 	}
 	if len(bps) > 0 {
 		_ = s.chars.UpsertBlueprints(ctx, tok.CharacterID, bps)
+	}
+	if len(corpBPs) > 0 {
+		if corpRepo, ok := s.chars.(domain.CorpBlueprintRepository); ok && corpRepo != nil {
+			_ = corpRepo.UpsertCorpBlueprints(ctx, tok.CharacterID, corpBPs)
+		}
 	}
 	if len(assets) > 0 {
 		_ = s.chars.UpsertAssets(ctx, tok.CharacterID, assets)
