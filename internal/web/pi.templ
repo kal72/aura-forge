@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -159,7 +160,7 @@ templ PIPage(mode service.ModeInfo, items []domain.PICommodity, selectedTree *do
 			<div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
 				<div class="min-w-0">
 					<h1 class="text-2xl font-bold tracking-tight text-white">Planetary Industry (PI) Hub</h1>
-					<p class="text-xs text-slate-300/80 mt-0.5">Browse all 68 P1–P4 PI items, explore the 8-planet resource catalog, inspect recursive recipe trees, scan live hub margins, and track colony timers.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Browse all 68 P1–P4 PI items, explore the 8-planet resource catalog, inspect recursive recipe trees, scan live hub margins, and track colony timers.", "Jelajahi 68 item P1–P4 PI, katalog sumber daya 8 planet, pohon resep rekursif, scan margin hub live, dan pantau timer koloni.") }</p>
 				</div>
 
 				<div class="ml-auto self-end xl:self-auto shrink-0 inline-flex flex-wrap justify-end rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur">

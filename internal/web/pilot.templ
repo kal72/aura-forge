@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -122,7 +123,7 @@ templ pilotPaginationBar(view *service.PilotHubViewData) {
 	if view.TotalFiltered > 0 {
 		<div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-800/80 bg-slate-950/40 px-4 py-3 text-xs font-mono text-slate-400">
 			<div>
-				Showing <strong class="text-slate-200">{ fmt.Sprintf("%d–%d", view.StartIdx, view.EndIdx) }</strong> of <strong class="text-slate-200">{ fmt.Sprintf("%d", view.TotalFiltered) }</strong>
+				{ i18n.L(ctx, "Showing", "Menampilkan") } <strong class="text-slate-200">{ fmt.Sprintf("%d–%d", view.StartIdx, view.EndIdx) }</strong> { i18n.L(ctx, "of", "dari") } <strong class="text-slate-200">{ fmt.Sprintf("%d", view.TotalFiltered) }</strong>
 			</div>
 			if view.TotalPages > 1 {
 				<div class="flex items-center gap-2">

@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -35,7 +36,7 @@ templ ScannerPage(mode service.ModeInfo, settings domain.UserSettings) {
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-white">Opportunity Scanner</h1>
-					<p class="text-xs text-slate-300/80 mt-0.5">Discover profitable manufacturing runs, gas reactions, multi-hub station flips, gank-safe hauling routes, and local stockouts across all 5 Empire Trade Hubs.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Discover profitable manufacturing runs, gas reactions, multi-hub station flips, gank-safe hauling routes, and local stockouts across all 5 Empire Trade Hubs.", "Temukan peluang produksi menguntungkan, gas reactions, station trading multi-hub, rute hauling aman dari gank, dan stok kosong lokal di 5 Empire Trade Hub.") }</p>
 				</div>
 
 				<!-- 5-Mode Scanner Switcher -->

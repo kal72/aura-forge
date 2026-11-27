@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -67,10 +68,10 @@ templ AllocatorPage(mode service.ModeInfo, cfg domain.AllocationConfig, result *
 							Hub: { allocatorHubName(result) }
 						</span>
 					</div>
-					<p class="text-xs text-slate-400 mt-0.5">Splits available working capital across 4 risk-managed buckets (Fast Cashflow, Mid-Tier, High ROI, and 10%–15% Cash Buffer) while automatically filtering out TRAP items.</p>
+					<p class="text-xs text-slate-400 mt-0.5">{ i18n.L(ctx, "Splits available working capital across 4 risk-managed buckets (Fast Cashflow, Mid-Tier, High ROI, and 10%–15% Cash Buffer) while automatically filtering out TRAP items.", "Membagi modal kerja ke 4 keranjang risiko (Fast Cashflow, Mid-Tier, High ROI, dan 10%–15% Cash Buffer) sambil otomatis menyaring item TRAP.") }</p>
 				</div>
 				<button type="button" hx-post="/esi/sync-prices" hx-swap="none" class="rounded-md border border-amber-400/40 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer">
-					Refresh { allocatorHubName(result) } Prices (Public ESI)
+					{ i18n.L(ctx, "Refresh", "Segarkan Harga") } { allocatorHubName(result) } (Public ESI)
 				</button>
 			</div>
 

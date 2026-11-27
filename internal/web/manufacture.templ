@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -311,7 +312,7 @@ templ ManufacturePage(mode service.ModeInfo, settings domain.UserSettings, bluep
 							{ fmt.Sprintf("SCI %.2f%% • Facility %.2f%% • Broker %.2f%% • Tax %.2f%%", settings.SystemCostIndex*100.0, settings.FacilityTaxPercent, settings.BrokerFeePercent, settings.SalesTaxPercent) }
 						</a>
 					</div>
-					<p class="text-xs text-slate-300/80 mt-0.5">Unified CCP SDE Blueprint Workbench &amp; Profit Calculator: horizontal recipe tree, MAKE/BUY toggles, net profit after taxes &amp; fees, Break-Even Floor, ISK/Hour, and 1-click EVE Multibuy.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Unified CCP SDE Blueprint Workbench & Profit Calculator: horizontal recipe tree, MAKE/BUY toggles, net profit after taxes & fees, Break-Even Floor, ISK/Hour, and 1-click EVE Multibuy.", "Workbench Blueprint CCP SDE & Kalkulator Profit terpadu: pohon resep horizontal, tombol MAKE/BUY, net profit setelah pajak & biaya, batas Break-Even, ISK/Jam, dan 1-klik EVE Multibuy.") }</p>
 				</div>
 			</div>
 
@@ -354,14 +355,14 @@ templ ManufacturePage(mode service.ModeInfo, settings domain.UserSettings, bluep
 							</div>
 							<span x-show="selectedBP.blueprint_type_id <= 0" class="text-xs text-slate-500 truncate"></span>
 							<span class="ml-auto shrink-0 rounded border border-amber-400/45 bg-amber-500/15 px-2.5 py-1 font-mono text-[10px] font-bold uppercase text-amber-200">
-								Browse
+								{ i18n.L(ctx, "Browse", "Pilih") }
 							</span>
 						</button>
 					</div>
 
 					<!-- Trade Hub -->
 					<div class="md:col-span-2">
-						<label class="block text-[10px] font-mono uppercase text-sky-300 mb-1">Price Hub</label>
+						<label class="block text-[10px] font-mono uppercase text-sky-300 mb-1">{ i18n.L(ctx, "Price Hub", "Hub Harga") }</label>
 						<select
 							name="hub_key"
 							@change="submitTree()"
@@ -443,7 +444,7 @@ templ ManufacturePage(mode service.ModeInfo, settings domain.UserSettings, bluep
 							class="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-amber-400 px-4 py-2.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 disabled:opacity-45 disabled:cursor-not-allowed transition cursor-pointer"
 						>
 							<span id="mfg-tree-spinner" class="htmx-indicator h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent"></span>
-							<span>Calculate &amp; Load Tree</span>
+							<span>{ i18n.L(ctx, "Calculate & Load Tree", "Hitung & Muat Pohon") }</span>
 						</button>
 					</div>
 

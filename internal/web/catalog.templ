@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -136,7 +137,7 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-white">Catalog &amp; Trap Guard Advisor</h1>
-					<p class="text-xs text-slate-300/80 mt-0.5">Live <strong class="text-amber-200">{ hub.Name }</strong> pricing ({ hub.RegionName }), Official CCP SDE auto-BOM material costs, 7d fake price-spike detection, and beginner trap protection.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Live", "Harga live") } <strong class="text-amber-200">{ hub.Name }</strong> ({ hub.RegionName }), { i18n.L(ctx, "Official CCP SDE auto-BOM material costs, 7-day fake price-spike detection, and beginner trap protection.", "biaya material BOM otomatis CCP SDE, deteksi lonjakan harga palsu 7 hari, dan pelindung jebakan pemula.") }</p>
 				</div>
 				<div class="flex flex-wrap gap-2">
 					<button
@@ -147,17 +148,17 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 						hx-indicator="#rec-spinner"
 						class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/50 bg-emerald-500/20 px-3.5 py-2 text-xs font-bold text-emerald-100 hover:bg-emerald-500/35 transition cursor-pointer"
 					>
-						<span>Recommend for My Capital</span>
+						<span>{ i18n.L(ctx, "Recommend for My Capital", "Rekomendasi untuk Modal Saya") }</span>
 						<span id="rec-spinner" class="htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-emerald-200 border-t-transparent"></span>
 					</button>
 					<button type="button" @click="showAdd = !showAdd" class="rounded-lg bg-amber-400 px-3.5 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer">
-						+ Add Item
+						+ { i18n.L(ctx, "Add Item", "Tambah Item") }
 					</button>
 					<button type="button" hx-post="/esi/sync-prices" hx-swap="none" class="rounded-lg border border-amber-400/45 bg-amber-500/15 px-3.5 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 transition cursor-pointer">
-						Sync { hub.Name } + SDE BOM
+						{ i18n.L(ctx, "Sync", "Sinkron") } { hub.Name } + SDE BOM
 					</button>
 					<a href="/allocator" class="rounded-lg border border-sky-400/45 bg-sky-500/15 px-3.5 py-2 text-xs font-bold text-sky-200 hover:bg-sky-500/25 transition">
-						Next: Capital Allocator →
+						{ i18n.L(ctx, "Next: Capital Allocator →", "Lanjut: Capital Allocator →") }
 					</a>
 				</div>
 			</div>
@@ -165,8 +166,8 @@ templ CatalogPage(mode service.ModeInfo, hub domain.TradeHub, items []domain.Mar
 			<!-- Primary Trade Hub Switcher (Jita | Amarr | Dodixie | Rens | Hek) -->
 			<div class="tactical-panel rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3">
 				<div class="flex items-center gap-2 text-xs">
-					<span class="font-mono text-[10px] font-bold uppercase tracking-wider text-violet-300">Target Trade Hub:</span>
-					<span class="text-slate-300">All catalog prices, SDE BOM costs, 7d spike checks, and recommendations use</span>
+					<span class="font-mono text-[10px] font-bold uppercase tracking-wider text-violet-300">{ i18n.L(ctx, "Target Trade Hub:", "Trade Hub Target:") }</span>
+					<span class="text-slate-300">{ i18n.L(ctx, "All catalog prices, SDE BOM costs, 7-day spike checks, and recommendations use", "Semua harga katalog, biaya SDE BOM, cek lonjakan 7 hari, dan rekomendasi menggunakan") }</span>
 					<strong class="text-amber-200">{ hub.Name }</strong>
 					<span id="hub-switch-spinner" class="htmx-indicator h-3 w-3 animate-spin rounded-full border-2 border-amber-300 border-t-transparent"></span>
 				</div>

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -27,14 +28,14 @@ templ UsersPage(mode service.ModeInfo, users []domain.AppUser, flashMsg string, 
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-white">User Management</h1>
-					<p class="text-xs text-slate-300/80 mt-0.5">Manage operator and administrator accounts. No public registration — only Admins can create and manage access.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Manage operator and administrator accounts. No public registration — only Admins can create and manage access.", "Kelola akun operator dan administrator. Tidak ada pendaftaran publik — hanya Admin yang dapat membuat dan mengatur akses.") }</p>
 				</div>
 				<button
 					type="button"
 					@click="showCreate = !showCreate"
 					class="rounded-lg bg-amber-400 px-3.5 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer"
 				>
-					+ Add User Account
+					+ { i18n.L(ctx, "Add User Account", "Tambah Akun Pengguna") }
 				</button>
 			</div>
 

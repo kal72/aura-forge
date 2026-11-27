@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -62,28 +63,28 @@ templ TrackerLedgerTab(mode service.ModeInfo, hub domain.TradeHub, ledger *servi
 			<!-- 4 Cash Flow & Fee KPIs -->
 			<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-rose-300/90">Total Purchases (Cash Out)</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-rose-300/90">{ i18n.L(ctx, "Total Purchases (Cash Out)", "Total Pembelian (Kas Keluar)") }</div>
 					<div class="mt-1 text-2xl font-bold font-mono text-rose-200">{ FormatISK(ledger.Report.TotalCashOutISK) }</div>
-					<div class="mt-0.5 text-[11px] text-slate-400">{ fmt.Sprintf("%d BUY orders • %s", ledger.Report.TotalBuyCount, periodLabel(ledger.PeriodDays)) }</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">{ fmt.Sprintf("%d BUY %s • %s", ledger.Report.TotalBuyCount, i18n.L(ctx, "orders", "transaksi"), periodLabel(ledger.PeriodDays)) }</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-emerald-300/90">Total Sales (Cash In)</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-emerald-300/90">{ i18n.L(ctx, "Total Sales (Cash In)", "Total Penjualan (Kas Masuk)") }</div>
 					<div class="mt-1 text-2xl font-bold font-mono text-emerald-300">{ FormatISK(ledger.Report.TotalCashInISK) }</div>
-					<div class="mt-0.5 text-[11px] text-slate-400">{ fmt.Sprintf("%d SELL orders • %s", ledger.Report.TotalSellCount, periodLabel(ledger.PeriodDays)) }</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">{ fmt.Sprintf("%d SELL %s • %s", ledger.Report.TotalSellCount, i18n.L(ctx, "orders", "transaksi"), periodLabel(ledger.PeriodDays)) }</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-sky-300/90">Net Cash Flow</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-sky-300/90">{ i18n.L(ctx, "Net Cash Flow", "Arus Kas Bersih") }</div>
 					<div class={ "mt-1 text-2xl font-bold font-mono " + profitColor(ledger.Report.NetCashFlowISK) }>{ FormatISK(ledger.Report.NetCashFlowISK) }</div>
-					<div class="mt-0.5 text-[11px] text-slate-400">Cash In minus Cash Out</div>
+					<div class="mt-0.5 text-[11px] text-slate-400">{ i18n.L(ctx, "Cash In minus Cash Out", "Kas Masuk dikurangi Kas Keluar") }</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-amber-300/90">Realized Fees &amp; Taxes</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-amber-300/90">{ i18n.L(ctx, "Realized Fees & Taxes", "Biaya & Pajak Terealisasi") }</div>
 					<div class="mt-1 text-2xl font-bold font-mono text-amber-300">{ FormatISK(ledger.Report.FeeLeak.TotalFeesISK) }</div>
 					<div class="mt-0.5 text-[11px] text-slate-400">
 						if ledger.Report.FeeLeak.UsingJournalData {
-							<span class="text-emerald-300">Exact ESI Journal ({ FormatPercent(ledger.Report.FeeLeak.FeeToSalesPct) } of sales)</span>
+							<span class="text-emerald-300">{ i18n.L(ctx, "Exact ESI Journal", "Jurnal ESI Akurat") } ({ FormatPercent(ledger.Report.FeeLeak.FeeToSalesPct) } { i18n.L(ctx, "of sales", "dari penjualan") })</span>
 						} else {
-							<span>Estimated Fees ({ FormatPercent(ledger.Report.FeeLeak.FeeToSalesPct) } of sales)</span>
+							<span>{ i18n.L(ctx, "Estimated Fees", "Estimasi Biaya") } ({ FormatPercent(ledger.Report.FeeLeak.FeeToSalesPct) } { i18n.L(ctx, "of sales", "dari penjualan") })</span>
 						}
 					</div>
 				</div>

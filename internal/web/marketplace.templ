@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -333,7 +334,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 								@focus="if (suggestions.length > 0) showSuggest = true"
 								autocomplete="off"
 								required
-								placeholder="Type partial name e.g. hobgob, shield extender, venture, plex..."
+								placeholder={ i18n.L(ctx, "Type partial name e.g. hobgob, shield extender, venture, plex...", "Ketik sebagian nama item, mis. hobgob, shield extender, venture, plex...") }
 								class="flex-1 min-w-0 rounded-lg border border-slate-700 bg-slate-900/90 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:border-amber-300/70 focus:outline-none"
 							/>
 							<button
@@ -341,7 +342,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 								@click="openBrowseModal()"
 								class="shrink-0 rounded-lg border border-violet-400/50 bg-violet-500/20 px-3.5 py-2.5 text-xs font-bold text-violet-100 hover:bg-violet-500/35 hover:border-amber-300/60 transition cursor-pointer"
 							>
-								Browse Catalog
+								{ i18n.L(ctx, "Browse Catalog", "Jelajahi Katalog") }
 							</button>
 						</div>
 						<!-- Live Autocomplete Dropdown -->
@@ -374,7 +375,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 						</div>
 					</div>
 					<div class="sm:col-span-3">
-						<label class="block text-[10px] font-mono uppercase tracking-wider text-slate-300 mb-1">Primary Trade Hub</label>
+						<label class="block text-[10px] font-mono uppercase tracking-wider text-slate-300 mb-1">{ i18n.L(ctx, "Primary Trade Hub", "Trade Hub Utama") }</label>
 						<select name="hub" x-model="selectedHub" @change="if ((queryText || '').trim()) runSearch(queryText, selectedHub)" class="w-full rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2.5 text-sm text-white">
 							for _, h := range domain.MajorTradeHubs {
 								<option value={ h.Key } selected?={ hubKey == h.Key }>{ h.Name } ({ h.RegionName })</option>
@@ -387,7 +388,7 @@ templ MarketplacePage(mode service.ModeInfo, query string, hubKey string, preset
 							class="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-amber-400 px-4 py-2.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 hover:bg-amber-300 transition cursor-pointer"
 						>
 							<span id="mp-search-spinner" class="htmx-indicator h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent"></span>
-							<span>Search Market</span>
+							<span>{ i18n.L(ctx, "Search Market", "Cari Market") }</span>
 						</button>
 					</div>
 				</form>
@@ -687,7 +688,7 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 							type="submit"
 							class="rounded-lg bg-emerald-500 px-3.5 py-2 text-xs font-bold text-slate-950 hover:bg-emerald-400 transition cursor-pointer"
 						>
-							+ Add to Catalog
+							+ { i18n.L(ctx, "Add to Catalog", "Tambah ke Catalog") }
 						</button>
 					</form>
 					if snap.HasBlueprint {
@@ -702,7 +703,7 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 							href={ templ.SafeURL(fmt.Sprintf("/manufacture?product_id=%d&q=%s&hub=%s", snap.TypeID, url.QueryEscape(snap.TypeName), snap.SelectedHub.Key)) }
 							class="rounded-lg border border-sky-400/40 bg-sky-500/15 px-3.5 py-2 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition"
 						>
-							Open in Manufacture →
+							{ i18n.L(ctx, "Open in Manufacture →", "Buka di Manufacture →") }
 						</a>
 					}
 				</div>
@@ -711,28 +712,28 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 			<!-- 4 Primary KPI Cards -->
 			<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-amber-300/85">Lowest Sell ({ snap.SelectedHub.Name })</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-amber-300/85">{ i18n.L(ctx, "Lowest Sell", "Sell Order Terendah") } ({ snap.SelectedHub.Name })</div>
 					<div class="mt-1 text-xl font-mono font-bold text-amber-200">{ FormatISK(snap.LowestSell) }</div>
-					<div class="mt-0.5 text-[11px] font-mono text-slate-400">Supply: { formatInt64(snap.TotalSellVolume) } units</div>
+					<div class="mt-0.5 text-[11px] font-mono text-slate-400">{ i18n.L(ctx, "Supply", "Stok Jual") }: { formatInt64(snap.TotalSellVolume) } { i18n.L(ctx, "units", "unit") }</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-sky-300/85">Highest Buy ({ snap.SelectedHub.Name })</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-sky-300/85">{ i18n.L(ctx, "Highest Buy", "Buy Order Tertinggi") } ({ snap.SelectedHub.Name })</div>
 					<div class="mt-1 text-xl font-mono font-bold text-sky-200">{ FormatISK(snap.HighestBuy) }</div>
-					<div class="mt-0.5 text-[11px] font-mono text-slate-400">Demand: { formatInt64(snap.TotalBuyVolume) } units</div>
+					<div class="mt-0.5 text-[11px] font-mono text-slate-400">{ i18n.L(ctx, "Demand", "Permintaan") }: { formatInt64(snap.TotalBuyVolume) } { i18n.L(ctx, "units", "unit") }</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-emerald-300/85">Net Flip Margin (After { FormatPercent(snap.RoundTripFeePct) } Fees)</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-emerald-300/85">{ i18n.L(ctx, "Net Flip Margin (After", "Net Flip Margin (Setelah") } { FormatPercent(snap.RoundTripFeePct) } { i18n.L(ctx, "Fees)", "Biaya)") }</div>
 					<div class={ "mt-1 text-xl font-mono font-bold " + profitColor(snap.NetFlipMarginPct) }>
 						{ FormatPercent(snap.NetFlipMarginPct) }
 					</div>
 					<div class="mt-0.5 text-[11px] font-mono text-slate-400">
-						{ FormatISK(snap.NetFlipProfitUnit) }/u • Gross Spd { FormatPercent(snap.SpreadPercent) }
+						{ FormatISK(snap.NetFlipProfitUnit) }/{ i18n.L(ctx, "unit", "unit") } • { i18n.L(ctx, "Gross Spread", "Spread Kotor") } { FormatPercent(snap.SpreadPercent) }
 					</div>
 				</div>
 				<div class="tactical-panel rounded-xl p-4">
-					<div class="text-[10px] font-mono uppercase tracking-wider text-violet-300/85">Daily Volume (7-Day Average)</div>
-					<div class="mt-1 text-xl font-mono font-bold text-white">{ formatInt64(int64(snap.AvgDailyVolume7d)) } u/day</div>
-					<div class="mt-0.5 text-[11px] font-mono text-slate-400">Estimated Turnover: { FormatISK(snap.EstimatedDailyISK) }/day</div>
+					<div class="text-[10px] font-mono uppercase tracking-wider text-violet-300/85">{ i18n.L(ctx, "Daily Volume (7-Day Average)", "Volume Harian (Rata-rata 7 Hari)") }</div>
+					<div class="mt-1 text-xl font-mono font-bold text-white">{ formatInt64(int64(snap.AvgDailyVolume7d)) } { i18n.L(ctx, "units/day", "unit/hari") }</div>
+					<div class="mt-0.5 text-[11px] font-mono text-slate-400">{ i18n.L(ctx, "Estimated Turnover", "Estimasi Perputaran") }: { FormatISK(snap.EstimatedDailyISK) }/{ i18n.L(ctx, "day", "hari") }</div>
 				</div>
 			</div>
 
@@ -741,32 +742,32 @@ templ MarketplaceResultsPartial(snap *domain.MarketplaceSnapshot, errMsg string)
 				<div class="tactical-panel rounded-xl p-4 space-y-2.5">
 					<div class="flex flex-wrap items-center justify-between gap-2">
 						<div class="text-[10px] font-mono font-bold uppercase tracking-wider text-cyan-300">
-							Buyer Activity &amp; Regional Demand ({ snap.SelectedHub.RegionName })
+							{ i18n.L(ctx, "Buyer Activity & Regional Demand", "Aktivitas Pembeli & Permintaan Region") } ({ snap.SelectedHub.RegionName })
 						</div>
 						<div class="text-[10px] text-slate-400">
-							CCP ESI daily history (completed market orders; latest UTC day: <span class="font-mono text-sky-200">{ snap.LatestDayDate }</span>)
+							{ i18n.L(ctx, "CCP ESI daily history (completed market orders; latest UTC day:", "Riwayat harian CCP ESI (transaksi market selesai; hari UTC terbaru:") } <span class="font-mono text-sky-200">{ snap.LatestDayDate }</span>)
 						</div>
 					</div>
 					<div class="grid grid-cols-2 gap-2.5 lg:grid-cols-4 font-mono text-xs">
 						<div class="rounded-lg border border-slate-700/70 bg-slate-950/60 px-3 py-2">
-							<div class="text-[9.5px] uppercase text-slate-400">Latest Day ({ snap.LatestDayDate })</div>
-							<div class="mt-0.5 text-sm font-bold text-white">{ formatInt64(snap.LatestDayOrders) } orders</div>
-							<div class="text-[10.5px] text-sky-300">{ formatInt64(snap.LatestDayVolume) } units</div>
+							<div class="text-[9.5px] uppercase text-slate-400">{ i18n.L(ctx, "Latest Day", "Hari Terbaru") } ({ snap.LatestDayDate })</div>
+							<div class="mt-0.5 text-sm font-bold text-white">{ formatInt64(snap.LatestDayOrders) } { i18n.L(ctx, "orders", "transaksi") }</div>
+							<div class="text-[10.5px] text-sky-300">{ formatInt64(snap.LatestDayVolume) } { i18n.L(ctx, "units", "unit") }</div>
 						</div>
 						<div class="rounded-lg border border-slate-700/70 bg-slate-950/60 px-3 py-2">
-							<div class="text-[9.5px] uppercase text-slate-400">Daily Average (7-Day)</div>
-							<div class="mt-0.5 text-sm font-bold text-emerald-300">{ fmt.Sprintf("%.1f", snap.AvgDailyOrders7d) } tx/day</div>
-							<div class="text-[10.5px] text-sky-300">{ formatInt64(int64(snap.AvgDailyVolume7d)) } u/day</div>
+							<div class="text-[9.5px] uppercase text-slate-400">{ i18n.L(ctx, "Daily Average (7-Day)", "Rata-rata Harian (7 Hari)") }</div>
+							<div class="mt-0.5 text-sm font-bold text-emerald-300">{ fmt.Sprintf("%.1f", snap.AvgDailyOrders7d) } { i18n.L(ctx, "orders/day", "transaksi/hari") }</div>
+							<div class="text-[10.5px] text-sky-300">{ formatInt64(int64(snap.AvgDailyVolume7d)) } { i18n.L(ctx, "units/day", "unit/hari") }</div>
 						</div>
 						<div class="rounded-lg border border-slate-700/70 bg-slate-950/60 px-3 py-2">
-							<div class="text-[9.5px] uppercase text-slate-400">7-Day Total (1 Week)</div>
-							<div class="mt-0.5 text-sm font-bold text-amber-200">{ formatInt64(snap.Total7dOrders) } orders</div>
-							<div class="text-[10.5px] text-sky-300">{ formatInt64(snap.Total7dVolume) } units</div>
+							<div class="text-[9.5px] uppercase text-slate-400">{ i18n.L(ctx, "7-Day Total (1 Week)", "Total 7 Hari (1 Minggu)") }</div>
+							<div class="mt-0.5 text-sm font-bold text-amber-200">{ formatInt64(snap.Total7dOrders) } { i18n.L(ctx, "orders", "transaksi") }</div>
+							<div class="text-[10.5px] text-sky-300">{ formatInt64(snap.Total7dVolume) } { i18n.L(ctx, "units", "unit") }</div>
 						</div>
 						<div class="rounded-lg border border-slate-700/70 bg-slate-950/60 px-3 py-2">
-							<div class="text-[9.5px] uppercase text-slate-400">7-Week Total (49 Days)</div>
-							<div class="mt-0.5 text-sm font-bold text-violet-200">{ formatInt64(snap.Total49dOrders) } orders</div>
-							<div class="text-[10.5px] text-sky-300">{ formatInt64(snap.Total49dVolume) } units</div>
+							<div class="text-[9.5px] uppercase text-slate-400">{ i18n.L(ctx, "7-Week Total (49 Days)", "Total 7 Minggu (49 Hari)") }</div>
+							<div class="mt-0.5 text-sm font-bold text-violet-200">{ formatInt64(snap.Total49dOrders) } { i18n.L(ctx, "orders", "transaksi") }</div>
+							<div class="text-[10.5px] text-sky-300">{ formatInt64(snap.Total49dVolume) } { i18n.L(ctx, "units", "unit") }</div>
 						</div>
 					</div>
 				</div>

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -26,7 +27,7 @@ templ InventionPage(mode service.ModeInfo, settings domain.UserSettings) {
 							Default Hub: { settings.ActiveTradeHub().Name }
 						</span>
 					</div>
-					<p class="text-xs text-slate-300/80 mt-0.5">Scale toward 100B+ ISK Total Wealth by optimizing all 9 T2 Decryptor strategies with live 5-Hub ESI prices and auditing intermediate component Make-vs-Buy costs.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Scale toward 100B+ ISK Total Wealth by optimizing all 9 T2 Decryptor strategies with live 5-Hub ESI prices and auditing intermediate component Make-vs-Buy costs.", "Skalakan kekayaan menuju 100B+ ISK dengan mengoptimalkan 9 strategi T2 Decryptor memakai harga ESI live 5-Hub dan mengaudit biaya Make-vs-Buy komponen.") }</p>
 				</div>
 
 				<div class="inline-flex rounded-xl border border-violet-400/35 bg-slate-950/65 p-1 backdrop-blur">
@@ -61,7 +62,7 @@ templ InventionPage(mode service.ModeInfo, settings domain.UserSettings) {
 					<div class="flex flex-wrap items-center justify-between gap-2">
 						<div>
 							<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">9-Decryptor Live Profit Matrix</h2>
-							<p class="text-xs text-slate-300/80 mt-0.5">Fetches live Trade Hub prices for all 8 Decryptors, required Datacores, and the T2 product from Public ESI to pick the single most profitable Decryptor.</p>
+							<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Fetches live Trade Hub prices for all 8 Decryptors, required Datacores, and the T2 product from Public ESI to pick the single most profitable Decryptor.", "Mengambil harga Trade Hub live untuk 8 Decryptor, Datacore yang dibutuhkan, dan produk T2 dari Public ESI untuk memilih Decryptor paling menguntungkan.") }</p>
 						</div>
 						<span class="text-[10px] font-mono text-slate-400">
 							{ fmt.Sprintf("Broker %.2f%% • Tax %.2f%%", settings.BrokerFeePercent, settings.SalesTaxPercent) }

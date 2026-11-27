@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -100,10 +101,10 @@ templ DashboardPage(data *service.DashboardSummary) {
 				<div>
 					if data.Mode.IsAdmin() {
 						<h1 class="text-2xl font-bold tracking-tight text-white">Command Center // Dashboard</h1>
-						<p class="text-xs text-slate-300/80 mt-0.5">Summary of available capital, manufacturing slot capacity, realized profit, and daily copilot directives.</p>
+						<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Summary of available capital, manufacturing slot capacity, realized profit, and daily copilot directives.", "Ringkasan modal tersedia, kapasitas slot produksi, profit terealisasi, dan arahan copilot harian.") }</p>
 					} else {
 						<h1 class="text-2xl font-bold tracking-tight text-white">Market &amp; Research Dashboard</h1>
-						<p class="text-xs text-slate-300/80 mt-0.5">Live New Eden Market Pulse across Minerals, Gas, PI, Macro, Hot Blueprints, and Global Movers, plus Quick Profit Calculator.</p>
+						<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Live New Eden Market Pulse across Minerals, Gas, PI, Macro, Hot Blueprints, and Global Movers, plus Quick Profit Calculator.", "Pantauan Live Market Pulse New Eden untuk Minerals, Gas, PI, Macro, Hot Blueprints, dan Kalkulator Profit Cepat.") }</p>
 					}
 				</div>
 				<div class="flex flex-wrap gap-2">
@@ -135,31 +136,31 @@ templ DashboardPage(data *service.DashboardSummary) {
 			if data.Mode.IsAdmin() {
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 					<div class="tactical-panel rounded-xl p-4">
-						<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300">Available Capital</div>
+						<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300">{ i18n.L(ctx, "Available Capital", "Modal Tersedia") }</div>
 						<div class="mt-2 text-2xl font-bold font-mono text-emerald-300">{ FormatISK(data.AvailableCapital) }</div>
-						<div class="mt-1 text-[11px] text-slate-400">Source: { data.CapitalSource }</div>
+						<div class="mt-1 text-[11px] text-slate-400">{ i18n.L(ctx, "Source", "Sumber") }: { data.CapitalSource }</div>
 					</div>
 
 					<div class="tactical-panel rounded-xl p-4">
-						<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300">Locked Capital</div>
+						<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300">{ i18n.L(ctx, "Locked Capital", "Modal Terkunci") }</div>
 						<div class="mt-2 text-2xl font-bold font-mono text-amber-300">{ FormatISK(data.LockedCapital) }</div>
-						<div class="mt-1 text-[11px] text-slate-400">{ fmt.Sprintf("%d active batches (%d undercut)", data.ActiveBatchesCount, data.UndercutBatchesCount) }</div>
+						<div class="mt-1 text-[11px] text-slate-400">{ fmt.Sprintf("%d %s (%d undercut)", data.ActiveBatchesCount, i18n.L(ctx, "active batches", "batch aktif"), data.UndercutBatchesCount) }</div>
 					</div>
 
 					<div class="tactical-panel rounded-xl p-4">
-						<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300">Realized Profit</div>
+						<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300">{ i18n.L(ctx, "Realized Profit", "Profit Terealisasi") }</div>
 						<div class="mt-2 text-2xl font-bold font-mono text-sky-300">{ FormatISK(data.RealizedProfit) }</div>
-						<div class="mt-1 text-[11px] text-slate-400">Accumulated from SOLD batches</div>
+						<div class="mt-1 text-[11px] text-slate-400">{ i18n.L(ctx, "Accumulated from SOLD batches", "Akumulasi dari batch SOLD") }</div>
 					</div>
 
 					<div class="tactical-panel rounded-xl p-4">
-						<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300">Slot Capacity</div>
+						<div class="text-[11px] font-mono uppercase tracking-wider text-slate-300">{ i18n.L(ctx, "Slot Capacity", "Kapasitas Slot") }</div>
 						<div class="mt-2 text-2xl font-bold font-mono text-white">
 							{ fmt.Sprintf("%d / %d", data.MfgSlotsUsed, data.MfgSlotsTotal) }
 							<span class="text-xs font-normal text-slate-400">MFG</span>
 						</div>
 						<div class="mt-1 text-[11px] text-slate-400">
-							{ fmt.Sprintf("Science/Invention: %d / %d • Catalog: %d safe, %d traps", data.SciSlotsUsed, data.SciSlotsTotal, data.LayakItemsCount, data.JebakanItemsCount) }
+							{ fmt.Sprintf("Science/Invention: %d / %d • Catalog: %d %s, %d %s", data.SciSlotsUsed, data.SciSlotsTotal, data.LayakItemsCount, i18n.L(ctx, "safe", "aman"), data.JebakanItemsCount, i18n.L(ctx, "traps", "jebakan")) }
 						</div>
 					</div>
 				</div>
@@ -392,13 +393,13 @@ templ DashboardPage(data *service.DashboardSummary) {
 
 						if data.ActivePlan != nil {
 							<div class="rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-3.5">
-								<div class="text-[11px] font-mono uppercase text-emerald-400">Active Weekly Plan</div>
+								<div class="text-[11px] font-mono uppercase text-emerald-400">{ i18n.L(ctx, "Active Weekly Plan", "Rencana Mingguan Aktif") }</div>
 								<div class="mt-1 font-semibold text-white">{ data.ActivePlan.Title }</div>
 								<div class="mt-1 text-xs text-slate-300">
-									Estimated Profit: <span class="font-mono text-emerald-300">{ FormatISK(data.ActivePlan.TotalEstimatedProfit) }</span>
+									{ i18n.L(ctx, "Estimated Profit", "Estimasi Profit") }: <span class="font-mono text-emerald-300">{ FormatISK(data.ActivePlan.TotalEstimatedProfit) }</span>
 									({ FormatPercent(data.ActivePlan.ProjectedROI) } ROI)
 								</div>
-								<a href="/planner" class="mt-2 inline-block text-xs font-semibold text-sky-300 hover:underline">Open Day 1–7 Schedule &amp; Shopping List →</a>
+								<a href="/planner" class="mt-2 inline-block text-xs font-semibold text-sky-300 hover:underline">{ i18n.L(ctx, "Open Day 1–7 Schedule & Shopping List →", "Buka Jadwal Hari 1–7 & Daftar Belanja →") }</a>
 							</div>
 						}
 					</div>
@@ -430,7 +431,7 @@ templ DashboardPage(data *service.DashboardSummary) {
 					}`, dashboardHubName(data.ActiveHub)) }
 				>
 					<div class="flex items-center justify-between">
-						<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">Quick Profit Calculator</h2>
+						<h2 class="text-sm font-bold uppercase tracking-wider text-amber-300">{ i18n.L(ctx, "Quick Profit Calculator", "Kalkulator Profit Cepat") }</h2>
 						<a href="/manufacture" class="text-xs text-sky-300 hover:underline">Manufacture &amp; Profit →</a>
 					</div>
 
@@ -441,38 +442,38 @@ templ DashboardPage(data *service.DashboardSummary) {
 						class="grid grid-cols-1 gap-3 sm:grid-cols-2"
 					>
 						<div class="sm:col-span-2">
-							<label class="block text-[11px] font-mono uppercase text-slate-300">Item Name (Auto-Fill { dashboardHubName(data.ActiveHub) } Price via Public ESI)</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-300">{ i18n.L(ctx, "Item Name (Auto-Fill", "Nama Item (Isi Otomatis Harga") } { dashboardHubName(data.ActiveHub) } { i18n.L(ctx, "Price via Public ESI)", "via Public ESI)") }</label>
 							<div class="mt-1 flex gap-2">
 								<input type="text" name="item_name" x-model="itemName" class="flex-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:border-sky-400 focus:outline-none"/>
 								<button type="button" @click="fetchHubPrice()" class="rounded-md border border-amber-400/40 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 cursor-pointer">
-									Fetch { dashboardHubName(data.ActiveHub) } ESI
+									{ i18n.L(ctx, "Fetch", "Ambil") } { dashboardHubName(data.ActiveHub) } ESI
 								</button>
 							</div>
 							<div x-show="esiHint" x-text="esiHint" class="mt-1 text-[11px] font-mono text-emerald-300"></div>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Output Quantity / Batch</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">{ i18n.L(ctx, "Output Quantity / Batch", "Jumlah Output / Batch") }</label>
 							<input type="number" name="output_qty" value="500" min="1" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Jita Sell Price / Unit (ISK)</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">{ i18n.L(ctx, "Sell Price / Unit (ISK)", "Harga Sell Order / Unit (ISK)") }</label>
 							<input type="number" step="0.01" name="unit_sell_price" x-model="sellPrice" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Material Cost / Batch (ISK)</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">{ i18n.L(ctx, "Material Cost / Batch (ISK)", "Biaya Material / Batch (ISK)") }</label>
 							<input type="number" step="0.01" name="material_cost" value="4900000" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Extra BPC / Decryptor Cost</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">{ i18n.L(ctx, "Extra BPC / Decryptor Cost", "Biaya Tambahan BPC / Decryptor") }</label>
 							<input type="number" step="0.01" name="extra_setup_cost" value="0" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none"/>
 						</div>
 						<div>
-							<label class="block text-[11px] font-mono uppercase text-slate-400">Target Batches / Week</label>
+							<label class="block text-[11px] font-mono uppercase text-slate-400">{ i18n.L(ctx, "Target Batches / Week", "Target Batch / Minggu") }</label>
 							<input type="number" name="batches_per_week" value="4" min="1" class="mt-1 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono text-white focus:border-sky-400 focus:outline-none"/>
 						</div>
 						<div class="flex items-end justify-end">
 							<button type="submit" class="w-full rounded-md bg-sky-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition cursor-pointer">
-								Calculate Net Profit &amp; Break-Even
+								{ i18n.L(ctx, "Calculate Net Profit & Break-Even", "Hitung Net Profit & Break-Even") }
 							</button>
 						</div>
 					</form>

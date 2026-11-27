@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"aura-forge/internal/domain"
+	"aura-forge/internal/i18n"
 	"aura-forge/internal/service"
 )
 
@@ -13,19 +14,19 @@ templ SettingsPage(mode service.ModeInfo, settings domain.UserSettings, sdeStatu
 			<div class="flex flex-wrap items-center justify-between gap-3">
 				<div>
 					<h1 class="text-2xl font-bold tracking-tight text-white">Settings &amp; EVE Online ESI Mode</h1>
-					<p class="text-xs text-slate-300/80 mt-0.5">Configure starting capital, Primary Trade Hub, market taxes, character slot capacity, and optional EVE SSO OAuth2 integration.</p>
+					<p class="text-xs text-slate-300/80 mt-0.5">{ i18n.L(ctx, "Configure starting capital, Primary Trade Hub, market taxes, character slot capacity, and optional EVE SSO OAuth2 integration.", "Atur modal awal, Primary Trade Hub, pajak market, kapasitas slot karakter, dan integrasi opsional EVE SSO OAuth2.") }</p>
 				</div>
 				<a
 					href="/wiki#settings-guide"
 					class="inline-flex items-center gap-1.5 rounded-lg border border-sky-400/40 bg-sky-500/15 px-3 py-1.5 text-xs font-semibold text-sky-200 hover:bg-sky-500/25 transition"
 				>
-					<span>Settings Field Guide (Wiki) →</span>
+					<span>{ i18n.L(ctx, "Settings Field Guide (Wiki) →", "Panduan Pengaturan (Wiki) →") }</span>
 				</a>
 			</div>
 
 			if saved {
 				<div class="rounded-lg border border-emerald-500/40 bg-emerald-950/40 p-3 text-xs text-emerald-200">
-					Settings saved successfully to PostgreSQL.
+					{ i18n.L(ctx, "Settings saved successfully to PostgreSQL.", "Pengaturan berhasil disimpan ke PostgreSQL.") }
 				</div>
 			}
 
