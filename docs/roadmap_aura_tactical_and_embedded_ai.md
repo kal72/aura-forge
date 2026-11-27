@@ -147,6 +147,27 @@ Go Background Goroutine (Bounded Concurrency + Context Timeout)
 
 ---
 
+### Phase 5: Flagship Innovations & Combat Intelligence
+**Goal:** Differentiate Aura Tactical from every existing EVE Online fitting tool by combining visual 2D tactical geometry, live D-Scan & combat-log telemetry, pilot skill adaptation, and ISK ROI awareness.
+
+- **Interactive 2D Tactical Range & Orbit Sandbox (Canvas):**
+  - Top-down interactive 2D radar centered on the pilot's ship showing live concentric range rings: **Optimal**, **Falloff**, **Missile Flight Range**, **Stasis Webifier (10 km)**, **Warp Scrambler (9 km)**, and **Warp Disruptor (24 km)**.
+  - Dragging a target icon and adjusting its orbit speed/angle updates **Applied DPS**, **Tracking Hit %**, and **Time-to-Kill** in real time — making EVE combat geometry immediately intuitive for beginners.
+- **D-Scan Instant Threat Analyzer (`Ctrl+V` from Game):**
+  - Paste a live **Directional Scanner (D-Scan)** clipboard dump from EVE Online to classify nearby ships into tactical roles (*Tackle*, *DPS*, *Logistics*, *Gankers*, *EWAR*, *Combat Probes*) using local `sde_types` (0 ESI calls).
+  - Surfaces an instant **Threat Verdict Card** (e.g., high-sec suicide gank warning or low-sec gatecamp composition) plus recommended escape/counter action.
+- **Combat Log Post-Mortem Autopsy (Hybrid Deterministic + Optional AI):**
+  - Drag-and-drop or paste EVE Online `Gamelogs/*.txt` combat logs after a mission, Abyssal run, or PvP fight.
+  - **Deterministic Go Parser (80% — zero AI required, zero token cost):** Parses timestamps, incoming/outgoing DPS timelines, hit quality distribution (*Miss / Glances Off / Hits / Penetrates / Smashes*), top threat sources, and EWAR events (*Neutralizer / Scramble / Tracking Disruption*).
+  - **Optional Embedded AI Synthesis (20% — background structured JSON):** Reads only the compact parsed summary (never raw multi-thousand-line logs) to produce a concise root-cause autopsy and concrete module/tactic fixes. Works 100% with deterministic charts even when AI is disabled.
+- **"Fly Today" Auto-Downgrade & Skill Gap Calculator (Via EVE SSO):**
+  - Compares any imported EFT fitting against the pilot's live EVE SSO trained skills, listing missing skill prerequisites and estimated training time.
+  - Provides a 1-click **"Adapt Fit to Fly Today"** action that swaps locked Tech 2 modules for the best available **Meta 4 / Compact** equivalents within CPU/Powergrid limits so beginners can undock immediately.
+- **Combat ROI & Payback Bridge (Connected to Aura Forge's 100B+ ISK Mission):**
+  - Links PvE fits (Missions, Ratting, Abyssal) directly to live market replacement cost, computing **Estimated Payback Hours** (*Fit ISK Cost ÷ Expected ISK/Hour*), disconnect/loss risk exposure, and cost-benefit upgrade paths (*"+35M ISK module upgrade increases clear speed by 15% and cuts payback time"*).
+
+---
+
 ## 4. Clean Architecture & Code Isolation Blueprint
 
 To keep `aura-forge` modular and maintainable, Aura Tactical will live in dedicated, cleanly separated modules:
