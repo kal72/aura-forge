@@ -89,13 +89,18 @@
 			hull_class: 'Cruiser',
 			faction_theme: 'amarr',
 			tag: 'PvE',
-			skill_profile: 'intermediate',
+			skill_profile: 'all_4',
 			target_preset: 'sansha',
 			modules: [],
 			drones: [],
 		};
+		const legacySkillMap = { beginner: 'all_3', intermediate: 'all_4', maxed: 'all_5' };
+		if (legacySkillMap[defaultFit.skill_profile]) {
+			defaultFit.skill_profile = legacySkillMap[defaultFit.skill_profile];
+		}
 
 		return {
+			lastPresetSkillProfile: (defaultFit.skill_profile && defaultFit.skill_profile !== 'pilot_live') ? defaultFit.skill_profile : 'all_4',
 			// Workspace mode: 'wheel' | 'radar' | 'doctrines'
 			activeMode: 'wheel',
 			// Left drawer tab: 'modules' | 'hulls' | 'saved'
@@ -337,7 +342,10 @@
 			},
 
 			loadPreset(preset) {
+				const currentSkill = this.fit.skill_profile;
 				this.fit = JSON.parse(JSON.stringify(preset.fit));
+				this.fit.skill_profile = currentSkill === 'pilot_live' ? 'pilot_live' : this.normalizeSkillProfile(this.fit.skill_profile);
+				if (this.fit.skill_profile !== 'pilot_live') this.lastPresetSkillProfile = this.fit.skill_profile;
 				this.selectedSlot = null;
 				this.activeMode = 'wheel';
 				this.runSimulate();
@@ -349,6 +357,8 @@
 				this.fit = JSON.parse(JSON.stringify(rec.fit));
 				this.fit.id = rec.id;
 				this.fit.name = rec.name;
+				this.fit.skill_profile = this.normalizeSkillProfile(this.fit.skill_profile);
+				if (this.fit.skill_profile !== 'pilot_live') this.lastPresetSkillProfile = this.fit.skill_profile;
 				this.selectedSlot = null;
 				this.activeMode = 'wheel';
 				this.runSimulate();
@@ -915,8 +925,18 @@
 				this.notify('Stripped all modules from hull');
 			},
 
+			normalizeSkillProfile(prof) {
+				const map = { beginner: 'all_3', intermediate: 'all_4', maxed: 'all_5' };
+				if (!prof) return 'all_4';
+				return map[prof] || prof;
+			},
+
 			setSkillProfile(prof) {
-				this.fit.skill_profile = prof;
+				const normalized = this.normalizeSkillProfile(prof);
+				if (normalized !== 'pilot_live') {
+					this.lastPresetSkillProfile = normalized;
+				}
+				this.fit.skill_profile = normalized;
 				this.runSimulate();
 			},
 

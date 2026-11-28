@@ -476,21 +476,26 @@ func (s *CopilotService) SimulateTacticalFit(ctx context.Context, fit domain.Shi
 		}
 	}
 
-	sim := domain.ComputeFitSimulation(fit, shipSpec, specs, hub.Name)
-
-	// Optional Live EVE SSO Pilot Skills overlay (cached in esi_cache)
+	// Optional Live EVE SSO Pilot Skills (cached in esi_cache)
+	var (
+		liveSkills map[int32]int
+		totalSP    int64
+	)
 	if fit.SkillProfile == domain.SkillProfilePilotLive && s.chars != nil && s.charSync != nil {
 		if skProv, ok := s.charSync.(domain.CharacterSkillsProvider); ok {
 			if tok, tErr := s.chars.GetPrimaryToken(ctx); tErr == nil && tok != nil {
-				if liveSkills, totalSP, sErr := skProv.SyncSkills(ctx, tok); sErr == nil && len(liveSkills) > 0 {
-					gaps, locked := domain.EvaluateFitSkillGaps(fit, shipSpec, specs, 0, liveSkills)
-					sim.MissingSkills = gaps
-					sim.LockedSlotKeys = locked
-					sim.PilotSkillsActive = true
-					sim.PilotTotalSP = totalSP
+				if sk, sp, sErr := skProv.SyncSkills(ctx, tok); sErr == nil && len(sk) > 0 {
+					liveSkills = sk
+					totalSP = sp
 				}
 			}
 		}
+	}
+
+	sim := domain.ComputeFitSimulationWithSkills(fit, shipSpec, specs, hub.Name, liveSkills)
+	if len(liveSkills) > 0 {
+		sim.PilotSkillsActive = true
+		sim.PilotTotalSP = totalSP
 	}
 	return sim, nil
 }

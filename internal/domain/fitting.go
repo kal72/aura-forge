@@ -34,10 +34,18 @@ const (
 type SkillProfilePreset string
 
 const (
-	SkillProfileBeginner     SkillProfilePreset = "beginner"     // All Level III
-	SkillProfileIntermediate SkillProfilePreset = "intermediate" // All Level IV
-	SkillProfileMaxed        SkillProfilePreset = "maxed"        // All Level V
-	SkillProfilePilotLive    SkillProfilePreset = "pilot_live"   // Live EVE SSO Pilot Skills
+	SkillProfileAll0         SkillProfilePreset = "all_0"        // All Skills Level 0
+	SkillProfileAll1         SkillProfilePreset = "all_1"        // All Skills Level 1
+	SkillProfileAll2         SkillProfilePreset = "all_2"        // All Skills Level 2
+	SkillProfileAll3         SkillProfilePreset = "all_3"        // All Skills Level 3
+	SkillProfileAll4         SkillProfilePreset = "all_4"        // All Skills Level 4
+	SkillProfileAll5         SkillProfilePreset = "all_5"        // All Skills Level 5
+	SkillProfileMaxAlpha     SkillProfilePreset = "max_alpha"    // Max Alpha Clone Skills
+	SkillProfilePilotLive    SkillProfilePreset = "pilot_live"   // Original EVE SSO Character Skills
+	// Legacy aliases preserved for backward compatibility with existing saved fittings
+	SkillProfileBeginner     SkillProfilePreset = "beginner"     // Alias for All Level 3
+	SkillProfileIntermediate SkillProfilePreset = "intermediate" // Alias for All Level 4
+	SkillProfileMaxed        SkillProfilePreset = "maxed"        // Alias for All Level 5
 )
 
 // CharacterSkillsProvider is an optional interface implemented by esi.CharacterSyncClient.

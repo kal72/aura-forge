@@ -228,6 +228,54 @@ type FitSimulationResult struct {
 	MultibuyText      string             `json:"multibuy_text"`
 }
 
+// ResolveSkillProfileLevel maps a SkillProfilePreset to its effective scaling level (0..5)
+// and prerequisite gap evaluation cap (0..5).
+func ResolveSkillProfileLevel(profile SkillProfilePreset) (float64, int) {
+	switch profile {
+	case SkillProfileAll0:
+		return 0.0, 0
+	case SkillProfileAll1:
+		return 1.0, 1
+	case SkillProfileAll2:
+		return 2.0, 2
+	case SkillProfileAll3, SkillProfileBeginner:
+		return 3.0, 3
+	case SkillProfileAll4, SkillProfileIntermediate:
+		return 4.0, 4
+	case SkillProfileAll5, SkillProfileMaxed:
+		return 5.0, 5
+	case SkillProfileMaxAlpha:
+		// Max Alpha clone: core fitting & combat skills capped at Alpha limits (Level IV cap for prerequisites)
+		return 4.0, 4
+	default:
+		return 4.0, 4
+	}
+}
+
+// ComputePilotCoreSkillLevel averages the pilot's real EVE SSO core fitting/combat skills
+// (CPU Management, Power Grid Management, Capacitor Management/Ops, Shield/Armor/Hull, Navigation).
+func ComputePilotCoreSkillLevel(liveSkills map[int32]int) float64 {
+	if len(liveSkills) == 0 {
+		return 4.0
+	}
+	coreSkillIDs := []int32{
+		3426, // CPU Management
+		3413, // Power Grid Management
+		3418, // Capacitor Management
+		3417, // Capacitor Systems Operation
+		3419, // Shield Management
+		3394, // Hull Upgrades
+		3392, // Mechanics
+		3449, // Navigation
+		3453, // Evasive Maneuvering
+	}
+	sum := 0.0
+	for _, id := range coreSkillIDs {
+		sum += float64(liveSkills[id])
+	}
+	return sum / float64(len(coreSkillIDs))
+}
+
 // ComputeFitSimulation performs full deterministic EVE Dogma simulation for a ShipFit
 // given the ship's ItemSpecDetail and a lookup map of fitted module/drone ItemSpecDetails.
 func ComputeFitSimulation(
@@ -236,11 +284,23 @@ func ComputeFitSimulation(
 	itemSpecs map[int32]*ItemSpecDetail,
 	hubName string,
 ) *FitSimulationResult {
+	return ComputeFitSimulationWithSkills(fit, shipSpec, itemSpecs, hubName, nil)
+}
+
+// ComputeFitSimulationWithSkills performs deterministic EVE Dogma simulation with an optional
+// live EVE SSO character skill map.
+func ComputeFitSimulationWithSkills(
+	fit ShipFit,
+	shipSpec *ItemSpecDetail,
+	itemSpecs map[int32]*ItemSpecDetail,
+	hubName string,
+	liveSkills map[int32]int,
+) *FitSimulationResult {
 	if shipSpec == nil {
 		return nil
 	}
 	if fit.SkillProfile == "" {
-		fit.SkillProfile = SkillProfileIntermediate
+		fit.SkillProfile = SkillProfileAll4
 	}
 	if fit.FactionTheme == "" {
 		fit.FactionTheme = InferFactionTheme(shipSpec.Name, shipSpec.Description)
@@ -248,12 +308,9 @@ func ComputeFitSimulation(
 	faction := LookupPvEFaction(fit.TargetPreset)
 	fit.TargetPreset = faction.Key
 
-	skillLevel := 4.0
-	switch fit.SkillProfile {
-	case SkillProfileBeginner:
-		skillLevel = 3.0
-	case SkillProfileMaxed:
-		skillLevel = 5.0
+	skillLevel, gapCapLevel := ResolveSkillProfileLevel(fit.SkillProfile)
+	if fit.SkillProfile == SkillProfilePilotLive && len(liveSkills) > 0 {
+		skillLevel = ComputePilotCoreSkillLevel(liveSkills)
 	}
 
 	// Base ship attributes with pilot skill scaling (CPU Management +5%/lvl, Power Grid Management +5%/lvl,
@@ -800,8 +857,8 @@ func ComputeFitSimulation(
 	hullCost := shipSpec.LiveSellPrice
 	totalFitCost := RoundISK(hullCost + modulesCostISK)
 
-	// Skill prerequisite gap evaluation (works for Preset Lv III/IV/V and can be overridden with live SSO skills)
-	missingSkills, lockedKeys := EvaluateFitSkillGaps(fit, shipSpec, itemSpecs, int(skillLevel), nil)
+	// Skill prerequisite gap evaluation (works for All 0..5, Max Alpha, or live EVE SSO skills)
+	missingSkills, lockedKeys := EvaluateFitSkillGaps(fit, shipSpec, itemSpecs, gapCapLevel, liveSkills)
 
 	return &FitSimulationResult{
 		Fit:               fit,
