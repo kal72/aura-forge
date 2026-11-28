@@ -239,3 +239,21 @@ func (h *Handlers) HandleAllocatorAIPlan(w http.ResponseWriter, r *http.Request)
 	}
 	h.writeJSON(w, http.StatusOK, draft)
 }
+
+// HandleTacticalItemInfo returns full EVE Dogma specs, required skills, traits, and live hub price for the Show Info popup.
+func (h *Handlers) HandleTacticalItemInfo(w http.ResponseWriter, r *http.Request) {
+	q := strings.TrimSpace(r.URL.Query().Get("id"))
+	if q == "" {
+		q = strings.TrimSpace(r.URL.Query().Get("q"))
+	}
+	if q == "" {
+		h.writeJSON(w, http.StatusBadRequest, map[string]string{"error": "missing item id or name"})
+		return
+	}
+	res, err := h.svc.CompareItems(r.Context(), []string{q}, "")
+	if err != nil {
+		h.writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return
+	}
+	h.writeJSON(w, http.StatusOK, res)
+}

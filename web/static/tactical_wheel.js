@@ -184,6 +184,12 @@
 			eftInputText: '',
 			eftImporting: false,
 			eftError: '',
+			infoModalOpen: false,
+			infoLoading: false,
+			infoError: '',
+			infoData: null,
+			infoTab: 'attributes',
+			infoSourceItem: null,
 			traitsExpanded: false,
 			savingFit: false,
 
@@ -1639,6 +1645,29 @@
 
 			hasImplant(key) {
 				return Array.isArray(this.fit.implants) && this.fit.implants.includes(key);
+			},
+
+			async openItemInfo(typeID, sourceItem) {
+				if (!typeID) return;
+				this.infoModalOpen = true;
+				this.infoLoading = true;
+				this.infoError = '';
+				this.infoData = null;
+				this.infoTab = 'attributes';
+				this.infoSourceItem = sourceItem || null;
+				try {
+					const res = await fetch('/tactical/api/item-info?id=' + encodeURIComponent(String(typeID)));
+					const data = await res.json();
+					if (!res.ok) {
+						this.infoError = data.error || 'Failed to load item specifications';
+						return;
+					}
+					this.infoData = data;
+				} catch (_) {
+					this.infoError = 'Network error loading item specifications';
+				} finally {
+					this.infoLoading = false;
+				}
 			},
 		};
 	};

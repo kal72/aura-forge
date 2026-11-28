@@ -74,6 +74,7 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.Get("/", h.HandleTacticalPage)
 			r.Get("/api/ships", h.HandleTacticalShips)
 			r.Get("/api/modules", h.HandleTacticalModules)
+			r.Get("/api/item-info", h.HandleTacticalItemInfo)
 			r.Post("/api/simulate", h.HandleTacticalSimulate)
 			r.Post("/api/import-eft", h.HandleTacticalImportEFT)
 			r.Get("/api/fittings", h.HandleTacticalListFittings)

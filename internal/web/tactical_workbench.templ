@@ -235,6 +235,14 @@ templ TacticalPage(data *service.TacticalViewData) {
 									</div>
 									<button
 										type="button"
+										@click.stop="openItemInfo(mod.type_id, mod)"
+										title="Show full EVE module specifications"
+										class="shrink-0 rounded-lg border border-sky-400/35 bg-sky-500/10 px-1.5 py-1 text-[10.5px] font-bold text-sky-200 hover:bg-sky-500/25 transition cursor-pointer"
+									>
+										ⓘ
+									</button>
+									<button
+										type="button"
 										@click="equipModuleToSlot(mod, activeSlotFilter)"
 										class="shrink-0 rounded-lg border border-emerald-400/40 bg-emerald-500/15 px-2 py-1 text-[10.5px] font-bold text-emerald-200 hover:bg-emerald-500/30 transition cursor-pointer"
 										x-text="activeSlotFilter === 'charge' ? '+ Load' : '+ Fit'"
@@ -508,6 +516,14 @@ templ TacticalPage(data *service.TacticalViewData) {
 									<img :src="itemIconURL(getModuleAt(selectedSlot.kind, selectedSlot.index).type_id)" class="h-6 w-6 rounded border border-slate-700"/>
 									<span class="font-bold text-white" x-text="getModuleAt(selectedSlot.kind, selectedSlot.index).name"></span>
 									<span class="font-mono text-[11px] text-amber-300" x-text="formatISK(getModuleAt(selectedSlot.kind, selectedSlot.index).unit_price_isk)"></span>
+									<button
+										type="button"
+										@click="openItemInfo(getModuleAt(selectedSlot.kind, selectedSlot.index).type_id, null)"
+										title="Show full module specs & requirements"
+										class="rounded border border-sky-400/45 bg-sky-500/15 px-2 py-0.5 text-[11px] font-semibold text-sky-200 hover:bg-sky-500/30 cursor-pointer"
+									>
+										ⓘ Specs
+									</button>
 									<div class="h-4 w-px bg-slate-700"></div>
 									<!-- Active Module Controls (Active / Overheat / Offline) -->
 									<template x-if="!isPassiveModule(getModuleAt(selectedSlot.kind, selectedSlot.index))">
@@ -1126,9 +1142,20 @@ templ TacticalPage(data *service.TacticalViewData) {
 										class="transition-all duration-500"
 									></circle>
 								</svg>
-								<div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-									<div class="text-[9px] font-mono uppercase text-slate-400">Capacitor</div>
-									<div class="text-xs font-mono font-extrabold" :class="sim && sim.capacitor && sim.capacitor.stable ? 'text-emerald-300' : 'text-amber-300'" x-text="sim ? sim.capacitor.formatted_time : '—'"></div>
+								<div class="absolute inset-0 flex flex-col items-center justify-center px-3 text-center">
+									<div class="text-[8px] font-mono uppercase tracking-wider text-slate-400 leading-none">Capacitor</div>
+									<template x-if="sim && sim.capacitor && sim.capacitor.stable">
+										<div class="mt-0.5 flex flex-col items-center leading-none">
+											<span class="text-sm font-mono font-extrabold text-emerald-300" x-text="Math.round(sim.capacitor.stable_percent) + '%'"></span>
+											<span class="mt-0.5 text-[7.5px] font-mono font-bold uppercase tracking-wider text-emerald-400/90">Stable</span>
+										</div>
+									</template>
+									<template x-if="!sim || !sim.capacitor || !sim.capacitor.stable">
+										<div class="mt-0.5 flex flex-col items-center leading-none">
+											<span class="text-[11px] font-mono font-extrabold text-amber-300" x-text="sim && sim.capacitor ? sim.capacitor.formatted_time : '—'"></span>
+											<span x-show="sim && sim.capacitor" class="mt-0.5 text-[7px] font-mono font-bold uppercase tracking-wider text-amber-400/85">Depletes</span>
+										</div>
+									</template>
 								</div>
 							</div>
 
@@ -1345,6 +1372,127 @@ templ TacticalPage(data *service.TacticalViewData) {
 					</div>
 				</aside>
 			</main>
+
+			<!-- =============================================================
+			     EVE SHOW INFO — MODULE / SHIP SPECIFICATIONS POPUP MODAL
+			     ============================================================= -->
+			<div
+				x-show="infoModalOpen"
+				x-transition.opacity
+				@keydown.escape.window="infoModalOpen = false"
+				class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm"
+			>
+				<div @click.away="infoModalOpen = false" class="tactical-panel flex h-[560px] max-h-[86vh] w-full max-w-2xl flex-col rounded-2xl p-5 shadow-2xl overflow-hidden">
+					<!-- Loading State -->
+					<div x-show="infoLoading" class="flex flex-1 items-center justify-center gap-3 text-xs font-mono text-sky-200">
+						<span class="h-4 w-4 animate-spin rounded-full border-2 border-sky-300 border-t-transparent"></span>
+						<span>Loading official EVE Dogma specifications...</span>
+					</div>
+
+					<!-- Error State -->
+					<div x-show="!infoLoading && infoError" class="flex flex-1 flex-col items-center justify-center gap-3">
+						<div class="w-full rounded-xl border border-rose-500/50 bg-rose-500/15 p-4 text-center text-xs text-rose-200" x-text="infoError"></div>
+						<button type="button" @click="infoModalOpen = false" class="rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 cursor-pointer">Close</button>
+					</div>
+
+					<!-- Loaded Item Specs -->
+					<template x-if="!infoLoading && infoData && infoData.items && infoData.items.length > 0">
+						<div class="flex flex-1 flex-col min-h-0">
+							<!-- Header -->
+							<div class="flex shrink-0 items-start justify-between gap-3 border-b border-violet-400/25 pb-3">
+								<div class="flex items-center gap-3 min-w-0">
+									<img
+										:src="infoData.items[0].is_ship ? shipRenderURL(infoData.items[0].type_id) : itemIconURL(infoData.items[0].type_id)"
+										:alt="infoData.items[0].name"
+										class="h-14 w-14 shrink-0 rounded-xl border border-amber-400/45 bg-slate-950 object-contain p-0.5"
+									/>
+									<div class="min-w-0">
+										<div class="flex flex-wrap items-center gap-1.5">
+											<h3 class="text-base font-bold text-white" x-text="infoData.items[0].name"></h3>
+											<span class="rounded border border-violet-400/40 bg-violet-500/20 px-1.5 py-0.5 font-mono text-[10px] font-bold text-violet-200" x-text="'Tech ' + (infoData.items[0].tech_level || 1)"></span>
+											<span x-show="infoData.items[0].meta_level > 0" class="rounded border border-sky-400/40 bg-sky-500/15 px-1.5 py-0.5 font-mono text-[10px] text-sky-200" x-text="'Meta ' + infoData.items[0].meta_level"></span>
+										</div>
+										<div class="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-slate-300">
+											<span x-text="infoData.items[0].group_name"></span>
+											<span class="text-slate-600">•</span>
+											<span class="font-mono font-bold text-amber-300" x-text="infoData.items[0].live_sell_price > 0 ? (formatISK(infoData.items[0].live_sell_price) + ' (' + (infoData.hub ? infoData.hub.name : 'Hub') + ')') : 'Price N/A'"></span>
+										</div>
+									</div>
+								</div>
+								<button type="button" @click="infoModalOpen = false" class="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer">✕</button>
+							</div>
+
+							<!-- Sub-Tabs -->
+							<div class="flex shrink-0 items-center gap-1.5 py-2.5 border-b border-slate-800/80 text-xs font-semibold">
+								<button type="button" @click="infoTab = 'attributes'" :class="infoTab === 'attributes' ? 'bg-violet-600/80 text-white' : 'bg-slate-900/70 text-slate-300 hover:text-white'" class="rounded-lg px-3 py-1 cursor-pointer transition">Attributes</button>
+								<button type="button" @click="infoTab = 'requirements'" :class="infoTab === 'requirements' ? 'bg-violet-600/80 text-white' : 'bg-slate-900/70 text-slate-300 hover:text-white'" class="rounded-lg px-3 py-1 cursor-pointer transition">
+									Requirements (<span x-text="(infoData.items[0].required_skills || []).length"></span>)
+								</button>
+								<button type="button" @click="infoTab = 'description'" :class="infoTab === 'description' ? 'bg-violet-600/80 text-white' : 'bg-slate-900/70 text-slate-300 hover:text-white'" class="rounded-lg px-3 py-1 cursor-pointer transition">Description</button>
+							</div>
+
+							<!-- Scrollable Body -->
+							<div class="flex-1 min-h-0 overflow-y-auto py-3 pr-1 space-y-3">
+								<!-- TAB: ATTRIBUTES -->
+								<div x-show="infoTab === 'attributes'" class="space-y-3">
+									<template x-for="sec in (infoData.sections || [])" :key="sec.id">
+										<div class="rounded-xl border border-slate-700/70 bg-slate-950/70 p-3">
+											<div class="mb-2 text-[10.5px] font-mono font-bold uppercase tracking-wider text-amber-300" x-text="sec.title"></div>
+											<div class="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+												<template x-for="row in (sec.rows || [])" :key="row.key">
+													<div class="flex items-center justify-between gap-2 rounded-lg bg-slate-900/75 px-2.5 py-1.5 text-xs">
+														<span class="text-slate-300" x-text="row.label"></span>
+														<span class="font-mono font-bold text-white" x-text="row.cells && row.cells[0] ? row.cells[0].formatted : '—'"></span>
+													</div>
+												</template>
+											</div>
+										</div>
+									</template>
+									<div x-show="!infoData.sections || infoData.sections.length === 0" class="py-6 text-center text-xs text-slate-400">
+										No detailed Dogma attributes available for this item.
+									</div>
+								</div>
+
+								<!-- TAB: REQUIRED SKILLS -->
+								<div x-show="infoTab === 'requirements'" class="space-y-2">
+									<template x-for="sk in (infoData.items[0].required_skills || [])" :key="sk.skill_type_id">
+										<div class="flex items-center justify-between rounded-xl border border-slate-700/70 bg-slate-950/70 px-3 py-2 text-xs">
+											<span class="font-semibold text-white" x-text="sk.skill_name"></span>
+											<span class="rounded border border-sky-400/40 bg-sky-500/15 px-2 py-0.5 font-mono text-[11px] font-bold text-sky-200" x-text="'Level ' + sk.level"></span>
+										</div>
+									</template>
+									<div x-show="!infoData.items[0].required_skills || infoData.items[0].required_skills.length === 0" class="py-6 text-center text-xs text-slate-400">
+										No skill prerequisites required.
+									</div>
+								</div>
+
+								<!-- TAB: DESCRIPTION -->
+								<div x-show="infoTab === 'description'" class="rounded-xl border border-slate-700/70 bg-slate-950/70 p-3.5 text-xs leading-relaxed text-slate-200 whitespace-pre-line" x-text="infoData.items[0].description || 'No description available.'"></div>
+							</div>
+
+							<!-- Footer Actions -->
+							<div class="mt-3 flex shrink-0 items-center justify-between border-t border-slate-800 pt-3">
+								<a
+									:href="'/marketplace?q=' + encodeURIComponent(infoData.items[0].name)"
+									class="text-xs font-semibold text-sky-300 hover:underline"
+								>
+									Open in Marketplace →
+								</a>
+								<div class="flex items-center gap-2">
+									<button
+										type="button"
+										x-show="infoSourceItem"
+										@click="equipModuleToSlot(infoSourceItem, activeSlotFilter); infoModalOpen = false"
+										class="rounded-lg border border-emerald-400/50 bg-emerald-500/20 px-3.5 py-1.5 text-xs font-bold text-emerald-100 hover:bg-emerald-500/35 cursor-pointer"
+										x-text="activeSlotFilter === 'charge' ? '+ Load Ammo' : '+ Fit to Wheel'"
+									></button>
+									<button type="button" @click="infoModalOpen = false" class="rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 cursor-pointer">Close</button>
+								</div>
+							</div>
+						</div>
+					</template>
+				</div>
+			</div>
 
 			<!-- =============================================================
 			     IMPORT EFT MODAL
