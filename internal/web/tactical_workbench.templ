@@ -364,64 +364,14 @@ templ TacticalPage(data *service.TacticalViewData) {
 
 					<!-- MODE 1: INTERACTIVE ORBITAL SHIP FITTING WHEEL -->
 					<div x-show="activeMode === 'wheel'" class="tactical-panel relative flex flex-col items-center justify-center rounded-2xl p-3 sm:p-5 overflow-hidden">
-						<!-- Vertical Per-Rack Unfit Control Rail (Right side, ordered top-to-bottom: High -> Mid -> Low -> Rig -> All) -->
-						<div
-							x-show="(fit.modules || []).length > 0"
-							class="absolute top-3 right-3 z-30 flex flex-col items-stretch gap-1"
-						>
-							<div class="text-[9px] font-mono uppercase tracking-wider text-slate-400 text-right pr-1">Unfit</div>
-							<button
-								type="button"
-								x-show="rackCountFitted('high') > 0"
-								@click="unfitRack('high')"
-								title="Unfit all High Slots"
-								class="rounded-lg border border-slate-700/80 bg-slate-950/90 px-2.5 py-1 text-right font-mono text-[10px] font-semibold text-slate-200 hover:border-rose-400/70 hover:text-rose-200 cursor-pointer transition"
+						<!-- Wheel + Right-Docked Vertical Unfit Rail (Side-by-side so it NEVER overlaps the circle) -->
+						<div class="tac-wheel-row">
+							<!-- Radial Wheel Container (Responsive 580x580 Coordinate Space) -->
+							<div
+								@mousemove="handleWheelParallax($event)"
+								@mouseleave="resetParallax()"
+								class="tac-wheel-stage select-none"
 							>
-								× High (<span x-text="rackCountFitted('high')"></span>)
-							</button>
-							<button
-								type="button"
-								x-show="rackCountFitted('mid') > 0"
-								@click="unfitRack('mid')"
-								title="Unfit all Medium Slots"
-								class="rounded-lg border border-slate-700/80 bg-slate-950/90 px-2.5 py-1 text-right font-mono text-[10px] font-semibold text-slate-200 hover:border-rose-400/70 hover:text-rose-200 cursor-pointer transition"
-							>
-								× Mid (<span x-text="rackCountFitted('mid')"></span>)
-							</button>
-							<button
-								type="button"
-								x-show="rackCountFitted('low') > 0"
-								@click="unfitRack('low')"
-								title="Unfit all Low Slots"
-								class="rounded-lg border border-slate-700/80 bg-slate-950/90 px-2.5 py-1 text-right font-mono text-[10px] font-semibold text-slate-200 hover:border-rose-400/70 hover:text-rose-200 cursor-pointer transition"
-							>
-								× Low (<span x-text="rackCountFitted('low')"></span>)
-							</button>
-							<button
-								type="button"
-								x-show="rackCountFitted('rig') > 0"
-								@click="unfitRack('rig')"
-								title="Unfit all Rig Slots"
-								class="rounded-lg border border-slate-700/80 bg-slate-950/90 px-2.5 py-1 text-right font-mono text-[10px] font-semibold text-slate-200 hover:border-rose-400/70 hover:text-rose-200 cursor-pointer transition"
-							>
-								× Rig (<span x-text="rackCountFitted('rig')"></span>)
-							</button>
-							<button
-								type="button"
-								@click="stripAllModules()"
-								title="Strip all modules from hull"
-								class="mt-0.5 rounded-lg border border-rose-500/45 bg-rose-500/15 px-2.5 py-1 text-right font-mono text-[10px] font-bold text-rose-200 hover:bg-rose-500/30 cursor-pointer transition"
-							>
-								× All
-							</button>
-						</div>
-
-						<!-- Radial Wheel Container (Responsive 580x580 Coordinate Space) -->
-						<div
-							@mousemove="handleWheelParallax($event)"
-							@mouseleave="resetParallax()"
-							class="tac-wheel-stage select-none"
-						>
 							<!-- Outer SVG Layer: Rings, Segmented Gauges (Calibration, CPU, Powergrid), Labels, Hardpoint Pips -->
 							<svg viewBox="0 0 580 580" class="pointer-events-none absolute inset-0 h-full w-full" x-html="wheelOuterSVG()"></svg>
 
@@ -487,6 +437,56 @@ templ TacticalPage(data *service.TacticalViewData) {
 									</template>
 								</div>
 							</template>
+							</div>
+
+							<!-- Vertical Per-Rack Unfit Control Rail (Physically docked to the right of the circular wheel) -->
+							<div x-show="(fit.modules || []).length > 0" class="tac-unfit-rail">
+								<div class="text-[9px] font-mono uppercase tracking-wider text-slate-400 text-right pr-1">Unfit</div>
+								<button
+									type="button"
+									x-show="rackCountFitted('high') > 0"
+									@click="unfitRack('high')"
+									title="Unfit all High Slots"
+									class="rounded-lg border border-slate-700/80 bg-slate-950/90 px-2.5 py-1 text-right font-mono text-[10px] font-semibold text-slate-200 hover:border-rose-400/70 hover:text-rose-200 cursor-pointer transition whitespace-nowrap"
+								>
+									× High (<span x-text="rackCountFitted('high')"></span>)
+								</button>
+								<button
+									type="button"
+									x-show="rackCountFitted('mid') > 0"
+									@click="unfitRack('mid')"
+									title="Unfit all Medium Slots"
+									class="rounded-lg border border-slate-700/80 bg-slate-950/90 px-2.5 py-1 text-right font-mono text-[10px] font-semibold text-slate-200 hover:border-rose-400/70 hover:text-rose-200 cursor-pointer transition whitespace-nowrap"
+								>
+									× Mid (<span x-text="rackCountFitted('mid')"></span>)
+								</button>
+								<button
+									type="button"
+									x-show="rackCountFitted('low') > 0"
+									@click="unfitRack('low')"
+									title="Unfit all Low Slots"
+									class="rounded-lg border border-slate-700/80 bg-slate-950/90 px-2.5 py-1 text-right font-mono text-[10px] font-semibold text-slate-200 hover:border-rose-400/70 hover:text-rose-200 cursor-pointer transition whitespace-nowrap"
+								>
+									× Low (<span x-text="rackCountFitted('low')"></span>)
+								</button>
+								<button
+									type="button"
+									x-show="rackCountFitted('rig') > 0"
+									@click="unfitRack('rig')"
+									title="Unfit all Rig Slots"
+									class="rounded-lg border border-slate-700/80 bg-slate-950/90 px-2.5 py-1 text-right font-mono text-[10px] font-semibold text-slate-200 hover:border-rose-400/70 hover:text-rose-200 cursor-pointer transition whitespace-nowrap"
+								>
+									× Rig (<span x-text="rackCountFitted('rig')"></span>)
+								</button>
+								<button
+									type="button"
+									@click="stripAllModules()"
+									title="Strip all modules from hull"
+									class="mt-0.5 rounded-lg border border-rose-500/45 bg-rose-500/15 px-2.5 py-1 text-right font-mono text-[10px] font-bold text-rose-200 hover:bg-rose-500/30 cursor-pointer transition whitespace-nowrap"
+								>
+									× All
+								</button>
+							</div>
 						</div>
 
 						<!-- Subtle Wheel Utility Footer (Drag hint + Strip Fit) -->
@@ -1210,60 +1210,7 @@ templ TacticalPage(data *service.TacticalViewData) {
 						</div>
 					</div>
 
-					<!-- 3. PvE PIRATE FACTION TARGET MATRIX -->
-					<div class="tactical-panel rounded-2xl p-3.5">
-						<div class="flex items-center justify-between mb-2">
-							<div class="text-[10.5px] font-mono font-bold uppercase tracking-wider text-amber-300">PvE Target Profile</div>
-							<span class="text-[10px] font-mono text-slate-400" x-text="sim ? ('Benchmark ' + sim.target_faction.benchmark_dps + ' DPS') : ''"></span>
-						</div>
-						<div class="grid grid-cols-3 gap-1.5">
-							<template x-for="fac in factions" :key="fac.key">
-								<button
-									type="button"
-									@click="setTargetFaction(fac.key)"
-									:class="fit.target_preset === fac.key ? 'border-amber-400 bg-amber-500/20 text-white shadow-[0_0_10px_rgba(251,191,36,0.22)]' : 'border-slate-700/70 bg-slate-950/55 text-slate-300 hover:border-slate-500'"
-									class="rounded-xl border px-2 py-1.5 text-[11px] font-bold transition cursor-pointer"
-									x-text="fac.short_label"
-								></button>
-							</template>
-						</div>
-						<div x-show="sim && sim.target_faction" class="mt-2.5 rounded-xl border border-violet-400/25 bg-slate-950/60 p-2 text-[10.5px]">
-							<div class="flex items-center justify-between text-slate-200">
-								<span>Weak to: <strong class="text-emerald-300" x-text="(sim && sim.target_faction.weak_against || []).join(' / ')"></strong></span>
-							</div>
-							<div class="mt-0.5 text-amber-200/90" x-show="sim && sim.target_faction.ewar_warning" x-text="'EWAR: ' + (sim && sim.target_faction.ewar_warning)"></div>
-						</div>
-					</div>
-
-					<!-- 3.5 ABYSSAL WEATHER & PILOT IMPLANTS / BOOSTERS -->
-					<div class="tactical-panel rounded-2xl p-3.5 space-y-2.5">
-						<div>
-							<div class="flex items-center justify-between mb-1.5">
-								<span class="text-[10px] font-mono font-bold uppercase tracking-wider text-violet-300">Abyssal Weather</span>
-								<span class="text-[9.5px] font-mono text-slate-400" x-text="fit.abyssal_weather ? fit.abyssal_weather.toUpperCase() : 'K-SPACE (NONE)'"></span>
-							</div>
-							<div class="grid grid-cols-5 gap-1 text-[10px] font-mono">
-								<button type="button" @click="setAbyssalWeather('electrical')" :class="fit.abyssal_weather === 'electrical' ? 'border-cyan-400 bg-cyan-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="-50% EM Resist, +50% Cap Recharge">Elec</button>
-								<button type="button" @click="setAbyssalWeather('exotic')" :class="fit.abyssal_weather === 'exotic' ? 'border-sky-400 bg-sky-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="-50% Kinetic Resist, +50% Scan Res">Exot</button>
-								<button type="button" @click="setAbyssalWeather('firestorm')" :class="fit.abyssal_weather === 'firestorm' ? 'border-rose-400 bg-rose-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="-50% Thermal Resist, +50% Armor HP">Fire</button>
-								<button type="button" @click="setAbyssalWeather('gamma')" :class="fit.abyssal_weather === 'gamma' ? 'border-amber-400 bg-amber-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="-50% Explosive Resist, +50% Shield HP">Gamm</button>
-								<button type="button" @click="setAbyssalWeather('dark')" :class="fit.abyssal_weather === 'dark' ? 'border-violet-400 bg-violet-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="-50% Turret Range, +50% Velocity">Dark</button>
-							</div>
-						</div>
-						<div>
-							<div class="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-300 mb-1.5">Implants &amp; Boosters</div>
-							<div class="grid grid-cols-3 gap-1 text-[10px] font-mono">
-								<button type="button" @click="toggleImplant('cpu_3')" :class="hasImplant('cpu_3') ? 'border-sky-400 bg-sky-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition">+3% CPU</button>
-								<button type="button" @click="toggleImplant('pg_3')" :class="hasImplant('pg_3') ? 'border-rose-400 bg-rose-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition">+3% PG</button>
-								<button type="button" @click="toggleImplant('cap_5')" :class="hasImplant('cap_5') ? 'border-amber-400 bg-amber-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition">+5% Cap</button>
-								<button type="button" @click="toggleImplant('dmg_3')" :class="hasImplant('dmg_3') ? 'border-violet-400 bg-violet-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition">+3% DPS</button>
-								<button type="button" @click="toggleImplant('blue_pill')" :class="hasImplant('blue_pill') ? 'border-cyan-400 bg-cyan-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="+20% Shield Boost">Blue Pill</button>
-								<button type="button" @click="toggleImplant('exile')" :class="hasImplant('exile') ? 'border-emerald-400 bg-emerald-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="+20% Armor Repair">Exile</button>
-							</div>
-						</div>
-					</div>
-
-					<!-- 4. NAVIGATION & AGILITY DIAL -->
+					<!-- 3. NAVIGATION & AGILITY DIAL (Directly beneath Effective Hit Points) -->
 					<div class="tactical-panel rounded-2xl p-3.5">
 						<div class="flex items-center justify-between mb-2">
 							<div class="text-[10.5px] font-mono font-bold uppercase tracking-wider text-sky-300">Navigation &amp; Agility</div>
@@ -1294,6 +1241,59 @@ templ TacticalPage(data *service.TacticalViewData) {
 							<div class="rounded-xl border border-slate-700/60 bg-slate-950/60 p-2">
 								<div class="text-[9.5px] text-slate-400 uppercase">Signature / Cargo</div>
 								<div class="font-bold text-white" x-text="sim ? (sim.navigation.signature_radius_m + 'm • ' + formatNum(sim.navigation.cargo_capacity_m3) + ' m³') : '—'"></div>
+							</div>
+						</div>
+					</div>
+
+					<!-- 4. PvE PIRATE FACTION TARGET MATRIX -->
+					<div class="tactical-panel rounded-2xl p-3.5">
+						<div class="flex items-center justify-between mb-2">
+							<div class="text-[10.5px] font-mono font-bold uppercase tracking-wider text-amber-300">PvE Target Profile</div>
+							<span class="text-[10px] font-mono text-slate-400" x-text="sim ? ('Benchmark ' + sim.target_faction.benchmark_dps + ' DPS') : ''"></span>
+						</div>
+						<div class="grid grid-cols-3 gap-1.5">
+							<template x-for="fac in factions" :key="fac.key">
+								<button
+									type="button"
+									@click="setTargetFaction(fac.key)"
+									:class="fit.target_preset === fac.key ? 'border-amber-400 bg-amber-500/20 text-white shadow-[0_0_10px_rgba(251,191,36,0.22)]' : 'border-slate-700/70 bg-slate-950/55 text-slate-300 hover:border-slate-500'"
+									class="rounded-xl border px-2 py-1.5 text-[11px] font-bold transition cursor-pointer"
+									x-text="fac.short_label"
+								></button>
+							</template>
+						</div>
+						<div x-show="sim && sim.target_faction" class="mt-2.5 rounded-xl border border-violet-400/25 bg-slate-950/60 p-2 text-[10.5px]">
+							<div class="flex items-center justify-between text-slate-200">
+								<span>Weak to: <strong class="text-emerald-300" x-text="(sim && sim.target_faction.weak_against || []).join(' / ')"></strong></span>
+							</div>
+							<div class="mt-0.5 text-amber-200/90" x-show="sim && sim.target_faction.ewar_warning" x-text="'EWAR: ' + (sim && sim.target_faction.ewar_warning)"></div>
+						</div>
+					</div>
+
+					<!-- 4.5 ABYSSAL WEATHER & PILOT IMPLANTS / BOOSTERS -->
+					<div class="tactical-panel rounded-2xl p-3.5 space-y-2.5">
+						<div>
+							<div class="flex items-center justify-between mb-1.5">
+								<span class="text-[10px] font-mono font-bold uppercase tracking-wider text-violet-300">Abyssal Weather</span>
+								<span class="text-[9.5px] font-mono text-slate-400" x-text="fit.abyssal_weather ? fit.abyssal_weather.toUpperCase() : 'K-SPACE (NONE)'"></span>
+							</div>
+							<div class="grid grid-cols-5 gap-1 text-[10px] font-mono">
+								<button type="button" @click="setAbyssalWeather('electrical')" :class="fit.abyssal_weather === 'electrical' ? 'border-cyan-400 bg-cyan-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="-50% EM Resist, +50% Cap Recharge">Elec</button>
+								<button type="button" @click="setAbyssalWeather('exotic')" :class="fit.abyssal_weather === 'exotic' ? 'border-sky-400 bg-sky-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="-50% Kinetic Resist, +50% Scan Res">Exot</button>
+								<button type="button" @click="setAbyssalWeather('firestorm')" :class="fit.abyssal_weather === 'firestorm' ? 'border-rose-400 bg-rose-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="-50% Thermal Resist, +50% Armor HP">Fire</button>
+								<button type="button" @click="setAbyssalWeather('gamma')" :class="fit.abyssal_weather === 'gamma' ? 'border-amber-400 bg-amber-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="-50% Explosive Resist, +50% Shield HP">Gamm</button>
+								<button type="button" @click="setAbyssalWeather('dark')" :class="fit.abyssal_weather === 'dark' ? 'border-violet-400 bg-violet-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="-50% Turret Range, +50% Velocity">Dark</button>
+							</div>
+						</div>
+						<div>
+							<div class="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-300 mb-1.5">Implants &amp; Boosters</div>
+							<div class="grid grid-cols-3 gap-1 text-[10px] font-mono">
+								<button type="button" @click="toggleImplant('cpu_3')" :class="hasImplant('cpu_3') ? 'border-sky-400 bg-sky-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition">+3% CPU</button>
+								<button type="button" @click="toggleImplant('pg_3')" :class="hasImplant('pg_3') ? 'border-rose-400 bg-rose-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition">+3% PG</button>
+								<button type="button" @click="toggleImplant('cap_5')" :class="hasImplant('cap_5') ? 'border-amber-400 bg-amber-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition">+5% Cap</button>
+								<button type="button" @click="toggleImplant('dmg_3')" :class="hasImplant('dmg_3') ? 'border-violet-400 bg-violet-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition">+3% DPS</button>
+								<button type="button" @click="toggleImplant('blue_pill')" :class="hasImplant('blue_pill') ? 'border-cyan-400 bg-cyan-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="+20% Shield Boost">Blue Pill</button>
+								<button type="button" @click="toggleImplant('exile')" :class="hasImplant('exile') ? 'border-emerald-400 bg-emerald-500/25 text-white' : 'border-slate-700 bg-slate-950/60 text-slate-300'" class="rounded-lg border py-1 cursor-pointer transition" title="+20% Armor Repair">Exile</button>
 							</div>
 						</div>
 					</div>
