@@ -96,40 +96,32 @@ templ TacticalPage(data *service.TacticalViewData) {
 
 					<!-- Right: Fit Actions, Live Cost, Skill Profile -->
 					<div class="flex flex-wrap items-center gap-1.5">
-						<!-- Live Trade Hub Fit Cost Pill -->
-						<div class="hidden xl:flex items-center gap-1.5 rounded-lg border border-amber-400/35 bg-amber-500/10 px-2.5 py-1 text-xs font-mono">
+						<!-- Live Trade Hub Fit Cost Pill (shown on wide 2XL screens to keep header single-row) -->
+						<div class="hidden 2xl:flex items-center gap-1.5 rounded-lg border border-amber-400/35 bg-amber-500/10 px-2.5 py-1 text-xs font-mono">
 							<span class="text-[10px] text-amber-300/80 uppercase" x-text="(sim && sim.hub_name) || 'Jita 4-4'"></span>
 							<span class="font-bold text-amber-200" x-text="sim ? formatISK(sim.total_fit_cost_isk) : '...'"></span>
 						</div>
 
-						<!-- Skill Profile Selector (All Skills Level 0-5, Max Alpha, plus Original SSO Skills when connected) -->
-						<div class="flex items-center gap-1 rounded-lg border border-slate-700/80 bg-slate-900/85 p-0.5 text-[11px] font-mono">
-							<select
-								aria-label="Skill Profile"
-								:value="fit.skill_profile === 'pilot_live' ? lastPresetSkillProfile : normalizeSkillProfile(fit.skill_profile)"
-								@change="setSkillProfile($event.target.value)"
-								:class="fit.skill_profile !== 'pilot_live' ? 'border-violet-400/50 bg-violet-500/20 text-violet-100' : 'border-transparent bg-transparent text-slate-400 hover:text-slate-200'"
-								class="rounded border px-2 py-0.5 text-[11px] font-mono font-semibold focus:outline-none cursor-pointer transition"
-							>
-								<option value="all_0" class="bg-slate-950 text-slate-100">All Skills Level 0</option>
-								<option value="all_1" class="bg-slate-950 text-slate-100">All Skills Level 1</option>
-								<option value="all_2" class="bg-slate-950 text-slate-100">All Skills Level 2</option>
-								<option value="all_3" class="bg-slate-950 text-slate-100">All Skills Level 3</option>
-								<option value="all_4" class="bg-slate-950 text-slate-100">All Skills Level 4</option>
-								<option value="all_5" class="bg-slate-950 text-slate-100">All Skills Level 5</option>
-								<option value="max_alpha" class="bg-slate-950 text-amber-200">Max Alpha Skills</option>
-							</select>
-							<button
-								type="button"
-								x-show="ssoConnected"
-								@click="setSkillProfile(fit.skill_profile === 'pilot_live' ? lastPresetSkillProfile : 'pilot_live')"
-								:class="fit.skill_profile === 'pilot_live' ? 'bg-amber-500/30 text-amber-100 border-amber-400/60 shadow-[0_0_10px_rgba(245,158,11,0.3)]' : 'text-amber-300/80 border-transparent hover:text-amber-200 hover:bg-slate-800/80'"
-								class="rounded border px-2 py-0.5 font-semibold cursor-pointer transition whitespace-nowrap"
-								:title="fit.skill_profile === 'pilot_live' ? ('Active: Original EVE SSO Skills (' + ssoCharName + '). Click to switch back to preset.') : ('Use Original EVE SSO Skills: ' + ssoCharName)"
-							>
-								<span x-text="fit.skill_profile === 'pilot_live' ? ('★ ' + (ssoCharName || 'SSO Skills')) : ('SSO: ' + (ssoCharName || 'Original'))"></span>
-							</button>
-						</div>
+						<!-- Unified Skill Profile Selector (All Skills 0-5, Max Alpha, + Original SSO Skills when connected) -->
+						<select
+							aria-label="Skill Profile"
+							:value="normalizeSkillProfile(fit.skill_profile)"
+							@change="setSkillProfile($event.target.value)"
+							:title="fit.skill_profile === 'pilot_live' ? ('Active: Original EVE SSO Skills (' + ssoCharName + ')') : 'Select Skill Profile'"
+							:class="fit.skill_profile === 'pilot_live' ? 'border-amber-400/60 bg-amber-500/20 text-amber-100 shadow-[0_0_10px_rgba(245,158,11,0.25)]' : 'border-violet-400/45 bg-slate-900/90 text-violet-100'"
+							class="w-[158px] truncate rounded-lg border px-2 py-1 text-[11px] font-mono font-semibold focus:outline-none cursor-pointer transition"
+						>
+							<option value="all_0" class="bg-slate-950 text-slate-100">All Skills Level 0</option>
+							<option value="all_1" class="bg-slate-950 text-slate-100">All Skills Level 1</option>
+							<option value="all_2" class="bg-slate-950 text-slate-100">All Skills Level 2</option>
+							<option value="all_3" class="bg-slate-950 text-slate-100">All Skills Level 3</option>
+							<option value="all_4" class="bg-slate-950 text-slate-100">All Skills Level 4</option>
+							<option value="all_5" class="bg-slate-950 text-slate-100">All Skills Level 5</option>
+							<option value="max_alpha" class="bg-slate-950 text-amber-200">Max Alpha Skills</option>
+							<template x-if="ssoConnected">
+								<option value="pilot_live" class="bg-slate-950 text-amber-300 font-bold" x-text="'★ EVE: ' + (ssoCharName || 'Original Skills')"></option>
+							</template>
+						</select>
 
 						<button
 							type="button"
