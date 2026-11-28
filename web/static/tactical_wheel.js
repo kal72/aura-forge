@@ -170,6 +170,7 @@
 
 			// Drag & drop + Ghost hover state
 			draggingModule: null,
+			draggingFromSlot: null, // { kind, index } when reordering fitted slots on the wheel
 			dragOverSlotKey: '',
 			hoverSlotKey: '',
 			hoverModule: null,
@@ -348,8 +349,8 @@
 				this.notify('Opened saved fit: ' + rec.name);
 			},
 
-			// Radial Slot Calculations (560x560 coordinate space, center 280,280, ring radius 224)
-			// Every socket is tangentially rotated (deg + 90) so slots hug the circular bezel with uniform 9px gaps & zero overlap.
+			// Radial Slot Calculations (580x580 coordinate space, center 290,290, ring radius 224)
+			// Sub-pixel aligned with wheelOuterSVG() and tac-hologram-core (396/580 = 68.28%).
 			slotCounts() {
 				const s = (this.sim && this.sim.slots) || { high_slots: 5, mid_slots: 4, low_slots: 5, rig_slots: 3 };
 				return {
@@ -364,9 +365,161 @@
 				return (this.fit.modules || []).find((m) => m.slot_kind === kind && m.slot_index === index) || null;
 			},
 
+			hoveredWheelSlot() {
+				if (!this.hoverSlotKey) return null;
+				const parts = this.hoverSlotKey.split('-');
+				if (parts.length !== 2) return null;
+				const mod = this.getModuleAt(parts[0], Number(parts[1]));
+				if (!mod) return null;
+				return { kind: parts[0], index: Number(parts[1]), module: mod };
+			},
+
+			inferDefaultModuleState(name, groupName, kind) {
+				if (this.isPassiveModule({ name, group_name: groupName, slot_kind: kind })) {
+					return 'passive';
+				}
+				return 'active';
+			},
+
+			isPassiveModule(mod) {
+				if (!mod) return false;
+				if (mod.slot_kind === 'rig') return true;
+				const low = ((mod.name || '') + ' ' + (mod.group_name || '')).toLowerCase();
+				const passiveHints = [
+					'extender', 'plate', 'membrane', 'coating', 'damage control',
+					'heat sink', 'ballistic control', 'gyrostabilizer', 'magnetic field',
+					'drone damage', 'cap recharger', 'capacitor flux', 'capacitor power',
+					'co-processor', 'reactor control', 'power diagnostic', 'inertial',
+					'nanofiber', 'overdrive', 'expanded cargo', 'tracking enhancer',
+					'shield power relay', 'shield flux', 'amplifier', 'rig',
+				];
+				for (const h of passiveHints) {
+					if (low.includes(h)) return true;
+				}
+				return false;
+			},
+
+			inferItemRack(item) {
+				if (!item) return this.activeSlotFilter || 'high';
+				const low = ((item.name || '') + ' ' + (item.group_name || '')).toLowerCase();
+				if (this.activeSlotFilter === 'charge' || low.includes('crystal') || low.includes('missile') && !low.includes('launcher') || low.includes('charge') && !low.includes('recharger') || low.includes('ammo') || low.includes('scorch') || low.includes('conflagration') || low.includes('multifrequency') || low.includes('antimatter') || low.includes('void ') || low.includes('null ') || low.includes('phased plasma') || low.includes('emp ') || low.includes('fusion ') || low.includes('barrage')) {
+					return 'charge';
+				}
+				if (this.activeSlotFilter === 'drone' || low.includes('drone') && !low.includes('damage') && !low.includes('link') && !low.includes('navigation') && !low.includes('tracking')) {
+					return 'drone';
+				}
+				if (low.includes('rig') || low.includes('field extender') || low.includes('nano pump') || low.includes('capacitor control circuit') || low.includes('trimark')) {
+					return 'rig';
+				}
+				if (low.includes('launcher') || low.includes('laser') || low.includes('blaster') || low.includes('railgun') || low.includes('autocannon') || low.includes('artillery') || low.includes('turret') || low.includes('cloak') || low.includes('neutralizer') || low.includes('nosferatu') || low.includes('salvager') || low.includes('tractor') || low.includes('mining') || low.includes('probe')) {
+					return 'high';
+				}
+				if (low.includes('shield') && !low.includes('rig') && !low.includes('field extender') || low.includes('afterburner') || low.includes('microwarpdrive') || low.includes('cap recharger') || low.includes('cap battery') || low.includes('webifier') || low.includes('scrambler') || low.includes('disruptor') || low.includes('tracking computer') || low.includes('sensor booster') || low.includes('target painter') || low.includes('ecm')) {
+					return 'mid';
+				}
+				if (low.includes('armor') && !low.includes('rig') && !low.includes('nano pump') || low.includes('damage control') || low.includes('heat sink') || low.includes('ballistic control') || low.includes('gyrostabilizer') || low.includes('magnetic field') || low.includes('drone damage') || low.includes('inertial') || low.includes('nanofiber') || low.includes('overdrive') || low.includes('expanded cargo') || low.includes('co-processor') || low.includes('reactor control') || low.includes('capacitor flux') || low.includes('capacitor power') || low.includes('membrane') || low.includes('plate')) {
+					return 'low';
+				}
+				return this.activeSlotFilter || 'high';
+			},
+
+			weaponFamily(name) {
+				const low = (name || '').toLowerCase();
+				if (low.includes('laser') || low.includes('pulse') || low.includes('beam')) return 'laser';
+				if (low.includes('launcher')) return 'missile';
+				if (low.includes('blaster') || low.includes('railgun')) return 'hybrid';
+				if (low.includes('autocannon') || low.includes('artillery')) return 'projectile';
+				return '';
+			},
+
+			chargeFamily(charge) {
+				const low = ((charge && charge.name) || '' + ' ' + ((charge && charge.group_name) || '')).toLowerCase();
+				if (low.includes('crystal') || low.includes('multifrequency') || low.includes('scorch') || low.includes('conflagration') || low.includes('radio') || low.includes('microwave') || low.includes('ultraviolet') || low.includes('x-ray') || low.includes('gamma') || low.includes('standard')) return 'laser';
+				if (low.includes('missile') || low.includes('rocket') || low.includes('torpedo')) return 'missile';
+				if (low.includes('hybrid') || low.includes('antimatter') || low.includes('void') || low.includes('null') || low.includes('iron') || low.includes('thorium') || low.includes('uranium') || low.includes('plutonium') || low.includes('spike') || low.includes('javelin')) return 'hybrid';
+				if (low.includes('projectile') || low.includes('emp') || low.includes('phased plasma') || low.includes('fusion') || low.includes('barrage') || low.includes('hail') || low.includes('tremor') || low.includes('quake') || low.includes('titanium') || low.includes('depleted uranium')) return 'projectile';
+				return '';
+			},
+
+			isChargeCompatibleWithModule(charge, mod) {
+				if (!charge || !mod || mod.slot_kind !== 'high') return false;
+				const wf = this.weaponFamily(mod.name);
+				const cf = this.chargeFamily(charge);
+				return wf !== '' && wf === cf;
+			},
+
+			canDropItemOnSlot(item, slot) {
+				if (!item || !slot) return false;
+				const rack = this.inferItemRack(item);
+				if (rack === 'charge') {
+					return !!(slot.module && this.isChargeCompatibleWithModule(item, slot.module));
+				}
+				return rack === slot.kind;
+			},
+
+			validateModuleForSlot(item, targetKind, targetIndex) {
+				const rack = this.inferItemRack(item);
+				if (rack !== targetKind) {
+					return item.name + ' belongs in ' + rack.toUpperCase() + ' slots, not ' + targetKind.toUpperCase();
+				}
+				const existing = this.getModuleAt(targetKind, targetIndex);
+				const low = (item.name || '').toLowerCase();
+				const others = (this.fit.modules || []).filter((m) => !(m.slot_kind === targetKind && m.slot_index === targetIndex));
+
+				// Unique module rules (1 Damage Control, 1 Propulsion module)
+				if (low.includes('damage control') && others.some((m) => (m.name || '').toLowerCase().includes('damage control'))) {
+					return 'Only 1 Damage Control module can be fitted per ship';
+				}
+				if ((low.includes('afterburner') || low.includes('microwarpdrive')) && others.some((m) => {
+					const ml = (m.name || '').toLowerCase();
+					return ml.includes('afterburner') || ml.includes('microwarpdrive');
+				})) {
+					return 'Only 1 Propulsion module (Afterburner or Microwarpdrive) can be fitted';
+				}
+
+				// Turret & Launcher hardpoint caps
+				if (targetKind === 'high' && this.sim && this.sim.slots) {
+					const wf = this.weaponFamily(item.name);
+					const prevWf = existing ? this.weaponFamily(existing.name) : '';
+					if (wf === 'missile') {
+						const used = others.filter((m) => m.slot_kind === 'high' && this.weaponFamily(m.name) === 'missile').length;
+						if (this.sim.slots.launcher_slots <= 0) return this.fit.ship_name + ' has 0 Launcher hardpoints';
+						if (used >= this.sim.slots.launcher_slots && prevWf !== 'missile') {
+							return 'All ' + this.sim.slots.launcher_slots + ' Launcher hardpoints are already used';
+						}
+					} else if (wf === 'laser' || wf === 'hybrid' || wf === 'projectile') {
+						const used = others.filter((m) => {
+							const f = this.weaponFamily(m.name);
+							return m.slot_kind === 'high' && (f === 'laser' || f === 'hybrid' || f === 'projectile');
+						}).length;
+						if (this.sim.slots.turret_slots <= 0) return this.fit.ship_name + ' has 0 Turret hardpoints';
+						if (used >= this.sim.slots.turret_slots && !(prevWf === 'laser' || prevWf === 'hybrid' || prevWf === 'projectile')) {
+							return 'All ' + this.sim.slots.turret_slots + ' Turret hardpoints are already used';
+						}
+					}
+				}
+				return '';
+			},
+
+			rackCountFitted(kind) {
+				return (this.fit.modules || []).filter((m) => m.slot_kind === kind).length;
+			},
+
+			unfitRack(kind) {
+				const before = (this.fit.modules || []).length;
+				this.fit.modules = (this.fit.modules || []).filter((m) => m.slot_kind !== kind);
+				if (this.selectedSlot && this.selectedSlot.kind === kind) {
+					this.selectedSlot = null;
+				}
+				if (this.fit.modules.length !== before) {
+					this.runSimulate();
+					this.notify('Unfitted all ' + kind.toUpperCase() + ' slots');
+				}
+			},
+
 			radialSlots() {
 				const counts = this.slotCounts();
-				const cx = 280, cy = 280, r = 224;
+				const cx = 290, cy = 290, r = 224;
 				const racks = [
 					{ kind: 'high', max: 8, count: counts.high, startDeg: -134, stepDeg: 12.5 },
 					{ kind: 'mid',  max: 8, count: counts.mid,  startDeg: -26,  stepDeg: 12.5 },
@@ -375,7 +528,6 @@
 				];
 				const out = [];
 				for (const rk of racks) {
-					// Center each ship's actual slots cleanly inside its quadrant arc for balanced, uncluttered visual symmetry
 					const span = Math.max(0, rk.count - 1) * rk.stepDeg;
 					const quadCenter = rk.startDeg + ((rk.max - 1) * rk.stepDeg) / 2;
 					const firstDeg = quadCenter - span / 2;
@@ -390,8 +542,8 @@
 							available: true,
 							x: pt.x,
 							y: pt.y,
-							pctX: (pt.x / 560) * 100,
-							pctY: (pt.y / 560) * 100,
+							pctX: (pt.x / 580) * 100,
+							pctY: (pt.y / 580) * 100,
 							deg: deg,
 							module: mod,
 						});
@@ -400,20 +552,20 @@
 				return out;
 			},
 
-			// Outer Segmented Arc Gauges (Calibration left, CPU right-mid, Powergrid bottom-right)
+			// Outer Segmented Arc Gauges (580x580 space, center 290,290)
 			calibrationTicks() {
 				const pct = (this.sim && this.sim.calibration && this.sim.calibration.percent) || 0;
-				return buildTickSegments(280, 280, 258, 273, 180, 232, 28, pct);
+				return buildTickSegments(290, 290, 258, 272, 180, 232, 28, pct);
 			},
 
 			cpuTicks() {
 				const pct = (this.sim && this.sim.cpu && this.sim.cpu.percent) || 0;
-				return buildTickSegments(280, 280, 258, 273, 0, 52, 28, pct);
+				return buildTickSegments(290, 290, 258, 272, 0, 52, 28, pct);
 			},
 
 			powergridTicks() {
 				const pct = (this.sim && this.sim.powergrid && this.sim.powergrid.percent) || 0;
-				return buildTickSegments(280, 280, 258, 273, 58, 112, 28, pct);
+				return buildTickSegments(290, 290, 258, 272, 58, 112, 28, pct);
 			},
 
 			hardpointPips() {
@@ -421,7 +573,7 @@
 				const tUsed = (this.sim && this.sim.turrets_used) || 0;
 				const lUsed = (this.sim && this.sim.launchers_used) || 0;
 				const pips = [];
-				const cx = 280, cy = 280, r = 266;
+				const cx = 290, cy = 290, r = 266;
 				let idx = 0;
 				for (let i = 0; i < Math.min(8, s.turret_slots || 0); i++) {
 					const pt = polarPoint(cx, cy, r, -56 + idx * 4.4);
@@ -436,35 +588,48 @@
 				return pips;
 			},
 
-			// Pure SVG markup for the outer orbital bezel, segmented gauges (Calibration, CPU, Powergrid), and Hardpoint Pips.
-			// Rendered via x-html to avoid invalid <template> elements inside the SVG namespace.
+			// Pure SVG markup (580x580, center 290,290) for orbital bezel, curved-trapezoid slots, segmented gauges, labels, and hardpoint pips.
 			wheelOuterSVG() {
+				const cx = 290, cy = 290;
 				const calOver = !!(this.sim && this.sim.calibration && this.sim.calibration.overloaded);
 				const cpuOver = !!(this.sim && this.sim.cpu && this.sim.cpu.overloaded);
 				const pgOver  = !!(this.sim && this.sim.powergrid && this.sim.powergrid.overloaded);
 
 				let svg = '';
 				// Dark Orbital Bezel Ring & Precision Concentric Track [r=198 .. r=250, center r=224]
-				svg += '<circle cx="280" cy="280" r="251" fill="rgba(7, 9, 19, 0.86)" stroke="rgba(148, 163, 184, 0.24)" stroke-width="1.5"></circle>';
-				svg += '<circle cx="280" cy="280" r="224" fill="none" stroke="rgba(15, 23, 42, 0.72)" stroke-width="46"></circle>';
-				svg += '<circle cx="280" cy="280" r="198" fill="none" stroke="rgba(251, 191, 36, 0.34)" stroke-width="1.4"></circle>';
-				svg += '<circle cx="280" cy="280" r="250" fill="none" stroke="rgba(148, 163, 184, 0.16)" stroke-width="1"></circle>';
+				svg += `<circle cx="${cx}" cy="${cy}" r="251" fill="rgba(7, 9, 19, 0.86)" stroke="rgba(148, 163, 184, 0.24)" stroke-width="1.5"></circle>`;
+				svg += `<circle cx="${cx}" cy="${cy}" r="224" fill="none" stroke="rgba(15, 23, 42, 0.72)" stroke-width="46"></circle>`;
+				svg += `<circle cx="${cx}" cy="${cy}" r="198" fill="none" stroke="rgba(251, 191, 36, 0.34)" stroke-width="1.4"></circle>`;
+				svg += `<circle cx="${cx}" cy="${cy}" r="250" fill="none" stroke="rgba(148, 163, 184, 0.16)" stroke-width="1"></circle>`;
+
+				// Outer Gauge Micro-Labels (CAL, CPU, PG, HIGH/MED/LOW/RIG)
+				const lbl = (deg, rad, text, color) => {
+					const p = polarPoint(cx, cy, rad, deg);
+					return `<text x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="${color}" font-size="8.5" font-family="monospace" font-weight="bold" letter-spacing="1">${text}</text>`;
+				};
+				svg += lbl(238, 276, 'CAL', '#cbd5e1');
+				svg += lbl(-6,  277, 'CPU', '#38bdf8');
+				svg += lbl(118, 277, 'PG',  '#fb7185');
+				svg += lbl(-90, 188, 'HIGH', 'rgba(226,232,240,0.36)');
+				svg += lbl(17,  188, 'MID',  'rgba(226,232,240,0.36)');
+				svg += lbl(124, 188, 'LOW',  'rgba(226,232,240,0.36)');
+				svg += lbl(197, 188, 'RIG',  'rgba(226,232,240,0.36)');
 
 				// Subtle Rack Dividers between High / Mid / Low / Rig
 				for (const divDeg of [-36, 70.5, 175.5, 219]) {
-					const p1 = polarPoint(280, 280, 200, divDeg);
-					const p2 = polarPoint(280, 280, 248, divDeg);
+					const p1 = polarPoint(cx, cy, 200, divDeg);
+					const p2 = polarPoint(cx, cy, 248, divDeg);
 					svg += `<line x1="${p1.x.toFixed(1)}" y1="${p1.y.toFixed(1)}" x2="${p2.x.toFixed(1)}" y2="${p2.y.toFixed(1)}" stroke="rgba(251,191,36,0.22)" stroke-width="1" stroke-dasharray="2 3"></line>`;
 				}
 
-				// Curved Trapezoid (Annular Sector) Slot Cradles hugging r=201..247
-				const halfSpan = 5.45; // 10.9 deg wedge inside 12.5 deg step -> crisp 1.6 deg radial gap
+				// Curved Trapezoid (Annular Sector) Slot Cradles hugging r=202..246
+				const halfSpan = 5.45;
 				for (const slot of this.radialSlots()) {
 					const isSelected = !!(this.selectedSlot && this.selectedSlot.kind === slot.kind && this.selectedSlot.index === slot.index);
 					const isDrop = this.dragOverSlotKey === slot.key;
 					const isHover = this.hoverSlotKey === slot.key;
 					const isGhost = this.ghostSlotKey === slot.key;
-					const d = annularSectorPath(280, 280, 202, 246, slot.deg - halfSpan, slot.deg + halfSpan);
+					const d = annularSectorPath(cx, cy, 202, 246, slot.deg - halfSpan, slot.deg + halfSpan);
 
 					let fill = 'rgba(3, 5, 12, 0.92)';
 					let stroke = 'none';
@@ -473,11 +638,14 @@
 					if (slot.module) {
 						fill = slot.module.state === 'offline' ? 'rgba(6, 9, 20, 0.65)' : 'rgba(15, 23, 42, 0.92)';
 						if (slot.module.state === 'active') {
-							stroke = 'rgba(74, 222, 128, 0.75)';
+							stroke = 'rgba(74, 222, 128, 0.72)';
 							strokeW = '1';
 						} else if (slot.module.state === 'overheated') {
 							stroke = 'rgba(251, 113, 133, 0.90)';
 							strokeW = '1.2';
+						} else if (slot.module.state === 'passive') {
+							stroke = 'rgba(148, 163, 184, 0.32)';
+							strokeW = '0.9';
 						}
 					} else if (isHover) {
 						fill = 'rgba(20, 28, 48, 0.92)';
@@ -488,18 +656,23 @@
 						strokeW = '1.4';
 						fill = 'rgba(14, 165, 233, 0.25)';
 					}
+					if (this.draggingModule && this.canDropItemOnSlot(this.draggingModule, slot)) {
+						stroke = 'rgba(251, 191, 36, 0.65)';
+						strokeW = '1.1';
+					}
 					if (isDrop || isSelected) {
-						stroke = '#fbbf24';
-						strokeW = '1.4';
-						fill = 'rgba(30, 27, 75, 0.88)';
+						const dropOk = !this.draggingModule || this.canDropItemOnSlot(this.draggingModule, slot);
+						stroke = dropOk ? '#fbbf24' : '#f43f5e';
+						strokeW = '1.5';
+						fill = dropOk ? 'rgba(30, 27, 75, 0.88)' : 'rgba(136, 19, 55, 0.55)';
 					}
 
 					svg += `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}" stroke-linejoin="round"></path>`;
 
-					// Subtle outer emerald/rose active accent arc on fitted active/overheated trapezoids
+					// Outer accent arc on fitted active/overheated trapezoids
 					if (slot.module && (slot.module.state === 'active' || slot.module.state === 'overheated')) {
-						const pA = polarPoint(280, 280, 247.5, slot.deg - halfSpan + 0.8);
-						const pB = polarPoint(280, 280, 247.5, slot.deg + halfSpan - 0.8);
+						const pA = polarPoint(cx, cy, 247.5, slot.deg - halfSpan + 0.8);
+						const pB = polarPoint(cx, cy, 247.5, slot.deg + halfSpan - 0.8);
 						const arcColor = slot.module.state === 'overheated' ? '#fb7185' : '#4ade80';
 						svg += `<path d="M ${pA.x.toFixed(2)} ${pA.y.toFixed(2)} A 247.5 247.5 0 0 1 ${pB.x.toFixed(2)} ${pB.y.toFixed(2)}" fill="none" stroke="${arcColor}" stroke-width="2" stroke-linecap="round"></path>`;
 					}
@@ -510,10 +683,10 @@
 					const stroke = seg.active ? (calOver ? '#f43f5e' : '#e2e8f0') : 'rgba(148,163,184,0.20)';
 					svg += `<line x1="${seg.x1}" y1="${seg.y1}" x2="${seg.x2}" y2="${seg.y2}" stroke="${stroke}" stroke-width="2.6" stroke-linecap="round"></line>`;
 				}
-				// CPU Segmented Arc (Right-Mid — Ice Blue #38bdf8, plus Amber Ghost Preview ticks!)
+				// CPU Segmented Arc (Right-Mid — Ice Blue #38bdf8 + Amber Ghost Preview ticks)
 				const cpuGhostPct = (this.ghostSim && this.ghostSim.cpu && this.ghostSim.cpu.percent) || 0;
 				const cpuBaseTicks = this.cpuTicks();
-				const cpuGhostTicks = buildTickSegments(280, 280, 258, 273, 0, 52, 28, cpuGhostPct);
+				const cpuGhostTicks = buildTickSegments(cx, cy, 258, 272, 0, 52, 28, cpuGhostPct);
 				for (let i = 0; i < cpuBaseTicks.length; i++) {
 					const seg = cpuBaseTicks[i];
 					const gActive = this.ghostSim && cpuGhostTicks[i] && cpuGhostTicks[i].active;
@@ -522,10 +695,10 @@
 					else if (gActive) stroke = (this.ghostSim.cpu.overloaded ? '#f43f5e' : '#fbbf24');
 					svg += `<line x1="${seg.x1}" y1="${seg.y1}" x2="${seg.x2}" y2="${seg.y2}" stroke="${stroke}" stroke-width="2.8" stroke-linecap="round"></line>`;
 				}
-				// Powergrid Segmented Arc (Bottom-Right — Crimson Coral #fb7185, plus Amber Ghost Preview ticks!)
+				// Powergrid Segmented Arc (Bottom-Right — Crimson Coral #fb7185 + Amber Ghost Preview ticks)
 				const pgGhostPct = (this.ghostSim && this.ghostSim.powergrid && this.ghostSim.powergrid.percent) || 0;
 				const pgBaseTicks = this.powergridTicks();
-				const pgGhostTicks = buildTickSegments(280, 280, 258, 273, 58, 112, 28, pgGhostPct);
+				const pgGhostTicks = buildTickSegments(cx, cy, 258, 272, 58, 112, 28, pgGhostPct);
 				for (let i = 0; i < pgBaseTicks.length; i++) {
 					const seg = pgBaseTicks[i];
 					const gActive = this.ghostSim && pgGhostTicks[i] && pgGhostTicks[i].active;
@@ -559,7 +732,39 @@
 
 			equipModuleToSlot(item, targetKind, targetIndex) {
 				if (!item || !item.type_id) return;
-				if (targetKind === 'drone' || this.activeSlotFilter === 'drone') {
+				const inferredRack = this.inferItemRack(item);
+
+				// Ammo / Charge loading from the Ammo tab
+				if (inferredRack === 'charge' || targetKind === 'charge') {
+					let loaded = 0;
+					if (typeof targetIndex === 'number' && targetKind === 'high') {
+						const targetMod = this.getModuleAt('high', targetIndex);
+						if (!targetMod || !this.isChargeCompatibleWithModule(item, targetMod)) {
+							this.notify(item.name + ' is not compatible with ' + (targetMod ? targetMod.name : 'that slot'));
+							return;
+						}
+						targetMod.charge_type_id = item.type_id;
+						targetMod.charge_name = item.name;
+						loaded = 1;
+					} else {
+						for (const m of (this.fit.modules || [])) {
+							if (this.isChargeCompatibleWithModule(item, m)) {
+								m.charge_type_id = item.type_id;
+								m.charge_name = item.name;
+								loaded++;
+							}
+						}
+					}
+					if (loaded === 0) {
+						this.notify('No compatible fitted weapons found for ' + item.name);
+						return;
+					}
+					this.runSimulate();
+					this.notify('Loaded ' + item.name + ' into ' + loaded + ' compatible weapon' + (loaded > 1 ? 's' : ''));
+					return;
+				}
+
+				if (inferredRack === 'drone' || targetKind === 'drone') {
 					const existing = (this.fit.drones || []).find((d) => d.type_id === item.type_id);
 					if (existing) {
 						existing.quantity += 1;
@@ -571,7 +776,7 @@
 					return;
 				}
 
-				const kind = targetKind || (this.selectedSlot && this.selectedSlot.kind) || this.activeSlotFilter || 'high';
+				const kind = targetKind || (this.selectedSlot && this.selectedSlot.kind) || inferredRack || 'high';
 				const maxCount = this.slotCounts()[kind] || 0;
 				if (maxCount <= 0) {
 					this.notify('This hull has no ' + kind + ' slots');
@@ -595,6 +800,12 @@
 					return;
 				}
 
+				const errMsg = this.validateModuleForSlot(item, kind, idx);
+				if (errMsg) {
+					this.notify(errMsg);
+					return;
+				}
+
 				const nextMods = (this.fit.modules || []).filter((m) => !(m.slot_kind === kind && m.slot_index === idx));
 				nextMods.push({
 					slot_kind: kind,
@@ -602,7 +813,7 @@
 					type_id: item.type_id,
 					name: item.name,
 					group_name: item.group_name || '',
-					state: kind === 'rig' ? 'passive' : 'active',
+					state: this.inferDefaultModuleState(item.name, item.group_name, kind),
 				});
 				this.fit.modules = nextMods;
 				this.selectedSlot = null;
@@ -613,13 +824,21 @@
 			setModuleState(kind, index, newState) {
 				const m = this.getModuleAt(kind, index);
 				if (!m) return;
+				if (this.isPassiveModule(m) && newState !== 'passive' && newState !== 'offline') {
+					newState = 'passive';
+				}
 				m.state = newState;
 				this.runSimulate();
 			},
 
 			cycleModuleState(kind, index) {
 				const m = this.getModuleAt(kind, index);
-				if (!m || kind === 'rig') return;
+				if (!m) return;
+				if (this.isPassiveModule(m)) {
+					m.state = (m.state === 'offline') ? 'passive' : 'offline';
+					this.runSimulate();
+					return;
+				}
 				const order = ['active', 'overheated', 'offline'];
 				const next = order[(order.indexOf(m.state) + 1) % order.length];
 				m.state = next;
@@ -645,17 +864,49 @@
 
 			onDragStartModule(item, e) {
 				this.draggingModule = item;
+				this.draggingFromSlot = null;
 				if (e && e.dataTransfer) {
 					e.dataTransfer.effectAllowed = 'copy';
 					e.dataTransfer.setData('text/plain', String(item.type_id));
 				}
 			},
 
+			onDragStartFittedSlot(slot, e) {
+				if (!slot || !slot.module) return;
+				this.draggingFromSlot = { kind: slot.kind, index: slot.index };
+				this.draggingModule = null;
+				if (e && e.dataTransfer) {
+					e.dataTransfer.effectAllowed = 'move';
+					e.dataTransfer.setData('text/plain', slot.key);
+				}
+			},
+
 			onDropOnSlot(slot) {
 				this.dragOverSlotKey = '';
+				if (this.draggingFromSlot) {
+					const src = this.draggingFromSlot;
+					this.draggingFromSlot = null;
+					if (src.kind !== slot.kind || src.index === slot.index) {
+						if (src.kind !== slot.kind) this.notify('Modules can only be moved within the same rack (' + src.kind.toUpperCase() + ')');
+						return;
+					}
+					const modA = this.getModuleAt(src.kind, src.index);
+					const modB = this.getModuleAt(slot.kind, slot.index);
+					if (modA) modA.slot_index = slot.index;
+					if (modB) modB.slot_index = src.index;
+					this.selectedSlot = { kind: slot.kind, index: slot.index };
+					return;
+				}
 				if (!this.draggingModule) return;
 				this.equipModuleToSlot(this.draggingModule, slot.kind, slot.index);
 				this.draggingModule = null;
+			},
+
+			stripAllModules() {
+				this.fit.modules = [];
+				this.selectedSlot = null;
+				this.runSimulate();
+				this.notify('Stripped all modules from hull');
 			},
 
 			setSkillProfile(prof) {
@@ -1312,7 +1563,7 @@
 			// Batch 6: Hover Ghost Preview & Abyssal Weather / Implants Modifiers
 			// =================================================================
 			startGhostPreview(mod) {
-				if (!mod || !mod.type_id || this.activeSlotFilter === 'drone') return;
+				if (!mod || !mod.type_id || this.activeSlotFilter === 'drone' || this.activeSlotFilter === 'charge') return;
 				this.hoverModule = mod;
 				if (this.ghostTimer) clearTimeout(this.ghostTimer);
 				const seq = ++this.ghostSeq;

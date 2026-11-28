@@ -187,15 +187,15 @@ templ TacticalPage(data *service.TacticalViewData) {
 
 					<!-- TAB 1: CONTEXT-AWARE MODULE BROWSER -->
 					<div x-show="leftTab === 'modules'" class="flex flex-1 flex-col min-h-0">
-						<!-- Slot Filter Pills -->
+						<!-- Slot Filter Pills (including Ammo tab!) -->
 						<div class="flex flex-wrap gap-1 mb-2.5">
-							<template x-for="sk in ['high','mid','low','rig','drone']" :key="sk">
+							<template x-for="sk in [{k:'high',l:'High'},{k:'mid',l:'Mid'},{k:'low',l:'Low'},{k:'rig',l:'Rig'},{k:'charge',l:'Ammo'},{k:'drone',l:'Drone'}]" :key="sk.k">
 								<button
 									type="button"
-									@click="activeSlotFilter = sk; fetchModules()"
-									:class="activeSlotFilter === sk ? 'border-amber-400/70 bg-amber-500/20 text-amber-200' : 'border-slate-700/70 bg-slate-900/50 text-slate-300 hover:border-slate-500'"
+									@click="activeSlotFilter = sk.k; fetchModules()"
+									:class="activeSlotFilter === sk.k ? 'border-amber-400/70 bg-amber-500/20 text-amber-200' : 'border-slate-700/70 bg-slate-900/50 text-slate-300 hover:border-slate-500'"
 									class="rounded-md border px-2 py-1 text-[10.5px] font-mono font-semibold uppercase cursor-pointer transition"
-									x-text="sk"
+									x-text="sk.l"
 								></button>
 							</template>
 						</div>
@@ -237,9 +237,8 @@ templ TacticalPage(data *service.TacticalViewData) {
 										type="button"
 										@click="equipModuleToSlot(mod, activeSlotFilter)"
 										class="shrink-0 rounded-lg border border-emerald-400/40 bg-emerald-500/15 px-2 py-1 text-[10.5px] font-bold text-emerald-200 hover:bg-emerald-500/30 transition cursor-pointer"
-									>
-										+ Fit
-									</button>
+										x-text="activeSlotFilter === 'charge' ? '+ Load' : '+ Fit'"
+									></button>
 								</div>
 							</template>
 							<div x-show="!loadingModules && moduleResults.length === 0" class="py-8 text-center text-xs text-slate-400">
@@ -365,14 +364,66 @@ templ TacticalPage(data *service.TacticalViewData) {
 
 					<!-- MODE 1: INTERACTIVE ORBITAL SHIP FITTING WHEEL -->
 					<div x-show="activeMode === 'wheel'" class="tactical-panel relative flex flex-col items-center justify-center rounded-2xl p-3 sm:p-5 overflow-hidden">
-						<!-- Radial Wheel Container (Responsive 560x560 Coordinate Space) -->
+						<!-- Vertical Per-Rack Unfit Control Rail (Right side, ordered top-to-bottom: High -> Mid -> Low -> Rig -> All) -->
+						<div
+							x-show="(fit.modules || []).length > 0"
+							class="absolute top-3 right-3 z-30 flex flex-col items-stretch gap-1"
+						>
+							<div class="text-[9px] font-mono uppercase tracking-wider text-slate-400 text-right pr-1">Unfit</div>
+							<button
+								type="button"
+								x-show="rackCountFitted('high') > 0"
+								@click="unfitRack('high')"
+								title="Unfit all High Slots"
+								class="rounded-lg border border-slate-700/80 bg-slate-950/90 px-2.5 py-1 text-right font-mono text-[10px] font-semibold text-slate-200 hover:border-rose-400/70 hover:text-rose-200 cursor-pointer transition"
+							>
+								× High (<span x-text="rackCountFitted('high')"></span>)
+							</button>
+							<button
+								type="button"
+								x-show="rackCountFitted('mid') > 0"
+								@click="unfitRack('mid')"
+								title="Unfit all Medium Slots"
+								class="rounded-lg border border-slate-700/80 bg-slate-950/90 px-2.5 py-1 text-right font-mono text-[10px] font-semibold text-slate-200 hover:border-rose-400/70 hover:text-rose-200 cursor-pointer transition"
+							>
+								× Mid (<span x-text="rackCountFitted('mid')"></span>)
+							</button>
+							<button
+								type="button"
+								x-show="rackCountFitted('low') > 0"
+								@click="unfitRack('low')"
+								title="Unfit all Low Slots"
+								class="rounded-lg border border-slate-700/80 bg-slate-950/90 px-2.5 py-1 text-right font-mono text-[10px] font-semibold text-slate-200 hover:border-rose-400/70 hover:text-rose-200 cursor-pointer transition"
+							>
+								× Low (<span x-text="rackCountFitted('low')"></span>)
+							</button>
+							<button
+								type="button"
+								x-show="rackCountFitted('rig') > 0"
+								@click="unfitRack('rig')"
+								title="Unfit all Rig Slots"
+								class="rounded-lg border border-slate-700/80 bg-slate-950/90 px-2.5 py-1 text-right font-mono text-[10px] font-semibold text-slate-200 hover:border-rose-400/70 hover:text-rose-200 cursor-pointer transition"
+							>
+								× Rig (<span x-text="rackCountFitted('rig')"></span>)
+							</button>
+							<button
+								type="button"
+								@click="stripAllModules()"
+								title="Strip all modules from hull"
+								class="mt-0.5 rounded-lg border border-rose-500/45 bg-rose-500/15 px-2.5 py-1 text-right font-mono text-[10px] font-bold text-rose-200 hover:bg-rose-500/30 cursor-pointer transition"
+							>
+								× All
+							</button>
+						</div>
+
+						<!-- Radial Wheel Container (Responsive 580x580 Coordinate Space) -->
 						<div
 							@mousemove="handleWheelParallax($event)"
 							@mouseleave="resetParallax()"
 							class="tac-wheel-stage select-none"
 						>
-							<!-- Outer SVG Layer: Rings, Segmented Gauges (Calibration, CPU, Powergrid), Hardpoint Pips -->
-							<svg viewBox="0 0 560 560" class="pointer-events-none absolute inset-0 h-full w-full" x-html="wheelOuterSVG()"></svg>
+							<!-- Outer SVG Layer: Rings, Segmented Gauges (Calibration, CPU, Powergrid), Labels, Hardpoint Pips -->
+							<svg viewBox="0 0 580 580" class="pointer-events-none absolute inset-0 h-full w-full" x-html="wheelOuterSVG()"></svg>
 
 							<!-- Center Ship Hologram Circular Viewport -->
 							<div
@@ -383,7 +434,7 @@ templ TacticalPage(data *service.TacticalViewData) {
 								<img
 									:src="shipRenderURL(fit.ship_type_id)"
 									:alt="fit.ship_name"
-									class="h-[92%] w-[92%] object-contain drop-shadow-[0_14px_28px_rgba(0,0,0,0.85)] transition-transform duration-150 ease-out"
+									class="h-[90%] w-[90%] object-contain drop-shadow-[0_14px_28px_rgba(0,0,0,0.85)] transition-transform duration-150 ease-out"
 									:style="'transform: perspective(700px) rotateX(' + tiltX + 'deg) rotateY(' + tiltY + 'deg) scale(1.04);'"
 								/>
 								<!-- Center Ship Name Overlay -->
@@ -392,10 +443,14 @@ templ TacticalPage(data *service.TacticalViewData) {
 								</div>
 							</div>
 
-							<!-- Interactive Radial Slot Hit-Targets & Upright Icons (Centered inside Curved Trapezoid SVG Wedges) -->
+							<!-- Interactive Radial Slot Hit-Targets & Upright Icons (Full-Trapezoid Hit Area + Slot-to-Slot Drag Swap + Ammo Drop) -->
 							<template x-for="slot in radialSlots()" :key="slot.key">
 								<div
+									:draggable="!!slot.module"
+									@dragstart="onDragStartFittedSlot(slot, $event)"
+									@dragend="draggingFromSlot = null; dragOverSlotKey = ''"
 									@click="clickSlot(slot)"
+									@contextmenu.prevent="if (slot.module) cycleModuleState(slot.kind, slot.index)"
 									@dblclick.stop="cycleModuleState(slot.kind, slot.index)"
 									@mouseenter="hoverSlotKey = slot.key"
 									@mouseleave="if (hoverSlotKey === slot.key) hoverSlotKey = ''"
@@ -407,31 +462,39 @@ templ TacticalPage(data *service.TacticalViewData) {
 										'z-30': selectedSlot && selectedSlot.kind === slot.kind && selectedSlot.index === slot.index,
 										'tac-slot-offline': slot.module && slot.module.state === 'offline'
 									}"
-									:title="slot.module ? (slot.module.name + (slot.module.charge_name ? ' [' + slot.module.charge_name + ']' : '') + ' — Click for options, Double-click to toggle state') : ('Empty ' + slot.kind.toUpperCase() + ' slot — Click to browse or Drop module')"
+									:title="slot.module ? (slot.module.name + (slot.module.charge_name ? ' [' + slot.module.charge_name + ']' : '') + ' (' + slot.module.state.toUpperCase() + ')') : ('Empty ' + slot.kind.toUpperCase() + ' slot')"
 									class="tac-radial-socket absolute z-20 flex items-center justify-center transition-transform duration-150 cursor-pointer"
 								>
 									<template x-if="slot.module">
-										<div class="relative h-full w-full">
-											<img :src="itemIconURL(slot.module.type_id)" :alt="slot.module.name" class="h-full w-full rounded object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]"/>
+										<div class="relative h-[78%] w-[78%]">
+											<img :src="itemIconURL(slot.module.type_id)" :alt="slot.module.name" class="h-full w-full rounded object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] pointer-events-none"/>
 											<!-- Loaded Charge Mini-Icon -->
 											<img
 												x-show="slot.module.charge_type_id > 0"
 												:src="itemIconURL(slot.module.charge_type_id)"
-												class="absolute -top-1 -left-1 h-3.5 w-3.5 rounded-full border border-amber-300/60 bg-slate-950"
+												class="absolute -top-1 -left-1 h-3.5 w-3.5 rounded-full border border-amber-300/60 bg-slate-950 pointer-events-none"
 											/>
 											<!-- Missing Skill Lock Badge -->
 											<span
 												x-show="isSlotLocked(slot.key)"
 												title="Skill prerequisite missing for active pilot profile"
-												class="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full border border-rose-400 bg-rose-600 text-[8px] font-bold text-white"
+												class="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full border border-rose-400 bg-rose-600 text-[8px] font-bold text-white pointer-events-none"
 											>!</span>
 										</div>
 									</template>
 									<template x-if="!slot.module">
-										<span class="text-[8.5px] font-mono font-semibold uppercase text-slate-400/60" x-text="slot.kind[0]"></span>
+										<span class="text-[8.5px] font-mono font-semibold uppercase text-slate-400/55 pointer-events-none" x-text="slot.kind[0]"></span>
 									</template>
 								</div>
 							</template>
+						</div>
+
+						<!-- Subtle Wheel Utility Footer (Drag hint + Strip Fit) -->
+						<div class="mt-1 flex w-full items-center justify-between text-[10px] font-mono text-slate-400 px-1">
+							<span>Click slot to edit • Right-click/Double-click to toggle state • Drag to swap</span>
+							<button type="button" @click="stripAllModules()" x-show="(fit.modules || []).length > 0" class="text-rose-300/80 hover:text-rose-200 hover:underline cursor-pointer">
+								Strip Fit
+							</button>
 						</div>
 
 						<!-- Selected Slot Quick Action Ribbon (Appears when clicking a fitted slot) -->
@@ -446,37 +509,30 @@ templ TacticalPage(data *service.TacticalViewData) {
 									<span class="font-bold text-white" x-text="getModuleAt(selectedSlot.kind, selectedSlot.index).name"></span>
 									<span class="font-mono text-[11px] text-amber-300" x-text="formatISK(getModuleAt(selectedSlot.kind, selectedSlot.index).unit_price_isk)"></span>
 									<div class="h-4 w-px bg-slate-700"></div>
-									<button type="button" @click="setModuleState(selectedSlot.kind, selectedSlot.index, 'active')" class="rounded border border-emerald-400/40 bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-500/30 cursor-pointer">Active</button>
-									<button type="button" @click="setModuleState(selectedSlot.kind, selectedSlot.index, 'overheated')" class="rounded border border-rose-400/40 bg-rose-500/15 px-2 py-0.5 text-[11px] font-semibold text-rose-200 hover:bg-rose-500/30 cursor-pointer">Overheat</button>
-									<button type="button" @click="setModuleState(selectedSlot.kind, selectedSlot.index, 'offline')" class="rounded border border-slate-500/50 bg-slate-700/40 px-2 py-0.5 text-[11px] font-semibold text-slate-300 hover:bg-slate-700 cursor-pointer">Offline</button>
-									<button type="button" @click="removeModule(selectedSlot.kind, selectedSlot.index)" class="rounded border border-rose-500/50 bg-rose-600/25 px-2 py-0.5 text-[11px] font-bold text-rose-200 hover:bg-rose-600/40 cursor-pointer">Remove</button>
-
-									<!-- Interactive Ammo / Charge Picker for Fitted Weapons -->
-									<template x-if="suggestedChargesForModule(getModuleAt(selectedSlot.kind, selectedSlot.index)).length > 0">
-										<div class="mt-1.5 flex w-full flex-wrap items-center gap-1.5 border-t border-slate-700/70 pt-1.5">
-											<span class="text-[10px] font-mono uppercase text-amber-300">Ammo:</span>
-											<template x-for="ch in suggestedChargesForModule(getModuleAt(selectedSlot.kind, selectedSlot.index))" :key="ch.type_id">
-												<button
-													type="button"
-													@click="loadChargeOnSlot(selectedSlot.kind, selectedSlot.index, ch, true)"
-													:class="getModuleAt(selectedSlot.kind, selectedSlot.index).charge_type_id === ch.type_id ? 'border-amber-400 bg-amber-500/25 text-amber-100' : 'border-slate-700 bg-slate-900/80 text-slate-300 hover:border-amber-300/60'"
-													class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10.5px] cursor-pointer transition"
-													:title="'Load ' + ch.name + ' (' + ch.tag + ') into all matching weapons'"
-												>
-													<img :src="itemIconURL(ch.type_id)" class="h-3.5 w-3.5 rounded-sm"/>
-													<span x-text="ch.name"></span>
-												</button>
-											</template>
-											<button
-												type="button"
-												x-show="getModuleAt(selectedSlot.kind, selectedSlot.index).charge_type_id > 0"
-												@click="loadChargeOnSlot(selectedSlot.kind, selectedSlot.index, null, true)"
-												class="rounded-md border border-slate-600 px-1.5 py-0.5 text-[10px] text-slate-300 hover:bg-slate-800 cursor-pointer"
-											>
-												Unload
-											</button>
+									<!-- Active Module Controls (Active / Overheat / Offline) -->
+									<template x-if="!isPassiveModule(getModuleAt(selectedSlot.kind, selectedSlot.index))">
+										<div class="flex items-center gap-1.5">
+											<button type="button" @click="setModuleState(selectedSlot.kind, selectedSlot.index, 'active')" class="rounded border border-emerald-400/40 bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-500/30 cursor-pointer">Active</button>
+											<button type="button" @click="setModuleState(selectedSlot.kind, selectedSlot.index, 'overheated')" class="rounded border border-rose-400/40 bg-rose-500/15 px-2 py-0.5 text-[11px] font-semibold text-rose-200 hover:bg-rose-500/30 cursor-pointer">Overheat</button>
+											<button type="button" @click="setModuleState(selectedSlot.kind, selectedSlot.index, 'offline')" class="rounded border border-slate-500/50 bg-slate-700/40 px-2 py-0.5 text-[11px] font-semibold text-slate-300 hover:bg-slate-700 cursor-pointer">Offline</button>
 										</div>
 									</template>
+									<!-- Passive Module Controls (Online / Offline only) -->
+									<template x-if="isPassiveModule(getModuleAt(selectedSlot.kind, selectedSlot.index))">
+										<div class="flex items-center gap-1.5">
+											<button type="button" @click="setModuleState(selectedSlot.kind, selectedSlot.index, 'passive')" :class="getModuleAt(selectedSlot.kind, selectedSlot.index).state !== 'offline' ? 'border-emerald-400/50 bg-emerald-500/20 text-emerald-200' : 'border-slate-600 bg-slate-800/70 text-slate-300'" class="rounded border px-2 py-0.5 text-[11px] font-semibold cursor-pointer">Online</button>
+											<button type="button" @click="setModuleState(selectedSlot.kind, selectedSlot.index, 'offline')" :class="getModuleAt(selectedSlot.kind, selectedSlot.index).state === 'offline' ? 'border-amber-400/50 bg-amber-500/20 text-amber-200' : 'border-slate-600 bg-slate-800/70 text-slate-300'" class="rounded border px-2 py-0.5 text-[11px] font-semibold cursor-pointer">Offline</button>
+										</div>
+									</template>
+									<button
+										type="button"
+										x-show="getModuleAt(selectedSlot.kind, selectedSlot.index).charge_type_id > 0"
+										@click="loadChargeOnSlot(selectedSlot.kind, selectedSlot.index, null, false)"
+										class="rounded border border-amber-400/45 bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-200 hover:bg-amber-500/30 cursor-pointer"
+									>
+										Unload Ammo
+									</button>
+									<button type="button" @click="removeModule(selectedSlot.kind, selectedSlot.index)" class="rounded border border-rose-500/50 bg-rose-600/25 px-2 py-0.5 text-[11px] font-bold text-rose-200 hover:bg-rose-600/40 cursor-pointer">Remove</button>
 								</div>
 							</template>
 						</div>

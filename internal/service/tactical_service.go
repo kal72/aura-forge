@@ -297,6 +297,23 @@ func (s *CopilotService) SearchTacticalModules(ctx context.Context, slotKind, qu
 			{TypeID: 2488, Name: "Warrior II", GroupName: "Combat Drone"},
 			{TypeID: 2185, Name: "Hammerhead II", GroupName: "Combat Drone"},
 		},
+		"charge": {
+			{TypeID: 237, Name: "Multifrequency M", GroupName: "Frequency Crystal"},
+			{TypeID: 12814, Name: "Scorch M", GroupName: "Advanced Pulse Laser Crystal"},
+			{TypeID: 12818, Name: "Conflagration M", GroupName: "Advanced Pulse Laser Crystal"},
+			{TypeID: 243, Name: "Radio M", GroupName: "Frequency Crystal"},
+			{TypeID: 209, Name: "Scourge Light Missile", GroupName: "Light Missile"},
+			{TypeID: 210, Name: "Inferno Light Missile", GroupName: "Light Missile"},
+			{TypeID: 211, Name: "Mjolnir Light Missile", GroupName: "Light Missile"},
+			{TypeID: 212, Name: "Nova Light Missile", GroupName: "Light Missile"},
+			{TypeID: 222, Name: "Antimatter Charge M", GroupName: "Hybrid Charge"},
+			{TypeID: 12789, Name: "Void M", GroupName: "Advanced Blaster Charge"},
+			{TypeID: 12791, Name: "Null M", GroupName: "Advanced Blaster Charge"},
+			{TypeID: 192, Name: "EMP M", GroupName: "Projectile Ammo"},
+			{TypeID: 193, Name: "Phased Plasma M", GroupName: "Projectile Ammo"},
+			{TypeID: 194, Name: "Fusion M", GroupName: "Projectile Ammo"},
+			{TypeID: 12779, Name: "Barrage M", GroupName: "Advanced Autocannon Ammo"},
+		},
 	}
 	list := curated[strings.ToLower(strings.TrimSpace(slotKind))]
 	if len(list) == 0 {
