@@ -1,0 +1,94 @@
+package web
+
+import (
+	"aura-forge/internal/i18n"
+	"aura-forge/internal/service"
+)
+
+// TacticalLayout renders the dedicated fullscreen EVE-inspired Orbital Tactical Studio (/tactical)
+// completely decoupled from the Aura Forge sidebar so 100% of the viewport becomes an interactive fitting cockpit.
+templ TacticalLayout(title string, mode service.ModeInfo) {
+	<!DOCTYPE html>
+	<html lang={ i18n.FromContext(ctx) } data-af-tz={ i18n.TZFromContext(ctx) }>
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<meta name="theme-color" content="#0d1021"/>
+			<link rel="icon" type="image/svg+xml" href="/static/favicon.svg"/>
+			<title>{ title } — Aura Tactical // EVE Ship Fitting &amp; Combat Studio</title>
+			<style>
+				html, body {
+					background-color: #0b0d1a;
+					background-image: radial-gradient(circle at 50% 35%, #191836 0%, #0d1021 55%, #070913 100%);
+					background-attachment: fixed;
+					color: #f1f5f9;
+					margin: 0;
+				}
+				[x-cloak] { display: none !important; }
+				.tac-slot-active {
+					box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.72), 0 0 7px rgba(34, 197, 94, 0.22);
+				}
+				.tac-slot-overheated {
+					box-shadow: 0 0 0 1px rgba(251, 113, 133, 0.88), 0 0 9px rgba(244, 63, 94, 0.36);
+				}
+				.tac-slot-offline {
+					opacity: 0.45;
+					filter: grayscale(0.75);
+				}
+				.tac-slot-drop {
+					box-shadow: 0 0 0 1.5px rgba(251, 191, 36, 0.92), 0 0 12px rgba(251, 191, 36, 0.45);
+				}
+				.tac-wheel-ring {
+					background: radial-gradient(circle, rgba(15, 23, 42, 0.85) 56%, rgba(30, 27, 75, 0.55) 76%, rgba(11, 13, 26, 0.92) 100%);
+				}
+				.tac-shell { max-width: 1680px; width: 100%; margin-left: auto; margin-right: auto; }
+				.tac-cockpit-grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
+				@media (min-width: 1024px) {
+					.tac-cockpit-grid { grid-template-columns: 310px minmax(0, 1fr) 345px; align-items: start; }
+					.tac-left-wing { max-height: calc(100vh - 78px); }
+				}
+				.tac-wheel-row { position: relative; display: flex; align-items: center; justify-content: center; width: 100%; }
+				.tac-wheel-stage { position: relative; width: 100%; max-width: 540px; aspect-ratio: 1 / 1; margin-left: auto; margin-right: auto; }
+				.tac-unfit-rail { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); z-index: 30; display: flex; flex-direction: column; align-items: stretch; gap: 0.35rem; }
+				.tac-hologram-core { width: 68.2%; height: 68.2%; }
+				.tac-radial-socket { width: 8.0%; height: 8.0%; }
+				.tac-cap-grid { display: grid; grid-template-columns: 104px 1fr; align-items: center; gap: 0.75rem; }
+				.tac-resist-grid { display: grid; grid-template-columns: 56px repeat(4, minmax(0, 1fr)); gap: 0.25rem; }
+				.tac-radar-box { position: relative; width: 100%; height: 420px; }
+			</style>
+			<script>
+				(function () {
+					var saved = localStorage.getItem('af-theme');
+					document.documentElement.classList.toggle('dark', saved === 'dark');
+				})();
+			</script>
+			<link rel="stylesheet" href={ StaticAssetURL("/static/tailwind.css") }/>
+			<link rel="stylesheet" href={ StaticAssetURL("/static/app.css") }/>
+			<script src={ StaticAssetURL("/static/tactical_wheel.js") }></script>
+			<script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
+		</head>
+		<body class="min-h-screen antialiased selection:bg-violet-500/40 selection:text-white overflow-x-hidden">
+			<!-- Ambient Orbital Starfield Backdrop -->
+			<svg
+				class="pointer-events-none fixed inset-0 z-0 h-full w-full select-none opacity-80"
+				viewBox="0 0 1440 900"
+				preserveAspectRatio="xMidYMid slice"
+				fill="none"
+				xmlns="http://www.w3.org/2000/svg"
+				aria-hidden="true"
+			>
+				<circle cx="140" cy="180" r="1.4" fill="#fde68a" opacity="0.65"></circle>
+				<circle cx="420" cy="95" r="1.2" fill="#e9d5ff" opacity="0.55"></circle>
+				<circle cx="960" cy="140" r="1.5" fill="#fde68a" opacity="0.60"></circle>
+				<circle cx="1290" cy="240" r="1.3" fill="#38bdf8" opacity="0.55"></circle>
+				<circle cx="220" cy="740" r="1.2" fill="#c4b5fd" opacity="0.50"></circle>
+				<circle cx="1180" cy="760" r="1.5" fill="#fde68a" opacity="0.55"></circle>
+				<circle cx="720" cy="450" r="360" stroke="rgba(167,139,250,0.08)" stroke-width="1"></circle>
+				<circle cx="720" cy="450" r="460" stroke="rgba(251,191,36,0.06)" stroke-width="1" stroke-dasharray="6 10"></circle>
+			</svg>
+			<div class="relative z-10 min-h-screen flex flex-col">
+				{ children... }
+			</div>
+		</body>
+	</html>
+}

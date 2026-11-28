@@ -54,6 +54,45 @@ func (c *CharacterSyncClient) SyncWallet(ctx context.Context, token *domain.EVET
 	return domain.RoundISK(balance), nil
 }
 
+type esiCharSkillsResp struct {
+	Skills []struct {
+		SkillID            int32 `json:"skill_id"`
+		ActiveSkillLevel   int   `json:"active_skill_level"`
+		TrainedSkillLevel  int   `json:"trained_skill_level"`
+	} `json:"skills"`
+	TotalSP int64 `json:"total_sp"`
+}
+
+// SyncSkills fetches the authenticated character's trained EVE skills (cached in esi_cache).
+func (c *CharacterSyncClient) SyncSkills(ctx context.Context, token *domain.EVEToken) (map[int32]int, int64, error) {
+	validTok, err := c.requireValidToken(ctx, token)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	path := fmt.Sprintf("/characters/%d/skills/?datasource=tranquility", validTok.CharacterID)
+	body, err := c.esiClient.DoGet(ctx, path, validTok.AccessToken, true)
+	if err != nil {
+		return nil, 0, fmt.Errorf("syncing character skills: %w", err)
+	}
+
+	var resp esiCharSkillsResp
+	if err := json.Unmarshal(body, &resp); err != nil {
+		return nil, 0, fmt.Errorf("decoding character skills: %w", err)
+	}
+	skills := make(map[int32]int, len(resp.Skills))
+	for _, sk := range resp.Skills {
+		lvl := sk.ActiveSkillLevel
+		if lvl <= 0 {
+			lvl = sk.TrainedSkillLevel
+		}
+		if sk.SkillID > 0 && lvl > 0 {
+			skills[sk.SkillID] = lvl
+		}
+	}
+	return skills, resp.TotalSP, nil
+}
+
 type esiCharOrder struct {
 	OrderID      int64   `json:"order_id"`
 	TypeID       int32   `json:"type_id"`

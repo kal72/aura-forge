@@ -29,6 +29,7 @@ var DefaultSSOScopes = []string{
 	"esi-corporations.read_blueprints.v1",
 	"esi-assets.read_assets.v1",
 	"esi-planets.manage_planets.v1",
+	"esi-skills.read_skills.v1",
 }
 
 // SSOClient handles optional EVE Online OAuth2 SSO login and token refresh.

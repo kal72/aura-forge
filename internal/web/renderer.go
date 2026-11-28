@@ -223,3 +223,18 @@ func (tr *TemplRenderer) RenderPISalesCalcPartial(w http.ResponseWriter, r *http
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	return PISalesCalcPartial(res, unmatched, errMsg).Render(r.Context(), w)
 }
+
+func (tr *TemplRenderer) RenderTactical(w http.ResponseWriter, r *http.Request, data *service.TacticalViewData) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return TacticalPage(data).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderDashboardDailyStrip(w http.ResponseWriter, r *http.Request, strip *domain.DashboardDailyStrip) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return DashboardDailyStripPartial(strip).Render(r.Context(), w)
+}
+
+func (tr *TemplRenderer) RenderAIWeeklyPlanDraft(w http.ResponseWriter, r *http.Request, draft *domain.AIWeeklyPlanDraft, errMsg string) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	return AIWeeklyPlanDraftPartial(draft, errMsg).Render(r.Context(), w)
+}

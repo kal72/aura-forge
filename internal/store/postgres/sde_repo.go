@@ -819,3 +819,117 @@ func (r *SDERepo) GetTypeTraits(ctx context.Context, typeID int32) (*domain.Item
 	}
 	return &tr, nil
 }
+
+// SearchTacticalShips returns local SDE ship hulls filtered by hull class and search query (0 ESI calls).
+func (r *SDERepo) SearchTacticalShips(ctx context.Context, hullClass, query string, limit int) ([]domain.SDEType, error) {
+	if limit <= 0 || limit > 80 {
+		limit = 36
+	}
+	hullClass = strings.ToLower(strings.TrimSpace(hullClass))
+	query = strings.TrimSpace(query)
+
+	classClause := "TRUE"
+	switch hullClass {
+	case "frigate":
+		classClause = "(LOWER(group_name) LIKE '%frigate%' OR LOWER(group_name) LIKE '%interceptor%' OR LOWER(group_name) LIKE '%covert ops%' OR LOWER(group_name) LIKE '%bomber%')"
+	case "destroyer":
+		classClause = "(LOWER(group_name) LIKE '%destroyer%' OR LOWER(group_name) LIKE '%interdictor%')"
+	case "cruiser":
+		classClause = "(LOWER(group_name) LIKE '%cruiser%' OR LOWER(group_name) LIKE '%logistics%' OR LOWER(group_name) LIKE '%recon%')"
+	case "battlecruiser":
+		classClause = "(LOWER(group_name) LIKE '%battlecruiser%' OR LOWER(group_name) LIKE '%command ship%')"
+	case "battleship":
+		classClause = "(LOWER(group_name) LIKE '%battleship%' OR LOWER(group_name) LIKE '%marauder%' OR LOWER(group_name) LIKE '%black ops%')"
+	case "hauler":
+		classClause = "(LOWER(group_name) LIKE '%hauler%' OR LOWER(group_name) LIKE '%industrial%' OR LOWER(group_name) LIKE '%transport%' OR LOWER(group_name) LIKE '%freighter%' OR LOWER(group_name) LIKE '%mining barge%' OR LOWER(group_name) LIKE '%exhumer%')"
+	}
+
+	sqlStr := fmt.Sprintf(`
+		SELECT type_id, name, group_name, category, volume_m3, portion_size
+		FROM sde_types
+		WHERE (LOWER(category) = 'ship' OR LOWER(group_name) IN ('frigate','destroyer','cruiser','combat battlecruiser','attack battlecruiser','battleship','hauler','mining barge','assault frigate','heavy assault cruiser','strategic cruiser','marauder','deep space transport','blockade runner'))
+		  AND LOWER(name) NOT LIKE '%%blueprint%%'
+		  AND LOWER(name) NOT LIKE '%%skin%%'
+		  AND %s
+		  AND ($1 = '' OR LOWER(name) LIKE '%%' || LOWER($1) || '%%' OR LOWER(group_name) LIKE '%%' || LOWER($1) || '%%')
+		ORDER BY
+			CASE WHEN $1 <> '' AND LOWER(name) = LOWER($1) THEN 0
+			     WHEN $1 <> '' AND LOWER(name) LIKE LOWER($1) || '%%' THEN 1
+			     ELSE 2 END ASC,
+			LENGTH(name) ASC,
+			name ASC
+		LIMIT $2
+	`, classClause)
+
+	rows, err := r.pool.Query(ctx, sqlStr, query, limit)
+	if err != nil {
+		return nil, fmt.Errorf("searching tactical ships: %w", err)
+	}
+	defer rows.Close()
+
+	out := make([]domain.SDEType, 0, limit)
+	for rows.Next() {
+		var t domain.SDEType
+		if err := rows.Scan(&t.TypeID, &t.Name, &t.GroupName, &t.Category, &t.VolumeM3, &t.PortionSize); err != nil {
+			return nil, err
+		}
+		out = append(out, t)
+	}
+	return out, rows.Err()
+}
+
+// SearchTacticalModules searches local sde_types for modules, rigs, drones, or charges (0 ESI calls).
+func (r *SDERepo) SearchTacticalModules(ctx context.Context, slotKind, query string, limit int) ([]domain.SDEType, error) {
+	if limit <= 0 || limit > 80 {
+		limit = 30
+	}
+	slotKind = strings.ToLower(strings.TrimSpace(slotKind))
+	query = strings.TrimSpace(query)
+
+	filterClause := "LOWER(name) NOT LIKE '%blueprint%' AND LOWER(name) NOT LIKE '%skin%' AND LOWER(category) <> 'ship'"
+	switch slotKind {
+	case "rig":
+		filterClause += " AND (LOWER(group_name) LIKE '%rig%' OR LOWER(name) LIKE '%small %' OR LOWER(name) LIKE '%medium %' OR LOWER(name) LIKE '%large %') AND LOWER(group_name) LIKE '%rig%'"
+	case "drone":
+		filterClause += " AND (LOWER(category) = 'drone' OR LOWER(group_name) LIKE '%drone%')"
+	case "charge":
+		filterClause += " AND (LOWER(category) = 'charge' OR LOWER(group_name) LIKE '%missile%' OR LOWER(group_name) LIKE '%rocket%' OR LOWER(group_name) LIKE '%torpedo%' OR LOWER(group_name) LIKE '%charge%' OR LOWER(group_name) LIKE '%crystal%' OR LOWER(group_name) LIKE '%projectile%' OR LOWER(group_name) LIKE '%hybrid%')"
+	case "high":
+		filterClause += " AND (LOWER(group_name) LIKE '%turret%' OR LOWER(group_name) LIKE '%launcher%' OR LOWER(group_name) LIKE '%weapon%' OR LOWER(group_name) LIKE '%laser%' OR LOWER(group_name) LIKE '%railgun%' OR LOWER(group_name) LIKE '%blaster%' OR LOWER(group_name) LIKE '%projectile%' OR LOWER(group_name) LIKE '%neut%' OR LOWER(group_name) LIKE '%nosferatu%' OR LOWER(group_name) LIKE '%cloak%' OR LOWER(group_name) LIKE '%probe%' OR LOWER(group_name) LIKE '%tractor%' OR LOWER(group_name) LIKE '%salvager%' OR LOWER(group_name) LIKE '%mining%' OR LOWER(group_name) LIKE '%remote%')"
+	case "mid":
+		filterClause += " AND (LOWER(group_name) LIKE '%shield%' OR LOWER(group_name) LIKE '%propulsion%' OR LOWER(group_name) LIKE '%afterburner%' OR LOWER(group_name) LIKE '%microwarp%' OR LOWER(group_name) LIKE '%capacitor%' OR LOWER(group_name) LIKE '%battery%' OR LOWER(group_name) LIKE '%recharger%' OR LOWER(group_name) LIKE '%webifier%' OR LOWER(group_name) LIKE '%scrambler%' OR LOWER(group_name) LIKE '%disruptor%' OR LOWER(group_name) LIKE '%tracking computer%' OR LOWER(group_name) LIKE '%sensor%' OR LOWER(group_name) LIKE '%ecm%' OR LOWER(group_name) LIKE '%painter%' OR LOWER(group_name) LIKE '%analyzer%' OR LOWER(group_name) LIKE '%cargo scanner%')"
+	case "low":
+		filterClause += " AND (LOWER(group_name) LIKE '%armor%' OR LOWER(group_name) LIKE '%damage control%' OR LOWER(group_name) LIKE '%gyrostabilizer%' OR LOWER(group_name) LIKE '%heat sink%' OR LOWER(group_name) LIKE '%magnetic field%' OR LOWER(group_name) LIKE '%ballistic control%' OR LOWER(group_name) LIKE '%drone damage%' OR LOWER(group_name) LIKE '%nanofiber%' OR LOWER(group_name) LIKE '%inertial%' OR LOWER(group_name) LIKE '%overdrive%' OR LOWER(group_name) LIKE '%expanded cargo%' OR LOWER(group_name) LIKE '%co-processor%' OR LOWER(group_name) LIKE '%reactor control%' OR LOWER(group_name) LIKE '%power diagnostic%' OR LOWER(group_name) LIKE '%capacitor power%' OR LOWER(group_name) LIKE '%capacitor flux%' OR LOWER(group_name) LIKE '%tracking enhancer%')"
+	}
+
+	sqlStr := fmt.Sprintf(`
+		SELECT type_id, name, group_name, category, volume_m3, portion_size
+		FROM sde_types
+		WHERE %s
+		  AND ($1 = '' OR LOWER(name) LIKE '%%' || LOWER($1) || '%%' OR LOWER(group_name) LIKE '%%' || LOWER($1) || '%%')
+		ORDER BY
+			CASE WHEN $1 <> '' AND LOWER(name) = LOWER($1) THEN 0
+			     WHEN $1 <> '' AND LOWER(name) LIKE LOWER($1) || '%%' THEN 1
+			     ELSE 2 END ASC,
+			CASE WHEN LOWER(name) LIKE '%% ii' THEN 0 ELSE 1 END ASC,
+			LENGTH(name) ASC,
+			name ASC
+		LIMIT $2
+	`, filterClause)
+
+	rows, err := r.pool.Query(ctx, sqlStr, query, limit)
+	if err != nil {
+		return nil, fmt.Errorf("searching tactical modules: %w", err)
+	}
+	defer rows.Close()
+
+	out := make([]domain.SDEType, 0, limit)
+	for rows.Next() {
+		var t domain.SDEType
+		if err := rows.Scan(&t.TypeID, &t.Name, &t.GroupName, &t.Category, &t.VolumeM3, &t.PortionSize); err != nil {
+			return nil, err
+		}
+		out = append(out, t)
+	}
+	return out, rows.Err()
+}

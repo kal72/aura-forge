@@ -1,0 +1,212 @@
+package web
+
+import (
+	"fmt"
+
+	"aura-forge/internal/domain"
+)
+
+func dailyActionAccent(actionType string) (border, badge string) {
+	switch actionType {
+	case "CRAFT":
+		return "border-emerald-400/35 hover:border-emerald-400/70", "border-emerald-400/50 bg-emerald-500/20 text-emerald-200"
+	case "RELIST":
+		return "border-amber-400/35 hover:border-amber-400/70", "border-amber-400/50 bg-amber-500/20 text-amber-200"
+	case "AVOID":
+		return "border-rose-400/35 hover:border-rose-400/70", "border-rose-400/50 bg-rose-500/20 text-rose-200"
+	default:
+		return "border-sky-400/35 hover:border-sky-400/70", "border-sky-400/50 bg-sky-500/20 text-sky-200"
+	}
+}
+
+// DashboardDailyStripPartial renders the Embedded Background AI Top-3 Daily Action Strip on /.
+templ DashboardDailyStripPartial(strip *domain.DashboardDailyStrip) {
+	if strip != nil && len(strip.Cards) > 0 {
+		<div class="tactical-panel rounded-2xl p-4 space-y-3 border-violet-400/35">
+			<div class="flex flex-wrap items-center justify-between gap-2">
+				<div class="flex items-center gap-2">
+					<span class="h-2 w-2 rounded-full bg-amber-300 animate-pulse"></span>
+					<span class="text-xs font-bold uppercase tracking-wider text-white">Aura Daily Action Strip</span>
+					<span class="hidden sm:inline text-xs text-slate-300">— { strip.Headline }</span>
+				</div>
+				<span class="rounded-md border border-violet-400/35 bg-violet-500/15 px-2 py-0.5 font-mono text-[10px] uppercase text-violet-200">
+					{ strip.Source }
+				</span>
+			</div>
+			<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+				for _, card := range strip.Cards {
+					{{ cardBorder, badgeCls := dailyActionAccent(card.ActionType) }}
+					<div class={ "flex flex-col justify-between gap-2.5 rounded-xl border bg-slate-950/60 p-3.5 transition " + cardBorder }>
+						<div>
+							<div class="flex items-center justify-between gap-2 mb-1.5">
+								<span class={ "rounded border px-2 py-0.5 font-mono text-[10px] font-extrabold uppercase " + badgeCls }>
+									{ card.ActionType }
+								</span>
+								<span class="font-mono text-[10.5px] font-bold text-slate-200">
+									{ card.MetricBadge }
+								</span>
+							</div>
+							<div class="text-sm font-bold text-white leading-snug">{ card.Title }</div>
+							<p class="mt-1 text-[11.5px] text-slate-300 leading-relaxed">{ card.Reason }</p>
+						</div>
+						<a
+							href={ templ.SafeURL(card.ActionURL) }
+							class="inline-flex w-fit items-center gap-1 rounded-lg border border-white/15 bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-white/15 transition"
+						>
+							<span>{ card.ActionLabel }</span>
+							<span>→</span>
+						</a>
+					</div>
+				}
+			</div>
+		</div>
+	}
+}
+
+// MarketplaceVerdictStrip renders a compact inline Order Book Verdict banner inside /marketplace.
+templ MarketplaceVerdictStrip(snap *domain.MarketplaceSnapshot) {
+	{{ v := domain.EvaluateMarketplaceVerdict(snap) }}
+	if v != nil {
+		{{
+			wrapCls := "border-sky-400/40 bg-sky-500/10"
+			pillCls := "border-sky-400/60 bg-sky-500/25 text-sky-100"
+			barCls := "bg-sky-400"
+			switch v.Tone {
+			case "emerald":
+				wrapCls = "border-emerald-400/45 bg-emerald-500/10"
+				pillCls = "border-emerald-400/60 bg-emerald-500/25 text-emerald-100"
+				barCls = "bg-emerald-400"
+			case "amber":
+				wrapCls = "border-amber-400/45 bg-amber-500/10"
+				pillCls = "border-amber-400/60 bg-amber-500/25 text-amber-100"
+				barCls = "bg-amber-400"
+			case "rose":
+				wrapCls = "border-rose-400/50 bg-rose-500/15"
+				pillCls = "border-rose-400/65 bg-rose-500/25 text-rose-100"
+				barCls = "bg-rose-400"
+			}
+		}}
+		<div class={ "rounded-xl border px-4 py-3 flex flex-wrap items-center justify-between gap-3 " + wrapCls }>
+			<div class="space-y-1 min-w-0 flex-1">
+				<div class="flex flex-wrap items-center gap-2">
+					<span class={ "rounded-md border px-2 py-0.5 font-mono text-[10.5px] font-extrabold tracking-wider uppercase " + pillCls }>
+						{ v.Verdict }
+					</span>
+					<span class="text-xs font-bold text-white">{ v.Headline }</span>
+				</div>
+				<div class="flex flex-wrap gap-x-4 gap-y-0.5 text-[11px] text-slate-200/90">
+					for _, b := range v.Bullets {
+						<span>• { b }</span>
+					}
+				</div>
+			</div>
+			<div class="w-28 shrink-0">
+				<div class="flex justify-between font-mono text-[9.5px] text-slate-300 mb-1">
+					<span>CONFIDENCE</span>
+					<span>{ fmt.Sprintf("%d%%", v.ConfidenceScore) }</span>
+				</div>
+				<div class="h-1.5 w-full overflow-hidden rounded-full bg-slate-900/80">
+					<div class={ "h-full rounded-full " + barCls } style={ fmt.Sprintf("width:%d%%", v.ConfidenceScore) }></div>
+				</div>
+			</div>
+		</div>
+	}
+}
+
+// CompareBeginnerPickBanner renders the concise Beginner Pick winner strip when comparing 2-3 items.
+templ CompareBeginnerPickBanner(res *domain.ItemCompareResult) {
+	{{ pick := domain.EvaluateCompareBeginnerPick(res) }}
+	if pick != nil {
+		<div class="rounded-xl border border-amber-400/45 bg-gradient-to-r from-amber-500/15 via-violet-500/15 to-slate-950/70 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+			<div class="space-y-1 min-w-0 flex-1">
+				<div class="flex flex-wrap items-center gap-2">
+					<span class="rounded-md border border-amber-300/60 bg-amber-400/20 px-2 py-0.5 font-mono text-[10px] font-extrabold uppercase text-amber-200">
+						★ { pick.Badge }
+					</span>
+					<span class="text-sm font-bold text-white">{ pick.WinnerName }</span>
+				</div>
+				<div class="flex flex-wrap gap-x-4 gap-y-0.5 text-[11px] text-slate-200">
+					for _, r := range pick.Rationale {
+						<span>• { r }</span>
+					}
+				</div>
+			</div>
+		</div>
+	}
+}
+
+// AIWeeklyPlanDraftPartial renders the Embedded AI Auto-Built Weekly Manufacturing Plan inside /allocator.
+templ AIWeeklyPlanDraftPartial(draft *domain.AIWeeklyPlanDraft, errMsg string) {
+	if errMsg != "" {
+		<div class="rounded-xl border border-rose-500/45 bg-rose-950/40 px-4 py-3 text-xs text-rose-200">
+			{ errMsg }
+		</div>
+	} else if draft != nil {
+		<div class="rounded-2xl border border-violet-400/40 bg-slate-950/75 p-4 space-y-3.5">
+			<div class="flex flex-wrap items-center justify-between gap-2">
+				<div>
+					<div class="flex items-center gap-2">
+						<span class="rounded border border-amber-400/50 bg-amber-500/20 px-2 py-0.5 font-mono text-[10px] font-extrabold uppercase text-amber-200">
+							{ draft.RiskProfile }
+						</span>
+						<h3 class="text-sm font-bold text-white">{ draft.Title }</h3>
+						<span class="rounded bg-violet-500/20 px-1.5 py-0.5 font-mono text-[9.5px] uppercase text-violet-200">
+							{ draft.Source }
+						</span>
+					</div>
+					<p class="mt-1 text-xs text-slate-300">{ draft.StrategySummary }</p>
+				</div>
+				<form hx-post="/allocator/to-plan" hx-swap="none">
+					<input type="hidden" name="title" value={ draft.Title }/>
+					<input type="hidden" name="week_number" value="1"/>
+					<input type="hidden" name="fast_cashflow_pct" value={ fmt.Sprintf("%.0f", draft.FastCashflowPct) }/>
+					<input type="hidden" name="mid_tier_pct" value={ fmt.Sprintf("%.0f", draft.MidTierPct) }/>
+					<input type="hidden" name="high_roi_pct" value={ fmt.Sprintf("%.0f", draft.HighROIPct) }/>
+					<input type="hidden" name="cash_buffer_pct" value={ fmt.Sprintf("%.0f", draft.CashBufferPct) }/>
+					<button
+						type="submit"
+						class="rounded-xl border border-emerald-400/60 bg-emerald-500/25 px-3.5 py-2 text-xs font-bold text-emerald-100 hover:bg-emerald-500/35 shadow-[0_0_14px_rgba(16,185,129,0.22)] transition cursor-pointer"
+					>
+						Save to Weekly Planner →
+					</button>
+				</form>
+			</div>
+
+			<!-- 4-Bucket Visual Split Bar -->
+			<div class="space-y-1">
+				<div class="flex h-2.5 w-full overflow-hidden rounded-full bg-slate-900">
+					<div class="bg-emerald-400" style={ fmt.Sprintf("width:%.0f%%", draft.FastCashflowPct) } title="Fast Cashflow"></div>
+					<div class="bg-sky-400" style={ fmt.Sprintf("width:%.0f%%", draft.MidTierPct) } title="Mid-Tier"></div>
+					<div class="bg-violet-400" style={ fmt.Sprintf("width:%.0f%%", draft.HighROIPct) } title="High ROI"></div>
+					<div class="bg-amber-400" style={ fmt.Sprintf("width:%.0f%%", draft.CashBufferPct) } title="Cash Buffer"></div>
+				</div>
+				<div class="flex flex-wrap justify-between gap-2 font-mono text-[10px] text-slate-300">
+					<span>Allocated: <strong class="text-white">{ FormatISK(draft.TotalAllocatedISK) }</strong></span>
+					<span>Cash Buffer: <strong class="text-amber-300">{ FormatISK(draft.CashBufferISK) }</strong></span>
+					<span>Est. Weekly Net Profit: <strong class="text-emerald-300">+{ FormatISK(draft.EstimatedNetProfit) }</strong></span>
+				</div>
+			</div>
+
+			<!-- Diversified Production Lines -->
+			<div class="grid grid-cols-1 gap-2 md:grid-cols-2">
+				for _, it := range draft.Items {
+					<div class="flex items-center justify-between gap-2 rounded-xl border border-slate-700/70 bg-slate-900/75 px-3 py-2">
+						<div class="min-w-0">
+							<div class="flex items-center gap-1.5">
+								<span class="truncate text-xs font-bold text-white">{ it.Name }</span>
+								<span class="shrink-0 rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[9.5px] text-sky-300">
+									{ fmt.Sprintf("%d runs", it.Runs) }
+								</span>
+							</div>
+							<div class="truncate text-[10.5px] text-slate-400">{ it.Rationale }</div>
+						</div>
+						<div class="text-right font-mono shrink-0">
+							<div class="text-xs font-bold text-emerald-300">+{ FormatISK(it.EstimatedProfit) }</div>
+							<div class="text-[10px] text-slate-400">{ fmt.Sprintf("%.1f%% margin", it.MarginPercent) }</div>
+						</div>
+					</div>
+				}
+			</div>
+		</div>
+	}
+}

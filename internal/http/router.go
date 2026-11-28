@@ -69,6 +69,25 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 		// Built-in EVE Online Wiki & UI Color Guide (accessible via Topbar)
 		r.Get("/wiki", h.HandleWikiPage)
 
+		// Aura Tactical — Fullscreen Ship Fitting & Combat Studio (decoupled from Aura Forge sidebar)
+		r.Route("/tactical", func(r chi.Router) {
+			r.Get("/", h.HandleTacticalPage)
+			r.Get("/api/ships", h.HandleTacticalShips)
+			r.Get("/api/modules", h.HandleTacticalModules)
+			r.Get("/api/item-info", h.HandleTacticalItemInfo)
+			r.Post("/api/simulate", h.HandleTacticalSimulate)
+			r.Post("/api/import-eft", h.HandleTacticalImportEFT)
+			r.Get("/api/fittings", h.HandleTacticalListFittings)
+			r.Post("/api/fittings", h.HandleTacticalSaveFitting)
+			r.Delete("/api/fittings/{id}", h.HandleTacticalDeleteFitting)
+			r.Post("/api/duel", h.HandleTacticalDuel)
+			r.Post("/api/ai-audit", h.HandleTacticalAIAudit)
+			r.Post("/api/dscan", h.HandleTacticalDScan)
+			r.Post("/api/combat-log", h.HandleTacticalCombatLog)
+			r.Post("/api/fly-today", h.HandleTacticalFlyToday)
+			r.Post("/api/compare-fits", h.HandleTacticalCompareFits)
+		})
+
 		// Dedicated EVE Online Pilot Hub (accessible via Topbar Account Chip when EVE SSO is connected)
 		r.Route("/pilot", func(r chi.Router) {
 			r.Get("/", h.HandlePilotHub)
@@ -103,6 +122,9 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 		// Background Top-Opportunities Radar (Dashboard auto-sweep >40 blueprints)
 		r.Get("/radar/top", h.HandleDashboardRadar)
 		r.Post("/radar/refresh", h.HandleTriggerRadarRefresh)
+
+		// Embedded Background AI Native UI Strips (non-blocking HTMX hydration)
+		r.Get("/ai/embedded/daily-strip", h.HandleEmbeddedDailyStrip)
 
 		// Public ESI actions (lookup & market pulse for all; sync/undercuts for admin only)
 		r.Route("/esi", func(r chi.Router) {
@@ -178,6 +200,7 @@ func NewRouterWithAuth(svc *service.CopilotService, authSvc *service.AuthService
 			r.Route("/allocator", func(r chi.Router) {
 				r.Get("/", h.HandleAllocator)
 				r.Post("/run", h.HandleAllocatorRun)
+				r.Post("/ai-plan", h.HandleAllocatorAIPlan)
 				r.Post("/to-plan", h.HandleAllocatorToPlan)
 				r.Post("/to-batches", h.HandleAllocatorToBatches)
 			})
